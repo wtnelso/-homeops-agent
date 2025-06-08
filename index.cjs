@@ -53,6 +53,7 @@ Respond with empathy, humor, and insight. Always suggest scripts to help reduce 
     });
 
     const data = await openaiRes.json();
+    console.log("🔍 OpenAI raw response:", JSON.stringify(data, null, 2));
     const reply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
     const tags = ["mental load", "resentment"]; // Placeholder
 
