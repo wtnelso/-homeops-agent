@@ -71,7 +71,7 @@ Respond with empathy, humor, and insight. Always suggest scripts to help reduce 
   }
 });
 
-// ✅ Messages fetch route for dashboard
+// ✅ Messages fetch route for dashboard — with detailed error logging
 app.get("/api/messages", async (req, res) => {
   const { user_id } = req.query;
 
@@ -86,11 +86,8 @@ app.get("/api/messages", async (req, res) => {
     const data = snapshot.docs.map(doc => doc.data());
     res.json(data);
   } catch (error) {
-    console.error("🔥 Failed to fetch messages:", error);
-    res.status(500).json({ error: "Failed to fetch messages" });
-  }
-});
+    console.error("🔥 Failed to fetch messages:");
+    console.error("Message:", error.message);
+    console.error("Stack:", error.stack);
+    res.status(500).json({ error: "Failed
 
-app.listen(port, () => {
-  console.log(`✅ Server listening on port ${port}`);
-});
