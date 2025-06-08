@@ -7,9 +7,28 @@ async function fetchMessages() {
 }
 
 function renderWidgets(messages) {
-  const flagged = messages.filter(msg => msg.tags.includes("mental load") || msg.tags.includes("resentment"));
-  const loadScore = Math.min(100, flagged.length * 10); // basic logic
-  const recent = messages.slice(0, 3);
+  const cleaned = messages.map(msg => {
+    let tags = msg.tags;
+
+    if (typeof tags === "string") {
+      try {
+        tags = JSON.parse(tags);
+      } catch {
+        tags = [];
+      }
+    }
+
+    if (!Array.isArray(tags)) tags = [];
+
+    return { ...msg, tags };
+  });
+
+  const flagged = cleaned.filter(msg =>
+    msg.tags.includes("mental load") || msg.tags.includes("resentment")
+  );
+
+  const loadScore = Math.min(100, flagged.length * 10);
+  const recent = cleaned.slice(0, 3);
 
   document.querySelector("#mental-load").innerHTML = `
     ${flagged.length} flagged items<br>
@@ -22,16 +41,16 @@ function renderWidgets(messages) {
     ${loadScore > 70 ? "⚠️ You're running hot. Consider a reset." : "✅ You’re pacing well."}
   `;
 
-  document.querySelector("#emotional-themes").innerHTML = messages
-    .flatMap(msg => msg.tags.map(tag => `• ${tag}`))
+  // ✅ Now safe from undefined msg.tags
+  document.querySelector("#emotional-themes").innerHTML = cleaned
+    .flatMap(msg => (Array.isArray(msg.tags) ? msg.tags.map(tag => `• ${tag}`) : []))
     .slice(0, 5)
     .join("<br>");
 
-  document.querySelector("#timeline").innerHTML = messages
+  document.querySelector("#timeline").innerHTML = cleaned
     .slice(0, 5)
     .map(msg => `<strong>${new Date(msg.timestamp._seconds * 1000).toLocaleDateString()}:</strong> ${msg.message}`)
     .join("<br>");
 }
 
 fetchMessages();
-
