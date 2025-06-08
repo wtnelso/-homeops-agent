@@ -1,6 +1,11 @@
 // Show witty intro message on load
-window.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   const chatBox = document.getElementById("chat-box");
+  if (!chatBox) {
+    console.error("❌ chat-box not found");
+    return;
+  }
+
   const intro = document.createElement("div");
   intro.className = "agent message";
   intro.innerHTML = `<span class="sender">HomeOps:</span> Hi. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?`;
