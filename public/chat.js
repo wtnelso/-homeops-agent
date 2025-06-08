@@ -1,17 +1,30 @@
-function appendMessage(sender, text, type) {
-  const chatBox = document.getElementById("chat-box");
-  if (!chatBox) return;
+console.log("✅ chat.js is executing");
 
-  const msg = document.createElement("div");
-  msg.className = `${type} message`;
-  msg.innerHTML = `<span class="sender">${sender}:</span> ${text}`;
-  chatBox.appendChild(msg);
-  chatBox.scrollTop = chatBox.scrollHeight;
+function waitForChatBoxAndShowWelcome() {
+  const chatBox = document.getElementById("chat-box");
+  const chatView = document.getElementById("view-chat");
+
+  // Wait until both are available and visible
+  if (chatBox && chatView && chatView.classList.contains("active")) {
+    const alreadyExists = document.querySelector(".agent.message.intro");
+    if (!alreadyExists) {
+      const intro = document.createElement("div");
+      intro.className = "agent message intro";
+      intro.innerHTML = `<span class="sender">HomeOps:</span> Hi. I'm HomeOps, your personal chief of staff. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?`;
+      chatBox.appendChild(intro);
+    }
+    return true;
+  }
+  return false;
 }
 
-function showWelcomeMessage() {
-  const alreadyExists = document.querySelector(".agent.message.intro");
-  if (alreadyExists) return;
+document.addEventListener("DOMContentLoaded", () => {
+  const tryWelcome = setInterval(() => {
+    if (waitForChatBoxAndShowWelcome()) {
+      clearInterval(tryWelcome);
+    }
+  }, 100);
+});
 
   appendMessage(
     "HomeOps",
