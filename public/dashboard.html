@@ -13,18 +13,20 @@
     .dashboard {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      padding: 20px;
+      gap: 20px;
+      padding: 24px;
+      max-width: 900px;
+      margin: 0 auto;
     }
 
     .widget {
       background: white;
       border-radius: 24px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
       padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
 
     .widget-title {
@@ -36,27 +38,86 @@
     .widget-content {
       font-size: 15px;
       color: #3a3a3c;
+      line-height: 1.5;
     }
 
     .top-widgets {
       display: flex;
-      gap: 16px;
+      gap: 20px;
       flex-wrap: wrap;
     }
 
     .widget.small {
-      width: 48%;
+      width: calc(50% - 10px);
     }
 
     .widget.large {
       width: 100%;
     }
+
+    @media (max-width: 700px) {
+      .widget.small {
+        width: 100%;
+      }
+    }
+
+    .load-score {
+      font-size: 24px;
+      font-weight: bold;
+      color: #d62828;
+    }
+
+    .load-score.good { color: #2ecc71; }
+    .load-score.medium { color: #f39c12; }
+    .load-score.high { color: #d62828; }
   </style>
 </head>
 <body>
   <div class="dashboard">
+
     <div class="top-widgets">
       <div class="widget small">
         <div class="widget-title">🧠 Mental Load</div>
         <div class="widget-content">
-          3 fla
+          3 flagged items<br>
+          2 unresolved scripts<br>
+          ⚠️ High Load Today
+        </div>
+      </div>
+      <div class="widget small">
+        <div class="widget-title">📅 Today’s Top 3</div>
+        <div class="widget-content">
+          • Ellie’s field trip<br>
+          • Grocery restock<br>
+          • Couples check-in
+        </div>
+      </div>
+    </div>
+
+    <div class="widget large">
+      <div class="widget-title">📈 Weekly Load Score</div>
+      <div class="widget-content">
+        Your score this week: <span class="load-score high">82 / 100</span><br>
+        ⚠️ You're running hot. Consider a 15-min reset or scripting a boundary.
+      </div>
+    </div>
+
+    <div class="widget large">
+      <div class="widget-title">💬 Emotional Themes</div>
+      <div class="widget-content">
+        • “Passive aggression” flagged in 2 chats<br>
+        • Suggested script: “Hey, I need help not hints.”<br>
+        • Joy spike: Lucy’s dance class 🩰
+      </div>
+    </div>
+
+    <div class="widget large">
+      <div class="widget-title">📓 Timeline</div>
+      <div class="widget-content">
+        <strong>Today:</strong> Grocery reminder, field trip form due, tone-check queued<br>
+        <strong>Yesterday:</strong> Argument flag, emotional reset sent
+      </div>
+    </div>
+  </div>
+</body>
+</html>
