@@ -41,4 +41,56 @@ app.post("/chat", async (req, res) => {
             role: "system",
             content: `
 You are HomeOps: an emotionally intelligent household assistant. 
-Respond with empathy, humor, and insight. Always suggest scripts to help
+Respond with empathy, humor, and insight. Always suggest scripts to help reduce mental load.
+            `,
+          },
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+      }),
+    });
+
+    const data = await openaiRes.json();
+    const reply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
+    const tags = ["mental load", "resentment"]; // Placeholder
+
+    await db.collection("messages").add({
+      user_id,
+      message,
+      reply,
+      tags,
+      timestamp: new Date(),
+    });
+
+    res.json({ reply });
+  } catch (err) {
+    console.error("❌ Error in /chat route:", err.message, err.stack);
+    res.status(500).json({ error: "Something went wrong." });
+  }
+});
+
+// ✅ Messages fetch route with better logging
+app.get("/api/messages", async (req, res) => {
+  const { user_id } = req.query;
+
+  try {
+    const snapshot = await db
+      .collection("messages")
+      .where("user_id", "==", user_id)
+      .orderBy("timestamp", "desc")
+      .limit(25)
+      .get();
+
+    const data = snapshot.docs.map(doc => doc.data());
+    res.json(data);
+  } catch (error) {
+    console.error("🔥 Failed to fetch messages:", error.message, error.stack);
+    res.status(500).json({ error: "Failed to fetch messages" });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`✅ Server listening on port ${port}`);
+});
