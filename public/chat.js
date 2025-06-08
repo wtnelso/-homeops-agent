@@ -1,5 +1,4 @@
-// Show witty intro message on load
-document.addEventListener("DOMContentLoaded", () => {
+function showWelcomeMessage() {
   const chatBox = document.getElementById("chat-box");
   if (!chatBox) {
     console.error("❌ chat-box not found");
@@ -8,8 +7,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const intro = document.createElement("div");
   intro.className = "agent message";
-  intro.innerHTML = `<span class="sender">HomeOps:</span> Hi. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?`;
+  intro.innerHTML = `<span class="sender">HomeOps:</span> Hi. I'm HomeOps, your persoanl chief of staff.I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?`;
   chatBox.appendChild(intro);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  showWelcomeMessage();
+
+  // Also show the welcome message if user toggles into the Chat view
+  const chatButton = document.querySelector('[data-view="chat"]');
+  if (chatButton) {
+    chatButton.addEventListener("click", () => {
+      setTimeout(() => {
+        const alreadyWelcomed = document.querySelector(".agent.message");
+        if (!alreadyWelcomed) showWelcomeMessage();
+      }, 100);
+    });
+  }
 });
 
 document.getElementById("chat-form").addEventListener("submit", async (e) => {
