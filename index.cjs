@@ -1,9 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
-import fetch from "node-fetch";
+const fetch = require("node-fetch"); // ✅ CommonJS compatible version
 
 dotenv.config();
+
 const app = express();
 const port = 3000;
 
@@ -16,7 +17,7 @@ app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body.message;
     console.log("🟡 Received:", userMessage);
-    console.log("📡 Sending request to OpenAI (manual fetch)...");
+    console.log("📡 Sending request to OpenAI...");
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -27,17 +28,23 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "You are a helpful assistant." },
-          { role: "user", content: userMessage }
+          {
+            role: "system",
+            content: "You are HomeOps — a hyper-intelligent, emotionally fluent household assistant designed to help modern families run their lives more efficiently, reduce mental load, and resolve real-life tension with humor and grace."
+          },
+          {
+            role: "user",
+            content: userMessage
+          }
         ],
-        max_tokens: 50,
+        max_tokens: 200,
         temperature: 0.7
       })
     });
 
     const data = await response.json();
 
-    if (!data.choices) {
+    if (!data.choices || !data.choices.length) {
       console.error("❌ Invalid OpenAI response:", data);
       return res.status(500).json({ reply: "OpenAI did not respond correctly." });
     }
