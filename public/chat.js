@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("chatForm");
 
   // Welcome message on load
-  appendMessage("HomeOps", "Hi. I'm HomeOps, your personal chief of staff. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?", "agent");
+  appendMessage("HomeOps", "Hi. I'm your personal chief of staff. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?", "agent");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
