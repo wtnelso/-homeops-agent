@@ -1,3 +1,12 @@
+// Show witty intro message on load
+window.addEventListener("DOMContentLoaded", () => {
+  const chatBox = document.getElementById("chat-box");
+  const intro = document.createElement("div");
+  intro.className = "agent message";
+  intro.innerHTML = `<span class="sender">HomeOps:</span> Hi. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?`;
+  chatBox.appendChild(intro);
+});
+
 document.getElementById("chat-form").addEventListener("submit", async (e) => {
   e.preventDefault();
 
