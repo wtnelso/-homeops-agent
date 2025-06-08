@@ -72,7 +72,7 @@ Respond with empathy, humor, and insight. Always suggest scripts to help reduce 
   }
 });
 
-// ✅ Messages fetch route with better logging
+// ✅ Messages fetch route
 app.get("/api/messages", async (req, res) => {
   const { user_id } = req.query;
 
@@ -90,6 +90,11 @@ app.get("/api/messages", async (req, res) => {
     console.error("🔥 Failed to fetch messages:", error.message, error.stack);
     res.status(500).json({ error: "Failed to fetch messages" });
   }
+});
+
+// ✅ Serve index.html for all other routes
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(port, () => {
