@@ -23,6 +23,7 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+// ✅ Chat route
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
@@ -41,7 +42,7 @@ app.post("/chat", async (req, res) => {
             content: `
 You are HomeOps: an emotionally intelligent household assistant. 
 Respond with empathy, humor, and insight. Always suggest scripts to help reduce mental load.
-            `
+            `,
           },
           {
             role: "user",
@@ -53,7 +54,7 @@ Respond with empathy, humor, and insight. Always suggest scripts to help reduce 
 
     const data = await openaiRes.json();
     const reply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
-    const tags = ["mental load", "resentment"]; // placeholder
+    const tags = ["mental load", "resentment"]; // Placeholder
 
     await db.collection("messages").add({
       user_id,
@@ -67,6 +68,26 @@ Respond with empathy, humor, and insight. Always suggest scripts to help reduce 
   } catch (err) {
     console.error("❌ Error in /chat route:", err);
     res.status(500).json({ error: "Something went wrong." });
+  }
+});
+
+// ✅ Messages fetch route for dashboard
+app.get("/api/messages", async (req, res) => {
+  const { user_id } = req.query;
+
+  try {
+    const snapshot = await db
+      .collection("messages")
+      .where("user_id", "==", user_id)
+      .orderBy("timestamp", "desc")
+      .limit(25)
+      .get();
+
+    const data = snapshot.docs.map(doc => doc.data());
+    res.json(data);
+  } catch (error) {
+    console.error("🔥 Failed to fetch messages:", error);
+    res.status(500).json({ error: "Failed to fetch messages" });
   }
 });
 
