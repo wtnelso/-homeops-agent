@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
-const fetch = require("node-fetch");
+import fetch from "node-fetch";
 
 dotenv.config();
 const app = express();
