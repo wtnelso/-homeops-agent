@@ -7,14 +7,33 @@ async function fetchMessages() {
 }
 
 function renderDashboard(messages) {
-  const flagged = messages.filter(msg => msg.tags.includes("mental load") || msg.tags.includes("resentment"));
+  const cleaned = messages.map(msg => {
+    let tags = msg.tags;
+
+    if (typeof tags === "string") {
+      try {
+        tags = JSON.parse(tags);
+      } catch {
+        tags = [];
+      }
+    }
+
+    if (!Array.isArray(tags)) tags = [];
+
+    return { ...msg, tags };
+  });
+
+  const flagged = cleaned.filter(msg =>
+    msg.tags.includes("mental load") || msg.tags.includes("resentment")
+  );
   const loadScore = Math.min(100, flagged.length * 10);
-  const recent = messages.slice(0, 5);
+  const recent = cleaned.slice(0, 5);
 
   document.getElementById("load-score").textContent = `${loadScore} / 100`;
 
   const themes = new Set();
-  messages.forEach(msg => msg.tags.forEach(tag => themes.add(tag)));
+  cleaned.forEach(msg => msg.tags.forEach(tag => themes.add(tag)));
+
   const themeList = document.getElementById("emotional-themes");
   themeList.innerHTML = "";
   Array.from(themes).slice(0, 5).forEach(tag => {
