@@ -4,7 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("chatForm");
 
   // Show welcome message on load
-  appendMessage("HomeOps", "Hi. I'm your personal chief of staff. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?", "agent");
+  appendMessage(
+    "HomeOps",
+    "Hi. I'm your personal chief of staff. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?",
+    "agent"
+  );
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -23,18 +27,20 @@ document.addEventListener("DOMContentLoaded", () => {
     chat.scrollTop = chat.scrollHeight;
 
     try {
+      // Simulate delay for visual confirmation
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       const res = await fetch("/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, user_id: "user_123" })
+        body: JSON.stringify({ message, user_id: "user_123" }),
       });
 
       const data = await res.json();
-
-      document.getElementById("typing")?.remove(); // Remove typing indicator
+      document.getElementById("typing")?.remove(); // remove typing
       appendMessage("HomeOps", data.reply || "🤖 No reply received.", "agent");
     } catch (error) {
-      document.getElementById("typing")?.remove(); // Remove typing indicator
+      document.getElementById("typing")?.remove(); // remove typing
       console.error("❌ Chat error:", error);
       appendMessage("Error", "Something went wrong talking to the assistant.", "agent");
     }
