@@ -99,6 +99,9 @@ body.dark {
 
 /* Chat */
 .chat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 1rem;
@@ -134,20 +137,7 @@ body.dark {
   cursor: pointer;
 }
 
-.message {
-  margin-bottom: 0.5rem;
-}
-
-.message.user .sender {
-  font-weight: bold;
-  color: #2563eb;
-}
-
-.message.agent .sender {
-  font-weight: bold;
-  color: #059669;
-}
-/* Improved Chat Message Styling */
+/* Chat Message Styling */
 .message {
   display: flex;
   flex-direction: column;
@@ -180,3 +170,4 @@ body.dark {
   margin-bottom: 0.25rem;
   opacity: 0.8;
 }
+
