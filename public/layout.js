@@ -1,37 +1,40 @@
 document.addEventListener("DOMContentLoaded", () => {
   const views = document.querySelectorAll(".view");
   const navButtons = document.querySelectorAll(".nav-item");
+  const toggleTheme = document.getElementById("toggleTheme");
 
-  // Set default view to chat
+  // Set default view
   const defaultView = "chat";
 
-  // Apply default active state on page load
-  views.forEach(view => {
-    view.classList.toggle("active", view.id === `${defaultView}-view`);
+  // Show only default view on load
+  views.forEach((view) => {
+    const isActive = view.id === `${defaultView}-view`;
+    view.classList.toggle("active", isActive);
   });
 
-  navButtons.forEach(btn => {
-    btn.classList.toggle("active", btn.getAttribute("data-view") === defaultView);
+  navButtons.forEach((btn) => {
+    const isActive = btn.getAttribute("data-view") === defaultView;
+    btn.classList.toggle("active", isActive);
   });
 
-  // Handle sidebar button clicks
-  navButtons.forEach(button => {
+  // Handle view switching
+  navButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const target = button.getAttribute("data-view");
 
-      // Toggle nav buttons
-      navButtons.forEach(btn => btn.classList.remove("active"));
+      // Highlight active nav item
+      navButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
 
-      // Toggle views
-      views.forEach(view => {
-        view.classList.toggle("active", view.id === `${target}-view`);
+      // Show correct view
+      views.forEach((view) => {
+        const match = view.id === `${target}-view`;
+        view.classList.toggle("active", match);
       });
     });
   });
 
-  // Theme toggle
-  const toggleTheme = document.getElementById("toggleTheme");
+  // Dark mode toggle
   if (toggleTheme) {
     toggleTheme.addEventListener("click", () => {
       document.body.classList.toggle("dark");
