@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const chat = document.getElementById("chat");
   const form = document.getElementById("chatForm");
 
-  // Welcome message on load
+  // Show welcome message
   appendMessage("HomeOps", "Hi. I'm your personal chief of staff. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?", "agent");
 
   form.addEventListener("submit", async (e) => {
@@ -24,15 +24,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       appendMessage("HomeOps", data.reply || "🤖 No reply received.", "agent");
     } catch (error) {
-      appendMessage("Error", "Something went wrong talking to the assistant.", "agent");
       console.error("❌ Chat error:", error);
+      appendMessage("Error", "Something went wrong talking to the assistant.", "agent");
     }
   });
 
   function appendMessage(sender, text, type) {
     const msg = document.createElement("div");
     msg.className = `message ${type}`;
-    msg.innerHTML = `<span class="sender">${sender}:</span> ${text}`;
+
+    const senderTag = document.createElement("span");
+    senderTag.className = "sender";
+    senderTag.textContent = sender;
+
+    const bubble = document.createElement("div");
+    bubble.className = "message-bubble";
+    bubble.textContent = text;
+
+    msg.appendChild(senderTag);
+    msg.appendChild(bubble);
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
   }
