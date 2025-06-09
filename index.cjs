@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const admin = require("firebase-admin");
 const path = require("path");
 
@@ -52,7 +52,7 @@ Respond with empathy, humor, and insight. Always suggest scripts to help reduce 
       }),
     });
 
-        const data = await openaiRes.json();
+    const data = await openaiRes.json();
     console.log("🔍 OpenAI raw response:", JSON.stringify(data, null, 2));
 
     let reply = "Sorry, I had a brain freeze.";
@@ -62,11 +62,6 @@ Respond with empathy, humor, and insight. Always suggest scripts to help reduce 
       console.error("❌ Invalid OpenAI response:", data);
     }
 
-if (data && Array.isArray(data.choices) && data.choices[0]?.message?.content) {
-  reply = data.choices[0].message.content;
-} else {
-  console.error("❌ Invalid OpenAI response:", data);
-}
     const tags = ["mental load", "resentment"]; // Placeholder
 
     await db.collection("messages").add({
@@ -101,6 +96,57 @@ app.get("/api/messages", async (req, res) => {
   } catch (error) {
     console.error("🔥 Failed to fetch messages:", error.message, error.stack);
     res.status(500).json({ error: "Failed to fetch messages" });
+  }
+});
+
+// ✅ Dashboard data route
+app.get("/api/dashboard", async (req, res) => {
+  const { user_id = "user_123" } = req.query;
+
+  try {
+    const snapshot = await db
+      .collection("messages")
+      .where("user_id", "==", user_id)
+      .orderBy("timestamp", "desc")
+      .limit(25)
+      .get();
+
+    const messages = snapshot.docs.map(doc => doc.data());
+
+    // Analyze messages
+    const themeCounts = {};
+    const taskList = [];
+
+    messages.forEach(({ message, reply }) => {
+      const text = `${message} ${reply}`.toLowerCase();
+
+      // Simple keyword detection
+      ["laundry", "school", "camp", "appointment", "groceries", "pickup"].forEach((keyword) => {
+        if (text.includes(keyword)) {
+          themeCounts[keyword] = (themeCounts[keyword] || 0) + 1;
+        }
+      });
+
+      // "This week" heuristics
+      if (/monday|tuesday|wednesday|thursday|friday/i.test(text)) {
+        taskList.push(text);
+      }
+    });
+
+    // Sort top recurring themes
+    const topThemes = Object.entries(themeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([word, count]) => `${word} (${count}x)`);
+
+    res.json({
+      tasksThisWeek: taskList.slice(0, 3),
+      topThemes,
+      totalTasks: messages.length,
+    });
+  } catch (error) {
+    console.error("🔥 Failed to generate dashboard:", error.message);
+    res.status(500).json({ error: "Failed to load dashboard" });
   }
 });
 
