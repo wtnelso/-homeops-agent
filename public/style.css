@@ -114,6 +114,44 @@ body.dark {
   z-index: 10;
 }
 
+.top-bar-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+/* Brand alignment */
+.brand-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  border: 2px solid black;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Center the chat view */
+#chat-view .chat-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* Chat Layout */
 .chat-box {
   display: flex;
@@ -250,10 +288,4 @@ body.dark {
   margin-bottom: 0.5rem;
   font-size: 0.95rem;
   line-height: 1.4;
-}
-.top-bar-inner {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 0 1rem;
-  width: 100%;
 }
