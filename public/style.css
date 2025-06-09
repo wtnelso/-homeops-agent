@@ -69,15 +69,6 @@ body.dark {
   background: #374151;
   border-radius: 8px;
 }
-
-#toggleTheme {
-  margin-top: auto;
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-}
-
 /* Main Content */
 .main-content {
   flex: 1;
