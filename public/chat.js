@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const chat = document.getElementById("chat");
   const form = document.getElementById("chatForm");
 
-  // Show welcome message
+  // Show welcome message on load
   appendMessage("HomeOps", "Hi. I'm your personal chief of staff. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?", "agent");
 
   form.addEventListener("submit", async (e) => {
@@ -14,6 +14,14 @@ document.addEventListener("DOMContentLoaded", () => {
     appendMessage("You", message, "user");
     input.value = "";
 
+    // Add typing indicator
+    const typing = document.createElement("div");
+    typing.className = "typing-indicator";
+    typing.id = "typing";
+    typing.textContent = "HomeOps is thinking...";
+    chat.appendChild(typing);
+    chat.scrollTop = chat.scrollHeight;
+
     try {
       const res = await fetch("/chat", {
         method: "POST",
@@ -22,8 +30,11 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await res.json();
+
+      document.getElementById("typing")?.remove(); // Remove typing indicator
       appendMessage("HomeOps", data.reply || "🤖 No reply received.", "agent");
     } catch (error) {
+      document.getElementById("typing")?.remove(); // Remove typing indicator
       console.error("❌ Chat error:", error);
       appendMessage("Error", "Something went wrong talking to the assistant.", "agent");
     }
