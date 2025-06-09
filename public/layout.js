@@ -3,38 +3,55 @@ document.addEventListener("DOMContentLoaded", () => {
   const navButtons = document.querySelectorAll(".nav-item");
   const toggleTheme = document.getElementById("toggleTheme");
 
+  function activateView(targetView) {
+    // Show only the selected view
+    views.forEach((view) => {
+      const viewName = view.id.replace("-view", "");
+      view.classList.toggle("active", viewName === targetView);
+    });
+
+    // Highlight the active nav button
+    navButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("data-view") === targetView);
+    });
+
+    // Load dashboard data if viewing dashboard
+    if (targetView === "dashboard") {
+      fetch("/api/dashboard?user_id=user_123")
+        .then(res => res.json())
+        .then(data => {
+          // Panel 1 — This Week
+          const taskHTML = data.tasksThisWeek.map(item => `<li>📌 ${item}</li>`).join("");
+          document.querySelector(".dashboard-card:nth-child(1) ul").innerHTML = taskHTML;
+
+          // Panel 2 — Mental Load
+          document.querySelector(".dashboard-card:nth-child(2) ul").innerHTML = `
+            <li>You're tracking ${data.totalTasks} tasks</li>
+            <li>(Data from recent messages)</li>
+          `;
+
+          // Panel 3 — Recurring Threads
+          const themeHTML = data.topThemes.map(t => `<li>🔁 ${t}</li>`).join("");
+          document.querySelector(".dashboard-card:nth-child(3) ul").innerHTML = themeHTML;
+        })
+        .catch((err) => {
+          console.error("Dashboard fetch error:", err);
+        });
+    }
+  }
+
   // Set default view
-  const defaultView = "chat";
+  activateView("chat");
 
-  // Show only default view on load
-  views.forEach((view) => {
-    const isActive = view.id === `${defaultView}-view`;
-    view.classList.toggle("active", isActive);
-  });
-
-  navButtons.forEach((btn) => {
-    const isActive = btn.getAttribute("data-view") === defaultView;
-    btn.classList.toggle("active", isActive);
-  });
-
-  // Handle view switching
+  // Handle sidebar clicks
   navButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const target = button.getAttribute("data-view");
-
-      // Highlight active nav item
-      navButtons.forEach((btn) => btn.classList.remove("active"));
-      button.classList.add("active");
-
-      // Show correct view
-      views.forEach((view) => {
-        const match = view.id === `${target}-view`;
-        view.classList.toggle("active", match);
-      });
+      activateView(target);
     });
   });
 
-  // Dark mode toggle
+  // Theme toggle
   if (toggleTheme) {
     toggleTheme.addEventListener("click", () => {
       document.body.classList.toggle("dark");
