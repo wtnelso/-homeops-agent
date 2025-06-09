@@ -183,3 +183,56 @@ body.dark {
   font-size: 1rem;
   cursor: pointer;
 }
+.typing-indicator {
+  font-size: 0.875rem;
+  color: #666;
+  font-style: italic;
+  margin-bottom: 1rem;
+  padding-left: 0.25rem;
+}
+.typing-indicator {
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+  opacity: 0.8;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+  max-width: 900px;
+}
+
+.dashboard-card {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.dashboard-card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dashboard-card li {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
