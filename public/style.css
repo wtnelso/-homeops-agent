@@ -97,7 +97,7 @@ body.dark {
   display: block;
 }
 
-/* Chat */
+/* Chat Layout */
 .chat-box {
   display: flex;
   flex-direction: column;
@@ -170,4 +170,3 @@ body.dark {
   margin-bottom: 0.25rem;
   opacity: 0.8;
 }
-
