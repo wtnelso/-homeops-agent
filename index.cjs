@@ -52,9 +52,21 @@ Respond with empathy, humor, and insight. Always suggest scripts to help reduce 
       }),
     });
 
-    const data = await openaiRes.json();
+        const data = await openaiRes.json();
     console.log("🔍 OpenAI raw response:", JSON.stringify(data, null, 2));
-    const reply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
+
+    let reply = "Sorry, I had a brain freeze.";
+    if (data && Array.isArray(data.choices) && data.choices[0]?.message?.content) {
+      reply = data.choices[0].message.content;
+    } else {
+      console.error("❌ Invalid OpenAI response:", data);
+    }
+
+if (data && Array.isArray(data.choices) && data.choices[0]?.message?.content) {
+  reply = data.choices[0].message.content;
+} else {
+  console.error("❌ Invalid OpenAI response:", data);
+}
     const tags = ["mental load", "resentment"]; // Placeholder
 
     await db.collection("messages").add({
