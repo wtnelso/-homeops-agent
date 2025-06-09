@@ -8,6 +8,7 @@
 </head>
 <body>
   <div class="app-container">
+
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">
@@ -25,30 +26,37 @@
     <!-- Main Content Area -->
     <main class="main-content">
 
+      <!-- Top Bar (header for consistency across views) -->
+      <header class="top-bar">
+        <h1>HomeOps.ai</h1>
+      </header>
+
       <!-- My Ops Center -->
       <section id="home-view" class="view">
-        <h1>🏠 My Ops Center</h1>
+        <h2>🏠 My Ops Center</h2>
         <p>Welcome to your home base. Here’s what’s on deck.</p>
       </section>
 
       <!-- Ask HomeOps (Chat) -->
       <section id="chat-view" class="view">
-        <h1>💬 Ask HomeOps</h1>
-        <div id="chat" class="chat-box"></div>
-        <form id="chatForm" class="chat-form">
-          <input id="input" type="text" placeholder="Type something..." autocomplete="off" />
-          <button type="submit">Send</button>
-        </form>
+        <h2>💬 Ask HomeOps</h2>
+        <div class="chat-wrapper">
+          <div id="chat" class="chat-box"></div>
+          <form id="chatForm" class="chat-form">
+            <input id="input" type="text" placeholder="Type something..." autocomplete="off" />
+            <button type="submit">Send</button>
+          </form>
+        </div>
       </section>
 
       <!-- House View (Dashboard) -->
       <section id="dashboard-view" class="view">
-        <h1>📊 The House View</h1>
+        <h2>📊 The House View</h2>
         <div class="dashboard-grid">
 
           <!-- This Week -->
           <div class="dashboard-card">
-            <h2>This Week</h2>
+            <h3>This Week</h3>
             <ul>
               <li>🩺 Monday — Pediatrician appointment @ 9:30 AM</li>
               <li>🏊 Tuesday — Swim meet @ 6:00 PM</li>
@@ -58,7 +66,7 @@
 
           <!-- Mental Load & Insights -->
           <div class="dashboard-card">
-            <h2>Mental Load</h2>
+            <h3>Mental Load</h3>
             <ul>
               <li>You're tracking 7 tasks across 4 days</li>
               <li>Two events overlap Tuesday @ 5:30 PM</li>
@@ -68,7 +76,7 @@
 
           <!-- Ongoing Themes -->
           <div class="dashboard-card">
-            <h2>Recurring Threads</h2>
+            <h3>Recurring Threads</h3>
             <ul>
               <li>🧺 Laundry backlog (mentioned 3x)</li>
               <li>🎒 School logistics (carpool & drop-off)</li>

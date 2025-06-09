@@ -236,3 +236,11 @@ body.dark {
   font-size: 0.95rem;
   line-height: 1.4;
 }
+.top-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
