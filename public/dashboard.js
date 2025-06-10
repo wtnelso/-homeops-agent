@@ -62,7 +62,6 @@ async function loadCommandCenter() {
 
     let html = "";
 
-    // 🧠 What's coming up
     if (data.appointments?.length) {
       html += `<h4>🧠 Coming Up</h4><ul>`;
       data.appointments.slice(0, 3).forEach(item => {
@@ -71,7 +70,6 @@ async function loadCommandCenter() {
       html += `</ul>`;
     }
 
-    // 🎯 What needs attention
     if (data.reminders?.length) {
       html += `<h4>🎯 Needs Attention</h4><ul>`;
       data.reminders.slice(0, 2).forEach(item => {
@@ -80,10 +78,7 @@ async function loadCommandCenter() {
       html += `</ul>`;
     }
 
-    // ❗ What’s been dropped (placeholder)
     html += `<h4>❗ Potential Drops</h4><p><em>Coming soon…</em></p>`;
-
-    // 👥 Partner insights (placeholder)
     html += `<h4>👥 Partner Load</h4><p><em>Shared load tracking in next phase</em></p>`;
 
     container.innerHTML = html;
@@ -92,8 +87,31 @@ async function loadCommandCenter() {
   }
 }
 
+async function fetchWeeklySummary() {
+  try {
+    const res = await fetch("/api/summary-this-week", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id })
+    });
+
+    const data = await res.json();
+    const summaryBlock = document.querySelector(".dashboard-card:nth-child(1) ul");
+
+    if (summaryBlock && data.summary) {
+      summaryBlock.innerHTML = data.summary
+        .split("\n")
+        .map(line => `<li>📝 ${line.trim()}</li>`)
+        .join("");
+    }
+  } catch (err) {
+    console.error("❌ Failed to load weekly summary:", err.message);
+  }
+}
+
 // Load everything on DOM ready
 window.addEventListener("DOMContentLoaded", () => {
   fetchMessages();
   loadCommandCenter();
+  fetchWeeklySummary();
 });
