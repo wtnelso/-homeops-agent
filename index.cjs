@@ -13,10 +13,9 @@ const fs = require("fs");
 const SYSTEM_PROMPT = fs.readFileSync("./prompts/tone-homeops.txt", "utf-8");
 console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 
-
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_CREDENTIALS))
   });
 }
 
@@ -126,27 +125,32 @@ app.get("/api/dashboard", async (req, res) => {
       .slice(0, 3)
       .map(([word, count]) => `${word} (${count}x)`);
 
- res.json({
-  tasksThisWeek: taskList.slice(0, 3),
-  topThemes,
-  totalTasks: messages.length,
-  reframes: [
-    {
-      title: "You're holding a lot right now.",
-      subtitle: "Just naming it is power.",
-      body: "Laundry, school, camp, and scheduling? That’s not light work — it’s logistics load bearing. Give yourself 5 minutes of stillness today."
-    },
-    {
-      title: "This isn’t just task management — it’s emotional labor.",
-      subtitle: "And you’re doing it.",
-      body: "Most of what you're tracking isn't even visible to others. You don’t need to do it all alone."
-    },
-    {
-      title: "Consider letting one thing slide.",
-      subtitle: "You get to choose what matters.",
-      body: "Skipping one grocery run or showing up imperfectly is still showing up. Your kids won’t remember the missed apple slices."
-    }
-  ]
+    res.json({
+      tasksThisWeek: taskList.slice(0, 3),
+      topThemes,
+      totalTasks: messages.length,
+      reframes: [
+        {
+          title: "You're holding a lot right now.",
+          subtitle: "Just naming it is power.",
+          body: "Laundry, school, camp, and scheduling? That’s not light work — it’s logistics load bearing. Give yourself 5 minutes of stillness today."
+        },
+        {
+          title: "This isn’t just task management — it’s emotional labor.",
+          subtitle: "And you’re doing it.",
+          body: "Most of what you're tracking isn't even visible to others. You don’t need to do it all alone."
+        },
+        {
+          title: "Consider letting one thing slide.",
+          subtitle: "You get to choose what matters.",
+          body: "Skipping one grocery run or showing up imperfectly is still showing up. Your kids won’t remember the missed apple slices."
+        }
+      ]
+    });
+  } catch (error) {
+    console.error("🔥 Failed to load dashboard:", error.message);
+    res.status(500).json({ error: "Dashboard failed" });
+  }
 });
 
 // Event extraction route
@@ -177,7 +181,14 @@ app.get("/api/events", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: `You are an AI assistant helping extract structured household tasks, reminders, and appointments from user conversations. Return a JSON object like this:\n{\n  \"appointments\": [],\n  \"tasks\": [],\n  \"reminders\": [],\n  \"notes\": [],\n  \"emotional_flags\": []\n}`
+            content: `You are an AI assistant helping extract structured household tasks, reminders, and appointments from user conversations. Return a JSON object like this:
+{
+  "appointments": [],
+  "tasks": [],
+  "reminders": [],
+  "notes": [],
+  "emotional_flags": []
+}`
           },
           {
             role: "user",
