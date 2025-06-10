@@ -275,7 +275,7 @@ Return your output as structured JSON only:
   }
 });
 
-// Serve frontend
+}// Serve frontend
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
