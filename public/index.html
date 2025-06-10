@@ -5,6 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HomeOps</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .reframe-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding-top: 0.5rem;
+    }
+
+    .reframe {
+      background: #f9f9fb;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .reframe h4 {
+      margin: 0 0 0.25rem;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .reframe p {
+      margin: 0.25rem 0;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: #555;
+    }
+
+    .reframe p em {
+      color: #777;
+    }
+  </style>
 </head>
 <body>
   <div class="app-container">
@@ -57,31 +90,25 @@
           <!-- This Week -->
           <div class="dashboard-card">
             <h3>This Week</h3>
-            <ul>
-              <li>🩺 Monday — Pediatrician appointment @ 9:30 AM</li>
-              <li>🏊 Tuesday — Swim meet @ 6:00 PM</li>
-              <li>👨‍⚕️ Thursday — OB/GYN follow-up @ 11:15 AM</li>
-            </ul>
+            <ul></ul>
           </div>
 
           <!-- Mental Load & Insights -->
           <div class="dashboard-card">
             <h3>Mental Load</h3>
-            <ul>
-              <li>You're tracking 7 tasks across 4 days</li>
-              <li>Two events overlap Tuesday @ 5:30 PM</li>
-              <li>No downtime scheduled this week</li>
-            </ul>
+            <ul></ul>
           </div>
 
           <!-- Ongoing Themes -->
           <div class="dashboard-card">
             <h3>Recurring Threads</h3>
-            <ul>
-              <li>🧺 Laundry backlog (mentioned 3x)</li>
-              <li>🎒 School logistics (carpool & drop-off)</li>
-              <li>👧 Summer camp planning</li>
-            </ul>
+            <ul></ul>
+          </div>
+
+          <!-- Reframes -->
+          <div class="dashboard-card">
+            <h3>Reframes</h3>
+            <div class="reframe-list"></div>
           </div>
 
         </div>
