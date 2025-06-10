@@ -181,14 +181,7 @@ app.get("/api/events", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: `You are an AI assistant helping extract structured household tasks, reminders, and appointments from user conversations. Return a JSON object like this:
-{
-  "appointments": [],
-  "tasks": [],
-  "reminders": [],
-  "notes": [],
-  "emotional_flags": []
-}`
+            content: `You are an AI assistant helping extract structured household tasks, reminders, and appointments from user conversations. Return a JSON object like this:\n{\n  \"appointments\": [],\n  \"tasks\": [],\n  \"reminders\": [],\n  \"notes\": [],\n  \"emotional_flags\": []\n}`
           },
           {
             role: "user",
@@ -212,6 +205,66 @@ app.get("/api/events", async (req, res) => {
   } catch (err) {
     console.error("❌ /api/events failed:", err.message);
     res.status(500).json({ error: "Failed to extract events" });
+  }
+});
+
+// Weekly Summary Generator
+app.post("/api/summary-this-week", async (req, res) => {
+  const { user_id = "user_123" } = req.body;
+
+  try {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const snapshot = await db
+      .collection("messages")
+      .where("user_id", "==", user_id)
+      .where("timestamp", ">=", oneWeekAgo)
+      .orderBy("timestamp", "desc")
+      .get();
+
+    const history = snapshot.docs.map(doc => doc.data());
+    const combinedText = history
+      .map(({ message, reply }) => `User: ${message}\nHomeOps: ${reply}`)
+      .join("\n\n");
+
+    const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [
+          {
+            role: "system",
+            content: `You are HomeOps, an emotionally intelligent assistant that creates digestible weekly recaps for busy parents.
+
+Summarize the household’s week ahead based on the chat history. DO NOT copy or reuse their words directly.
+
+Your summary should:
+- Feel calm, structured, and empowering
+- Use bullet points or short phrases
+- Group by themes: events, obligations, reminders, support gaps
+
+Output only the summary string.`
+          },
+          {
+            role: "user",
+            content: combinedText
+          }
+        ]
+      })
+    });
+
+    const data = await gptRes.json();
+    const summary = data.choices?.[0]?.message?.content?.trim();
+
+    res.json({ summary });
+  } catch (err) {
+    console.error("❌ /api/summary-this-week failed:", err.message);
+    res.status(500).json({ error: "Failed to generate summary." });
   }
 });
 
