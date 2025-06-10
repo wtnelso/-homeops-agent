@@ -41,7 +41,6 @@ function renderWidgets(messages) {
     ${loadScore > 70 ? "⚠️ You're running hot. Consider a reset." : "✅ You’re pacing well."}
   `;
 
-  // ✅ Now safe from undefined msg.tags
   document.querySelector("#emotional-themes").innerHTML = cleaned
     .flatMap(msg => (Array.isArray(msg.tags) ? msg.tags.map(tag => `• ${tag}`) : []))
     .slice(0, 5)
@@ -53,4 +52,48 @@ function renderWidgets(messages) {
     .join("<br>");
 }
 
-fetchMessages();
+async function loadCommandCenter() {
+  try {
+    const res = await fetch(`/api/events?user_id=${userId}`);
+    const data = await res.json();
+
+    const container = document.getElementById("command-center");
+    if (!container) return;
+
+    let html = "";
+
+    // 🧠 What's coming up
+    if (data.appointments?.length) {
+      html += `<h4>🧠 Coming Up</h4><ul>`;
+      data.appointments.slice(0, 3).forEach(item => {
+        html += `<li>${item}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    // 🎯 What needs attention
+    if (data.reminders?.length) {
+      html += `<h4>🎯 Needs Attention</h4><ul>`;
+      data.reminders.slice(0, 2).forEach(item => {
+        html += `<li>${item}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    // ❗ What’s been dropped (placeholder)
+    html += `<h4>❗ Potential Drops</h4><p><em>Coming soon…</em></p>`;
+
+    // 👥 Partner insights (placeholder)
+    html += `<h4>👥 Partner Load</h4><p><em>Shared load tracking in next phase</em></p>`;
+
+    container.innerHTML = html;
+  } catch (err) {
+    console.error("❌ Failed to load Command Center:", err);
+  }
+}
+
+// Load everything on DOM ready
+window.addEventListener("DOMContentLoaded", () => {
+  fetchMessages();
+  loadCommandCenter();
+});

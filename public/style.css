@@ -272,3 +272,52 @@ body.dark {
   font-size: 0.95rem;
   line-height: 1.4;
 }
+
+/* Relief Protocol Styles */
+.relief-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  margin-top: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.relief-header {
+  margin-bottom: 1.5rem;
+}
+
+.relief-card h2 {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.subtle-label {
+  color: #999;
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+.relief-section {
+  margin-bottom: 1.6rem;
+}
+
+.relief-section label {
+  display: block;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+.relief-section p {
+  margin: 0;
+  color: #222;
+  line-height: 1.6;
+}
+/* Make Relief Protocol full width inside dashboard grid */
+#relief-protocol {
+  grid-column: 1 / -1;
+}
