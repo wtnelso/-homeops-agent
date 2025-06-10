@@ -29,16 +29,22 @@ async function fetchReliefProtocol() {
 
     const data = await res.json();
 
-    document.getElementById('relief-summary').innerText = data.summary;
-    document.getElementById('relief-offload').innerText = data.offload.text;
-    document.getElementById('relief-reclaim').innerText = data.reclaim.text;
-    document.getElementById('relief-reconnect').innerText = data.reconnect.text;
-    document.getElementById('relief-interrupt').innerText = data.pattern_interrupt;
+    document.getElementById('relief-summary').innerText = data.summary || "—";
+    document.getElementById('relief-offload').innerText = data.offload?.text || "—";
+    document.getElementById('relief-reclaim').innerText = data.reclaim?.text || "—";
+    document.getElementById('relief-reconnect').innerText = data.reconnect?.text || "—";
+    document.getElementById('relief-interrupt').innerText = data.pattern_interrupt || "—";
 
-    if (data.reframe) {
-      document.getElementById('relief-reframe').innerText = data.reframe.text;
-      document.getElementById('reframe-block').style.display = "block";
+    const reframeBlock = document.getElementById('reframe-block');
+    const reframeText = data.reframe?.text;
+
+    if (reframeText && reframeText.trim() !== "") {
+      document.getElementById('relief-reframe').innerText = reframeText;
+      reframeBlock.style.display = "block";
+    } else {
+      reframeBlock.style.display = "none";
     }
+
   } catch (error) {
     console.error("❌ Failed to load Relief Protocol:", error);
   }
