@@ -47,7 +47,7 @@ app.post("/chat", async (req, res) => {
 
     const data = await openaiRes.json();
     const reply = data?.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
-console.log("🔎 GPT returned:", raw);
+console.log("GPT reply:", reply);
 
     await db.collection("messages").add({
       user_id,
