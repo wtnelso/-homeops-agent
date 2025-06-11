@@ -138,7 +138,7 @@ app.post("/api/this-week", async (req, res) => {
     return res.status(400).json({ error: "No messages provided." });
   }
 
-  cconst systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant for high-performing families.
+  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant for high-performing families.
 
 Your tone blends:
 - the raw wit of Amy Schumer  
