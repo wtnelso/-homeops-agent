@@ -11,7 +11,21 @@ console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 
 let firebaseCredentials;
 try {
-  const base64 = process.env.FIREBASE_CREDENTIALS_BASE64;
+  const base64 = `{
+  "type": "service_account",
+  "project_id": "homeops-web",
+  "private_key_id": "b4121bbc80f5385db6658de770b29cb94acab217",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDBXFPotrMcQuxC\nrOjhz8OxGJ1p/Mp5kKulU5HAd+8fSVKcsWCF6sNoh0Gf+PpRuGfUL66VTveMGHPx\nGjxG/YORHh1TnyW9hTx2ZN52pDPtSbjmuUsAGWfgVkUs9M3svyYYpLapzDmg7YjM\nm+9Ip+xXeNkDhnMnOFyoCS2dpY5xocfbsPvUtd7mylOEi41Gb5BnxNpA0finrHeH\neJp4ywahrcW54slIB9I854oGtmoRNRP0qz9InOBasy0sD8ctgJ8N/xzTH8rqPdIp\navilETv2FE4EWtV6JSW325lDRp/9SdowU+flTKkEquiAIXIQGq4WVNsZmgF3oMzV\nTcOMOiZHAgMBAAECggEATF9o3xKGpUODqQQ9ya8z9renuUy5NpHfUiIzgAd/Iebm\no/BllQ94lklSMNr5GB0TmZopxVyW5zVjWhhINav9cuynnbdPA0/kZUkLG2ZZAkDr\nsOoABy6BuniowwyAZ6HKbNJmOaPqITehIFv5A8Qb1CLt6HgK9LNM2awiYdGZ9SRG\n6w5aqE2hV0qD5UfAspNzbT0Y4hXmniweR73GYOJR4Ypzvhqyd0ShNwvV+23vbsVr\nbp5mKysL1GRRW9bXnpZLVIRKRt2DnSAD7fqrNS6VoNHuFZU4lPYBHMHdRTyBo5VE\nyMxsT9lV9i/evYSPskrLQlEvkR55929J40D59+dMRQKBgQDosfatpN2CsvqaI+tX\nld07TL9qlCaaIZ1xcjIrluwP9JFjzV9Xol3D55v+RX9hlwz4GH0x+Iw0x8F/KGMV\nnuYJ8HApbR/r3qQHNcl3sDkbftDmLp7gxVyMbVMd4SfODVwFIttd0tXS/QcCAsjG\nfZZvDPMGwobIjsbyMx0boPa5TQKBgQDUud9a50ve2eQEFhh0NY6ZW4RHyFVDMptk\nzt/s1gasTpd2SUZJCQ9RHdub5upUdS8BQF6GB+IKTuBvP25fvsH20BOIwtngDsEZ\nUBV1bS8rAl3MF3fS9fDp2FyUzwhyIn761eiPF+l27iGjiFDmVBpNYCjwqAMTljH7\no9kSC++z4wKBgQDT71LHMMN3iN/qiBCPQzWuDubAgZLvCvLFIsdDIEB8/7lz9teB\nj6ZrCYXwfwfXsKXlSRit7Lx2TgGUeQpV5NWL8+uUL4nFYJBw6LJISr6YplZJb+jQ\nu7DhTalIK4v/hfdrziWSPLb3ZfF+CV8oObZMCrVGUOJFxJS6f4dhZKeSeQKBgDnq\nnUAPpx12b1kZdvD0v+1K+Fne1i/kcGBi3p6JqulwwFYJHyS1XcE1AtyQYw45lWGe\n191f+g/aZ8qCF5fjxMVg42ChxFX3TmWI4z7ESkpIa6csYIhEQ6I3MQWm1GLWt4Gt\niZKj7QFfVjNC4tvC3CJi4uKaq7PCebtMYcZDD7EHAoGAJ1eQReqZBVshKVd++2OB\nYB3IMjVHXSnymqUc2Pp7eRB8xebs/w47jTqZIdK29grm4UAEdWuPk+LwpOSZge5Z\nxEj+m5ikcv71tgKkjhPJ2yu+1gjt8idOKYpUFchD4zFgw81m9SNpczEhVc0WGgh8\nJwjfbqNkUv5lZxczHbY03+U=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@homeops-web.iam.gserviceaccount.com",
+  "client_id": "110525048299150068511",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40homeops-web.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
+`;
+
   console.log("🧪 FIREBASE_CREDENTIALS_BASE64 present:", !!base64); // true or false
   console.log("🔍 FIREBASE_CREDENTIALS_BASE64 (raw):", base64); // actual string
 
