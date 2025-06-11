@@ -12,7 +12,8 @@ console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 let firebaseCredentials;
 console.log("🔥 Code reached just before try block");
 try {
-  const base64 = "not-a-real-base64"; // just a test value
+ const base64 = `ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAiaG9tZW9wcy13ZWIiLAogICJwcml2YXRlX2tleV9pZCI6ICJiNDEyMWJiYzgwZjUzODVkYjY2NThkZTc3MGIyOWNiOTRhY2FiMjE3IiwKICAicHJpdmF0ZV9rZXkiOiAiLS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tXG5NSUlFdlFJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0JLY3dnZ1NqQWdFQUFvSUJBUURCWEZQb3RyTWNRdXhD...etc`;
+
   console.log("🧪 base64 value is:", base64);
   console.log("🧪 typeof base64:", typeof base64);
   const decoded = Buffer.from(base64, "base64").toString("utf-8");
