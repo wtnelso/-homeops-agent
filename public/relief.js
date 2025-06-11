@@ -57,6 +57,41 @@ async function fetchThisWeekView() {
     const list = document.getElementById("this-week-list");
     list.innerHTML = "";
 
+    if (!Array.isArray(events)) {
+      console.warn("⚠️ This Week response was not a valid array:", events);
+      const li = document.createElement("li");
+      li.textContent = "Unable to load events. GPT sent invalid format.";
+      list.appendChild(li);
+      return;
+    }
+
+    if (events.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "No scheduled events this week.";
+      list.appendChild(li);
+      return;
+    }
+
+    events.forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = `${item.icon || "📅"} ${item.label}`;
+      list.appendChild(li);
+    });
+  } catch (err) {
+    console.error("❌ This Week View Error:", err);
+    const list = document.getElementById("this-week-list");
+    list.innerHTML = "";
+    const li = document.createElement("li");
+    li.textContent = "Error loading This Week view.";
+    list.appendChild(li);
+  }
+}
+
+
+    const events = await summaryRes.json();
+    const list = document.getElementById("this-week-list");
+    list.innerHTML = "";
+
     if (!Array.isArray(events) || events.length === 0) {
       const li = document.createElement("li");
       li.textContent = "No scheduled events this week.";
