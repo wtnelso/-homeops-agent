@@ -223,32 +223,24 @@ app.post("/api/summary-this-week", async (req, res) => {
     const history = snapshot.docs.map(doc => doc.data());
     const combinedText = history.map(({ message, reply }) => `User: ${message}\nHomeOps: ${reply}`).join("\n\n");
 
-const prompt = `You are HomeOps, an emotionally intelligent household assistant for overloaded families.
+const prompt = `You are HomeOps, a high-functioning assistant for busy families.
 
-Today is ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}.
+Your task is to extract a structured weekly preview from natural language messages.
 
-Your task is to summarize what this household is managing this week based on their recent chat messages.
+✅ Output format (JSON only):
+[
+  { "icon": "👶", "label": "Thursday — Colette pediatrician @ 9 AM" },
+  { "icon": "🏊", "label": "Tuesday — Ellie swim @ 6 PM" },
+  { "icon": "🎉", "label": "Friday — RSVP to Lucy’s birthday" },
+  { "icon": "🛒", "label": "Saturday — Grocery run" }
+]
 
-✅ Output format:
-🗓 Events:
-• Thursday — Colette pediatrician @ 9 AM
-• Tuesday — Ellie swim @ 6 PM
-
-🛒 Errands:
-• Grocery run
-• Laundry
-
-📌 Reminders:
-• RSVP to Lucy’s birthday by Friday
-
-📣 Guidelines:
-- ONLY return a clean, scannable list using the format above
-- Use emoji headers: Events, Errands, Reminders
-- Do NOT write a paragraph or commentary
-- Do NOT echo the user’s message
-- Do NOT include intros, jokes, or additional explanations
-- This is going directly into a dashboard — be brief and useful`;
-
+📣 Rules:
+- Only return a valid JSON array of { icon, label } items
+- Do NOT include paragraphs, markdown, or commentary
+- Do NOT wrap in triple backticks
+- Each item must have an emoji and a clear label
+- This is parsed directly into a dashboard card`;
 
 
 
@@ -277,6 +269,63 @@ Your task is to summarize what this household is managing this week based on the
 });
 
 // Relief protocol
+// ✅ Add this just before /api/relief-protocol
+app.post("/api/this-week", async (req, res) => {
+  const { messages } = req.body;
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are HomeOps, a high-functioning assistant for busy families.
+
+Your task is to extract a structured weekly preview from natural language messages.
+
+✅ Output format (JSON only):
+[
+  { "icon": "👶", "label": "Thursday — Colette pediatrician @ 9 AM" },
+  { "icon": "🏊", "label": "Tuesday — Ellie swim @ 6 PM" },
+  { "icon": "🎉", "label": "Friday — RSVP to Lucy’s birthday" },
+  { "icon": "🛒", "label": "Saturday — Grocery run" }
+]
+
+📣 Rules:
+- Only return a valid JSON array of { icon, label } items
+- Do NOT include paragraphs, markdown, or commentary
+- Do NOT wrap in triple backticks
+- Each item must have an emoji and a clear label
+- This is parsed directly into a dashboard card`
+          },
+          {
+            role: "user",
+            content: messages.join("\n")
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    const parsed = JSON.parse(data.choices[0].message.content);
+    res.json(parsed);
+  } catch (err) {
+    console.error("❌ /api/this-week failed:", err.message);
+    res.status(500).json({ error: "Failed to generate This Week data" });
+  }
+});
+
+// Relief protocol (already in your file)
+app.post("/api/relief-protocol", async (req, res) => {
+  ...
+});
+
 app.post("/api/relief-protocol", async (req, res) => {
   try {
     const { tasks, emotional_flags } = req.body;
