@@ -44,6 +44,8 @@ app.use(express.static("public"));
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
   try {
+  console.log("🔑 OPENAI_API_KEY present:", !!process.env.OPENAI_API_KEY);
+console.log("🔑 OPENAI_API_KEY (start):", process.env.OPENAI_API_KEY?.slice(0, 6));
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
