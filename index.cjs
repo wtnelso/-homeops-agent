@@ -1,3 +1,4 @@
+// Force deploy: remove syntax error
 require("dotenv").config();
 console.log("✅ FIREBASE_CREDENTIALS loaded:", !!process.env.FIREBASE_CREDENTIALS);
 
@@ -323,7 +324,6 @@ Your task is to extract a structured weekly preview from natural language messag
 
 // Relief protocol (already in your file)
 app.post("/api/relief-protocol", async (req, res) => {
-  ...
 });
 
 app.post("/api/relief-protocol", async (req, res) => {
