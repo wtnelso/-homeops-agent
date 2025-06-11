@@ -47,6 +47,7 @@ app.post("/chat", async (req, res) => {
 
     const data = await openaiRes.json();
     const reply = data?.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
+console.log("🔎 GPT returned:", raw);
 
     await db.collection("messages").add({
       user_id,
@@ -361,7 +362,7 @@ Do NOT return commentary or text outside the array.`
     } catch (e) {
       return res.status(500).json({ error: "Could not parse GPT response", raw });
     }
-
+console.log("✅ Parsed weekly events:", output);
     res.json(output);
   } catch (err) {
     console.error("❌ /api/this-week failed:", err.message);
