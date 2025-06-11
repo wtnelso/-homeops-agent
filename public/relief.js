@@ -1,3 +1,4 @@
+console.log("✅ relief.js loaded");
 async function fetchReliefProtocol() {
   try {
     const eventsRes = await fetch("/api/events?user_id=user_123");
@@ -126,3 +127,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+window.fetchThisWeekView = fetchThisWeekView;
