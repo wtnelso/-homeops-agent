@@ -15,7 +15,7 @@ if (!admin.apps.length) {
       type: "service_account",
       project_id: "homeops-web",
       private_key_id: "b63c1f4f78f2c80168c6a0978f03010a81032d50",
-      private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDT+rucpuffvdWc\n...your real key...\n-----END PRIVATE KEY-----\n",
+      private_key: "-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDT+rucpuffvdWc\\n...your real key...\\n-----END PRIVATE KEY-----\\n",
       client_email: "firebase-adminsdk@homeops-web.iam.gserviceaccount.com",
       client_id: "117960130305223091082",
       auth_uri: "https://accounts.google.com/o/oauth2/auth",
