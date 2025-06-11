@@ -14,6 +14,7 @@ try {
   const base64 = process.env.FIREBASE_CREDENTIALS_BASE64;
   const decoded = Buffer.from(base64, "base64").toString("utf-8");
   firebaseCredentials = JSON.parse(decoded);
+  console.log("🧪 Firebase credentials loaded:", !!firebaseCredentials);
 } catch (err) {
   console.error("❌ Failed to decode Firebase credentials from base64:", err.message);
   process.exit(1);
