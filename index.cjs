@@ -274,6 +274,18 @@ Your task is to extract a structured weekly preview from natural language messag
 app.post("/api/this-week", async (req, res) => {
   const { messages } = req.body;
 
+  const systemPrompt = `You are HomeOps, a structured assistant for busy families.
+
+Return ONLY a valid JSON array of this format:
+[
+  { "icon": "👶", "label": "Thursday — Colette pediatrician @ 9 AM" },
+  { "icon": "🏊", "label": "Tuesday — Ellie swim @ 6 PM" },
+  { "icon": "🎉", "label": "Friday — RSVP to Lucy’s birthday" },
+  { "icon": "🛒", "label": "Saturday — Grocery run" }
+]
+
+No markdown. No commentary. No wrapping. No paragraphs. Just JSON.`;
+
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -284,34 +296,30 @@ app.post("/api/this-week", async (req, res) => {
       body: JSON.stringify({
         model: "gpt-4o",
         messages: [
-          {
-            role: "system",
-            content: `You are HomeOps, a high-functioning assistant for busy families.
-
-Your task is to extract a structured weekly preview from natural language messages.
-
-✅ Output format (JSON only):
-[
-  { "icon": "👶", "label": "Thursday — Colette pediatrician @ 9 AM" },
-  { "icon": "🏊", "label": "Tuesday — Ellie swim @ 6 PM" },
-  { "icon": "🎉", "label": "Friday — RSVP to Lucy’s birthday" },
-  { "icon": "🛒", "label": "Saturday — Grocery run" }
-]
-
-📣 Rules:
-- Only return a valid JSON array of { icon, label } items
-- Do NOT include paragraphs, markdown, or commentary
-- Do NOT wrap in triple backticks
-- Each item must have an emoji and a clear label
-- This is parsed directly into a dashboard card`
-          },
-          {
-            role: "user",
-            content: messages.join("\n")
-          }
+          { role: "system", content: systemPrompt },
+          { role: "user", content: messages.join("\n") }
         ]
       })
     });
+
+    const data = await response.json();
+    const raw = data?.choices?.[0]?.message?.content;
+
+    let parsed;
+    try {
+      parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+    } catch (e) {
+      console.error("❌ Failed to parse This Week JSON:", raw);
+      return res.status(400).json({ error: "Invalid GPT output", raw });
+    }
+
+    res.json(parsed);
+  } catch (err) {
+    console.error("❌ /api/this-week failed:", err.message);
+    res.status(500).json({ error: "Failed to generate This Week view" });
+  }
+});
+
 
     const data = await response.json();
     const parsed = JSON.parse(data.choices[0].message.content);
