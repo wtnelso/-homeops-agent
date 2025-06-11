@@ -1,4 +1,3 @@
-// Load environment variables
 require("dotenv").config();
 console.log("✅ FIREBASE_CREDENTIALS loaded:", !!process.env.FIREBASE_CREDENTIALS);
 
@@ -9,7 +8,6 @@ const admin = require("firebase-admin");
 const path = require("path");
 const fs = require("fs");
 
-// Load system prompt
 const SYSTEM_PROMPT = fs.readFileSync("./prompts/tone-homeops.txt", "utf-8");
 console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 
@@ -47,24 +45,19 @@ app.post("/chat", async (req, res) => {
     });
 
     const data = await openaiRes.json();
-    let reply = "Sorry, I had a brain freeze.";
-    if (data?.choices?.[0]?.message?.content) {
-      reply = data.choices[0].message.content;
-    }
-
-    const tags = ["mental load", "resentment"];
+    const reply = data?.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
 
     await db.collection("messages").add({
       user_id,
       message,
       reply,
-      tags,
+      tags: ["mental load", "resentment"],
       timestamp: new Date(),
     });
 
     res.json({ reply });
   } catch (err) {
-    console.error("❌ Error in /chat route:", err.message, err.stack);
+    console.error("❌ Error in /chat route:", err.message);
     res.status(500).json({ error: "Something went wrong." });
   }
 });
@@ -102,14 +95,13 @@ app.get("/api/dashboard", async (req, res) => {
       .get();
 
     const messages = snapshot.docs.map(doc => doc.data());
-
     const themeCounts = {};
     const taskList = [];
 
     messages.forEach(({ message, reply }) => {
       const text = `${message} ${reply}`.toLowerCase();
 
-      ["laundry", "school", "camp", "appointment", "groceries", "pickup"].forEach((keyword) => {
+      ["laundry", "school", "camp", "appointment", "groceries", "pickup"].forEach(keyword => {
         if (text.includes(keyword)) {
           themeCounts[keyword] = (themeCounts[keyword] || 0) + 1;
         }
@@ -153,7 +145,7 @@ app.get("/api/dashboard", async (req, res) => {
   }
 });
 
-// Event extraction route
+// Event extraction
 app.get("/api/events", async (req, res) => {
   const { user_id = "user_123" } = req.query;
 
@@ -166,9 +158,7 @@ app.get("/api/events", async (req, res) => {
       .get();
 
     const chatHistory = snapshot.docs.map(doc => doc.data());
-    const combinedText = chatHistory
-      .map(({ message, reply }) => `User: ${message}\nHomeOps: ${reply}`)
-      .join("\n\n");
+    const combinedText = chatHistory.map(({ message, reply }) => `User: ${message}\nHomeOps: ${reply}`).join("\n\n");
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -181,7 +171,14 @@ app.get("/api/events", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: `You are an AI assistant helping extract structured household tasks, reminders, and appointments from user conversations. Return a JSON object like this:\n{\n  \"appointments\": [],\n  \"tasks\": [],\n  \"reminders\": [],\n  \"notes\": [],\n  \"emotional_flags\": []\n}`
+            content: `You are an AI assistant helping extract structured household tasks, reminders, and appointments from user conversations. Return a JSON object like this:
+{
+  "appointments": [],
+  "tasks": [],
+  "reminders": [],
+  "notes": [],
+  "emotional_flags": []
+}`
           },
           {
             role: "user",
@@ -208,7 +205,7 @@ app.get("/api/events", async (req, res) => {
   }
 });
 
-// Weekly Summary Generator
+// Weekly summary
 app.post("/api/summary-this-week", async (req, res) => {
   const { user_id = "user_123" } = req.body;
 
@@ -224,9 +221,35 @@ app.post("/api/summary-this-week", async (req, res) => {
       .get();
 
     const history = snapshot.docs.map(doc => doc.data());
-    const combinedText = history
-      .map(({ message, reply }) => `User: ${message}\nHomeOps: ${reply}`)
-      .join("\n\n");
+    const combinedText = history.map(({ message, reply }) => `User: ${message}\nHomeOps: ${reply}`).join("\n\n");
+
+    const prompt = `You are HomeOps, an emotionally intelligent household assistant for overloaded families.
+
+Today is ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}.
+
+Your task is to generate a weekly summary of what this household is managing, based on chat history.
+
+✅ Output format:
+🗓 Events:
+• Tuesday 8am — Colette’s doctor appointment
+• Thursday 6pm — Lucy’s swim meet
+
+🛒 Errands:
+• Grocery run
+• Laundry
+
+📌 Reminders:
+• RSVP to Ellie’s birthday
+• Submit camp forms by Friday
+
+📣 Guidelines:
+- Use this exact format and emoji markers
+- Group into 3 sections: Events, Errands, Reminders
+- Do not echo the user’s original text
+- Convert vague phrases like “tomorrow” or “Thursday” into real dates if they are clearly implied by the day of the week today
+- Make it scannable. This is going into a dashboard.
+
+Only return the list. No explanation. No intro. No outro.`;
 
     const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -237,32 +260,14 @@ app.post("/api/summary-this-week", async (req, res) => {
       body: JSON.stringify({
         model: "gpt-4",
         messages: [
-          {
-            role: "system",
-            content: `You are HomeOps, an emotionally intelligent assistant for busy families.
-
-Your task is to summarize what this household is juggling this week based on the chat history.
-
-Format clearly:
-- Use bullet points
-- Group by theme: Events, Errands, Reminders
-- Do not reuse the user’s exact words
-- Only include dates if they are explicitly mentioned
-- Make it clean, readable, and empowering
-
-Output only the formatted summary. No intro, no outro.`
-          },
-          {
-            role: "user",
-            content: combinedText
-          }
+          { role: "system", content: prompt },
+          { role: "user", content: combinedText }
         ]
       })
     });
 
     const data = await gptRes.json();
-    const summary = data.choices?.[0]?.message?.content?.trim();
-
+    const summary = data?.choices?.[0]?.message?.content?.trim();
     res.json({ summary });
   } catch (err) {
     console.error("❌ /api/summary-this-week failed:", err.message);
@@ -270,7 +275,7 @@ Output only the formatted summary. No intro, no outro.`
   }
 });
 
-// Relief Protocol Engine route
+// Relief protocol
 app.post("/api/relief-protocol", async (req, res) => {
   try {
     const { tasks, emotional_flags } = req.body;
@@ -286,26 +291,13 @@ app.post("/api/relief-protocol", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: `You are HomeOps — a life operations coach for high-performing families. You specialize in helping overloaded parents reduce mental load, invisible labor, burnout, and chronic misalignment between identity and effort.
-
-Your voice blends:
-- Mel Robbins’ emotional grit and tactical empowerment
-- Andrew Huberman’s systems thinking and neuroscience-backed guidance
-- John & Julie Gottman’s relational intelligence
-- Amy Schumer’s dry humor, emotional honesty, and unfiltered truth
-- Adam Grant’s cognitive reframing, motivation science, and insight-driven mindset shifts
+            content: `You are HomeOps, a smart and emotionally intelligent household assistant.
 
 Your job is to generate a Relief Protocol based on the user's tracked tasks and emotional patterns.
 
-Every protocol must include — without exception:
-1. A validating summary of what the user carried this week
-2. One Offload suggestion
-3. One Reclaim suggestion
-4. One Reconnect suggestion
-5. One Pattern Interrupt
-6. One Reframe (Adam Grant-style mindset shift)
+Today is ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}.
 
-Return your output as structured JSON only:
+Return output as JSON with:
 {
   "summary": "...",
   "offload": { "text": "...", "coach": "Mel Robbins" },
@@ -324,7 +316,7 @@ Return your output as structured JSON only:
     });
 
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content;
+    const reply = data?.choices?.[0]?.message?.content;
 
     let parsed;
     try {
@@ -341,7 +333,7 @@ Return your output as structured JSON only:
   }
 });
 
-// Serve frontend
+// Static fallback
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
