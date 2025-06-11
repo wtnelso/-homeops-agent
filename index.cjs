@@ -1,7 +1,4 @@
-// Force deploy: remove syntax error
 require("dotenv").config();
-console.log("✅ FIREBASE_CREDENTIALS loaded:", !!process.env.FIREBASE_CREDENTIALS);
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
@@ -14,7 +11,19 @@ console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_CREDENTIALS))
+    credential: admin.credential.cert({
+      type: "service_account",
+      project_id: "homeops-web",
+      private_key_id: "b63c1f4f78f2c80168c6a0978f03010a81032d50",
+      private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDT+rucpuffvdWc\n...your real key...\n-----END PRIVATE KEY-----\n",
+      client_email: "firebase-adminsdk@homeops-web.iam.gserviceaccount.com",
+      client_id: "117960130305223091082",
+      auth_uri: "https://accounts.google.com/o/oauth2/auth",
+      token_uri: "https://oauth2.googleapis.com/token",
+      auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+      client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk@homeops-web.iam.gserviceaccount.com",
+      universe_domain: "googleapis.com"
+    })
   });
 }
 
@@ -25,10 +34,9 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
-// Chat endpoint
+// CHAT ROUTE
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
-
   try {
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -47,7 +55,6 @@ app.post("/chat", async (req, res) => {
 
     const data = await openaiRes.json();
     const reply = data?.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
-console.log("GPT reply:", reply);
 
     await db.collection("messages").add({
       user_id,
@@ -64,30 +71,9 @@ console.log("GPT reply:", reply);
   }
 });
 
-// Messages route
-app.get("/api/messages", async (req, res) => {
-  const { user_id } = req.query;
-
-  try {
-    const snapshot = await db
-      .collection("messages")
-      .where("user_id", "==", user_id)
-      .orderBy("timestamp", "desc")
-      .limit(25)
-      .get();
-
-    const data = snapshot.docs.map(doc => doc.data());
-    res.json(data);
-  } catch (error) {
-    console.error("🔥 Failed to fetch messages:", error.message);
-    res.status(500).json({ error: "Failed to fetch messages" });
-  }
-});
-
-// Dashboard route
+// DASHBOARD ROUTE
 app.get("/api/dashboard", async (req, res) => {
   const { user_id = "user_123" } = req.query;
-
   try {
     const snapshot = await db
       .collection("messages")
@@ -102,13 +88,11 @@ app.get("/api/dashboard", async (req, res) => {
 
     messages.forEach(({ message, reply }) => {
       const text = `${message} ${reply}`.toLowerCase();
-
       ["laundry", "school", "camp", "appointment", "groceries", "pickup"].forEach(keyword => {
         if (text.includes(keyword)) {
           themeCounts[keyword] = (themeCounts[keyword] || 0) + 1;
         }
       });
-
       if (/monday|tuesday|wednesday|thursday|friday/i.test(text)) {
         taskList.push(text);
       }
@@ -141,135 +125,43 @@ app.get("/api/dashboard", async (req, res) => {
         }
       ]
     });
-  } catch (error) {
-    console.error("🔥 Failed to load dashboard:", error.message);
+  } catch (err) {
+    console.error("❌ /api/dashboard failed:", err.message);
     res.status(500).json({ error: "Dashboard failed" });
   }
 });
 
-// Event extraction
-app.get("/api/events", async (req, res) => {
-  const { user_id = "user_123" } = req.query;
-
-  try {
-    const snapshot = await db
-      .collection("messages")
-      .where("user_id", "==", user_id)
-      .orderBy("timestamp", "desc")
-      .limit(30)
-      .get();
-
-    const chatHistory = snapshot.docs.map(doc => doc.data());
-    const combinedText = chatHistory.map(({ message, reply }) => `User: ${message}\nHomeOps: ${reply}`).join("\n\n");
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: `You are an AI assistant helping extract structured household tasks, reminders, and appointments from user conversations. Return a JSON object like this:
-{
-  "appointments": [],
-  "tasks": [],
-  "reminders": [],
-  "notes": [],
-  "emotional_flags": []
-}`
-          },
-          {
-            role: "user",
-            content: combinedText
-          }
-        ],
-      }),
-    });
-
-
-// Weekly summary
-app.post("/api/summary-this-week", async (req, res) => {
-  const { user_id = "user_123" } = req.body;
-
-  try {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-    const snapshot = await db
-      .collection("messages")
-      .where("user_id", "==", user_id)
-      .where("timestamp", ">=", oneWeekAgo)
-      .orderBy("timestamp", "desc")
-      .get();
-
-    const history = snapshot.docs.map(doc => doc.data());
-    const combinedText = history.map(({ message, reply }) => `User: ${message}\nHomeOps: ${reply}`).join("\n\n");
-
-const prompt = `You are HomeOps, a high-functioning assistant for busy families.
-
-Your task is to extract a structured weekly preview from natural language messages.
-
-✅ Output format (JSON only):
-[
-  { "icon": "👶", "label": "Thursday — Colette pediatrician @ 9 AM" },
-  { "icon": "🏊", "label": "Tuesday — Ellie swim @ 6 PM" },
-  { "icon": "🎉", "label": "Friday — RSVP to Lucy’s birthday" },
-  { "icon": "🛒", "label": "Saturday — Grocery run" }
-]
-
-📣 Rules:
-- Only return a valid JSON array of { icon, label } items
-- Do NOT include paragraphs, markdown, or commentary
-- Do NOT wrap in triple backticks
-- Each item must have an emoji and a clear label
-- This is parsed directly into a dashboard card`;
-
-
-
-    const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: prompt },
-          { role: "user", content: combinedText }
-        ]
-      })
-    });
-
-    const data = await gptRes.json();
-    const summary = data?.choices?.[0]?.message?.content?.trim();
-    res.json({ summary });
-  } catch (err) {
-    console.error("❌ /api/summary-this-week failed:", err.message);
-    res.status(500).json({ error: "Failed to generate summary." });
-  }
-});
-
-// Relief protocol
-// ✅ Add this just before /api/relief-protocol
+// /api/this-week ROUTE
 app.post("/api/this-week", async (req, res) => {
   const { messages } = req.body;
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: "No messages provided." });
+  }
 
-  const systemPrompt = `You are HomeOps, a structured assistant for busy families.
+  cconst systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant for high-performing families.
 
-Return ONLY a valid JSON array of this format:
-[
-  { "icon": "👶", "label": "Thursday — Colette pediatrician @ 9 AM" },
-  { "icon": "🏊", "label": "Tuesday — Ellie swim @ 6 PM" },
-  { "icon": "🎉", "label": "Friday — RSVP to Lucy’s birthday" },
-  { "icon": "🛒", "label": "Saturday — Grocery run" }
-]
+Your tone blends:
+- the raw wit of Amy Schumer  
+- the tactical clarity of Mel Robbins  
+- the observational humor of Jerry Seinfeld  
+- the emotional insight of Adam Grant  
+- and the pattern-framing curiosity of Malcolm Gladwell
 
-No markdown. No commentary. No wrapping. No paragraphs. Just JSON.`;
+Your job: extract the user’s weekly appointments, obligations, and tasks. Structure them clearly. Then respond with a short validating paragraph in your tone.
+
+✅ Format:
+
+🛂 Tuesday @ 11 AM — Passport appointment  
+🏊 Tuesday @ 6 PM — Ellie swim practice  
+🎾 Wednesday evening — Lucy’s tennis match  
+
+📣 Then add 2–3 sentences of commentary. It should:
+- Acknowledge the emotional + logistical weight  
+- Use wit and real-life energy (not corporate fluff)  
+- Encourage prioritization and self-kindness  
+
+No markdown. No long paragraphs. Emojis are welcome. List first, commentary second.`;
+
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -279,7 +171,7 @@ No markdown. No commentary. No wrapping. No paragraphs. Just JSON.`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "gpt-4",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: messages.join("\n") }
@@ -289,90 +181,15 @@ No markdown. No commentary. No wrapping. No paragraphs. Just JSON.`;
 
     const data = await response.json();
     const raw = data?.choices?.[0]?.message?.content;
-
-    let parsed;
-    try {
-      parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
-    } catch (e) {
-      console.error("❌ Failed to parse This Week JSON:", raw);
-      return res.status(400).json({ error: "Invalid GPT output", raw });
-    }
-
+    const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
     res.json(parsed);
-  } catch (err) {
-    console.error("❌ /api/this-week failed:", err.message);
-    res.status(500).json({ error: "Failed to generate This Week view" });
-  }
-});
-
-
-    const data = await response.json();
-    const parsed = JSON.parse(data.choices[0].message.content);
-    res.json(parsed);
-  } catch (err) {
-    console.error("❌ /api/this-week failed:", err.message);
-    res.status(500).json({ error: "Failed to generate This Week data" });
-  }
-});
-// This Week route
-app.post("/api/this-week", async (req, res) => {
-  try {
-    const { messages } = req.body;
-
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: "No messages provided." });
-    }
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: `You are an AI assistant that summarizes short-term upcoming tasks and events based on raw user messages. Output must be structured JSON in this format:
-
-[
-  { "icon": "📅", "label": "Lucy’s swim practice — Tuesday @ 4:30 PM" },
-  { "icon": "🩺", "label": "Pediatrician appointment for Ellie — Thursday morning" },
-  { "icon": "🎟️", "label": "School fundraiser — Friday night" }
-]
-
-Only include items clearly tied to this week. If no events found, return an empty array.
-Do NOT return commentary or text outside the array.`
-          },
-          {
-            role: "user",
-            content: messages.join("\n")
-          }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content;
-
-    let output;
-    try {
-      output = JSON.parse(raw.replace(/```json|```/g, "").trim());
-    } catch (e) {
-      return res.status(500).json({ error: "Could not parse GPT response", raw });
-    }
-console.log("✅ Parsed weekly events:", output);
-    res.json(output);
   } catch (err) {
     console.error("❌ /api/this-week failed:", err.message);
     res.status(500).json({ error: "Failed to generate weekly summary" });
   }
 });
-// Relief protocol (already in your file)
-app.post("/api/relief-protocol", async (req, res) => {
-});
 
+// RELIEF PROTOCOL
 app.post("/api/relief-protocol", async (req, res) => {
   try {
     const { tasks, emotional_flags } = req.body;
@@ -394,7 +211,7 @@ Return output as JSON with:
   "reconnect": { "text": "...", "coach": "John Gottman" },
   "pattern_interrupt": "...",
   "reframe": { "text": "...", "coach": "Adam Grant" }
-}`; // ✅ backtick ends here
+}`;
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -405,29 +222,15 @@ Return output as JSON with:
       body: JSON.stringify({
         model: "gpt-4o",
         messages: [
-          {
-            role: "system",
-            content: prompt
-          },
-          {
-            role: "user",
-            content: `Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)}`
-          }
+          { role: "system", content: prompt },
+          { role: "user", content: `Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)}` }
         ]
       })
     });
 
     const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content;
-
-    let parsed;
-    try {
-      const clean = reply.replace(/```json|```/g, "").trim();
-      parsed = JSON.parse(clean);
-    } catch (e) {
-      return res.status(500).json({ error: "Failed to parse GPT response", raw: reply });
-    }
-
+    const clean = data?.choices?.[0]?.message?.content?.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
     res.json(parsed);
   } catch (err) {
     console.error("❌ Relief Protocol Error:", err.message);
@@ -435,8 +238,7 @@ Return output as JSON with:
   }
 });
 
-
-// Static fallback
+// STATIC FALLBACK
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
