@@ -313,7 +313,61 @@ No markdown. No commentary. No wrapping. No paragraphs. Just JSON.`;
     res.status(500).json({ error: "Failed to generate This Week data" });
   }
 });
+// This Week route
+app.post("/api/this-week", async (req, res) => {
+  try {
+    const { messages } = req.body;
 
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: "No messages provided." });
+    }
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [
+          {
+            role: "system",
+            content: `You are an AI assistant that summarizes short-term upcoming tasks and events based on raw user messages. Output must be structured JSON in this format:
+
+[
+  { "icon": "📅", "label": "Lucy’s swim practice — Tuesday @ 4:30 PM" },
+  { "icon": "🩺", "label": "Pediatrician appointment for Ellie — Thursday morning" },
+  { "icon": "🎟️", "label": "School fundraiser — Friday night" }
+]
+
+Only include items clearly tied to this week. If no events found, return an empty array.
+Do NOT return commentary or text outside the array.`
+          },
+          {
+            role: "user",
+            content: messages.join("\n")
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    const raw = data.choices?.[0]?.message?.content;
+
+    let output;
+    try {
+      output = JSON.parse(raw.replace(/```json|```/g, "").trim());
+    } catch (e) {
+      return res.status(500).json({ error: "Could not parse GPT response", raw });
+    }
+
+    res.json(output);
+  } catch (err) {
+    console.error("❌ /api/this-week failed:", err.message);
+    res.status(500).json({ error: "Failed to generate weekly summary" });
+  }
+});
 // Relief protocol (already in your file)
 app.post("/api/relief-protocol", async (req, res) => {
 });
