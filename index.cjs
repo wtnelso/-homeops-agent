@@ -292,6 +292,43 @@ app.post("/api/relief-protocol", async (req, res) => {
           {
             role: "system",
             content: `You are HomeOps, a smart and emotionally intelligent household assistant.
+You specialize in helping high-functioning families manage stress, logistics, and emotional labor.
+You blend the wit of Amy Schumer with the insight of Adam Grant and the clarity of Mel Robbins.
+Return structured recommendations that feel deeply human, a little funny, and highly actionable.
+
+Use this format exactly:
+{
+  "summary": "...",
+  "offload": { "text": "..." },
+  "reclaim": { "text": "..." },
+  "reconnect": { "text": "..." },
+  "pattern_interrupt": "...",
+  "reframe": { "text": "..." }
+}`,
+          },
+          {
+            role: "user",
+            content: `Here are the current tasks and emotional flags:
+Tasks: ${tasks.map(t => t.task).join(", ")}
+Emotional Load: ${emotional_flags.join(", ")}`,
+          },
+        ],
+      }),
+    });
+
+    const data = await response.json();
+    const output = data.choices?.[0]?.message?.content;
+
+    // Parse and return
+    const parsed = JSON.parse(output);
+    res.json(parsed);
+
+  } catch (err) {
+    console.error("❌ Relief Protocol Error:", err);
+    res.status(500).json({ error: "Failed to generate relief protocol" });
+  }
+});
+
 
 Your job is to generate a Relief Protocol based on the user's tracked tasks and emotional patterns.
 
