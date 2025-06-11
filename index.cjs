@@ -223,24 +223,34 @@ app.post("/api/summary-this-week", async (req, res) => {
     const history = snapshot.docs.map(doc => doc.data());
     const combinedText = history.map(({ message, reply }) => `User: ${message}\nHomeOps: ${reply}`).join("\n\n");
 
- const prompt = `You are HomeOps, a smart and emotionally intelligent household assistant.
-
-Your job is to generate a Relief Protocol based on the user's tracked tasks and emotional patterns.
+const prompt = `You are HomeOps, an emotionally intelligent household assistant for overloaded families.
 
 Today is ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}.
 
-You specialize in helping high-functioning families manage stress, logistics, and emotional labor.
-You blend the wit of Amy Schumer with the insight of Adam Grant and the clarity of Mel Robbins.
+Your task is to generate a weekly summary of what this household is managing, based on chat history.
 
-Return output as JSON with:
-{
-  "summary": "...",
-  "offload": { "text": "...", "coach": "Mel Robbins" },
-  "reclaim": { "text": "...", "coach": "Andrew Huberman" },
-  "reconnect": { "text": "...", "coach": "John Gottman" },
-  "pattern_interrupt": "...",
-  "reframe": { "text": "...", "coach": "Adam Grant" }
-}`;
+✅ Output format:
+🗓 Events:
+• Thursday — Colette’s doctor appointment
+• Saturday — Grocery run
+
+🛒 Errands:
+• Laundry
+• Return library books
+
+📌 Reminders:
+• RSVP to Lucy’s birthday
+• Submit camp forms by Friday
+
+📣 Guidelines:
+- Use this exact format and emoji markers
+- Group into 3 sections: Events, Errands, Reminders
+- Do not echo the user’s original text
+- Convert vague phrases like “tomorrow” or “Thursday” into real dates if they are clearly implied by the day of the week today
+- Make it scannable. This is going into a dashboard.
+
+Only return the list. No explanation. No intro. No outro.`;
+
 
 
 
@@ -331,108 +341,6 @@ Return output as JSON with:
   }
 });
 
-
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: prompt },
-          {
-            role: "user",
-            content: `Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)}`
-          }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content;
-
-    let parsed;
-    try {
-      const clean = reply.replace(/```json|```/g, "").trim();
-      parsed = JSON.parse(clean);
-    } catch (e) {
-      return res.status(500).json({ error: "Failed to parse GPT response", raw: reply });
-    }
-
-    res.json(parsed);
-  } catch (err) {
-    console.error("❌ Relief Protocol Error:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-          },
-          {
-            role: "user",
-            content: `Here are the current tasks and emotional flags:
-Tasks: ${tasks.map(t => t.task).join(", ")}
-Emotional Load: ${emotional_flags.join(", ")}`,
-          },
-        ],
-      }),
-    });
-
-    const data = await response.json();
-    const output = data.choices?.[0]?.message?.content;
-
-    // Parse and return
-    const parsed = JSON.parse(output);
-    res.json(parsed);
-
-  } catch (err) {
-    console.error("❌ Relief Protocol Error:", err);
-    res.status(500).json({ error: "Failed to generate relief protocol" });
-  }
-});
-
-
-Your job is to generate a Relief Protocol based on the user's tracked tasks and emotional patterns.
-
-Today is ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}.
-
-Return output as JSON with:
-{
-  "summary": "...",
-  "offload": { "text": "...", "coach": "Mel Robbins" },
-  "reclaim": { "text": "...", "coach": "Andrew Huberman" },
-  "reconnect": { "text": "...", "coach": "John Gottman" },
-  "pattern_interrupt": "...",
-  "reframe": { "text": "...", "coach": "Adam Grant" }
-}`
-          },
-          {
-            role: "user",
-            content: `Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)}`
-          }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content;
-
-    let parsed;
-    try {
-      const clean = reply.replace(/```json|```/g, "").trim();
-      parsed = JSON.parse(clean);
-    } catch (e) {
-      return res.status(500).json({ error: "Failed to parse GPT response", raw: reply });
-    }
-
-    res.json(parsed);
-  } catch (err) {
-    console.error("❌ Relief Protocol Error:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // Static fallback
 app.get("*", (req, res) => {
