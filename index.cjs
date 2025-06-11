@@ -189,22 +189,6 @@ app.get("/api/events", async (req, res) => {
       }),
     });
 
-    const data = await response.json();
-    const parsed = data?.choices?.[0]?.message?.content;
-
-    let output;
-    try {
-      output = JSON.parse(parsed);
-    } catch {
-      output = { error: "Could not parse GPT response", raw: parsed };
-    }
-
-    res.json(output);
-  } catch (err) {
-    console.error("❌ /api/events failed:", err.message);
-    res.status(500).json({ error: "Failed to extract events" });
-  }
-});
 
 // Weekly summary
 app.post("/api/summary-this-week", async (req, res) => {
