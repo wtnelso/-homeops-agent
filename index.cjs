@@ -290,7 +290,48 @@ Return output as JSON with:
   "reconnect": { "text": "...", "coach": "John Gottman" },
   "pattern_interrupt": "...",
   "reframe": { "text": "...", "coach": "Adam Grant" }
- }`;
+}`; // ✅ backtick ends here
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: prompt
+          },
+          {
+            role: "user",
+            content: `Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)}`
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    const reply = data?.choices?.[0]?.message?.content;
+
+    let parsed;
+    try {
+      const clean = reply.replace(/```json|```/g, "").trim();
+      parsed = JSON.parse(clean);
+    } catch (e) {
+      return res.status(500).json({ error: "Failed to parse GPT response", raw: reply });
+    }
+
+    res.json(parsed);
+  } catch (err) {
+    console.error("❌ Relief Protocol Error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
