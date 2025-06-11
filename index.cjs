@@ -10,6 +10,7 @@ const SYSTEM_PROMPT = fs.readFileSync("./prompts/tone-homeops.txt", "utf-8");
 console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 
 let firebaseCredentials;
+console.log("🔥 Code reached just before try block");
 try {
   const base64 = "not-a-real-base64"; // just a test value
   console.log("🧪 base64 value is:", base64);
