@@ -9,23 +9,22 @@ const fs = require("fs");
 const SYSTEM_PROMPT = fs.readFileSync("./prompts/tone-homeops.txt", "utf-8");
 console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 
+let firebaseCredentials;
+try {
+  const base64 = process.env.FIREBASE_CREDENTIALS_BASE64;
+  const decoded = Buffer.from(base64, "base64").toString("utf-8");
+  firebaseCredentials = JSON.parse(decoded);
+} catch (err) {
+  console.error("❌ Failed to decode Firebase credentials from base64:", err.message);
+  process.exit(1);
+}
+
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert({
-      type: "service_account",
-      project_id: "homeops-web",
-      private_key_id: "b63c1f4f78f2c80168c6a0978f03010a81032d50",
-      private_key: "-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDT+rucpuffvdWc\\n...your real key...\\n-----END PRIVATE KEY-----\\n",
-      client_email: "firebase-adminsdk@homeops-web.iam.gserviceaccount.com",
-      client_id: "117960130305223091082",
-      auth_uri: "https://accounts.google.com/o/oauth2/auth",
-      token_uri: "https://oauth2.googleapis.com/token",
-      auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-      client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk@homeops-web.iam.gserviceaccount.com",
-      universe_domain: "googleapis.com"
-    })
+    credential: admin.credential.cert(firebaseCredentials)
   });
 }
+
 
 const db = admin.firestore();
 const app = express();
