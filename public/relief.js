@@ -75,6 +75,7 @@ async function fetchThisWeekView() {
 }
 
 // Trigger fetch each time dashboard is activated
+
 document.addEventListener("DOMContentLoaded", () => {
   const navItems = document.querySelectorAll(".nav-item");
 
@@ -85,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
           fetchReliefProtocol();
           fetchThisWeekView();
-        }, 200); // slight delay to let DOM settle
+        }, 200);
       }
     });
   });
