@@ -3,7 +3,7 @@ async function fetchReliefProtocol() {
     const eventsRes = await fetch("/api/events?user_id=user_123");
     const events = await eventsRes.json();
 
-    if (events.error || !events.tasks?.length) {
+    if (events.error || !events.tasks?.length || !events.emotional_flags?.length) {
       console.warn("🟡 No tasks or emotional flags to work with.");
       return;
     }
@@ -27,9 +27,10 @@ async function fetchReliefProtocol() {
 
     const reframeText = data.reframe?.text;
     const reframeBlock = document.getElementById("reframe-block");
+    const reframeContent = document.getElementById("relief-reframe");
 
     if (reframeText && reframeText.trim()) {
-      document.getElementById("relief-reframe").innerText = reframeText;
+      reframeContent.innerText = reframeText;
       reframeBlock.style.display = "block";
     } else {
       reframeBlock.style.display = "none";
@@ -37,6 +38,39 @@ async function fetchReliefProtocol() {
 
   } catch (error) {
     console.error("❌ Relief Protocol Error:", error);
+  }
+}
+
+async function fetchThisWeekView() {
+  try {
+    const res = await fetch("/api/messages?user_id=user_123");
+    const raw = await res.json();
+    const messages = raw.map(entry => entry.message).slice(0, 20);
+
+    const summaryRes = await fetch("/api/this-week", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages })
+    });
+
+    const events = await summaryRes.json();
+    const list = document.getElementById("this-week-list");
+    list.innerHTML = "";
+
+    if (!Array.isArray(events) || events.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "No scheduled events this week.";
+      list.appendChild(li);
+      return;
+    }
+
+    events.forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = `${item.icon || "📅"} ${item.label}`;
+      list.appendChild(li);
+    });
+  } catch (err) {
+    console.error("❌ This Week View Error:", err);
   }
 }
 
@@ -48,7 +82,10 @@ document.addEventListener("DOMContentLoaded", () => {
     button.addEventListener("click", () => {
       const view = button.getAttribute("data-view");
       if (view === "dashboard") {
-        setTimeout(fetchReliefProtocol, 200); // slight delay to let DOM settle
+        setTimeout(() => {
+          fetchReliefProtocol();
+          fetchThisWeekView();
+        }, 200); // slight delay to let DOM settle
       }
     });
   });
