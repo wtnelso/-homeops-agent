@@ -1,4 +1,5 @@
 console.log("✅ relief.js loaded");
+
 async function fetchReliefProtocol() {
   try {
     const eventsRes = await fetch("/api/events?user_id=user_123");
@@ -78,6 +79,7 @@ async function fetchThisWeekView() {
       li.textContent = `${item.icon || "📅"} ${item.label}`;
       list.appendChild(li);
     });
+
   } catch (err) {
     console.error("❌ This Week View Error:", err);
     const list = document.getElementById("this-week-list");
@@ -88,30 +90,7 @@ async function fetchThisWeekView() {
   }
 }
 
-
-    const events = await summaryRes.json();
-    const list = document.getElementById("this-week-list");
-    list.innerHTML = "";
-
-    if (!Array.isArray(events) || events.length === 0) {
-      const li = document.createElement("li");
-      li.textContent = "No scheduled events this week.";
-      list.appendChild(li);
-      return;
-    }
-
-    events.forEach(item => {
-      const li = document.createElement("li");
-      li.textContent = `${item.icon || "📅"} ${item.label}`;
-      list.appendChild(li);
-    });
-  } catch (err) {
-    console.error("❌ This Week View Error:", err);
-  }
-}
-
 // Trigger fetch each time dashboard is activated
-
 document.addEventListener("DOMContentLoaded", () => {
   const navItems = document.querySelectorAll(".nav-item");
 
@@ -126,5 +105,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
+  // 🧠 Trigger dashboard data fetch if dashboard is default on page load
+  const activeView = document.querySelector(".view.active");
+  if (activeView && activeView.id === "dashboard-view") {
+    fetchReliefProtocol();
+    fetchThisWeekView();
+  }
 });
+
 window.fetchThisWeekView = fetchThisWeekView;
