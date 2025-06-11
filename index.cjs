@@ -12,6 +12,9 @@ console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 let firebaseCredentials;
 try {
   const base64 = process.env.FIREBASE_CREDENTIALS_BASE64;
+  console.log("🧪 FIREBASE_CREDENTIALS_BASE64 present:", !!base64); // true or false
+  console.log("🔍 FIREBASE_CREDENTIALS_BASE64 (raw):", base64); // actual string
+
   const decoded = Buffer.from(base64, "base64").toString("utf-8");
   firebaseCredentials = JSON.parse(decoded);
   console.log("🧪 Firebase credentials loaded:", !!firebaseCredentials);
