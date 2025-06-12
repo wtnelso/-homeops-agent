@@ -48,7 +48,7 @@ async function fetchThisWeekView() {
     const res = await fetch("/api/messages?user_id=user_123");
     const raw = await res.json();
     const messages = raw.map(entry => entry.message).slice(0, 20);
-
+console.log("🧪 Messages sent to /this-week:", messages);
     const summaryRes = await fetch("/api/this-week", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
