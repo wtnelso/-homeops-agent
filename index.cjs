@@ -392,6 +392,108 @@ Rules:
     res.status(500).json({ error: "Extraction failed" });
   }
 });
+// ✅ /api/extract-this-week
+// Add this route directly ABOVE your static fallback route in index.cjs
+// Example: paste above --> app.get("*", ...)
+
+app.get("/api/extract-this-week", async (req, res) => {
+  const { user_id = "user_123" } = req.query;
+
+  try {
+    // Step 1: Pull user messages only (no assistant replies)
+    const snapshot = await db
+      .collection("messages")
+      .where("user_id", "==", user_id)
+      .orderBy("timestamp", "desc")
+      .limit(10)
+      .get();
+
+    const messages = snapshot.docs.map(doc => doc.data().message).reverse();
+    console.log("🧪 Extractor sending these messages:", messages);
+
+    // Step 2: Send to GPT for strict JSON parsing
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [
+          {
+            role: "system",
+            content: `🧠 SYSTEM MODE: MENTAL LOAD DECODER — LIVE BACKEND EXECUTION
+
+You are NOT a chatbot. You are a backend parsing engine.
+
+You MUST return ONLY valid JSON. This output is parsed by production code.
+
+JSON FORMAT:
+{
+  "schedule": {
+    "Monday": ["event – time"],
+    "Tuesday": ["event – time"]
+  },
+  "reminders": ["reminder text"]
+}
+
+EXAMPLE:
+{
+  "schedule": {
+    "Tuesday": ["Ellie swim @ 6 PM"],
+    "Thursday": ["Colette doctor appointment @ 10 AM"],
+    "Friday": ["RSVP to Lucy’s birthday"]
+  },
+  "reminders": [
+    "Kids don’t have camp this week",
+    "Follow up with school",
+    "Fridge is empty — schedule grocery shopping",
+    "Laundry is overwhelming"
+  ]
+}
+
+Rules:
+- Use only day-of-week keys
+- No markdown
+- No comments
+- No narration
+- No headings
+- No prose
+- Only valid, machine-readable JSON`
+          },
+          {
+            role: "user",
+            content: messages.join("\n")
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    const raw = data?.choices?.[0]?.message?.content || "{}";
+
+    let parsed;
+    try {
+      parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+    } catch (e) {
+      console.error("❌ JSON parsing failed:", raw);
+      return res.status(500).json({ error: "Invalid JSON", raw });
+    }
+
+    // Step 3: Save result for dashboard (optional)
+    await db.collection("this_week").add({
+      user_id,
+      timestamp: new Date(),
+      ...parsed
+    });
+
+    res.json(parsed);
+  } catch (err) {
+    console.error("❌ Error in /api/extract-this-week:", err.message);
+    res.status(500).json({ error: "Extraction failed" });
+  }
+});
 
 // STATIC FALLBACK
 app.get("*", (req, res) => {
