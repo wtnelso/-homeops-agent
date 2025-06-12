@@ -45,40 +45,39 @@ async function fetchReliefProtocol() {
 
 async function fetchThisWeekView() {
   try {
-    const res = await fetch("/api/messages?user_id=user_123");
-    const raw = await res.json();
-    const messages = raw.map(entry => entry.message).slice(0, 20);
-console.log("🧪 Messages sent to /this-week:", messages);
-    const summaryRes = await fetch("/api/this-week", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages })
-    });
+    const res = await fetch("/api/this-week"); // GET route now pulls chat history automatically
+    const data = await res.json();
+    console.log("🧠 This Week View:", data);
 
-    const events = await summaryRes.json();
     const list = document.getElementById("this-week-list");
     list.innerHTML = "";
 
-    if (!Array.isArray(events)) {
-      console.warn("⚠️ This Week response was not a valid array:", events);
+    // Handle event list
+    if (Array.isArray(data.events) && data.events.length > 0) {
+      data.events.forEach(event => {
+        const li = document.createElement("li");
+        li.textContent = `📅 ${event}`;
+        list.appendChild(li);
+      });
+    } else {
       const li = document.createElement("li");
-      li.textContent = "Unable to load events. GPT sent invalid format.";
+      li.textContent = "No events found for this week.";
       list.appendChild(li);
-      return;
     }
 
-    if (events.length === 0) {
-      const li = document.createElement("li");
-      li.textContent = "No scheduled events this week.";
-      list.appendChild(li);
-      return;
+    // Handle emotional flags
+    if (Array.isArray(data.emotional_flags) && data.emotional_flags.length > 0) {
+      const emo = document.createElement("li");
+      emo.textContent = `🧠 Emotional flags: ${data.emotional_flags.join(", ")}`;
+      list.appendChild(emo);
     }
 
-    events.forEach(item => {
-      const li = document.createElement("li");
-      li.textContent = `${item.icon || "📅"} ${item.label}`;
-      list.appendChild(li);
-    });
+    // Handle notes
+    if (Array.isArray(data.notes) && data.notes.length > 0) {
+      const note = document.createElement("li");
+      note.textContent = `💬 Note: ${data.notes[0]}`;
+      list.appendChild(note);
+    }
 
   } catch (err) {
     console.error("❌ This Week View Error:", err);
@@ -89,29 +88,3 @@ console.log("🧪 Messages sent to /this-week:", messages);
     list.appendChild(li);
   }
 }
-
-// Trigger fetch each time dashboard is activated
-document.addEventListener("DOMContentLoaded", () => {
-  const navItems = document.querySelectorAll(".nav-item");
-
-  navItems.forEach(button => {
-    button.addEventListener("click", () => {
-      const view = button.getAttribute("data-view");
-      if (view === "dashboard") {
-        setTimeout(() => {
-          fetchReliefProtocol();
-          fetchThisWeekView();
-        }, 200);
-      }
-    });
-  });
-
-  // 🧠 Trigger dashboard data fetch if dashboard is default on page load
-  const activeView = document.querySelector(".view.active");
-  if (activeView && activeView.id === "dashboard-view") {
-    fetchReliefProtocol();
-    fetchThisWeekView();
-  }
-});
-
-window.fetchThisWeekView = fetchThisWeekView;
