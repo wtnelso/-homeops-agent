@@ -13,8 +13,6 @@ let firebaseCredentials;
 console.log("🔥 Code reached just before try block");
 try {
 // ✅ Only one base64 declaration
-const base64 = `ewogICJ0eXBlIjogIn...YOUR_NEW_STRING...`; // your full base64 string on one line
-
 console.log("🧪 base64 value is:", base64);
 console.log("🧪 typeof base64:", typeof base64);
 const decoded = Buffer.from(base64, "base64").toString("utf-8");
