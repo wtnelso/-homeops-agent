@@ -403,95 +403,20 @@ try {
 // Example: paste above --> app.get("*", ...)
 
 app.get("/api/extract-this-week", async (req, res) => {
-  const { user_id = "user_123" } = req.query;
-
   try {
-    // 1. Load last 10 user messages
-    const snapshot = await db
-      .collection("messages")
-      .where("user_id", "==", user_id)
-      .orderBy("timestamp", "desc")
-      .limit(10)
-      .get();
-
-    const messages = snapshot.docs.map(doc => doc.data().message).reverse();
-    console.log("🧪 Extractor sending messages:", messages);
-
-    // 2. Define GPT function schema
-    const functions = [
-      {
-        name: "extract_schedule_and_reminders",
-        description: "Extract structured weekly schedule and reminders from user chat",
-        parameters: {
-          type: "object",
-          properties: {
-            schedule: {
-              type: "object",
-              description: "Calendar entries grouped by day of week",
-              additionalProperties: {
-                type: "array",
-                items: { type: "string" }
-              }
-            },
-            reminders: {
-              type: "array",
-              description: "Unscheduled mental load items or insights",
-              items: { type: "string" }
-            }
-          },
-          required: ["schedule", "reminders"]
-        }
-      }
-    ];
-
-    // 3. Make GPT call with function_call enforced
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4-0613",
-        messages: [
-          {
-            role: "system",
-            content: "You are a backend parser. Your job is to extract structured calendar data and reminders only. No chat. No prose."
-          },
-          {
-            role: "user",
-            content: messages.join("\n")
-          }
-        ],
-        functions,
-        function_call: { name: "extract_schedule_and_reminders" }
-      })
-    });
-
-    const data = await response.json();
-    const raw = data?.choices?.[0]?.message?.function_call?.arguments;
-
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (e) {
-      console.error("❌ JSON parsing failed:", raw);
-      return res.status(500).json({ error: "Invalid JSON", raw });
-    }
-
-    // ✅ Safely store result
     await db.collection("this_week").add({
-      user_id,
+      user_id: "user_123",
       timestamp: new Date(),
-      ...parsed
+      test: true
     });
 
-    res.json(parsed);
+    res.json({ success: true });
   } catch (err) {
-    console.error("❌ Error in /api/extract-this-week:", err.message);
-    res.status(500).json({ error: "Extraction failed" });
+    console.error("❌ Error in test route:", err.message);
+    res.status(500).json({ error: "Test failed" });
   }
 });
+
 
 
     // Step 3: Save result for dashboard (optional)
