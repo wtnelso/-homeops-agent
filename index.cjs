@@ -372,13 +372,19 @@ Rules:
     const data = await response.json();
     const raw = data?.choices?.[0]?.message?.content || "{}";
 
-    let parsed;
-    try {
-      parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
-    } catch (e) {
-      console.error("❌ JSON parsing failed:", raw);
-      return res.status(500).json({ error: "Invalid JSON", raw });
-    }
+// Try to extract JSON even if GPT wraps it in prose
+let jsonStart = raw.indexOf("{");
+let jsonEnd = raw.lastIndexOf("}") + 1;
+let maybeJson = raw.slice(jsonStart, jsonEnd);
+
+let parsed;
+try {
+  parsed = JSON.parse(maybeJson);
+} catch (e) {
+  console.error("❌ JSON parsing failed:", maybeJson);
+  return res.status(500).json({ error: "Invalid JSON", raw: maybeJson });
+}
+
 
     await db.collection("this_week").add({
       user_id,
