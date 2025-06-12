@@ -417,17 +417,17 @@ app.get("/api/extract-this-week", async (req, res) => {
     const messages = snapshot.docs.map(doc => doc.data().message).reverse();
     console.log("🧪 Extractor sending messages:", messages);
 
-    // 2. Define function schema
+    // 2. Define GPT function schema
     const functions = [
       {
         name: "extract_schedule_and_reminders",
-        description: "Extract structured weekly schedule and mental load reminders from chat",
+        description: "Extract structured weekly schedule and reminders from user chat",
         parameters: {
           type: "object",
           properties: {
             schedule: {
               type: "object",
-              description: "Scheduled events grouped by day of week",
+              description: "Calendar entries grouped by day of week",
               additionalProperties: {
                 type: "array",
                 items: { type: "string" }
@@ -435,7 +435,7 @@ app.get("/api/extract-this-week", async (req, res) => {
             },
             reminders: {
               type: "array",
-              description: "Reminders or emotionally important to-dos",
+              description: "Unscheduled mental load items or insights",
               items: { type: "string" }
             }
           },
@@ -444,7 +444,7 @@ app.get("/api/extract-this-week", async (req, res) => {
       }
     ];
 
-    // 3. Send to GPT with function calling
+    // 3. Make GPT call with function_call enforced
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -456,7 +456,7 @@ app.get("/api/extract-this-week", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "You are a backend assistant. Extract structured calendar data and reminders from user input. Return only structured function arguments."
+            content: "You are a backend parser. Your job is to extract structured calendar data and reminders only. No chat. No prose."
           },
           {
             role: "user",
@@ -468,7 +468,6 @@ app.get("/api/extract-this-week", async (req, res) => {
       })
     });
 
-    // 4. Parse GPT response
     const data = await response.json();
     const raw = data?.choices?.[0]?.message?.function_call?.arguments;
 
@@ -480,20 +479,20 @@ app.get("/api/extract-this-week", async (req, res) => {
       return res.status(500).json({ error: "Invalid JSON", raw });
     }
 
-    // 5. Save parsed data to Firestore
+    // ✅ Safely store result
     await db.collection("this_week").add({
       user_id,
       timestamp: new Date(),
       ...parsed
     });
 
-    // 6. Send response to frontend
     res.json(parsed);
   } catch (err) {
     console.error("❌ Error in /api/extract-this-week:", err.message);
     res.status(500).json({ error: "Extraction failed" });
   }
 });
+
 
     // Step 3: Save result for dashboard (optional)
     await db.collection("this_week").add({
