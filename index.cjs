@@ -165,12 +165,24 @@ app.get("/api/this-week", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: `You are a smart assistant that extracts weekly tasks, appointments, and emotional signals from a user's chat messages. Return a JSON object like this:
+            content: "You are a backend AI system. Your job is to extract structured, machine-readable data from chat logs — not to write prose. You must output ONLY strict JSON, and nothing else. Do not explain. Do not comment. Do not include markdown.
+
+Format:
 {
-  "events": [ "Golf Sunday 9 AM", "Father’s Day" ],
-  "emotional_flags": [ "resentment", "relationship tension" ],
-  "notes": [ "Plan something thoughtful for wife" ]
-}`
+  \"events\": [\"Event description – Day and time\"],
+  \"emotional_flags\": [\"short emotion or pattern\"],
+  \"notes\": [\"optional coaching note\"]
+}
+
+EXAMPLE:
+{
+  \"events\": [\"Lucy swim practice – Tuesday 4:30 PM\", \"RSVP Ellie birthday – by Friday\", \"Colette doctor appointment – Thursday morning\"],
+  \"emotional_flags\": [\"exhausted\", \"partner tension\"],
+  \"notes\": [\"Consider a gesture to reconnect with Maddie\"]
+}
+
+Use double quotes for all strings. Return valid JSON only. Do not add any surrounding text. The result will be parsed by code."
+
           },
           {
             role: "user",
