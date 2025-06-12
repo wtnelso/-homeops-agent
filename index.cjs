@@ -165,24 +165,23 @@ app.get("/api/this-week", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "You are a backend AI system. Your job is to extract structured, machine-readable data from chat logs — not to write prose. You must output ONLY strict JSON, and nothing else. Do not explain. Do not comment. Do not include markdown.
+            content: `You are a backend AI system. Your job is to extract structured, machine-readable data from chat logs — not to write prose. You must output ONLY strict JSON, and nothing else. Do not explain. Do not comment. Do not include markdown.
 
 Format:
 {
-  \"events\": [\"Event description – Day and time\"],
-  \"emotional_flags\": [\"short emotion or pattern\"],
-  \"notes\": [\"optional coaching note\"]
+  "events": ["Event description – Day and time"],
+  "emotional_flags": ["short emotion or pattern"],
+  "notes": ["optional coaching note"]
 }
 
 EXAMPLE:
 {
-  \"events\": [\"Lucy swim practice – Tuesday 4:30 PM\", \"RSVP Ellie birthday – by Friday\", \"Colette doctor appointment – Thursday morning\"],
-  \"emotional_flags\": [\"exhausted\", \"partner tension\"],
-  \"notes\": [\"Consider a gesture to reconnect with Maddie\"]
+  "events": ["Lucy swim practice – Tuesday 4:30 PM", "RSVP Ellie birthday – by Friday", "Colette doctor appointment – Thursday morning"],
+  "emotional_flags": ["exhausted", "partner tension"],
+  "notes": ["Consider a gesture to reconnect with Maddie"]
 }
 
-Use double quotes for all strings. Return valid JSON only. Do not add any surrounding text. The result will be parsed by code."
-
+Use double quotes for all strings. Return valid JSON only. Do not add any surrounding text. The result will be parsed by code.`
           },
           {
             role: "user",
@@ -194,7 +193,14 @@ Use double quotes for all strings. Return valid JSON only. Do not add any surrou
 
     const raw = await openaiRes.json();
     const content = raw?.choices?.[0]?.message?.content || "{}";
-    const parsed = JSON.parse(content.replace(/```json|```/g, "").trim());
+
+    let parsed;
+    try {
+      parsed = JSON.parse(content.replace(/```json|```/g, "").trim());
+    } catch (e) {
+      console.error("❌ GPT returned bad JSON:", content);
+      return res.status(500).json({ error: "Invalid JSON from OpenAI", raw: content });
+    }
 
     res.json(parsed);
   } catch (err) {
@@ -202,6 +208,7 @@ Use double quotes for all strings. Return valid JSON only. Do not add any surrou
     res.status(500).json({ error: "Failed to extract weekly tasks" });
   }
 });
+
 
 
 // RELIEF PROTOCOL
