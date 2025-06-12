@@ -398,15 +398,11 @@ try {
     res.status(500).json({ error: "Extraction failed" });
   }
 });
-// ✅ /api/extract-this-week
-// Add this route directly ABOVE your static fallback route in index.cjs
-// Example: paste above --> app.get("*", ...)
-
-app.get("/api/extract-this-week", async (req, res) => {
+// app.get("/api/extract-this-week", async (req, res) => {
   const { user_id = "user_123" } = req.query;
 
   try {
-    // Step 1: Pull user messages only (no assistant replies)
+    // 1. Get last 10 user messages
     const snapshot = await db
       .collection("messages")
       .where("user_id", "==", user_id)
@@ -415,9 +411,36 @@ app.get("/api/extract-this-week", async (req, res) => {
       .get();
 
     const messages = snapshot.docs.map(doc => doc.data().message).reverse();
-    console.log("🧪 Extractor sending these messages:", messages);
+    console.log("🧪 Extractor sending messages:", messages);
 
-    // Step 2: Send to GPT for strict JSON parsing
+    // 2. Define the expected structure
+    const functions = [
+      {
+        name: "extract_schedule_and_reminders",
+        description: "Extract structured schedule and mental load reminders from family-related chat",
+        parameters: {
+          type: "object",
+          properties: {
+            schedule: {
+              type: "object",
+              description: "Scheduled events grouped by weekday name",
+              additionalProperties: {
+                type: "array",
+                items: { type: "string" }
+              }
+            },
+            reminders: {
+              type: "array",
+              description: "Soft tasks, emotional stressors, and contextual reminders",
+              items: { type: "string" }
+            }
+          },
+          required: ["schedule", "reminders"]
+        }
+      }
+    ];
+
+    // 3. Call GPT with function enforcement
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -425,67 +448,47 @@ app.get("/api/extract-this-week", async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-4-0613",
         messages: [
           {
             role: "system",
-            content: `🧠 SYSTEM MODE: MENTAL LOAD DECODER — LIVE BACKEND EXECUTION
-
-You are NOT a chatbot. You are a backend parsing engine.
-
-You MUST return ONLY valid JSON. This output is parsed by production code.
-
-JSON FORMAT:
-{
-  "schedule": {
-    "Monday": ["event – time"],
-    "Tuesday": ["event – time"]
-  },
-  "reminders": ["reminder text"]
-}
-
-EXAMPLE:
-{
-  "schedule": {
-    "Tuesday": ["Ellie swim @ 6 PM"],
-    "Thursday": ["Colette doctor appointment @ 10 AM"],
-    "Friday": ["RSVP to Lucy’s birthday"]
-  },
-  "reminders": [
-    "Kids don’t have camp this week",
-    "Follow up with school",
-    "Fridge is empty — schedule grocery shopping",
-    "Laundry is overwhelming"
-  ]
-}
-
-Rules:
-- Use only day-of-week keys
-- No markdown
-- No comments
-- No narration
-- No headings
-- No prose
-- Only valid, machine-readable JSON`
+            content: "You are a backend assistant. Extract only structured calendar data and mental load reminders from user messages. Return only arguments for the function."
           },
           {
             role: "user",
             content: messages.join("\n")
           }
-        ]
+        ],
+        functions,
+        function_call: { name: "extract_schedule_and_reminders" }
       })
     });
 
     const data = await response.json();
-    const raw = data?.choices?.[0]?.message?.content || "{}";
+    const raw = data?.choices?.[0]?.message?.function_call?.arguments;
 
     let parsed;
     try {
-      parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+      parsed = JSON.parse(raw);
     } catch (e) {
       console.error("❌ JSON parsing failed:", raw);
       return res.status(500).json({ error: "Invalid JSON", raw });
     }
+
+    // 4. Save result to Firestore
+    await db.collection("this_week").add({
+      user_id,
+      timestamp: new Date(),
+      ...parsed
+    });
+
+    // 5. Return it
+    res.json(parsed);
+  } catch (err) {
+    console.error("❌ Error in /api/extract-this-week:", err.message);
+    res.status(500).json({ error: "Extraction failed" });
+  }
+});
 
     // Step 3: Save result for dashboard (optional)
     await db.collection("this_week").add({
