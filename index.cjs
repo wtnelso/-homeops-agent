@@ -12,19 +12,24 @@ console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 let firebaseCredentials;
 console.log("🔥 Code reached just before try block");
 try {
-// ✅ Only one base64 declaration
-console.log("🧪 base64 value is:", base64);
-console.log("🧪 typeof base64:", typeof base64);
-const decoded = Buffer.from(base64, "base64").toString("utf-8");
-console.log("🔍 Firebase key ID:", JSON.parse(decoded)?.private_key_id);
-console.log("🧪 Decoded base64:", decoded);
-firebaseCredentials = JSON.parse(decoded);
+  // ✅ Only one base64 declaration
+  console.log("🧪 base64 value is:", base64);
+  console.log("🧪 typeof base64:", typeof base64);
+  const decoded = Buffer.from(base64, "base64").toString("utf-8");
+  console.log("🔍 Firebase key ID:", JSON.parse(decoded)?.private_key_id);
+  console.log("🧪 Decoded base64:", decoded);
+  firebaseCredentials = JSON.parse(decoded);
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(firebaseCredentials)
-  });
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(firebaseCredentials)
+    });
+  }
+} catch (err) {
+  console.error("❌ CRASHED:", err.message);
+  process.exit(1);
 }
+
 
 
 const db = admin.firestore();
