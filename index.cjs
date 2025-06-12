@@ -12,7 +12,7 @@ console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 let firebaseCredentials;
 console.log("🔥 Code reached just before try block");
 try {
-  const base64 = `ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAiaG9tZW9wcy13ZWIiLAogICJwcml2YXRlX2tleV9pZCI6ICJjNzIyMTg0M2JiOTU1ZjVmNGNhYTNmNTgzZjE1NmVlMWRkNDQwYzdjIiwKICAicHJpdmF0ZV9rZXkiOiAiLS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tXG5NSUlFdkFJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0JLWXdnZ1NpQWdFQUFvSUJBUUNsaE5rZE9XOVNMMUJqXG55N0ZNamR1d212YjJ2VjY3Y2RxYmhndDFzVytubXdaZ0FrbHFTbWxDTnV0L1RMaXRjSGlieVVXZEswb1JYcE0vXG5FaVNvSlluSTFwbDNxYkp3c2JmQkVmRG9oa2ZyT1NMdWlIelEvcHA2aDlTckFQZVA3b1JPbWRnWE1NK2NkUXptXG4vZkJFYVV0R0pTcmJCRUVVTTM0Z1ptajd2YVNVYWNYR3BsVTF1WmxkMmJUc0FKR1dZT2k0eGY5NWdvQ3pqRGZOXG5XUUIyNDJ0bzNOT2ZUanhmbmhJNERSL2tvZlVKWWVUZCtadDlOc2xMSjBISmFxazZpNmVwRFF0aXluL2xSR0xqXG5RN0Z5Y3BVYmNHMTRBdFRaU1YzOUU2d2l1WWRRYk5EalIvMzBGL1VNNS9iNU1KSUFjYjVzbWV5N1JudjZERlFaXG5JODc5WFBSTEFnTUJBQUVDZ2dFQUJ3eVUyOEdxdllsbUhaSHVJdEJwMCtnbk8yMkJiRzg4bGE3WkVrdG52cUxxXG5EeGROQ29hRWowb1BTYlJUcXlteHg2c2RwVjNUdEoxNEExRzdaQ0NxdmR4eDNDdCtGMzVpSGIxZ0txNzhpN202XG42d1dMcW42THgzNVcxVGt0QlNFaERtRWI4U3RNdERyT3ZWem5kaXBvb0pWeWNVdWpMK2FQZ3Fud1NVUmdkWDM3XG5YbE5XTHc1RXIzNDR0UTU0aGNyN3RHSmVPNms0cVRNTjlidEJnUzV3azZIR2tRY3V6blhXMWdpNUFjZEhGcFJ2XG5tSVVBSks5U2Z4b25HdFdNS0VDQ0JiNXNsc2hqaTR1VFE3S2h0YUd3SzdFRjV6ZHpVYU5pVkJ1SGUyVlBMTVdyXG5TOE5wVWIzRm0wWkR0dlBKRk5WZytRT2F3TmJkZ3JGZU5nUXlWbnlZelFLQmdRRFcyREQxNXF2QjNhQWNCVzRlXG5aQ3Q4YS9Md3hsZFRmSnZRSkVJSnNsbHpUZFZBUlFtWWlDZ1F0KzBrVVd2aUJBT2wvRFZSZWtyT2FFK24xc0FZXG5mUUljYUNFZjN5TjhVdTdhN1E3cTRRQTlITVRuRTRvZlVIOUtjTWRCYmEvbUVNZTNML3VLNUFCMzlrZHFjcnZnXG5naEFJeTdSMTVrblBHNG8zNjdvd0NxTjk3UUtCZ1FERk9jVDNWZWp5dkhLZytWdTlxR2hwRlcyUlNjNEdEckRkXG5iaStEbkJZWUJJSHIwMU14WEtBTStpVGJ4RE5LQUh5R1VVN1RtaUo5c2ZFU1J0ZVp5dzlkcnF0cEE2WmNOUEZjXG4yTHBJWkdUWiszOUFqWnBpcjBHcUFhaURrZmxNRnBQcU8zVGFrRzFtQWVINVVCbzhZam90YzhwZEo4NytmRTQwXG5qdHIyc0dxMEZ3S0JnQUdyS2k0dXZYVERBT1JXMG5VZitBcCtXQ093bHFzS1U3ZDVJSjRzcVc4dzBwQXVPUlhiXG5NTng0WVRvZis4T0VubmFpajlOekxMT1BzZGF1MzAwUlkzdk8venJkSTh4cVpIcUV6dEhhTDROSi91bUFpRmtYXG42ZlV0RFE4Z0IvYTBlS2lla2NpUlhzT1B3Unc5aWVJRGdKWmc1cVRueGZqNjBNY0FhTERJMUY0OUFvR0FKT2ozXG4xTFlPUDRkSENKdENNUTlZWXZvd3BEVWt5bnRyWERWbnpRQ2tIZUNTRS9sYm8yeExROEo0cld4ZGtPYmdaeDdHXG5XdEdJek85RlIzOWNrQnF4aUgzTTlIMUxZQXhFYzNUWC8vNVI1WDJzeGY3Nk9xZkQ2VFlnUEdkUU9ZNHNKblQwXG5ISWRWQWZjdVBFTmlkWlNJZ01NZnh5bFJFczFlc1hWZXd6WW04Z2NDZ1lCK1NuTU9aR0tUblp4eGQ5UmdCdXV4XG5Reldmd2dzWXFkc2lpOWp4QmhNRzVHd0d4U0FyQnA5VXczSjFVM3ZQR0hPN0N3OUxXRVEySGQwdjFTRmNiTHhIXG5WWEpGVlNyRmh0dnRTZGVuNUszenU3VkNnNmY4d1l3OUVqQ1d5UFVsN0k0dG05d0tVSEM4TTlQMVZQSE1LbDJLXG41VGUzeld6ZDd5bWxad1g3UWpDTTB3PT1cbi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS1cbiIsCiAgImNsaWVudF9lbWFpbCI6ICJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0Bob21lb3BzLXdlYi5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsCiAgImNsaWVudF9pZCI6ICIxMTA1MjUwNDgyOTkxNTAwNjg1MTEiLAogICJhdXRoX3VyaSI6ICJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20vby9vYXV0aDIvYXV0aCIsCiAgInRva2VuX3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsCiAgImF1dGhfcHJvdmlkZXJfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9vYXV0aDIvdjEvY2VydHMiLAogICJjbGllbnRfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9yb2JvdC92MS9tZXRhZGF0YS94NTA5L2ZpcmViYXNlLWFkbWluc2RrLWZic3ZjJTQwaG9tZW9wcy13ZWIuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLAogICJ1bml2ZXJzZV9kb21haW4iOiAiZ29vZ2xlYXBpcy5jb20iCn0K`;//
+  const base64 = `ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAiaG9tZW9wcy13ZWIiLAogICJwcml2YXRlX2tleV9pZCI6ICJjNzIyMTg0M2JiOTU1ZjVmNGNhYTNmNTgzZjE1NmVlMWRkNDQwYzdjIiwKICAicHJpdmF0ZV9rZXkiOiAiLS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tXG5NSUlFdkFJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0JLWXdnZ1NpQWdFQUFvSUJBUUNsaE5rZE9XOVNMMUJqXG55N0ZNamR1d212YjJ2VjY3Y2RxYmhndDFzVytubXdaZ0FrbHFTbWxDTnV0L1RMaXRjSGlieVVXZEswb1JYcE0vXG5FaVNvSlluSTFwbDNxYkp3c2JmQkVmRG9oa2ZyT1NMdWlIelEvcHA2aDlTckFQZVA3b1JPbWRnWE1NK2NkUXptXG4vZkJFYVV0R0pTcmJCRUVVTTM0Z1ptajd2YVNVYWNYR3BsVTF1WmxkMmJUc0FKR1dZT2k0eGY5NWdvQ3pqRGZOXG5XUUIyNDJ0bzNOT2ZUanhmbmhJNERSL2tvZlVKWWVUZCtadDlOc2xMSjBISmFxazZpNmVwRFF0aXluL2xSR0xqXG5RN0Z5Y3BVYmNHMTRBdFRaU1YzOUU2d2l1WWRRYk5EalIvMzBGL1VNNS9iNU1KSUFjYjVzbWV5N1JudjZERlFaXG5JODc5WFBSTEFnTUJBQUVDZ2dFQUJ3eVUyOEdxdllsbUhaSHVJdEJwMCtnbk8yMkJiRzg4bGE3WkVrdG52cUxxXG5EeGROQ29hRWowb1BTYlJUcXlteHg2c2RwVjNUdEoxNEExRzdaQ0NxdmR4eDNDdCtGMzVpSGIxZ0txNzhpN202XG42d1dMcW42THgzNVcxVGt0QlNFaERtRWI4U3RNdERyT3ZWem5kaXBvb0pWeWNVdWpMK2FQZ3Fud1NVUmdkWDM3XG5YbE5XTHc1RXIzNDR0UTU0aGNyN3RHSmVPNms0cVRNTjlidEJnUzV3azZIR2tRY3V6blhXMWdpNUFjZEhGcFJ2XG5tSVVBSks5U2Z4b25HdFdNS0VDQ0JiNXNsc2hqaTR1VFE3S2h0YUd3SzdFRjV6ZHpVYU5pVkJ1SGUyVlBMTVdyXG5TOE5wVWIzRm0wWkR0dlBKRk5WZytRT2F3TmJkZ3JGZU5nUXlWbnlZelFLQmdRRFcyREQxNXF2QjNhQWNCVzRlXG5aQ3Q4YS9Md3hsZFRmSnZRSkVJSnNsbHpUZFZBUlFtWWlDZ1F0KzBrVVd2aUJBT2wvRFZSZWtyT2FFK24xc0FZXG5mUUljYUNFZjN5TjhVdTdhN1E3cTRRQTlITVRuRTRvZlVIOUtjTWRCYmEvbUVNZTNML3VLNUFCMzlrZHFjcnZnXG5naEFJeTdSMTVrblBHNG8zNjdvd0NxTjk3UUtCZ1FERk9jVDNWZWp5dkhLZytWdTlxR2hwRlcyUlNjNEdEckRkXG5iaStEbkJZWUJJSHIwMU14WEtBTStpVGJ4RE5LQUh5R1VVN1RtaUo5c2ZFU1J0ZVp5dzlkcnF0cEE2WmNOUEZjXG4yTHBJWkdUWiszOUFqWnBpcjBHcUFhaURrZmxNRnBQcU8zVGFrRzFtQWVINVVCbzhZam90YzhwZEo4NytmRTQwXG5qdHIyc0dxMEZ3S0JnQUdyS2k0dXZYVERBT1JXMG5VZitBcCtXQ093bHFzS1U3ZDVJSjRzcVc4dzBwQXVPUlhiXG5NTng0WVRvZis4T0VubmFpajlOekxMT1BzZGF1MzAwUlkzdk8venJkSTh4cVpIcUV6dEhhTDROSi91bUFpRmtYXG42ZlV0RFE4Z0IvYTBlS2lla2NpUlhzT1B3Unc5aWVJRGdKWmc1cVRueGZqNjBNY0FhTERJMUY0OUFvR0FKT2ozXG4xTFlPUDRkSENKdENNUTlZWXZvd3BEVWt5bnRyWERWbnpRQ2tIZUNTRS9sYm8yeExROEo0cld4ZGtPYmdaeDdHXG5XdEdJek85RlIzOWNrQnF4aUgzTTlIMUxZQXhFYzNUWC8vNVI1WDJzeGY3Nk9xZkQ2VFlnUEdkUU9ZNHNKblQwXG5ISWRWQWZjdVBFTmlkWlNJZ01NZnh5bFJFczFlc1hWZXd6WW04Z2NDZ1lCK1NuTU9aR0tUblp4eGQ5UmdCdXV4XG5Reldmd2dzWXFkc2lpOWp4QmhNRzVHd0d4U0FyQnA5VXczSjFVM3ZQR0hPN0N3OUxXRVEySGQwdjFTRmNiTHhIXG5WWEpGVlNyRmh0dnRTZGVuNUszenU3VkNnNmY4d1l3OUVqQ1d5UFVsN0k0dG05d0tVSEM4TTlQMVZQSE1LbDJLXG41VGUzeld6ZDd5bWxad1g3UWpDTTB3PT1cbi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS1cbiIsCiAgImNsaWVudF9lbWFpbCI6ICJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0Bob21lb3BzLXdlYi5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsCiAgImNsaWVudF9pZCI6ICIxMTA1MjUwNDgyOTkxNTAwNjg1MTEiLAogICJhdXRoX3VyaSI6ICJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20vby9vYXV0aDIvYXV0aCIsCiAgInRva2VuX3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsCiAgImF1dGhfcHJvdmlkZXJfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9vYXV0aDIvdjEvY2VydHMiLAogICJjbGllbnRfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9yb2JvdC92MS9tZXRhZGF0YS94NTA5L2ZpcmViYXNlLWFkbWluc2RrLWZic3ZjJTQwaG9tZW9wcy13ZWIuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLAogICJ1bml2ZXJzZV9kb21haW4iOiAiZ29vZ2xlYXBpcy5jb20iCn0K`;
 
   // ✅ Only one base64 declaration
   console.log("🧪 base64 value is:", base64);
@@ -140,40 +140,21 @@ app.get("/api/dashboard", async (req, res) => {
   }
 });
 
-// /api/this-week ROUTE
-app.post("/api/this-week", async (req, res) => {
-  const { messages } = req.body;
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: "No messages provided." });
-  }
-
-  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant for high-performing families.
-
-Your tone blends:
-- the raw wit of Amy Schumer  
-- the tactical clarity of Mel Robbins  
-- the observational humor of Jerry Seinfeld  
-- the emotional insight of Adam Grant  
-- and the pattern-framing curiosity of Malcolm Gladwell
-
-Your job: extract the user’s weekly appointments, obligations, and tasks. Structure them clearly. Then respond with a short validating paragraph in your tone.
-
-✅ Format:
-
-🛂 Tuesday @ 11 AM — Passport appointment  
-🏊 Tuesday @ 6 PM — Ellie swim practice  
-🎾 Wednesday evening — Lucy’s tennis match  
-
-📣 Then add 2–3 sentences of commentary. It should:
-- Acknowledge the emotional + logistical weight  
-- Use wit and real-life energy (not corporate fluff)  
-- Encourage prioritization and self-kindness  
-
-No markdown. No long paragraphs. Emojis are welcome. List first, commentary second.`;
-
+// THIS WEEK ROUTE (AI Extracted from Chat)
+app.get("/api/this-week", async (req, res) => {
+  const { user_id = "user_123" } = req.query;
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const snapshot = await db
+      .collection("messages")
+      .where("user_id", "==", user_id)
+      .orderBy("timestamp", "desc")
+      .limit(25)
+      .get();
+
+    const messages = snapshot.docs.map(doc => doc.data().message).reverse();
+
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -182,21 +163,34 @@ No markdown. No long paragraphs. Emojis are welcome. List first, commentary seco
       body: JSON.stringify({
         model: "gpt-4",
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: messages.join("\n") }
+          {
+            role: "system",
+            content: `You are a smart assistant that extracts weekly tasks, appointments, and emotional signals from a user's chat messages. Return a JSON object like this:
+{
+  "events": [ "Golf Sunday 9 AM", "Father’s Day" ],
+  "emotional_flags": [ "resentment", "relationship tension" ],
+  "notes": [ "Plan something thoughtful for wife" ]
+}`
+          },
+          {
+            role: "user",
+            content: messages.join("\n")
+          }
         ]
       })
     });
 
-    const data = await response.json();
-    const raw = data?.choices?.[0]?.message?.content;
-    const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+    const raw = await openaiRes.json();
+    const content = raw?.choices?.[0]?.message?.content || "{}";
+    const parsed = JSON.parse(content.replace(/```json|```/g, "").trim());
+
     res.json(parsed);
   } catch (err) {
-    console.error("❌ /api/this-week failed:", err.message);
-    res.status(500).json({ error: "Failed to generate weekly summary" });
+    console.error("❌ Error in GET /api/this-week:", err.message);
+    res.status(500).json({ error: "Failed to extract weekly tasks" });
   }
 });
+
 
 // RELIEF PROTOCOL
 app.post("/api/relief-protocol", async (req, res) => {
