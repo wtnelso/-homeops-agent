@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   const calendarEl = document.getElementById("calendar");
+  if (!calendarEl) return; // ✅ Prevent crash if calendar div is not rendered yet
 
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
