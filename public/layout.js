@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
-   lucide.createIcons(); // ✅ this is what makes the icons render
-  // existing view-switch logic
-});
+  lucide.createIcons(); // render sidebar icons
+
   const views = document.querySelectorAll(".view");
   const navButtons = document.querySelectorAll(".nav-item");
   const toggleTheme = document.getElementById("toggleTheme");
