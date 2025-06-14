@@ -173,7 +173,8 @@ No markdown. No long paragraphs. Emojis are welcome. List first, commentary seco
       body: JSON.stringify({
         model: "gpt-4",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: prompt },
+
           { role: "user", content: messages.join("\n") }
         ]
       })
