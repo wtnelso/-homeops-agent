@@ -22,10 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
       fetch("/api/dashboard?user_id=user_123")
         .then(res => res.json())
         .then(data => {
-          // Panel 1 — This Week
-          const taskHTML = data.tasksThisWeek.map(item => `<li>📌 ${item}</li>`).join("");
-          document.querySelector(".dashboard-card:nth-child(1) ul").innerHTML = taskHTML;
-
           // Panel 2 — Mental Load
           document.querySelector(".dashboard-card:nth-child(2) ul").innerHTML = `
             <li>You're tracking ${data.totalTasks} tasks</li>
@@ -39,6 +35,36 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch((err) => {
           console.error("Dashboard fetch error:", err);
         });
+    }
+
+    // Load calendar when the calendar view is activated
+    if (targetView === "calendar" && !window.calendarRendered) {
+      const calendarEl = document.getElementById("calendar");
+      if (calendarEl) {
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: "dayGridMonth",
+          height: 600,
+          headerToolbar: {
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek,timeGridDay"
+          },
+          events: [],
+          dateClick: function(info) {
+            const title = prompt("Add an event:");
+            if (title) {
+              calendar.addEvent({
+                title,
+                start: info.dateStr,
+                allDay: true
+              });
+            }
+          }
+        });
+
+        calendar.render();
+        window.calendarRendered = true;
+      }
     }
   }
 
