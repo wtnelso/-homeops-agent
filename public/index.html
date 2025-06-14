@@ -82,89 +82,88 @@
           </form>
         </div>
       </section>
+<!-- House View (Dashboard) -->
+<section id="dashboard-view" class="view">
+  <h2>📊 The House View</h2>
+  <div class="dashboard-grid">
 
-      <!-- House View (Dashboard) -->
-      <section id="dashboard-view" class="view">
-        <h2>📊 The House View</h2>
-        <div class="dashboard-grid">
-<!-- Calendar View -->
-<section id="calendar-view" class="view" style="display: none;">
+    <!-- Structured Weekly View -->
+    <div class="dashboard-card" id="structured-week-card">
+      <h3>📅 This Week</h3>
+      <div id="structured-schedule"></div>
+      <h4>🧠 Reminders</h4>
+      <ul id="structured-reminders"></ul>
+    </div>
+
+    <!-- Mental Load & Insights -->
+    <div class="dashboard-card">
+      <h3>Mental Load</h3>
+      <ul></ul>
+    </div>
+
+    <!-- Reframes (now styled as card in grid) -->
+    <div class="dashboard-card">
+      <h3>Reframes</h3>
+      <div class="reframe-list"></div>
+    </div>
+
+  </div>
+
+  <!-- Relief Protocol -->
+  <div id="relief-protocol" class="relief-card">
+    <div class="relief-header">
+      <h2>🧠 Relief Protocol</h2>
+      <p class="subtle-label">Based on recent load patterns</p>
+    </div>
+
+    <div class="relief-section">
+      <label>Summary</label>
+      <p id="relief-summary">Loading...</p>
+    </div>
+
+    <div class="relief-section">
+      <label>Offload </label>
+      <p id="relief-offload">Loading...</p>
+    </div>
+
+    <div class="relief-section">
+      <label>Reclaim </label>
+      <p id="relief-reclaim">Loading...</p>
+    </div>
+
+    <div class="relief-section">
+      <label>Reconnect </label>
+      <p id="relief-reconnect">Loading...</p>
+    </div>
+
+    <div class="relief-section">
+      <label>Pattern Interrupt </label>
+      <p id="relief-interrupt">Loading...</p>
+    </div>
+
+    <div class="relief-section" id="reframe-block" style="display: none;">
+      <label>Reframe </label>
+      <p id="relief-reframe">Loading...</p>
+    </div>
+  </div>
+</section>
+
+<!-- ✅ Calendar View (moved outside of dashboard) -->
+<section id="calendar-view" class="view">
   <h2>📅 My Calendar</h2>
   <div id="calendar"></div>
 </section>
 
-         <!-- Structured Weekly View -->
-<div class="dashboard-card" id="structured-week-card">
-  <h3>📅 This Week</h3>
-  <div id="structured-schedule"></div>
-  <h4>🧠 Reminders</h4>
-  <ul id="structured-reminders"></ul>
+</main>
 </div>
 
-          <!-- Mental Load & Insights -->
-          <div class="dashboard-card">
-            <h3>Mental Load</h3>
-            <ul></ul>
-          </div>
+<script src="layout.js"></script>
+<script src="chat.js"></script>
+<script src="/relief.js" defer></script>
 
-
-
-          <!-- Reframes (now styled as card in grid) -->
-          <div class="dashboard-card">
-            <h3>Reframes</h3>
-            <div class="reframe-list"></div>
-          </div>
-
-        </div>
-
-        <!-- Relief Protocol -->
-        <div id="relief-protocol" class="relief-card">
-          <div class="relief-header">
-            <h2>🧠 Relief Protocol</h2>
-            <p class="subtle-label">Based on recent load patterns</p>
-          </div>
-
-          <div class="relief-section">
-            <label>Summary</label>
-            <p id="relief-summary">Loading...</p>
-          </div>
-
-          <div class="relief-section">
-            <label>Offload </label>
-            <p id="relief-offload">Loading...</p>
-          </div>
-
-          <div class="relief-section">
-            <label>Reclaim </label>
-            <p id="relief-reclaim">Loading...</p>
-          </div>
-
-          <div class="relief-section">
-            <label>Reconnect </label>
-            <p id="relief-reconnect">Loading...</p>
-          </div>
-
-          <div class="relief-section">
-            <label>Pattern Interrupt </label>
-            <p id="relief-interrupt">Loading...</p>
-          </div>
-
-          <div class="relief-section" id="reframe-block" style="display: none;">
-            <label>Reframe </label>
-            <p id="relief-reframe">Loading...</p>
-          </div>
-        </div>
-      </section>
-
-    </main>
-  </div>
-    <script src="layout.js"></script>
-  <script src="chat.js"></script>
-  <script src="/relief.js" defer></script>
-
-  <!-- FullCalendar CSS + JS -->
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.js"></script>
+<!-- FullCalendar CSS + JS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.js"></script>
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
