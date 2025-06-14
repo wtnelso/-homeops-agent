@@ -139,28 +139,29 @@ app.post("/api/this-week", async (req, res) => {
     return res.status(400).json({ error: "No messages provided." });
   }
 
-  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant for high-performing families.
+ const systemPrompt = `You are HomeOps — a structured, emotionally fluent assistant for high-functioning families.
 
-Your tone blends:
-- the tactical clarity of Mel Robbins  
-- the observational humor of Jerry Seinfeld  
-- the emotional insight of Adam Grant  
-- and the pattern-framing curiosity of Malcolm Gladwell
+Your job is to extract time-based tasks, appointments, and key responsibilities from recent chat logs. Format them clearly by date and time.
 
-Your job: extract the user’s weekly appointments, obligations, and tasks. Structure them clearly. Then respond with a short validating paragraph in your tone.
+Do not respond like a chatbot or narrator. Do not summarize. Do not use metaphors, jokes, or emojis.
 
-✅ Format:
+Always return output as valid JSON with this structure:
 
-🛂 Tuesday @ 11 AM — Passport appointment  
-🏊 Tuesday @ 6 PM — Ellie swim practice  
-🎾 Wednesday evening — Lucy’s tennis match  
+{
+  "appointments": [
+    { "label": "Colette pediatrician follow-up", "day": "Monday", "time": "Anytime" },
+    { "label": "Lucy dance registration", "day": "Today", "time": "ASAP" },
+    { "label": "Return Ellie’s library book", "day": "Thursday", "time": "Before school" }
+  ],
+  "reminders": [
+    "Send birthday message to Maddie’s mom",
+    "Get detergent or order it today",
+    "Respond to at least one work email"
+  ]
+}
 
-📣 Then add 2–3 sentences of commentary. It should:
-- Acknowledge the emotional + logistical weight  
-- Use wit and real-life energy (not corporate fluff)  
-- Encourage prioritization and self-kindness  
+Be brief and clear. Never generate text outside of the JSON object. No markdown. No commentary. Just clean structure.`;
 
-No markdown. No long paragraphs. Emojis are welcome. List first, commentary second.`;
 
 
   try {
@@ -221,9 +222,9 @@ Return output as JSON with:
       },
       body: JSON.stringify({
         model: "gpt-4o",
-         temperature: 0.3, //
+         temperature: 0.8, //
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { "system", content: prompt },
           { role: "user", content: `Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)}` }
         ]
       })
