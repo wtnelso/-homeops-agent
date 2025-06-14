@@ -221,8 +221,9 @@ Return output as JSON with:
       },
       body: JSON.stringify({
         model: "gpt-4o",
+         temperature: 0.3, //
         messages: [
-          { role: "system", content: prompt },
+          { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: `Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)}` }
         ]
       })
