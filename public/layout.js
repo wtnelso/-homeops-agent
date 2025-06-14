@@ -86,3 +86,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+document.addEventListener("DOMContentLoaded", () => {
+  const calendarEl = document.getElementById("calendar");
+  if (calendarEl) {
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "dayGridMonth",
+      height: 600,
+      headerToolbar: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,timeGridDay"
+      },
+      events: [
+        { title: 'Test Event', start: new Date().toISOString().split('T')[0] }
+      ]
+    });
+    calendar.render();
+  }
+});
