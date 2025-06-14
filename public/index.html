@@ -161,14 +161,18 @@
 <script src="chat.js"></script>
 <script src="/relief.js" defer></script>
 
-<!-- FullCalendar CSS + JS -->
+<!-- ✅ FullCalendar CSS and JS FIRST -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.js" defer></script>
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+<!-- ✅ THEN your custom scripts -->
+<script src="layout.js" defer></script>
+<script src="chat.js" defer></script>
+<script src="/relief.js" defer></script>
+<script src="/calendar.js" defer></script>
 
-  <!-- Your calendar render logic -->
-  <script src="/calendar.js" defer></script>
+<!-- ✅ Lucide icons LAST -->
+<script src="https://unpkg.com/lucide@latest"></script>
 </body>
 </html>
+
