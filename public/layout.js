@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+   lucide.createIcons(); // ✅ this is what makes the icons render
+  // existing view-switch logic
+});
   const views = document.querySelectorAll(".view");
   const navButtons = document.querySelectorAll(".nav-item");
   const toggleTheme = document.getElementById("toggleTheme");
@@ -33,19 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
           // Panel 3 — Recurring Threads
           const themeHTML = data.topThemes.map(t => `<li>🔁 ${t}</li>`).join("");
           document.querySelector(".dashboard-card:nth-child(3) ul").innerHTML = themeHTML;
-
-          // Panel 4 — Reframes
-          const reframes = data.reframes || [];
-          const reframeContainer = document.querySelector(".dashboard-card:nth-child(4) .reframe-list");
-          if (reframeContainer) {
-            reframeContainer.innerHTML = reframes.map(r => `
-              <div class="reframe">
-                <h4>${r.title}</h4>
-                <p><em>${r.subtitle}</em></p>
-                <p>${r.body}</p>
-              </div>
-            `).join("");
-          }
         })
         .catch((err) => {
           console.error("Dashboard fetch error:", err);

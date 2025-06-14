@@ -72,6 +72,16 @@ body.dark {
   background: #374151;
   border-radius: 8px;
 }
+.nav-item i {
+  width: 24px;
+  height: 24px;
+  color: white;
+  transition: color 0.2s ease;
+}
+
+.nav-item:hover i {
+  color: #f9fafb; /* Slight highlight on hover */
+}
 
 /* Main Content */
 .main-content {
