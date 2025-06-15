@@ -37,62 +37,40 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Load calendar only once when calendar view is shown
+    // Load calendar once
     if (targetView === "calendar" && !window.calendarRendered) {
-      console.log("📅 Rendering calendar...");
+      console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
 
-if (targetView === "calendar" && !window.calendarRendered) {
-  console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
+      const calendarEl = document.getElementById("calendar");
 
-  if (targetView === "calendar" && !window.calendarRendered) {
-  console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
+      if (calendarEl) {
+        window.calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: "dayGridMonth",
+          height: 600,
+          headerToolbar: {
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek,timeGridDay"
+          },
+          events: [
+            {
+              title: "✅ Calendar Loaded!",
+              start: new Date().toISOString().split("T")[0]
+            }
+          ],
+          dateClick: function (info) {
+            const title = prompt("Add an event:");
+            if (title) {
+              window.calendar.addEvent({
+                title,
+                start: info.dateStr,
+                allDay: true
+              });
+            }
+          }
+        });
 
-if (targetView === "calendar" && !window.calendarRendered) {
-  console.log("📅 Rendering calendar...");
-
-  const calendarEl = document.getElementById("calendar");
-
-  if (calendarEl) {
-    // ✅ This is the only correct way to assign it
-    window.calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: "dayGridMonth",
-      height: 600,
-      headerToolbar: {
-        left: "prev,next today",
-        center: "title",
-        right: "dayGridMonth,timeGridWeek,timeGridDay"
-      },
-      events: [
-        {
-          title: "✅ Calendar Loaded!",
-          start: new Date().toISOString().split("T")[0]
-        }
-      ],
-      dateClick: function (info) {
-        const title = prompt("Add an event:");
-        if (title) {
-          window.calendar.addEvent({
-            title,
-            start: info.dateStr,
-            allDay: true
-          });
-        }
-      }
-    });
-
-    window.calendar.render(); // ✅ Must render
-    window.calendarRendered = true;
-  } else {
-    console.warn("⚠️ #calendar element not found.");
-  }
-}
-
-
-
-
-
-
-        calendar.render();
+        window.calendar.render();
         window.calendarRendered = true;
       } else {
         console.warn("⚠️ #calendar element not found.");
@@ -100,10 +78,10 @@ if (targetView === "calendar" && !window.calendarRendered) {
     }
   }
 
-  // Set default view to chat
+  // Default to chat view
   activateView("chat");
 
-  // Hook up sidebar buttons
+  // Navigation buttons
   navButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const target = button.getAttribute("data-view");
