@@ -157,18 +157,21 @@
 </main>
 </div>
 
-<!-- ✅ FullCalendar CSS FIRST -->
+</main>
+</div>
+
+<!-- ✅ FullCalendar CSS -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" rel="stylesheet" />
 
-<!-- ✅ FullCalendar JS NEXT — ⚠️ NO `defer` -->
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.js"></script>
+<!-- ✅ FullCalendar JS (no defer, must load immediately) -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
 
-<!-- ✅ THEN your app scripts — WITH `defer` -->
+<!-- ✅ App JS files (with defer) -->
 <script src="layout.js" defer></script>
 <script src="chat.js" defer></script>
 <script src="/relief.js" defer></script>
 
-<!-- ✅ Lucide icons LAST -->
+<!-- ✅ Icons -->
 <script src="https://unpkg.com/lucide@latest"></script>
 </body>
 </html>
