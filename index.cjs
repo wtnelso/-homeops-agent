@@ -47,7 +47,7 @@ async function extractCalendarEvents(message) {
       messages: [
         {
           role: "system",
-          content: "Extract all time-based events from this message. Respond ONLY with a JSON array: [{ \"title\": string, \"start\": ISO 8601 datetime string }]."
+          content: "Extract any date/time-based events from this message. Respond ONLY with a JSON array of this format:\n\n[{\n  \"title\": \"string\",\n  \"start\": \"ISO-8601 datetime string\"\n}]\n\nNo explanations. Just the JSON array."
         },
         {
           role: "user",
@@ -59,6 +59,7 @@ async function extractCalendarEvents(message) {
 
   const data = await res.json();
   const raw = data.choices?.[0]?.message?.content || "[]";
+
   console.log("🧪 Raw GPT event text:", raw);
 
   try {
@@ -66,7 +67,7 @@ async function extractCalendarEvents(message) {
     console.log("📤 Parsed events array:", parsed);
     return parsed;
   } catch (err) {
-    console.error("❌ Failed to parse GPT event output:", err.message);
+    console.error("❌ Failed to parse GPT output:", err.message);
     return [];
   }
 }
