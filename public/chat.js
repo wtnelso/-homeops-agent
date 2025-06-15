@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chat.scrollTop = chat.scrollHeight;
 
     try {
-      // Optional: delay for user experience
+      // Optional delay for smoother UX
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const res = await fetch("/chat", {
@@ -37,12 +37,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await res.json();
-      document.getElementById("typing")?.remove(); // remove typing
+      console.log("📥 Full response from backend:", data);
 
-      // Append agent reply to chat
+      document.getElementById("typing")?.remove(); // remove typing
       appendMessage("HomeOps", data.reply || "🤖 No reply received.", "agent");
 
-      // Inject calendar events if provided
+      // Inject calendar events if included
       if (data.events?.length && window.calendar) {
         data.events.forEach((event) => {
           try {
@@ -52,6 +52,10 @@ document.addEventListener("DOMContentLoaded", () => {
             console.warn("⚠️ Failed to add event:", event, err.message);
           }
         });
+      } else if (!window.calendar) {
+        console.warn("⚠️ window.calendar not found.");
+      } else {
+        console.log("📭 No events to add.");
       }
 
     } catch (error) {
@@ -61,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Helper: display a message in the chat
+  // Helper to add messages to chat UI
   function appendMessage(sender, text, type) {
     const msg = document.createElement("div");
     msg.className = `message ${type}`;
