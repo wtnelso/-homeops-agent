@@ -44,6 +44,9 @@ document.addEventListener("DOMContentLoaded", () => {
 if (targetView === "calendar" && !window.calendarRendered) {
   console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
 
+  if (targetView === "calendar" && !window.calendarRendered) {
+  console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
+
   const calendarEl = document.getElementById("calendar");
 
   if (calendarEl) {
@@ -79,6 +82,7 @@ if (targetView === "calendar" && !window.calendarRendered) {
     console.warn("⚠️ Calendar element not found.");
   }
 }
+
 
 
 
