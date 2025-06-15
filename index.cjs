@@ -63,12 +63,11 @@ async function extractCalendarEvents(message) {
 }
 
 
-// ✅ CHAT ROUTE — Fully wired up
-app.post("/chat", async (req, res) => {
+/app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
-    // 1. 🧠 Get chat response
+    // 1. 🧠 Get chat reply
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -85,46 +84,33 @@ app.post("/chat", async (req, res) => {
     });
 
     const data = await openaiRes.json();
-    const gptReply = data.choices?.[0]?.message?.content || "";
+    const gptReply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
 
-    // 2. 📆 Extract calendar events from same message
+    // 2. 📆 Extract calendar events
     const events = await extractCalendarEvents(message);
+    console.log("📤 Events returned to frontend:", events);
 
-    // 3. 📤 Return both reply and events to frontend
-    res.json({
-      reply: gptReply,
-      events: events || []
-    });
-
-  } catch (err) {
-    console.error("❌ Chat route error:", err.message);
-    res.status(500).json({ error: "Something went wrong." });
-  }
-});
-
-
-  const data = await res.json();
-  const text = data.choices?.[0]?.message?.content || "[]";
-  return JSON.parse(text);
-}
-
-    const data = await openaiRes.json();
-    const reply = data?.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
-
+    // 3. 🗃️ Optional: Log to Firestore
     await db.collection("messages").add({
       user_id,
       message,
-      reply,
+      reply: gptReply,
       tags: ["mental load", "resentment"],
       timestamp: new Date(),
     });
 
-    res.json({ reply });
+    // 4. 🚀 Send response to frontend
+    res.json({
+      reply: gptReply,
+      events: events || [],
+    });
+
   } catch (err) {
     console.error("❌ Error in /chat route:", err.message);
     res.status(500).json({ error: "Something went wrong." });
   }
 });
+
 
 // DASHBOARD ROUTE
 app.get("/api/dashboard", async (req, res) => {
