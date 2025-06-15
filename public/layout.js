@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  lucide.createIcons(); // render sidebar icons
+  lucide.createIcons(); // Render sidebar icons
 
   const views = document.querySelectorAll(".view");
   const navButtons = document.querySelectorAll(".nav-item");
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.classList.toggle("active", btn.getAttribute("data-view") === targetView);
     });
 
-    // Load dashboard data if viewing dashboard
+    // Load dashboard data
     if (targetView === "dashboard") {
       fetch("/api/dashboard?user_id=user_123")
         .then(res => res.json())
@@ -37,10 +37,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Load calendar if viewing calendar tab
+    // Load calendar only once when calendar view is shown
     if (targetView === "calendar" && !window.calendarRendered) {
-      const calendarEl = document.getElementById("calendar");
+      console.log("📅 Rendering calendar...");
 
+      const calendarEl = document.getElementById("calendar");
       if (calendarEl) {
         const calendar = new FullCalendar.Calendar(calendarEl, {
           initialView: "dayGridMonth",
@@ -52,11 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
           },
           events: [
             {
-              title: 'Test Event',
-              start: new Date().toISOString().split('T')[0]
+              title: "✅ Calendar Loaded!",
+              start: new Date().toISOString().split("T")[0]
             }
           ],
-          dateClick: function(info) {
+          dateClick: function (info) {
             const title = prompt("Add an event:");
             if (title) {
               calendar.addEvent({
@@ -70,14 +71,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         calendar.render();
         window.calendarRendered = true;
+      } else {
+        console.warn("⚠️ #calendar element not found.");
       }
     }
   }
 
-  // Default view on load
+  // Set default view to chat
   activateView("chat");
 
-  // Sidebar navigation clicks
+  // Hook up sidebar buttons
   navButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const target = button.getAttribute("data-view");
@@ -85,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Dark/light theme toggle
+  // Dark mode toggle
   if (toggleTheme) {
     toggleTheme.addEventListener("click", () => {
       document.body.classList.toggle("dark");
