@@ -41,8 +41,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (targetView === "calendar" && !window.calendarRendered) {
       console.log("📅 Rendering calendar...");
 
-      const calendarEl = document.getElementById("calendar");
-
 if (calendarEl) {
   window.calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
@@ -73,6 +71,7 @@ if (calendarEl) {
   window.calendar.render();
   window.calendarRendered = true;
 }
+
 
 
         calendar.render();
