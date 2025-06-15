@@ -42,32 +42,38 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("📅 Rendering calendar...");
 
       const calendarEl = document.getElementById("calendar");
-      if (calendarEl) {
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: "dayGridMonth",
-          height: 600,
-          headerToolbar: {
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay"
-          },
-          events: [
-            {
-              title: "✅ Calendar Loaded!",
-              start: new Date().toISOString().split("T")[0]
-            }
-          ],
-          dateClick: function (info) {
-            const title = prompt("Add an event:");
-            if (title) {
-              calendar.addEvent({
-                title,
-                start: info.dateStr,
-                allDay: true
-              });
-            }
-          }
+
+if (calendarEl) {
+  window.calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: "dayGridMonth",
+    height: 600,
+    headerToolbar: {
+      left: "prev,next today",
+      center: "title",
+      right: "dayGridMonth,timeGridWeek,timeGridDay"
+    },
+    events: [
+      {
+        title: "✅ Calendar Loaded!",
+        start: new Date().toISOString().split("T")[0]
+      }
+    ],
+    dateClick: function (info) {
+      const title = prompt("Add an event:");
+      if (title) {
+        window.calendar.addEvent({
+          title,
+          start: info.dateStr,
+          allDay: true
         });
+      }
+    }
+  });
+
+  window.calendar.render();
+  window.calendarRendered = true;
+}
+
 
         calendar.render();
         window.calendarRendered = true;
