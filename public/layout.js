@@ -68,7 +68,7 @@ if (calendarEl) {
     }
   });
 
-  window.calendar.render();
+  window.calendar.render(); // ✅ KEY LINE
   window.calendarRendered = true;
 }
 
