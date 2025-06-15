@@ -35,10 +35,40 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
-// CHAT ROUTE
+async function extractCalendarEvents(message) {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "Extract any calendar events from this message. Format as JSON array: [{ title: string, start: ISO 8601 datetime string }]. Only include actual time-based events."
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ]
+    })
+  });
+
+  const data = await res.json();
+  const text = data.choices?.[0]?.message?.content || "[]";
+  return JSON.parse(text);
+}
+
+
+// ✅ CHAT ROUTE — Fully wired up
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
+
   try {
+    // 1. 🧠 Get chat response
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -53,6 +83,30 @@ app.post("/chat", async (req, res) => {
         ],
       }),
     });
+
+    const data = await openaiRes.json();
+    const gptReply = data.choices?.[0]?.message?.content || "";
+
+    // 2. 📆 Extract calendar events from same message
+    const events = await extractCalendarEvents(message);
+
+    // 3. 📤 Return both reply and events to frontend
+    res.json({
+      reply: gptReply,
+      events: events || []
+    });
+
+  } catch (err) {
+    console.error("❌ Chat route error:", err.message);
+    res.status(500).json({ error: "Something went wrong." });
+  }
+});
+
+
+  const data = await res.json();
+  const text = data.choices?.[0]?.message?.content || "[]";
+  return JSON.parse(text);
+}
 
     const data = await openaiRes.json();
     const reply = data?.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
