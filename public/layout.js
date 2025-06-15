@@ -47,9 +47,13 @@ if (targetView === "calendar" && !window.calendarRendered) {
   if (targetView === "calendar" && !window.calendarRendered) {
   console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
 
+if (targetView === "calendar" && !window.calendarRendered) {
+  console.log("📅 Rendering calendar...");
+
   const calendarEl = document.getElementById("calendar");
 
   if (calendarEl) {
+    // ✅ This is the only correct way to assign it
     window.calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: "dayGridMonth",
       height: 600,
@@ -76,12 +80,13 @@ if (targetView === "calendar" && !window.calendarRendered) {
       }
     });
 
-    window.calendar.render();
+    window.calendar.render(); // ✅ Must render
     window.calendarRendered = true;
   } else {
-    console.warn("⚠️ Calendar element not found.");
+    console.warn("⚠️ #calendar element not found.");
   }
 }
+
 
 
 
