@@ -43,40 +43,62 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const calendarEl = document.getElementById("calendar");
 
-      if (calendarEl) {
-        window.calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: "dayGridMonth",
-          height: 600,
-          headerToolbar: {
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay"
-          },
-          events: [
-            {
-              title: "✅ Calendar Loaded!",
-              start: new Date().toISOString().split("T")[0]
-            }
-          ],
-          dateClick: function (info) {
-            const title = prompt("Add an event:");
-            if (title) {
-              window.calendar.addEvent({
-                title,
-                start: info.dateStr,
-                allDay: true
-              });
-            }
-          }
-        });
+if (!calendarEl) {
+  console.warn("⚠️ #calendar element not found.");
+  return;
+}
 
-        window.calendar.render();
-        window.calendarRendered = true;
-      } else {
-        console.warn("⚠️ #calendar element not found.");
+// ✅ CRITICAL: Check FullCalendar is defined
+if (typeof FullCalendar === "undefined" || typeof FullCalendar.Calendar !== "function") {
+  console.error("❌ FullCalendar not loaded. Check your <script> tags.");
+  return;
+}
+if (targetView === "calendar" && !window.calendarRendered) {
+  console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
+
+  const calendarEl = document.getElementById("calendar");
+
+  if (!calendarEl) {
+    console.warn("⚠️ #calendar element not found.");
+    return;
+  }
+
+  if (typeof FullCalendar === "undefined" || typeof FullCalendar.Calendar !== "function") {
+    console.error("❌ FullCalendar not loaded. Check your script includes.");
+    return;
+  }
+
+  window.calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: "dayGridMonth",
+    height: 600,
+    headerToolbar: {
+      left: "prev,next today",
+      center: "title",
+      right: "dayGridMonth,timeGridWeek,timeGridDay"
+    },
+    events: [
+      {
+        title: "✅ Calendar Loaded!",
+        start: new Date().toISOString().split("T")[0]
+      }
+    ],
+    dateClick: function (info) {
+      const title = prompt("Add an event:");
+      if (title) {
+        window.calendar.addEvent({
+          title,
+          start: info.dateStr,
+          allDay: true
+        });
       }
     }
-  }
+  });
+
+  window.calendar.render();
+  window.calendarRendered = true;
+}
+
+
 
   // Default to chat view
   activateView("chat");
