@@ -47,7 +47,7 @@ async function extractCalendarEvents(message) {
       messages: [
         {
           role: "system",
-          content: "Extract any calendar events from this message. Format as JSON array: [{ title: string, start: ISO 8601 datetime string }]. Only include actual time-based events."
+          content: "Extract all time-based events from this message. Respond ONLY with a JSON array: [{ \"title\": string, \"start\": ISO 8601 datetime string }]."
         },
         {
           role: "user",
@@ -58,9 +58,19 @@ async function extractCalendarEvents(message) {
   });
 
   const data = await res.json();
-  const text = data.choices?.[0]?.message?.content || "[]";
-  return JSON.parse(text);
+  const raw = data.choices?.[0]?.message?.content || "[]";
+  console.log("🧪 Raw GPT event text:", raw);
+
+  try {
+    const parsed = JSON.parse(raw);
+    console.log("📤 Parsed events array:", parsed);
+    return parsed;
+  } catch (err) {
+    console.error("❌ Failed to parse GPT event output:", err.message);
+    return [];
+  }
 }
+
 
 
 /app.post("/chat", async (req, res) => {
