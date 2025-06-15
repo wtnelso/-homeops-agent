@@ -37,9 +37,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Load calendar when the calendar view is activated
+    // Load calendar if viewing calendar tab
     if (targetView === "calendar" && !window.calendarRendered) {
       const calendarEl = document.getElementById("calendar");
+
       if (calendarEl) {
         const calendar = new FullCalendar.Calendar(calendarEl, {
           initialView: "dayGridMonth",
@@ -49,7 +50,12 @@ document.addEventListener("DOMContentLoaded", () => {
             center: "title",
             right: "dayGridMonth,timeGridWeek,timeGridDay"
           },
-          events: [],
+          events: [
+            {
+              title: 'Test Event',
+              start: new Date().toISOString().split('T')[0]
+            }
+          ],
           dateClick: function(info) {
             const title = prompt("Add an event:");
             if (title) {
@@ -68,10 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Set default view
+  // Default view on load
   activateView("chat");
 
-  // Handle sidebar clicks
+  // Sidebar navigation clicks
   navButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const target = button.getAttribute("data-view");
@@ -79,28 +85,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Theme toggle
+  // Dark/light theme toggle
   if (toggleTheme) {
     toggleTheme.addEventListener("click", () => {
       document.body.classList.toggle("dark");
     });
-  }
-});
-document.addEventListener("DOMContentLoaded", () => {
-  const calendarEl = document.getElementById("calendar");
-  if (calendarEl) {
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: "dayGridMonth",
-      height: 600,
-      headerToolbar: {
-        left: "prev,next today",
-        center: "title",
-        right: "dayGridMonth,timeGridWeek,timeGridDay"
-      },
-      events: [
-        { title: 'Test Event', start: new Date().toISOString().split('T')[0] }
-      ]
-    });
-    calendar.render();
   }
 });
