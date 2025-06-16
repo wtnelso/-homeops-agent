@@ -46,39 +46,42 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!window.calendar) {
       console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
 
-      const calendarEl = document.getElementById("calendar");
+  const calendarEl = document.getElementById("calendar");
 
 if (!calendarEl) {
   console.warn("⚠️ #calendar element not found.");
-  return;
-}
-
-// ✅ CRITICAL: Check FullCalendar is defined
-if (typeof FullCalendar === "undefined" || typeof FullCalendar.Calendar !== "function") {
-  console.error("❌ FullCalendar not loaded. Check your <script> tags.");
-  return;
-}
-if (targetView === "calendar" && !window.calendarRendered) {
-  console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
-
-  const calendarEl = document.getElementById("calendar");
-
-  if (!calendarEl) {
-    console.warn("⚠️ #calendar element not found.");
-    return;
-  }
-console.log("⚙️ Creating FullCalendar instance...");
+} else {
+  console.log("⚙️ Creating FullCalendar instance...");
 
   if (typeof FullCalendar === "undefined" || typeof FullCalendar.Calendar !== "function") {
-    console.error("❌ FullCalendar not loaded. Check your script includes.");
-    return;
+    console.error("❌ FullCalendar not loaded.");
+  } else {
+    window.calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "dayGridMonth",
+      height: 600,
+      headerToolbar: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,timeGridDay"
+      },
+      events: [],
+      dateClick: function (info) {
+        const title = prompt("Add an event:");
+        if (title) {
+          window.calendar.addEvent({
+            title,
+            start: info.dateStr,
+            allDay: true
+          });
+        }
+      }
+    });
+
+    window.calendar.render();
+    console.log("✅ Calendar initialized");
   }
-Object.defineProperty(window, "calendar", {
-  configurable: true,
-  enumerable: true,
-  writable: false,
-  value: window.calendar
-});
+}
+
 
   window.calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
