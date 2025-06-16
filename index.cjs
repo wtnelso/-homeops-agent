@@ -10,22 +10,21 @@ const SYSTEM_PROMPT = fs.readFileSync("./prompts/tone-homeops.txt", "utf-8");
 console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 
 {
-let firebaseCredentials;
-try {
-  const base64 = process.env.FIREBASE_CREDENTIALS;
-  const decoded = Buffer.from(base64, "base64").toString("utf-8");
-  firebaseCredentials = JSON.parse(decoded);
+  let firebaseCredentials;
+  try {
+    const base64 = process.env.FIREBASE_CREDENTIALS;
+    const decoded = Buffer.from(base64, "base64").toString("utf-8");
+    firebaseCredentials = JSON.parse(decoded);
 
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(firebaseCredentials)
-    });
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(firebaseCredentials)
+      });
+    }
+  } catch (err) {
+    console.error("❌ Firebase init failed:", err.message);
+    process.exit(1);
   }
-} catch (err) {
-  console.error("❌ Firebase init failed:", err.message);
-  process.exit(1);
-}
-
 }
 
 const db = admin.firestore();
@@ -36,49 +35,53 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 
 async function extractCalendarEvents(message) {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: "Extract any date/time-based events from this message. Respond ONLY with a JSON array of this format:\n\n[{\n  \"title\": \"string\",\n  \"start\": \"ISO-8601 datetime string\"\n}]\n\nNo explanations. Just the JSON array."
-        },
-        {
-          role: "user",
-          content: message
-        }
-      ]
-    })
-  });
+  const extractionPrompt = `
+From the following message, extract any time-based calendar events in this exact JSON format:
 
-  const data = await res.json();
-  const raw = data.choices?.[0]?.message?.content || "[]";
+[
+  {
+    "title": "Vasectomy",
+    "start": "2025-06-20T10:00:00",
+    "allDay": false
+  }
+]
 
-  console.log("🧪 Raw GPT event text:", raw);
+Only return the array. No text. No markdown. No backticks.
+
+Message:
+"""${message}"""
+`;
 
   try {
-    const parsed = JSON.parse(raw);
-    console.log("📤 Parsed events array:", parsed);
-    return parsed;
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [
+          { role: "system", content: "Extract structured calendar events only." },
+          { role: "user", content: extractionPrompt }
+        ]
+      })
+    });
+
+    const data = await res.json();
+    const raw = data.choices?.[0]?.message?.content || "[]";
+    console.log("🧪 Raw GPT event text:", raw);
+    return JSON.parse(raw);
   } catch (err) {
-    console.error("❌ Failed to parse GPT output:", err.message);
+    console.error("❌ Failed to extract events:", err.message);
     return [];
   }
 }
 
-
-
-/app.post("/chat", async (req, res) => {
+app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
-    // 1. 🧠 Get chat reply
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -97,11 +100,9 @@ async function extractCalendarEvents(message) {
     const data = await openaiRes.json();
     const gptReply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
 
-    // 2. 📆 Extract calendar events
     const events = await extractCalendarEvents(message);
     console.log("📤 Events returned to frontend:", events);
 
-    // 3. 🗃️ Optional: Log to Firestore
     await db.collection("messages").add({
       user_id,
       message,
@@ -110,20 +111,16 @@ async function extractCalendarEvents(message) {
       timestamp: new Date(),
     });
 
-    // 4. 🚀 Send response to frontend
     res.json({
       reply: gptReply,
       events: events || [],
     });
-
   } catch (err) {
     console.error("❌ Error in /chat route:", err.message);
     res.status(500).json({ error: "Something went wrong." });
   }
 });
 
-
-// DASHBOARD ROUTE
 app.get("/api/dashboard", async (req, res) => {
   const { user_id = "user_123" } = req.query;
   try {
@@ -183,115 +180,6 @@ app.get("/api/dashboard", async (req, res) => {
   }
 });
 
-// /api/this-week ROUTE
-app.post("/api/this-week", async (req, res) => {
-  const { messages } = req.body;
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: "No messages provided." });
-  }
-
-  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant for high-performing families.
-
-Your tone blends:
-- the tactical clarity of Mel Robbins  
-- the observational humor of Jerry Seinfeld  
-- the emotional insight of Adam Grant  
-- and the pattern-framing curiosity of Malcolm Gladwell
-
-Your job: extract the user’s weekly appointments, obligations, and tasks. Structure them clearly. Then respond with a short validating paragraph in your tone.
-
-✅ Format:
-
-🛂 Tuesday @ 11 AM — Passport appointment  
-🏊 Tuesday @ 6 PM — Ellie swim practice  
-🎾 Wednesday evening — Lucy’s tennis match  
-
-📣 Then add 2–3 sentences of commentary. It should:
-- Acknowledge the emotional + logistical weight  
-- Use wit and real-life energy (not corporate fluff)  
-- Encourage prioritization and self-kindness  
-
-No markdown. No long paragraphs. Emojis are welcome. List first, commentary second.`;
-
-
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: prompt },
-
-          { role: "user", content: messages.join("\n") }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    const raw = data?.choices?.[0]?.message?.content;
-    const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
-    res.json(parsed);
-  } catch (err) {
-    console.error("❌ /api/this-week failed:", err.message);
-    res.status(500).json({ error: "Failed to generate weekly summary" });
-  }
-});
-
-// RELIEF PROTOCOL
-app.post("/api/relief-protocol", async (req, res) => {
-  try {
-    const { tasks, emotional_flags } = req.body;
-
-    const prompt = `You are HomeOps, a smart and emotionally intelligent household assistant.
-
-Your job is to generate a Relief Protocol based on the user's tracked tasks and emotional patterns.
-
-Today is ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}.
-
-You specialize in helping high-functioning families manage stress, logistics, and emotional labor.
-You blend the wit of Amy Schumer with the insight of Adam Grant and the clarity of Mel Robbins.
-
-Return output as JSON with:
-{
-  "summary": "...",
-  "offload": { "text": "...", "coach": "Mel Robbins" },
-  "reclaim": { "text": "...", "coach": "Andrew Huberman" },
-  "reconnect": { "text": "...", "coach": "John Gottman" },
-  "pattern_interrupt": "...",
-  "reframe": { "text": "...", "coach": "Adam Grant" }
-}`;
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-         temperature: 0.2, //
-        messages: [
-          { role: "system", content: prompt },
-          { role: "user", content: `Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)}` }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    const clean = data?.choices?.[0]?.message?.content?.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(clean);
-    res.json(parsed);
-  } catch (err) {
-    console.error("❌ Relief Protocol Error:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// STATIC FALLBACK
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
