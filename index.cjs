@@ -114,11 +114,7 @@ Only include valid date/time-based entries. Do not include natural language expl
 
     // 2. 📆 Extract calendar events
     const events = await extractCalendarEvents(message);
-    console.log("📥 Sending reply and events:", {
-  reply: gptReply,
-  events
-});
-
+    console.log("📤 Events returned to frontend:", events);
 
     // 3. 🗃️ Optional: Log to Firestore
     await db.collection("messages").add({
