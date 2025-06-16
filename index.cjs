@@ -71,18 +71,24 @@ Message:
       })
     });
 
-    const data = await res.json();
-    let raw = data.choices?.[0]?.message?.content || "[]";
-    console.log("🧪 Raw GPT event text:", raw);
+const data = await res.json();
+let raw = data.choices?.[0]?.message?.content || "[]";
 
-    raw = raw.replace(/```json|```/g, "").trim();
+// Log the raw GPT output before cleaning
+console.log("📬 GPT raw event response BEFORE cleanup:", raw);
 
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error("❌ Failed to extract events:", err.message);
-    return [];
-  }
+// Remove any formatting characters like ```json or ```
+raw = raw.replace(/```json|```/g, "").trim();
+
+try {
+  const parsed = JSON.parse(raw);
+  console.log("📤 Parsed calendar events:", parsed);
+  return parsed;
+} catch (err) {
+  console.error("❌ Failed to parse GPT output:", err.message);
+  return [];
 }
+
 
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
