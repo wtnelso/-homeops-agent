@@ -67,6 +67,12 @@ if (targetView === "calendar" && !window.calendarRendered) {
     console.error("❌ FullCalendar not loaded. Check your script includes.");
     return;
   }
+Object.defineProperty(window, "calendar", {
+  configurable: true,
+  enumerable: true,
+  writable: false,
+  value: window.calendar
+});
 
   window.calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
