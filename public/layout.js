@@ -100,6 +100,7 @@ Object.defineProperty(window, "calendar", {
       }
     }
   });
+console.log("🔍 targetView:", targetView);
 
   window.calendar.render();
   window.calendarRendered = true;
