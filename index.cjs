@@ -36,65 +36,50 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 
 async function extractCalendarEvents(message) {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "Extract any date/time-based events from this message. Respond ONLY with a JSON array of this format:\n\n[{\n  \"title\": \"string\",\n  \"start\": \"ISO-8601 datetime string\"\n}]\n\nNo explanations. Just the JSON array."
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ]
+    })
+  });
+
+  const data = await res.json();
+  const raw = data.choices?.[0]?.message?.content || "[]";
+
+  console.log("🧪 Raw GPT event text:", raw);
+
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: `Extract any calendar-based events from the user message below.
-
-Respond ONLY with a raw JSON array using this format:
-[
-  { "title": "string", "start": "ISO 8601 datetime string" }
-]
-
-Examples of 'start':
-- "2025-07-10T09:00:00"
-- "2025-08-01T14:30:00"
-
-Only include valid date/time-based entries. Do not include natural language explanations or comments.`
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ]
-      })
-    });
-
-    const data = await res.json();
-    const rawText = data.choices?.[0]?.message?.content || "[]";
-    console.log("🧪 Raw GPT response:", rawText);
-
-    try {
-      const parsed = JSON.parse(rawText);
-      console.log("📤 Parsed event array:", parsed);
-      return parsed;
-    } catch (parseErr) {
-      console.error("❌ JSON parse failed:", parseErr.message);
-      return [];
-    }
+    const parsed = JSON.parse(raw);
+    console.log("📤 Parsed events array:", parsed);
+    return parsed;
   } catch (err) {
-    console.error("❌ GPT fetch failed:", err.message);
+    console.error("❌ Failed to parse GPT output:", err.message);
     return [];
   }
 }
 
 
 
-app.post("/chat", async (req, res) => {
+/app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
-    // 1. Get natural reply
-    const replyRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    // 1. 🧠 Get chat reply
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -104,73 +89,17 @@ app.post("/chat", async (req, res) => {
         model: "gpt-4",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: message }
-        ]
+          { role: "user", content: message },
+        ],
       }),
     });
 
-    const replyData = await replyRes.json();
-    const gptReply = replyData.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
+    const data = await openaiRes.json();
+    const gptReply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
 
-    // 2. Extract events in a second call
-    const eventExtractionPrompt = `
-From the following message, extract any time-based calendar events in this JSON format:
-
-[
-  {
-    "title": "Event Title",
-    "start": "2025-07-10T09:00:00",
-    "allDay": false
-  }
-]
-
-If there are no events, return an empty array.
-
-Message:
-"""${message}"""
-`;
-
-    const extractRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: "Extract structured calendar events only." },
-          { role: "user", content: eventExtractionPrompt }
-        ]
-      })
-    });
-
-    const extractData = await extractRes.json();
-    const rawJson = extractData.choices?.[0]?.message?.content || "";
-    let events = [];
-
-    try {
-      const match = rawJson.match(/```json\s*([\s\S]*?)\s*```|\[\s*{[\s\S]*?}\s*\]/);
-      if (match) {
-        const jsonBlock = match[1] || match[0];
-        events = JSON.parse(jsonBlock);
-      }
-    } catch (err) {
-      console.warn("❌ Failed to parse events:", err.message);
-    }
-
-    // Final response
-    res.json({
-      reply: gptReply,
-      events
-    });
-
-  } catch (err) {
-    console.error("🔥 Chat error:", err.message);
-    res.status(500).json({ error: "Something went wrong." });
-  }
-});
-
+    // 2. 📆 Extract calendar events
+    const events = await extractCalendarEvents(message);
+    console.log("📤 Events returned to frontend:", events);
 
     // 3. 🗃️ Optional: Log to Firestore
     await db.collection("messages").add({
