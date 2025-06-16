@@ -62,6 +62,7 @@ if (targetView === "calendar" && !window.calendarRendered) {
     console.warn("⚠️ #calendar element not found.");
     return;
   }
+console.log("⚙️ Creating FullCalendar instance...");
 
   if (typeof FullCalendar === "undefined" || typeof FullCalendar.Calendar !== "function") {
     console.error("❌ FullCalendar not loaded. Check your script includes.");
