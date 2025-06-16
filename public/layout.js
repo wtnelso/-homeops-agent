@@ -1,5 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
-  lucide.createIcons(); // Render sidebar icons
+  window.calendar = null;
+  window.calendarRendered = false;
+
+  lucide.createIcons();
+  ...
+
 
   const views = document.querySelectorAll(".view");
   const navButtons = document.querySelectorAll(".nav-item");
