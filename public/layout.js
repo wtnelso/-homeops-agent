@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Load calendar once
-    if (targetView === "calendar" && !window.calendarRendered) {
+  if (!window.calendar) {
       console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
 
       const calendarEl = document.getElementById("calendar");
