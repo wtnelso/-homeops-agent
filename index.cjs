@@ -89,7 +89,7 @@ Only include valid date/time-based entries. Do not include natural language expl
 
 
 
-/app.post("/chat", async (req, res) => {
++app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
@@ -114,7 +114,11 @@ Only include valid date/time-based entries. Do not include natural language expl
 
     // 2. 📆 Extract calendar events
     const events = await extractCalendarEvents(message);
-    console.log("📤 Events returned to frontend:", events);
+    console.log("📥 Sending reply and events:", {
+  reply: gptReply,
+  events
+});
+
 
     // 3. 🗃️ Optional: Log to Firestore
     await db.collection("messages").add({
