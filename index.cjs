@@ -89,12 +89,12 @@ Only include valid date/time-based entries. Do not include natural language expl
 
 
 
-+app.post("/chat", async (req, res) => {
+app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
-    // 1. 🧠 Get chat reply
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    // 1. Get natural reply
+    const replyRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -104,28 +104,72 @@ Only include valid date/time-based entries. Do not include natural language expl
         model: "gpt-4",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: message },
-        ],
+          { role: "user", content: message }
+        ]
       }),
     });
 
-    const data = await openaiRes.json();
-    const gptReply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
+    const replyData = await replyRes.json();
+    const gptReply = replyData.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
 
-   // 2. 📆 Extract calendar events from GPT reply
-let events = [];
+    // 2. Extract events in a second call
+    const eventExtractionPrompt = `
+From the following message, extract any time-based calendar events in this JSON format:
 
-try {
-  const match = gptReply.match(/```json\s*([\s\S]*?)\s*```|\[\s*{[\s\S]*?}\s*\]/);
-  if (match) {
-    const jsonBlock = match[1] || match[0];
-    events = JSON.parse(jsonBlock);
+[
+  {
+    "title": "Event Title",
+    "start": "2025-07-10T09:00:00",
+    "allDay": false
   }
-} catch (err) {
-  console.error("❌ Failed to parse calendar events:", err.message);
-}
+]
 
-console.log("📤 Events returned to frontend:", events);
+If there are no events, return an empty array.
+
+Message:
+"""${message}"""
+`;
+
+    const extractRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [
+          { role: "system", content: "Extract structured calendar events only." },
+          { role: "user", content: eventExtractionPrompt }
+        ]
+      })
+    });
+
+    const extractData = await extractRes.json();
+    const rawJson = extractData.choices?.[0]?.message?.content || "";
+    let events = [];
+
+    try {
+      const match = rawJson.match(/```json\s*([\s\S]*?)\s*```|\[\s*{[\s\S]*?}\s*\]/);
+      if (match) {
+        const jsonBlock = match[1] || match[0];
+        events = JSON.parse(jsonBlock);
+      }
+    } catch (err) {
+      console.warn("❌ Failed to parse events:", err.message);
+    }
+
+    // Final response
+    res.json({
+      reply: gptReply,
+      events
+    });
+
+  } catch (err) {
+    console.error("🔥 Chat error:", err.message);
+    res.status(500).json({ error: "Something went wrong." });
+  }
+});
 
 
     // 3. 🗃️ Optional: Log to Firestore
