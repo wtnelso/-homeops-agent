@@ -112,9 +112,21 @@ Only include valid date/time-based entries. Do not include natural language expl
     const data = await openaiRes.json();
     const gptReply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
 
-    // 2. 📆 Extract calendar events
-    const events = await extractCalendarEvents(message);
-    console.log("📤 Events returned to frontend:", events);
+   // 2. 📆 Extract calendar events from GPT reply
+let events = [];
+
+try {
+  const match = gptReply.match(/```json\s*([\s\S]*?)\s*```|\[\s*{[\s\S]*?}\s*\]/);
+  if (match) {
+    const jsonBlock = match[1] || match[0];
+    events = JSON.parse(jsonBlock);
+  }
+} catch (err) {
+  console.error("❌ Failed to parse calendar events:", err.message);
+}
+
+console.log("📤 Events returned to frontend:", events);
+
 
     // 3. 🗃️ Optional: Log to Firestore
     await db.collection("messages").add({
