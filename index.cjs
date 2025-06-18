@@ -55,7 +55,7 @@ Now extract any events from this message:
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -76,15 +76,6 @@ Now extract any events from this message:
   }
 }
 
-
-    const data = await res.json();
-    const rawText = data.choices?.[0]?.message?.content || "[]";
-    return JSON.parse(rawText);
-  } catch (err) {
-    console.error("❌ extractCalendarEvents failed:", err.message);
-    return [];
-  }
-}
 const SYSTEM_PROMPT = `
 You are HomeOps — a personal chief of staff for busy families.
 
