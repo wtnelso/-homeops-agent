@@ -37,7 +37,8 @@ async function extractCalendarEvents(message) {
   const prompt = `Today’s date is ${today}.
 
 Extract any calendar-based events from the user message below.
-Only return a raw JSON array using this format:
+Use ISO 8601 format for the start date. Ensure the date reflects the current year: ${today}.
+Only return a raw JSON array like this:
 
 [
   {
@@ -47,9 +48,11 @@ Only return a raw JSON array using this format:
   }
 ]
 
-No extra text, no markdown, no explanations.
+No extra text. No markdown. No explanations.
+
 Now extract any events from this message:
 """${message}"""`;
+
 
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -59,7 +62,7 @@ Now extract any events from this message:
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-4o",
         messages: [
           { role: "system", content: prompt },
           { role: "user", content: message }
