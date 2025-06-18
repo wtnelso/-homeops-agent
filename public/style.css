@@ -408,3 +408,14 @@ body.dark {
 .fc-button:hover {
   background: #e5e7eb;
 }
+/* 🌟 Highlight effect for new calendar events */
+.fc-event.highlight {
+  animation: flash 1.5s ease-in-out;
+  border: 2px solid #ffd700;
+}
+
+@keyframes flash {
+  0% { background-color: #fff8d6; }
+  50% { background-color: #ffe56a; }
+  100% { background-color: inherit; }
+}
