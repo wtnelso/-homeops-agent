@@ -61,12 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay"
         },
-        events: [
-          {
-            title: "✅ Calendar Loaded!",
-            start: new Date().toISOString().split("T")[0]
-          }
-        ],
         dateClick: function (info) {
           const title = prompt("Add an event:");
           if (title) {
