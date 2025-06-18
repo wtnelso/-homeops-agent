@@ -54,36 +54,36 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       window.calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "dayGridMonth",
-        height: 600,
-        headerToolbar: {
-          left: "prev,next today",
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay"
-        },
-        events: async function(fetchInfo, successCallback, failureCallback) {
-  try {
-    const res = await fetch("/api/events");
-    const events = await res.json();
-    successCallback(events);
-    console.log("📅 Loaded saved events:", events);
-  } catch (err) {
-    console.error("❌ Failed to load saved events:", err.message);
-    failureCallback(err);
-  }
-},
-
-        dateClick: function (info) {
-          const title = prompt("Add an event:");
-          if (title) {
-            window.calendar.addEvent({
-              title,
-              start: info.dateStr,
-              allDay: true
-            });
-          }
-        }
+  initialView: "dayGridMonth",
+  height: 600,
+  headerToolbar: {
+    left: "prev,next today",
+    center: "title",
+    right: "dayGridMonth,timeGridWeek,timeGridDay"
+  },
+  events: async function(fetchInfo, successCallback, failureCallback) {
+    try {
+      const res = await fetch("/api/events");
+      const events = await res.json();
+      successCallback(events);
+      console.log("📅 Loaded saved events:", events);
+    } catch (err) {
+      console.error("❌ Failed to load saved events:", err.message);
+      failureCallback(err);
+    }
+  },
+  dateClick: function (info) {
+    const title = prompt("Add an event:");
+    if (title) {
+      window.calendar.addEvent({
+        title,
+        start: info.dateStr,
+        allDay: true
       });
+    }
+  }
+});
+
 
       window.calendar.render();
       window.calendarRendered = true;
