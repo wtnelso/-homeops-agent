@@ -45,27 +45,34 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("typing")?.remove();
       const cleanReply = data.reply.split("[")[0].trim();
       appendMessage("HomeOps", cleanReply || "🤖 No reply received.", "agent");
+// ✅ Queue-aware calendar injection + Firestore save
+if (Array.isArray(data.events)) {
+  if (window.calendar) {
+    data.events.forEach(async (event) => {
+      const newEvent = window.calendar.addEvent(event);
+      highlightCalendarEvent(newEvent);
+      console.log("🗓️ Event added immediately:", event);
 
-      // ✅ Queue-aware calendar injection
-      if (Array.isArray(data.events)) {
-        if (window.calendar) {
-          data.events.forEach((event) => {
-            const newEvent = window.calendar.addEvent(event);
-            highlightCalendarEvent(newEvent);
-            console.log("🗓️ Event added immediately:", event);
-          });
-        } else {
-          console.warn("⚠️ window.calendar not found — queuing events.");
-          window.pendingCalendarEvents.push(...data.events);
-        }
+      // 💾 Save to Firestore
+      try {
+        const res = await fetch("/api/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event }),
+        });
+        const result = await res.json();
+        if (!result.success) throw new Error(result.error);
+        console.log("✅ Event saved to Firestore:", result.id);
+      } catch (err) {
+        console.error("❌ Failed to save event:", err.message);
       }
+    });
+  } else {
+    console.warn("⚠️ window.calendar not found — queuing events.");
+    window.pendingCalendarEvents.push(...data.events);
+  }
+}
 
-    } catch (error) {
-      document.getElementById("typing")?.remove();
-      console.error("❌ Chat error:", error);
-      appendMessage("Error", "Something went wrong talking to the assistant.", "agent");
-    }
-  });
 
   function appendMessage(sender, text, type) {
     const msg = document.createElement("div");
