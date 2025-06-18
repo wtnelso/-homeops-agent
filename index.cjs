@@ -68,6 +68,28 @@ Respond ONLY with a raw JSON array using this format:
     return [];
   }
 }
+const SYSTEM_PROMPT = `
+You are HomeOps — a personal chief of staff for busy families.
+
+When a user shares a message, your job is to:
+1. Extract specific calendar events (e.g. appointments, obligations, reminders)
+2. Return them as a JSON array
+3. Provide a short, emotionally intelligent comment that’s clear and validating — not fluffy or long-winded
+
+Your tone blends: Mel Robbins (direct), Michelle Obama (warm), and Adam Grant (insightful).
+
+Respond in this format only:
+
+✅ Comment (1–2 lines, direct and real)
+
+[
+  {
+    "title": "string",
+    "start": "ISO 8601 datetime string",
+    "allDay": boolean
+  }
+]
+`;
 
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
@@ -91,14 +113,37 @@ app.post("/chat", async (req, res) => {
     const data = await openaiRes.json();
     const gptReply = data.choices?.[0]?.message?.content || "Sorry, I blanked.";
 
-    const events = await extractCalendarEvents(message);
+    // 🧠 Parse events directly from reply
+    let events = [];
+    try {
+      const match = gptReply.match(/\[.*\]/s); // matches anything between [ and ] including newlines
+      if (match) {
+        events = JSON.parse(match[0]);
+        console.log("📅 Parsed events:", events);
+      } else {
+        console.log("📭 No events block found.");
+      }
+    } catch (err) {
+      console.error("❌ Failed to parse event JSON:", err.message);
+    }
 
+    // 🗃️ Log to Firestore
     await db.collection("messages").add({
       user_id,
       message,
       reply: gptReply,
       timestamp: new Date(),
     });
+
+    // 🚀 Respond to frontend
+    res.json({ reply: gptReply, events });
+
+  } catch (err) {
+    console.error("❌ /chat route error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
     res.json({ reply: gptReply, events });
   } catch (err) {
