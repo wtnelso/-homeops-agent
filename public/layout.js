@@ -3,8 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.calendarRendered = false;
 
   lucide.createIcons();
-  ...
-
 
   const views = document.querySelectorAll(".view");
   const navButtons = document.querySelectorAll(".nav-item");
@@ -22,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.classList.toggle("active", btn.getAttribute("data-view") === targetView);
     });
 
-    // Load dashboard data
+    // Load dashboard if needed
     if (targetView === "dashboard") {
       fetch("/api/dashboard?user_id=user_123")
         .then(res => res.json())
@@ -35,97 +33,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Panel 3 — Recurring Threads
           const themeHTML = data.topThemes.map(t => `<li>🔁 ${t}</li>`).join("");
-          document.querySelector(".dashboard-card:nth-child(3) ul").innerHTML = themeHTML;
+          document.querySelector(".dashboard-card:nth-child(3) .reframe-list").innerHTML = themeHTML;
         })
         .catch((err) => {
           console.error("Dashboard fetch error:", err);
         });
     }
 
-    // Load calendar once
-  if (!window.calendar) {
-      console.log("📅 Rendering and assigning FullCalendar instance to window.calendar...");
+    // Load calendar if not already rendered
+    if (targetView === "calendar" && !window.calendarRendered) {
+      const calendarEl = document.getElementById("calendar");
+      if (!calendarEl) {
+        console.warn("⚠️ #calendar element not found.");
+        return;
+      }
 
-  const calendarEl = document.getElementById("calendar");
+      if (typeof FullCalendar === "undefined" || typeof FullCalendar.Calendar !== "function") {
+        console.error("❌ FullCalendar not loaded.");
+        return;
+      }
 
-if (!calendarEl) {
-  console.warn("⚠️ #calendar element not found.");
-} else {
-  console.log("⚙️ Creating FullCalendar instance...");
-
-  if (typeof FullCalendar === "undefined" || typeof FullCalendar.Calendar !== "function") {
-    console.error("❌ FullCalendar not loaded.");
-  } else {
-    window.calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: "dayGridMonth",
-      height: 600,
-      headerToolbar: {
-        left: "prev,next today",
-        center: "title",
-        right: "dayGridMonth,timeGridWeek,timeGridDay"
-      },
-      events: [],
-      dateClick: function (info) {
-        const title = prompt("Add an event:");
-        if (title) {
-          window.calendar.addEvent({
-            title,
-            start: info.dateStr,
-            allDay: true
-          });
+      window.calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        height: 600,
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay"
+        },
+        events: [
+          {
+            title: "✅ Calendar Loaded!",
+            start: new Date().toISOString().split("T")[0]
+          }
+        ],
+        dateClick: function (info) {
+          const title = prompt("Add an event:");
+          if (title) {
+            window.calendar.addEvent({
+              title,
+              start: info.dateStr,
+              allDay: true
+            });
+          }
         }
-      }
-    });
+      });
 
-    window.calendar.render();
-    console.log("✅ Calendar initialized");
-  }
-}
-
-
-  window.calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: "dayGridMonth",
-    height: 600,
-    headerToolbar: {
-      left: "prev,next today",
-      center: "title",
-      right: "dayGridMonth,timeGridWeek,timeGridDay"
-    },
-    events: [
-      {
-        title: "✅ Calendar Loaded!",
-        start: new Date().toISOString().split("T")[0]
-      }
-    ],
-    dateClick: function (info) {
-      const title = prompt("Add an event:");
-      if (title) {
-        window.calendar.addEvent({
-          title,
-          start: info.dateStr,
-          allDay: true
-        });
-      }
+      window.calendar.render();
+      window.calendarRendered = true;
+      console.log("✅ Calendar initialized");
     }
-  });
-console.log("🔍 targetView:", targetView);
+  }
 
-  window.calendar.render();
-  window.calendarRendered = true;
-}
-
-
-
-  // Default to chat view
-  activateView("chat");
-
-  // Navigation buttons
+  // Set up navigation
   navButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const target = button.getAttribute("data-view");
       activateView(target);
     });
   });
+
+  // Default to chat view
+  activateView("chat");
 
   // Dark mode toggle
   if (toggleTheme) {
