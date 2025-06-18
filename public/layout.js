@@ -82,22 +82,18 @@ document.addEventListener("DOMContentLoaded", () => {
       window.calendar.render();
       window.calendarRendered = true;
       console.log("✅ Calendar initialized");
+
+      // ✅ Inject any queued events now that calendar is ready
+      if (window.pendingCalendarEvents?.length) {
+        window.pendingCalendarEvents.forEach((event) => {
+          const injected = window.calendar.addEvent(event);
+          highlightCalendarEvent?.(injected);
+          console.log("🗓️ Event added from queue:", event);
+        });
+        window.pendingCalendarEvents = [];
+      }
     }
   }
-// Inject any queued events now that calendar is ready
-window.calendar.render();
-window.calendarRendered = true;
-console.log("✅ Calendar initialized");
-
-if (window.pendingCalendarEvents?.length) {
-  window.pendingCalendarEvents.forEach((event) => {
-    const injected = window.calendar.addEvent(event);
-    highlightCalendarEvent?.(injected);
-    console.log("🗓️ Event added from queue:", event);
-  });
-  window.pendingCalendarEvents = [];
-}
-
 
   // Set up navigation
   navButtons.forEach((button) => {
