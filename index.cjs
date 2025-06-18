@@ -49,7 +49,7 @@ async function extractCalendarEvents(message) {
 
 Respond ONLY with a raw JSON array using this format:
 [
-  { "title": "string", "start": "ISO 8601 datetime string" }
+  { "title": "string", "start": "ISO 8601 datetime string", "allDay": boolean }
 ]`
           },
           {
@@ -113,37 +113,14 @@ app.post("/chat", async (req, res) => {
     const data = await openaiRes.json();
     const gptReply = data.choices?.[0]?.message?.content || "Sorry, I blanked.";
 
-    // 🧠 Parse events directly from reply
-    let events = [];
-    try {
-      const match = gptReply.match(/\[.*\]/s); // matches anything between [ and ] including newlines
-      if (match) {
-        events = JSON.parse(match[0]);
-        console.log("📅 Parsed events:", events);
-      } else {
-        console.log("📭 No events block found.");
-      }
-    } catch (err) {
-      console.error("❌ Failed to parse event JSON:", err.message);
-    }
+    const events = await extractCalendarEvents(message);
 
-    // 🗃️ Log to Firestore
     await db.collection("messages").add({
       user_id,
       message,
       reply: gptReply,
       timestamp: new Date(),
     });
-
-    // 🚀 Respond to frontend
-    res.json({ reply: gptReply, events });
-
-  } catch (err) {
-    console.error("❌ /chat route error:", err.message);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
 
     res.json({ reply: gptReply, events });
   } catch (err) {
