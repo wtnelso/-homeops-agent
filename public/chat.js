@@ -64,13 +64,6 @@ appendMessage("HomeOps", cleanReply || "🤖 No reply received.", "agent");
 }
 
 
-        });
-      } else if (!window.calendar) {
-        console.warn("⚠️ window.calendar not found.");
-      } else {
-        console.log("📭 No events to add.");
-      }
-
     } catch (error) {
       document.getElementById("typing")?.remove();
       console.error("❌ Chat error:", error);
