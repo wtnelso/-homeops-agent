@@ -122,7 +122,7 @@ app.post("/chat", async (req, res) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-4o",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: message },
@@ -134,6 +134,8 @@ app.post("/chat", async (req, res) => {
     const gptReply = data.choices?.[0]?.message?.content || "Sorry, I blanked.";
 
     const events = await extractCalendarEvents(message);
+    console.log("📤 Extracted events:", events);
+
 
     await db.collection("messages").add({
       user_id,
