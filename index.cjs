@@ -35,10 +35,8 @@ async function extractCalendarEvents(message) {
   const today = new Date().toISOString().split("T")[0];
 
   const prompt = `Today’s date is ${today}.
-  ⚠️ Do not use any Markdown or \`\`\` blocks.
-
-Extract any calendar-based events from the user message below.
-Use ISO 8601 format for the start date. Ensure the date reflects the current year: ${today}.
+  
+⚠️ Do not use any Markdown formatting like \`\`\`json or \`\`\`.
 Only return a raw JSON array like this:
 
 [
@@ -48,8 +46,6 @@ Only return a raw JSON array like this:
     "allDay": boolean
   }
 ]
-
-No extra text. No markdown. No explanations.
 
 Now extract any events from this message:
 """${message}"""`;
@@ -70,16 +66,19 @@ Now extract any events from this message:
       })
     });
 
- let raw = data.choices?.[0]?.message?.content || "[]";
-raw = raw.replace(/```json|```/g, "").trim();
+    const data = await res.json();
+    let raw = data.choices?.[0]?.message?.content || "[]";
+    raw = raw.replace(/```json|```/g, "").trim();
 
-const match = raw.match(/\[\s*{[\s\S]*?}\s*\]/);
-if (match) {
-  return JSON.parse(match[0]);
-} else {
-  console.warn("📭 No calendar events found.");
-  return [];
-}
+    const match = raw.match(/\[\s*{[\s\S]*?}\s*\]/);
+    if (match) {
+      const parsed = JSON.parse(match[0]);
+      console.log("📤 Parsed events from GPT:", parsed);
+      return parsed;
+    } else {
+      console.warn("📭 No calendar events found.");
+      return [];
+    }
 
   } catch (err) {
     console.error("❌ extractCalendarEvents failed:", err.message);
