@@ -6,7 +6,6 @@ const admin = require("firebase-admin");
 const path = require("path");
 const fs = require("fs");
 
-const SYSTEM_PROMPT = fs.readFileSync("./prompts/tone-homeops.txt", "utf-8");
 console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 
 let firebaseCredentials;
