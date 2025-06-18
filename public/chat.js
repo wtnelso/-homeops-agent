@@ -35,10 +35,17 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await res.json();
+      
       console.log("📥 Full response from backend:", data);
+console.log("🧪 Events received:", data.events);
+console.log("🧪 Calendar exists?", !!window.calendar);
+console.log("🧪 Event count:", Array.isArray(data.events) ? data.events.length : "not an array");
 
       document.getElementById("typing")?.remove();
-      appendMessage("HomeOps", data.reply || "🤖 No reply received.", "agent");
+  // Remove any embedded JSON block from the reply before showing it
+const cleanReply = data.reply.split("[")[0].trim();
+appendMessage("HomeOps", cleanReply || "🤖 No reply received.", "agent");
+
 
       // Inject events into FullCalendar
       if (Array.isArray(data.events) && window.calendar) {
