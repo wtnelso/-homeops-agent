@@ -9,22 +9,20 @@ const fs = require("fs");
 const SYSTEM_PROMPT = fs.readFileSync("./prompts/tone-homeops.txt", "utf-8");
 console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 
-{
-  let firebaseCredentials;
-  try {
-    const base64 = process.env.FIREBASE_CREDENTIALS;
-    const decoded = Buffer.from(base64, "base64").toString("utf-8");
-    firebaseCredentials = JSON.parse(decoded);
+let firebaseCredentials;
+try {
+  const base64 = process.env.FIREBASE_CREDENTIALS;
+  const decoded = Buffer.from(base64, "base64").toString("utf-8");
+  firebaseCredentials = JSON.parse(decoded);
 
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(firebaseCredentials)
-      });
-    }
-  } catch (err) {
-    console.error("❌ Firebase init failed:", err.message);
-    process.exit(1);
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(firebaseCredentials),
+    });
   }
+} catch (err) {
+  console.error("❌ Firebase init failed:", err.message);
+  process.exit(1);
 }
 
 const db = admin.firestore();
@@ -35,60 +33,41 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 
 async function extractCalendarEvents(message) {
-  const extractionPrompt = `
-Extract any time-based calendar events from the message below.
-Respond ONLY with a JSON array in this format:
-
-[
-  {
-    "title": "Appointment at Chesapeake Urology",
-    "start": "2025-06-15T09:00:00",
-    "allDay": false
-  }
-]
-
-- "title" must describe the event (include location if known)
-- "start" must be an ISO 8601 datetime string
-- No markdown. No explanation. No extra text.
-
-Message:
-"""${message}"""
-`;
-
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "gpt-4",
         messages: [
-          { role: "system", content: "Return only a valid JSON array of calendar events." },
-          { role: "user", content: extractionPrompt }
+          {
+            role: "system",
+            content: `Extract any calendar-based events from the user message below.
+
+Respond ONLY with a raw JSON array using this format:
+[
+  { "title": "string", "start": "ISO 8601 datetime string" }
+]`
+          },
+          {
+            role: "user",
+            content: message
+          }
         ]
       })
     });
 
-const data = await res.json();
-let raw = data.choices?.[0]?.message?.content || "[]";
-
-// Log the raw GPT output before cleaning
-console.log("📬 GPT raw event response BEFORE cleanup:", raw);
-
-// Remove any formatting characters like ```json or ```
-raw = raw.replace(/```json|```/g, "").trim();
-
-try {
-  const parsed = JSON.parse(raw);
-  console.log("📤 Parsed calendar events:", parsed);
-  return parsed;
-} catch (err) {
-  console.error("❌ Failed to parse GPT output:", err.message);
-  return [];
+    const data = await res.json();
+    const rawText = data.choices?.[0]?.message?.content || "[]";
+    return JSON.parse(rawText);
+  } catch (err) {
+    console.error("❌ extractCalendarEvents failed:", err.message);
+    return [];
+  }
 }
-
 
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
@@ -110,32 +89,27 @@ app.post("/chat", async (req, res) => {
     });
 
     const data = await openaiRes.json();
-    const gptReply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
+    const gptReply = data.choices?.[0]?.message?.content || "Sorry, I blanked.";
 
     const events = await extractCalendarEvents(message);
-    console.log("📤 Events returned to frontend:", events);
 
     await db.collection("messages").add({
       user_id,
       message,
       reply: gptReply,
-      tags: ["mental load", "calendar"],
       timestamp: new Date(),
     });
-console.log("📦 Final response payload:", { reply: gptReply, events });
 
-    res.json({
-      reply: gptReply,
-      events: events || [],
-    });
+    res.json({ reply: gptReply, events });
   } catch (err) {
-    console.error("❌ Error in /chat route:", err.message);
-    res.status(500).json({ error: "Something went wrong." });
+    console.error("❌ /chat route error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 app.get("/api/dashboard", async (req, res) => {
   const { user_id = "user_123" } = req.query;
+
   try {
     const snapshot = await db
       .collection("messages")
@@ -169,23 +143,6 @@ app.get("/api/dashboard", async (req, res) => {
       tasksThisWeek: taskList.slice(0, 3),
       topThemes,
       totalTasks: messages.length,
-      reframes: [
-        {
-          title: "You're holding a lot right now.",
-          subtitle: "Just naming it is power.",
-          body: "Laundry, school, camp, and scheduling? That’s not light work — it’s logistics load bearing. Give yourself 5 minutes of stillness today."
-        },
-        {
-          title: "This isn’t just task management — it’s emotional labor.",
-          subtitle: "And you’re doing it.",
-          body: "Most of what you're tracking isn't even visible to others. You don’t need to do it all alone."
-        },
-        {
-          title: "Consider letting one thing slide.",
-          subtitle: "You get to choose what matters.",
-          body: "Skipping one grocery run or showing up imperfectly is still showing up. Your kids won’t remember the missed apple slices."
-        }
-      ]
     });
   } catch (err) {
     console.error("❌ /api/dashboard failed:", err.message);
@@ -195,32 +152,22 @@ app.get("/api/dashboard", async (req, res) => {
 
 app.post("/api/this-week", async (req, res) => {
   const { messages } = req.body;
+
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: "No messages provided." });
   }
 
-  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant for high-performing families.
+  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant.
 
-Your tone blends:
-- the tactical clarity of Mel Robbins
-- the observational humor of Jerry Seinfeld
-- the emotional insight of Adam Grant
-- and the pattern-framing curiosity of Malcolm Gladwell
+Extract the user’s weekly appointments clearly.
+Then reply with 2–3 sentences of commentary using wit and validation.
 
-Your job: extract the user’s weekly appointments, obligations, and tasks. Structure them clearly. Then respond with a short validating paragraph in your tone.
-
-✅ Format:
+Format:
 
 🛂 Tuesday @ 11 AM — Passport appointment
-🏊 Tuesday @ 6 PM — Ellie swim practice
-🎾 Wednesday evening — Lucy’s tennis match
+🎾 Wednesday — Lucy’s tennis match
 
-📣 Then add 2–3 sentences of commentary. It should:
-- Acknowledge the emotional + logistical weight
-- Use wit and real-life energy (not corporate fluff)
-- Encourage prioritization and self-kindness
-
-No markdown. No long paragraphs. Emojis are welcome. List first, commentary second.`;
+Commentary here.`;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -239,30 +186,24 @@ No markdown. No long paragraphs. Emojis are welcome. List first, commentary seco
     });
 
     const data = await response.json();
-    const raw = data?.choices?.[0]?.message?.content;
-    const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
-    res.json(parsed);
+    const text = data.choices?.[0]?.message?.content || "Couldn’t summarize this week.";
+    res.json({ summary: text });
   } catch (err) {
     console.error("❌ /api/this-week failed:", err.message);
-    res.status(500).json({ error: "Failed to generate weekly summary" });
+    res.status(500).json({ error: "Weekly summary failed" });
   }
 });
 
 app.post("/api/relief-protocol", async (req, res) => {
-  try {
-    const { tasks, emotional_flags } = req.body;
+  const { tasks = [], emotional_flags = [] } = req.body;
 
-  const prompt = `
-You are HomeOps, a smart and emotionally intelligent household assistant.
+  const prompt = `You are HomeOps. Create a JSON Relief Protocol using wit and insight.
 
-Your job is to generate a Relief Protocol based on the user's tracked tasks and emotional patterns.
+Input:
+Tasks: ${JSON.stringify(tasks)}
+Emotional Flags: ${JSON.stringify(emotional_flags)}
 
-Today is ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}.
-
-You specialize in helping high-functioning families manage stress, logistics, and emotional labor.
-You blend the wit of Amy Schumer with the insight of Adam Grant and the clarity of Mel Robbins.
-
-Return output as JSON with:
+Output format:
 {
   "summary": "...",
   "offload": { "text": "...", "coach": "Mel Robbins" },
@@ -270,10 +211,9 @@ Return output as JSON with:
   "reconnect": { "text": "...", "coach": "John Gottman" },
   "pattern_interrupt": "...",
   "reframe": { "text": "...", "coach": "Adam Grant" }
-}
-`;
+}`;
 
-
+  try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -281,18 +221,18 @@ Return output as JSON with:
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-4o",
         temperature: 0.2,
         messages: [
           { role: "system", content: prompt },
-          { role: "user", content: `Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)}` }
+          { role: "user", content: "Generate protocol" }
         ]
       })
     });
 
     const data = await response.json();
-    const clean = data?.choices?.[0]?.message?.content?.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(clean);
+    const raw = data.choices?.[0]?.message?.content || "{}";
+    const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
     res.json(parsed);
   } catch (err) {
     console.error("❌ Relief Protocol Error:", err.message);
