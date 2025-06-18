@@ -53,7 +53,6 @@ No extra text. No markdown. No explanations.
 Now extract any events from this message:
 """${message}"""`;
 
-
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -71,13 +70,21 @@ Now extract any events from this message:
     });
 
     const data = await res.json();
-    const rawText = data.choices?.[0]?.message?.content || "[]";
-    return JSON.parse(rawText);
+    const raw = data.choices?.[0]?.message?.content || "[]";
+
+    const match = raw.match(/\[\s*{[\s\S]*?}\s*\]/); // safely extract JSON array
+    if (match) {
+      return JSON.parse(match[0]);
+    } else {
+      console.log("📭 No calendar event found in GPT response.");
+      return [];
+    }
   } catch (err) {
     console.error("❌ extractCalendarEvents failed:", err.message);
     return [];
   }
 }
+
 
 const SYSTEM_PROMPT = `
 You are HomeOps — a personal chief of staff for busy families.
