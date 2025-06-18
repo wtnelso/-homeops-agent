@@ -32,6 +32,25 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 
 async function extractCalendarEvents(message) {
+  const today = new Date().toISOString().split("T")[0];
+
+  const prompt = `Today’s date is ${today}.
+
+Extract any calendar-based events from the user message below.
+Only return a raw JSON array using this format:
+
+[
+  {
+    "title": "string",
+    "start": "ISO 8601 datetime string",
+    "allDay": boolean
+  }
+]
+
+No extra text, no markdown, no explanations.
+Now extract any events from this message:
+"""${message}"""`;
+
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -42,22 +61,21 @@ async function extractCalendarEvents(message) {
       body: JSON.stringify({
         model: "gpt-4",
         messages: [
-          {
-            role: "system",
-            content: `Extract any calendar-based events from the user message below.
-
-Respond ONLY with a raw JSON array using this format:
-[
-  { "title": "string", "start": "ISO 8601 datetime string", "allDay": boolean }
-]`
-          },
-          {
-            role: "user",
-            content: message
-          }
+          { role: "system", content: prompt },
+          { role: "user", content: message }
         ]
       })
     });
+
+    const data = await res.json();
+    const rawText = data.choices?.[0]?.message?.content || "[]";
+    return JSON.parse(rawText);
+  } catch (err) {
+    console.error("❌ extractCalendarEvents failed:", err.message);
+    return [];
+  }
+}
+
 
     const data = await res.json();
     const rawText = data.choices?.[0]?.message?.content || "[]";
@@ -71,15 +89,10 @@ const SYSTEM_PROMPT = `
 You are HomeOps — a personal chief of staff for busy families.
 
 When a user shares a message, your job is to:
-1. Extract specific calendar events (e.g. appointments, obligations, reminders)
-2. Return them as a JSON array
-3. Provide a short, emotionally intelligent comment that’s clear and validating — not fluffy or long-winded
+1. Write a short, emotionally intelligent reply — 1 or 2 lines. No filler, no backticks.
+2. Extract any calendar-based events and return them in a JSON array (not shown to the user)
 
-Your tone blends: Mel Robbins (direct), Michelle Obama (warm), and Adam Grant (insightful).
-
-Respond in this format only:
-
-✅ Comment (1–2 lines, direct and real)
+Your reply should feel human. The JSON should be structured like:
 
 [
   {
@@ -88,7 +101,14 @@ Respond in this format only:
     "allDay": boolean
   }
 ]
+
+Respond like this:
+
+✅ I’ve added Colette’s doctor appointment to your calendar.
+
+<then output just the JSON block below that — no extra explanation>
 `;
+
 
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
