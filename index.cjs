@@ -35,6 +35,7 @@ async function extractCalendarEvents(message) {
   const today = new Date().toISOString().split("T")[0];
 
   const prompt = `Today’s date is ${today}.
+  ⚠️ Do not use any Markdown or \`\`\` blocks.
 
 Extract any calendar-based events from the user message below.
 Use ISO 8601 format for the start date. Ensure the date reflects the current year: ${today}.
@@ -70,7 +71,9 @@ Now extract any events from this message:
     });
 
     const data = await res.json();
-    const raw = data.choices?.[0]?.message?.content || "[]";
+    let raw = data.choices?.[0]?.message?.content || "[]";
+raw = raw.replace(/```json|```/g, "").trim();
+
 
     const match = raw.match(/\[\s*{[\s\S]*?}\s*\]/); // safely extract JSON array
     if (match) {
@@ -148,6 +151,37 @@ app.post("/chat", async (req, res) => {
   } catch (err) {
     console.error("❌ /chat route error:", err.message);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+// ✅ Save event to Firestore
+app.post("/api/events", async (req, res) => {
+  const { event } = req.body;
+
+  if (!event || !event.title || !event.start) {
+    return res.status(400).json({ error: "Invalid event format" });
+  }
+
+  try {
+    const docRef = await db.collection("events").add({
+      ...event,
+      created_at: new Date(),
+    });
+    res.json({ success: true, id: docRef.id });
+  } catch (err) {
+    console.error("❌ Failed to save event:", err.message);
+    res.status(500).json({ error: "Failed to save event" });
+  }
+});
+
+// ✅ Fetch all saved events
+app.get("/api/events", async (req, res) => {
+  try {
+    const snapshot = await db.collection("events").orderBy("start").get();
+    const events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(events);
+  } catch (err) {
+    console.error("❌ Failed to fetch events:", err.message);
+    res.status(500).json({ error: "Failed to fetch events" });
   }
 });
 
