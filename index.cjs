@@ -5,27 +5,27 @@ const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fet
 const admin = require("firebase-admin");
 const path = require("path");
 const fs = require("fs");
-console.log("🚨 LIVE CODE REDEPLOYED!");
 
 const SYSTEM_PROMPT = fs.readFileSync("./prompts/tone-homeops.txt", "utf-8");
 console.log("🟢 SYSTEM_PROMPT loaded:", SYSTEM_PROMPT.slice(0, 120) + "...");
 
-let firebaseCredentials;
-try {
-  const base64 = process.env.FIREBASE_CREDENTIALS;
-  const decoded = Buffer.from(base64, "base64").toString("utf-8");
-  firebaseCredentials = JSON.parse(decoded);
+{
+  let firebaseCredentials;
+  try {
+    const base64 = process.env.FIREBASE_CREDENTIALS;
+    const decoded = Buffer.from(base64, "base64").toString("utf-8");
+    firebaseCredentials = JSON.parse(decoded);
 
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(firebaseCredentials)
-    });
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(firebaseCredentials)
+      });
+    }
+  } catch (err) {
+    console.error("❌ Firebase init failed:", err.message);
+    process.exit(1);
   }
-} catch (err) {
-  console.error("❌ Firebase init failed:", err.message);
-  process.exit(1);
 }
-
 
 const db = admin.firestore();
 const app = express();
@@ -35,82 +35,58 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 
 async function extractCalendarEvents(message) {
-  const prompt = 
-You are an event extraction engine. Your only job is to convert messages into structured calendar event JSON.
-
-Only reply with an array in this format — no extra text:
+  const extractionPrompt = `
+Extract any time-based calendar events from the message below.
+Respond ONLY with a JSON array in this format:
 
 [
   {
-    "title": "Event Title",
-    "start": "2025-07-10T15:00:00",
+    "title": "Appointment at Chesapeake Urology",
+    "start": "2025-06-15T09:00:00",
     "allDay": false
   }
 ]
 
-Now extract any events from this message:
+- "title" must describe the event (include location if known)
+- "start" must be an ISO 8601 datetime string
+- No markdown. No explanation. No extra text.
+
+Message:
 """${message}"""
-;
+`;
 
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: Bearer ${process.env.OPENAI_API_KEY},
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "gpt-4",
-        temperature: 0.2,
         messages: [
-          { role: "system", content: prompt }
+          { role: "system", content: "Return only a valid JSON array of calendar events." },
+          { role: "user", content: extractionPrompt }
         ]
       })
     });
 
-    const data = await res.json();
-    let raw = data.choices?.[0]?.message?.content || "[]";
-    console.log("📬 GPT event extraction raw:", raw);
+const data = await res.json();
+let raw = data.choices?.[0]?.message?.content || "[]";
 
-    raw = raw.replace(/
-json|
-/g, "").trim();
+// Log the raw GPT output before cleaning
+console.log("📬 GPT raw event response BEFORE cleanup:", raw);
 
-    try {
-      const parsed = JSON.parse(raw);
-      console.log("📤 Parsed calendar events:", parsed);
-      return parsed;
-    } catch (err) {
-      console.error("❌ Failed to parse calendar events JSON:", err.message);
-      return [];
-    }
+// Remove any formatting characters like ```json or ```
+raw = raw.replace(/```json|```/g, "").trim();
 
-    } catch (err) {
-    console.error("❌ extractCalendarEvents error:", err.message);
-    return [];
-  }
-}
-
-    const data = await res.json();
-    let raw = data.choices?.[0]?.message?.content || "[]";
-    console.log("📬 GPT raw event response BEFORE cleanup:", raw);
-    raw = raw.replace(/
-json|
-/g, "").trim();
-
-    try {
-      const parsed = JSON.parse(raw);
-      console.log("📤 Parsed calendar events:", parsed);
-      return parsed;
-    } catch (err) {
-      console.error("❌ Failed to parse GPT output:", err.message);
-      return [];
-    }
-
-  } catch (err) {
-    console.error("❌ extractCalendarEvents error:", err.message);
-    return [];
-  }
+try {
+  const parsed = JSON.parse(raw);
+  console.log("📤 Parsed calendar events:", parsed);
+  return parsed;
+} catch (err) {
+  console.error("❌ Failed to parse GPT output:", err.message);
+  return [];
 }
 
 
@@ -118,13 +94,10 @@ app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
-    console.log("💬 /chat route triggered");
-
-    // Get GPT reply (for emotional coaching / chat UI)
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: Bearer ${process.env.OPENAI_API_KEY},
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -138,13 +111,10 @@ app.post("/chat", async (req, res) => {
 
     const data = await openaiRes.json();
     const gptReply = data.choices?.[0]?.message?.content || "Sorry, I had a brain freeze.";
-    console.log("🤖 GPT reply before event extraction:", gptReply);
 
-    // Extract events from user message (not GPT reply)
     const events = await extractCalendarEvents(message);
     console.log("📤 Events returned to frontend:", events);
 
-    // Store the chat + reply
     await db.collection("messages").add({
       user_id,
       message,
@@ -152,33 +122,7 @@ app.post("/chat", async (req, res) => {
       tags: ["mental load", "calendar"],
       timestamp: new Date(),
     });
-
-    console.log("📦 Final response payload:", { reply: gptReply, events });
-
-    // Send back both chat reply + events to frontend
-    res.json({
-      reply: gptReply,
-      events: events || [],
-    });
-
-  } catch (err) {
-    console.error("❌ Error in /chat route:", err.message);
-    res.status(500).json({ error: "Something went wrong." });
-  }
-});
-
-
-    console.log("📤 Events returned to frontend:", events);
-
-    await db.collection("messages").add({
-      user_id,
-      message,
-      reply: gptReply,
-      tags: ["mental load", "calendar"],
-      timestamp: new Date(),
-    });
-
-    console.log("📦 Final response payload:", { reply: gptReply, events });
+console.log("📦 Final response payload:", { reply: gptReply, events });
 
     res.json({
       reply: gptReply,
@@ -189,7 +133,6 @@ app.post("/chat", async (req, res) => {
     res.status(500).json({ error: "Something went wrong." });
   }
 });
-
 
 app.get("/api/dashboard", async (req, res) => {
   const { user_id = "user_123" } = req.query;
@@ -206,7 +149,7 @@ app.get("/api/dashboard", async (req, res) => {
     const taskList = [];
 
     messages.forEach(({ message, reply }) => {
-      const text = ${message} ${reply}.toLowerCase();
+      const text = `${message} ${reply}`.toLowerCase();
       ["laundry", "school", "camp", "appointment", "groceries", "pickup"].forEach(keyword => {
         if (text.includes(keyword)) {
           themeCounts[keyword] = (themeCounts[keyword] || 0) + 1;
@@ -220,7 +163,7 @@ app.get("/api/dashboard", async (req, res) => {
     const topThemes = Object.entries(themeCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
-      .map(([word, count]) => ${word} (${count}x));
+      .map(([word, count]) => `${word} (${count}x)`);
 
     res.json({
       tasksThisWeek: taskList.slice(0, 3),
@@ -256,7 +199,7 @@ app.post("/api/this-week", async (req, res) => {
     return res.status(400).json({ error: "No messages provided." });
   }
 
-  const systemPrompt = You are HomeOps — a smart, emotionally fluent household assistant for high-performing families.
+  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant for high-performing families.
 
 Your tone blends:
 - the tactical clarity of Mel Robbins
@@ -277,13 +220,13 @@ Your job: extract the user’s weekly appointments, obligations, and tasks. Stru
 - Use wit and real-life energy (not corporate fluff)
 - Encourage prioritization and self-kindness
 
-No markdown. No long paragraphs. Emojis are welcome. List first, commentary second.;
+No markdown. No long paragraphs. Emojis are welcome. List first, commentary second.`;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: Bearer ${process.env.OPENAI_API_KEY},
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -297,9 +240,7 @@ No markdown. No long paragraphs. Emojis are welcome. List first, commentary seco
 
     const data = await response.json();
     const raw = data?.choices?.[0]?.message?.content;
-    const parsed = JSON.parse(raw.replace(/
-json|
-/g, "").trim());
+    const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
     res.json(parsed);
   } catch (err) {
     console.error("❌ /api/this-week failed:", err.message);
@@ -311,7 +252,8 @@ app.post("/api/relief-protocol", async (req, res) => {
   try {
     const { tasks, emotional_flags } = req.body;
 
-    const prompt = You are HomeOps, a smart and emotionally intelligent household assistant.
+  const prompt = `
+You are HomeOps, a smart and emotionally intelligent household assistant.
 
 Your job is to generate a Relief Protocol based on the user's tracked tasks and emotional patterns.
 
@@ -328,12 +270,14 @@ Return output as JSON with:
   "reconnect": { "text": "...", "coach": "John Gottman" },
   "pattern_interrupt": "...",
   "reframe": { "text": "...", "coach": "Adam Grant" }
-};
+}
+`;
+
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: Bearer ${process.env.OPENAI_API_KEY},
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -341,15 +285,13 @@ Return output as JSON with:
         temperature: 0.2,
         messages: [
           { role: "system", content: prompt },
-          { role: "user", content: Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)} }
+          { role: "user", content: `Tasks: ${JSON.stringify(tasks)}\nEmotional flags: ${JSON.stringify(emotional_flags)}` }
         ]
       })
     });
 
     const data = await response.json();
-    const clean = data?.choices?.[0]?.message?.content?.replace(/
-json|
-/g, "").trim();
+    const clean = data?.choices?.[0]?.message?.content?.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(clean);
     res.json(parsed);
   } catch (err) {
@@ -363,5 +305,5 @@ app.get("*", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(✅ Server listening on port ${port});
+  console.log(`✅ Server listening on port ${port}`);
 });
