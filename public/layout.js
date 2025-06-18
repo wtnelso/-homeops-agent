@@ -61,17 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     center: "title",
     right: "dayGridMonth,timeGridWeek,timeGridDay"
   },
-  events: async function(fetchInfo, successCallback, failureCallback) {
-    try {
-      const res = await fetch("/api/events");
-      const events = await res.json();
-      successCallback(events);
-      console.log("📅 Loaded saved events:", events);
-    } catch (err) {
-      console.error("❌ Failed to load saved events:", err.message);
-      failureCallback(err);
-    }
-  },
+  events: [],
   dateClick: function (info) {
     const title = prompt("Add an event:");
     if (title) {
