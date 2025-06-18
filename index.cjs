@@ -70,18 +70,17 @@ Now extract any events from this message:
       })
     });
 
-    const data = await res.json();
-    let raw = data.choices?.[0]?.message?.content || "[]";
+ let raw = data.choices?.[0]?.message?.content || "[]";
 raw = raw.replace(/```json|```/g, "").trim();
 
+const match = raw.match(/\[\s*{[\s\S]*?}\s*\]/);
+if (match) {
+  return JSON.parse(match[0]);
+} else {
+  console.warn("📭 No calendar events found.");
+  return [];
+}
 
-    const match = raw.match(/\[\s*{[\s\S]*?}\s*\]/); // safely extract JSON array
-    if (match) {
-      return JSON.parse(match[0]);
-    } else {
-      console.log("📭 No calendar event found in GPT response.");
-      return [];
-    }
   } catch (err) {
     console.error("❌ extractCalendarEvents failed:", err.message);
     return [];
