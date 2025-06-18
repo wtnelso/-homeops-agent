@@ -84,6 +84,15 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("✅ Calendar initialized");
     }
   }
+// Inject any queued events now that calendar is ready
+if (window.pendingCalendarEvents?.length) {
+  window.pendingCalendarEvents.forEach((event) => {
+    const injected = window.calendar.addEvent(event);
+    highlightCalendarEvent?.(injected); // Safe in case not defined in layout
+    console.log("🗓️ Event added from queue:", event);
+  });
+  window.pendingCalendarEvents = [];
+}
 
   // Set up navigation
   navButtons.forEach((button) => {
