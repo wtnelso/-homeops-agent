@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+  window.pendingCalendarEvents = [];
+
   const input = document.getElementById("input");
   const chat = document.getElementById("chat");
   const form = document.getElementById("chatForm");
@@ -48,16 +50,20 @@ appendMessage("HomeOps", cleanReply || "🤖 No reply received.", "agent");
 
 
       // Inject events into FullCalendar
-      if (Array.isArray(data.events) && window.calendar) {
-        const added = new Set();
-        data.events.forEach((event) => {
-          const key = `${event.title}|${event.start}`;
-          if (!added.has(key)) {
-            const newEvent = window.calendar.addEvent(event);
-            highlightCalendarEvent(newEvent);
-            added.add(key);
-            console.log("🗓️ Event added:", event);
-          }
+  if (Array.isArray(data.events)) {
+  if (window.calendar) {
+    data.events.forEach((event) => {
+      const newEvent = window.calendar.addEvent(event);
+      highlightCalendarEvent(newEvent);
+      console.log("🗓️ Event added immediately:", event);
+    });
+  } else {
+    console.warn("⚠️ window.calendar not found — queuing events.");
+    window.pendingCalendarEvents.push(...data.events);
+  }
+}
+
+
         });
       } else if (!window.calendar) {
         console.warn("⚠️ window.calendar not found.");
