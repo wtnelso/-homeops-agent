@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
     appendMessage("You", message, "user");
     input.value = "";
 
-    // Typing indicator
     const typing = document.createElement("div");
     typing.className = "typing-indicator";
     typing.id = "typing";
@@ -28,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chat.scrollTop = chat.scrollHeight;
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // optional UX delay
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const res = await fetch("/chat", {
         method: "POST",
@@ -37,32 +36,29 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await res.json();
-      
+
       console.log("📥 Full response from backend:", data);
-console.log("🧪 Events received:", data.events);
-console.log("🧪 Calendar exists?", !!window.calendar);
-console.log("🧪 Event count:", Array.isArray(data.events) ? data.events.length : "not an array");
+      console.log("🧪 Events received:", data.events);
+      console.log("🧪 Calendar exists?", !!window.calendar);
+      console.log("🧪 Event count:", Array.isArray(data.events) ? data.events.length : "not an array");
 
       document.getElementById("typing")?.remove();
-  // Remove any embedded JSON block from the reply before showing it
-const cleanReply = data.reply.split("[")[0].trim();
-appendMessage("HomeOps", cleanReply || "🤖 No reply received.", "agent");
+      const cleanReply = data.reply.split("[")[0].trim();
+      appendMessage("HomeOps", cleanReply || "🤖 No reply received.", "agent");
 
-
-      // Inject events into FullCalendar
-  if (Array.isArray(data.events)) {
-  if (window.calendar) {
-    data.events.forEach((event) => {
-      const newEvent = window.calendar.addEvent(event);
-      highlightCalendarEvent(newEvent);
-      console.log("🗓️ Event added immediately:", event);
-    });
-  } else {
-    console.warn("⚠️ window.calendar not found — queuing events.");
-    window.pendingCalendarEvents.push(...data.events);
-  }
-}
-
+      // ✅ Queue-aware calendar injection
+      if (Array.isArray(data.events)) {
+        if (window.calendar) {
+          data.events.forEach((event) => {
+            const newEvent = window.calendar.addEvent(event);
+            highlightCalendarEvent(newEvent);
+            console.log("🗓️ Event added immediately:", event);
+          });
+        } else {
+          console.warn("⚠️ window.calendar not found — queuing events.");
+          window.pendingCalendarEvents.push(...data.events);
+        }
+      }
 
     } catch (error) {
       document.getElementById("typing")?.remove();
@@ -81,7 +77,7 @@ appendMessage("HomeOps", cleanReply || "🤖 No reply received.", "agent");
 
     const bubble = document.createElement("div");
     bubble.className = "message-bubble";
-    bubble.textContent = text; // safe fallback
+    bubble.textContent = text;
 
     msg.appendChild(senderTag);
     msg.appendChild(bubble);
