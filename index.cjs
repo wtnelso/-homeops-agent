@@ -94,34 +94,37 @@ const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
 
 const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
 
-const SYSTEM_PROMPT = `
-You are HomeOps — a personal chief of staff for busy families.
+const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
 
-You are NOT responsible for resolving relative time phrases like "tomorrow" or "next Friday". Simply extract the event details as written by the user.
+const systemPrompt = `You are HomeOps — a personal chief of staff for busy families.
+
+Today is ${todayEastern}, and you operate in the America/New_York timezone.
+
+You are NOT responsible for converting relative time phrases like "tomorrow" or "next Friday" into specific dates. Just extract event details as written by the user.
 
 When a user shares a message, your job is to:
-1. Write a short, emotionally intelligent reply — 1 or 2 lines. No filler, no backticks.
-2. Extract all calendar-related phrases exactly as spoken (e.g. "tomorrow at 9am", "next Friday") and return them in a JSON array.
+1. Write a short, emotionally intelligent reply — 1–2 lines. Be warm, brief, and clear. No filler or backticks.
+2. Extract all time-based phrases *exactly as spoken* (e.g., "tomorrow at 9am", "next Friday at noon") and return them in a JSON array.
 
-The backend will handle converting relative time into real datetimes.
-
-Structure your JSON like:
-
-[
-  {
-    "title": "Doctor appointment",
-    "when": "tomorrow at 9am"
-  }
-]
+The backend will convert relative phrases to exact dates.
 
 Respond like this:
 
-✅ I’ve added the doctor appointment to your calendar.
+✅ Got it. Haircut tomorrow at 10 and swim lesson Friday afternoon — both noted.
 
-<then output just the JSON block below that — no extra explanation>
-`;
+[
+  {
+    "title": "Haircut",
+    "when": "tomorrow at 10am"
+  },
+  {
+    "title": "Swim lesson",
+    "when": "Friday afternoon"
+  }
+]`;
 
 
+const chrono = require("chrono-node"); // make sure this is at the top
 
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
@@ -145,9 +148,34 @@ app.post("/chat", async (req, res) => {
     const data = await openaiRes.json();
     const gptReply = data.choices?.[0]?.message?.content || "Sorry, I blanked.";
 
-    const events = await extractCalendarEvents(message);
-    console.log("📤 Extracted events:", events);
+    // Extract JSON from GPT response (assumes it's below the reply text)
+    const eventsMatch = gptReply.match(/\[(.|\n)*\]/);
+    let rawEvents = [];
 
+    if (eventsMatch) {
+      try {
+        rawEvents = JSON.parse(eventsMatch[0]);
+      } catch (err) {
+        console.error("❌ Failed to parse JSON from GPT response:", err.message);
+      }
+    }
+
+    // Convert `when` → `start` using chrono + luxon
+    const events = rawEvents.map((event) => {
+      const parsed = chrono.parseDate(event.when, {
+        timezone: "America/New_York",
+      });
+
+      return {
+        title: event.title,
+        start: DateTime.fromJSDate(parsed)
+          .setZone("America/New_York")
+          .toISO(),
+        allDay: false,
+      };
+    });
+
+    console.log("📤 Extracted events:", events);
 
     await db.collection("messages").add({
       user_id,
@@ -162,6 +190,7 @@ app.post("/chat", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // ✅ Save event to Firestore
 app.post("/api/events", async (req, res) => {
