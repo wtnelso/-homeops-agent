@@ -201,21 +201,22 @@ Format:
       };
     });
 
-    console.log("✅ Final parsed events:", events);
+ console.log("✅ Final parsed events:", events);
 
-    await db.collection("messages").add({
-      user_id,
-      message,
-      reply: gptReply,
-      timestamp: new Date()
-    });
+// Optional: log GPT's full response for debugging
+console.log("🧪 Full GPT reply content:", gptReply);
 
-    res.json({ reply: gptReply, events });
-  } catch (err) {
-    console.error("❌ /chat route failed:", err.message);
-    res.status(500).json({ error: "Internal server error" });
-  }
+// Save message + reply for audit/logging
+await db.collection("messages").add({
+  user_id,
+  message,
+  reply: gptReply,
+  timestamp: new Date()
 });
+
+// Respond to frontend
+res.json({ reply: gptReply, events });
+
 
 
 // ✅ Save event to Firestore
