@@ -465,3 +465,82 @@ body.dark {
   font-size: 12px;
   color: #666;
 }
+@media screen and (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+    width: 100vw;
+  }
+
+  .sidebar {
+    flex-direction: row;
+    width: 100%;
+    height: auto;
+    justify-content: space-around;
+    padding: 8px;
+  }
+
+  .nav {
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+  }
+
+  .nav-item {
+    padding: 10px;
+    font-size: 14px;
+    flex: 1;
+  }
+
+  .main-content {
+    padding: 12px;
+    width: 100%;
+  }
+
+  .top-bar {
+    padding: 8px 12px;
+    font-size: 16px;
+  }
+
+  .chat-wrapper {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .chat-form {
+    flex-direction: column;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .chat-form input {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .chat-form button {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .dashboard-grid {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .dashboard-card {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .view h2 {
+    font-size: 20px;
+  }
+
+  #calendar {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
