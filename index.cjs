@@ -128,12 +128,12 @@ app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
-    // 🧠 1. Get warm human reply
-    const friendlyPrompt = `You are HomeOps — a personal chief of staff for busy families.
+    // 🔹 Step 1: Get human response from GPT
+    const tonePrompt = `You are HomeOps — a personal chief of staff for busy families.
 
-Write a short, emotionally intelligent reply (1–2 lines) based on this message. Be warm, direct, and a little witty.`;
+Write a short, emotionally intelligent reply to this message. Be warm, validating, and clear. One or two lines only.`;
 
-    const friendlyRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const toneRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -142,27 +142,27 @@ Write a short, emotionally intelligent reply (1–2 lines) based on this message
       body: JSON.stringify({
         model: "gpt-4o",
         messages: [
-          { role: "system", content: friendlyPrompt },
+          { role: "system", content: tonePrompt },
           { role: "user", content: message }
         ]
       })
     });
 
-    const friendlyData = await friendlyRes.json();
-    const gptReply = friendlyData.choices?.[0]?.message?.content || "Got it.";
+    const toneData = await toneRes.json();
+    const gptReply = toneData.choices?.[0]?.message?.content || "All set.";
 
-    // 🔎 2. Use GPT to return just bullet-point lines for events
-    const extractionPrompt = `From the following message, extract every calendar-related event as a bullet point in this format:
+    // 🔹 Step 2: Ask GPT to return raw bullet list of title + time strings
+    const extractPrompt = `Extract all time-based events from this message and return each as a bullet point in the following format:
 
-"when" — title
+Event title — when it happens
 
 Examples:
-"tomorrow at 9am" — Doctor appointment
-"Friday at 2pm" — Wedding
+• Doctor appointment — tomorrow at 9am  
+• Wedding — Friday at 2pm
 
-Only include real time-based events. No JSON. Just a clean list.`;
+Only output bullet points. No commentary, no extra text.`;
 
-    const extractionRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const extractRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -171,36 +171,35 @@ Only include real time-based events. No JSON. Just a clean list.`;
       body: JSON.stringify({
         model: "gpt-4o",
         messages: [
-          { role: "system", content: extractionPrompt },
+          { role: "system", content: extractPrompt },
           { role: "user", content: message }
         ]
       })
     });
 
-    const extractionData = await extractionRes.json();
-    const lines = extractionData.choices?.[0]?.message?.content?.split("\n") || [];
+    const extractData = await extractRes.json();
+    const bullets = extractData.choices?.[0]?.message?.content || "";
 
-    // 🧠 3. Parse lines into structured events
-    const events = lines
-      .map((line) => {
-        const match = line.match(/"(.+?)"\s*—\s*(.+)/);
-        if (!match) return null;
+    // 🔹 Step 3: Parse bullet points like: "• Doctor appointment — tomorrow at 9am"
+    const lines = bullets.split("\n").filter(line => line.trim().startsWith("•"));
+    const events = lines.map((line) => {
+      const match = line.match(/•\s*(.+?)\s+—\s+(.+)/);
+      if (!match) return null;
 
-        const when = match[1].trim();
-        const title = match[2].trim();
-        const parsed = chrono.parseDate(when, {
-          timezone: "America/New_York"
-        });
+      const title = match[1].trim();
+      const when = match[2].trim();
+      const parsed = chrono.parseDate(when, { timezone: "America/New_York" });
 
-        return {
-          title,
-          start: DateTime.fromJSDate(parsed).setZone("America/New_York").toISO(),
-          allDay: false
-        };
-      })
-      .filter(Boolean);
+      if (!parsed) return null;
 
-    console.log("📅 Parsed events:", events);
+      return {
+        title,
+        start: DateTime.fromJSDate(parsed).setZone("America/New_York").toISO(),
+        allDay: false
+      };
+    }).filter(Boolean);
+
+    console.log("✅ Final events parsed:", events);
 
     await db.collection("messages").add({
       user_id,
@@ -211,7 +210,7 @@ Only include real time-based events. No JSON. Just a clean list.`;
 
     res.json({ reply: gptReply, events });
   } catch (err) {
-    console.error("❌ /chat route failed:", err.message);
+    console.error("❌ Final fallback /chat route failed:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });
