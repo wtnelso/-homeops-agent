@@ -132,18 +132,13 @@ app.post("/chat", async (req, res) => {
 
 Write a short, emotionally intelligent reply to this message. Be warm, validating, and clear. One or two lines only.`;
 
-    const extractPrompt = `You are a backend assistant that extracts time-based events from user messages.
+    const extractPrompt = `Extract all time-based events from this message and return them in JSON. Do not resolve time. Use the exact phrasing the user used.
 
-DO NOT convert any dates or times.
-
-Your job is only to extract exactly what the user said. Use their exact words for when the event occurs. Only return JSON — no commentary.
-
-Example output:
+Format:
 [
   { "title": "Doctor appointment", "when": "tomorrow at 9am" },
   { "title": "Wedding", "when": "Friday at 2pm" }
 ]`;
-
 
     // GPT call 1 — tone reply
     const toneRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -180,11 +175,18 @@ Example output:
       })
     });
 
-    const rawEvents = [
-  { title: "Doctor appointment", when: "tomorrow at 9am" },
-  { title: "Wedding", when: "Friday at 2pm" }
-];
+    const extractData = await extractRes.json();
+    const raw = extractData.choices?.[0]?.message?.content || "";
+    const jsonMatch = raw.match(/\[(.|\n)*\]/);
+    let parsed = [];
 
+    if (jsonMatch) {
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch (err) {
+        console.error("❌ Failed to parse GPT JSON:", err.message);
+      }
+    }
 
     // Convert "when" → "start"
     const events = parsed.map((event) => {
