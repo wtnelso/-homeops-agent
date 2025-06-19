@@ -38,49 +38,60 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
 
       console.log("📥 Full response from backend:", data);
-      console.log("🧪 Events received:", data.events);
-      console.log("🧪 Calendar exists?", !!window.calendar);
-      console.log("🧪 Event count:", Array.isArray(data.events) ? data.events.length : "not an array");
-
       document.getElementById("typing")?.remove();
-      const cleanReply = data.reply.split("[")[0].trim();
-      appendMessage("HomeOps", cleanReply || "🤖 No reply received.", "agent");
 
-      // ✅ Queue-aware calendar injection + Firestore save
+      const cleanReply = data.reply?.split("[")[0].trim() || "🤖 No reply received.";
+      appendMessage("HomeOps", cleanReply, "agent");
+
       if (Array.isArray(data.events)) {
         if (window.calendar) {
-          data.events.forEach(async (event) => {
-            // 🧠 Fallback for missing or empty title
-            if (!event.title || event.title.trim() === "") {
-              event.title = "📝 Untitled Event";
+          for (const event of data.events) {
+            console.log("📅 Attempting to add event:", event);
+
+            if (!event || typeof event !== "object") {
+              console.warn("❗ Skipping invalid event:", event);
+              continue;
             }
 
-            const newEvent = window.calendar.addEvent(event);
+            const safeEvent = {
+              title: typeof event.title === "string" && event.title.trim() !== "" 
+                ? event.title.trim() 
+                : "📝 Untitled Event",
+              start: event.start,
+              allDay: event.allDay ?? false,
+            };
+
+            if (!safeEvent.start) {
+              console.warn("⚠️ Missing start time, skipping event:", safeEvent);
+              continue;
+            }
+
+            const newEvent = window.calendar.addEvent(safeEvent);
             highlightCalendarEvent(newEvent);
 
-            // 💾 Save to Firestore
             try {
               const saveRes = await fetch("/api/events", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ event }),
+                body: JSON.stringify({ event: safeEvent }),
               });
+
               const result = await saveRes.json();
               if (!result.success) throw new Error(result.error);
               console.log("✅ Event saved to Firestore:", result.id);
             } catch (err) {
-              console.error("❌ Failed to save event:", err.message);
+              console.error("❌ Firestore save error:", err.message);
             }
-          });
+          }
         } else {
-          console.warn("⚠️ window.calendar not found — queuing events.");
+          console.warn("⚠️ window.calendar not found — queueing events.");
           window.pendingCalendarEvents.push(...data.events);
         }
       }
 
     } catch (error) {
       document.getElementById("typing")?.remove();
-      console.error("❌ Chat error:", error);
+      console.error("❌ Chat processing error:", error);
       appendMessage("Error", "Something went wrong talking to the assistant.", "agent");
     }
   });
