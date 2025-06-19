@@ -6,6 +6,8 @@ const admin = require("firebase-admin");
 const path = require("path");
 const fs = require("fs");
 const { DateTime } = require("luxon");
+const chrono = require("chrono-node");
+
 
 
 
@@ -90,27 +92,31 @@ Now extract any events from this message:
 
 const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
 
+const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
+
 const SYSTEM_PROMPT = `
 You are HomeOps — a personal chief of staff for busy families.
-You operate in the America/New_York timezone. Today is ${todayEastern}.
+
+You are NOT responsible for resolving relative time phrases like "tomorrow" or "next Friday". Simply extract the event details as written by the user.
 
 When a user shares a message, your job is to:
 1. Write a short, emotionally intelligent reply — 1 or 2 lines. No filler, no backticks.
-2. Extract any calendar-based events and return them in a JSON array (not shown to the user)
+2. Extract all calendar-related phrases exactly as spoken (e.g. "tomorrow at 9am", "next Friday") and return them in a JSON array.
 
-Your reply should feel human. The JSON should be structured like:
+The backend will handle converting relative time into real datetimes.
+
+Structure your JSON like:
 
 [
   {
-    "title": "string",
-    "start": "ISO 8601 datetime string",
-    "allDay": boolean
+    "title": "Doctor appointment",
+    "when": "tomorrow at 9am"
   }
 ]
 
 Respond like this:
 
-✅ I’ve added Colette’s doctor appointment to your calendar.
+✅ I’ve added the doctor appointment to your calendar.
 
 <then output just the JSON block below that — no extra explanation>
 `;
@@ -161,21 +167,32 @@ app.post("/chat", async (req, res) => {
 app.post("/api/events", async (req, res) => {
   const { event } = req.body;
 
-  if (!event || !event.title || !event.start) {
-    return res.status(400).json({ error: "Invalid event format" });
+  if (!event || !event.title || (!event.start && !event.when)) {
+    return res.status(400).json({ error: "Missing event title or time." });
   }
 
   try {
+    // If "when" is provided, parse it into ISO using chrono + luxon
+    if (!event.start && event.when) {
+      const parsedStart = chrono.parseDate(event.when, { timezone: "America/New_York" });
+      if (!parsedStart) {
+        return res.status(400).json({ error: "Could not parse 'when' into a date." });
+      }
+      event.start = DateTime.fromJSDate(parsedStart).setZone("America/New_York").toISO();
+    }
+
     const docRef = await db.collection("events").add({
       ...event,
       created_at: new Date(),
     });
+
     res.json({ success: true, id: docRef.id });
   } catch (err) {
     console.error("❌ Failed to save event:", err.message);
     res.status(500).json({ error: "Failed to save event" });
   }
 });
+
 // 🔄 Update an existing event by ID
 app.put("/api/events/:id", async (req, res) => {
   const { id } = req.params;
@@ -260,42 +277,46 @@ app.post("/api/this-week", async (req, res) => {
     return res.status(400).json({ error: "No messages provided." });
   }
 
-  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant.
+  const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
 
-Extract the user’s weekly appointments clearly.
-Then reply with 2–3 sentences of commentary using wit and validation.
+const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant.
+
+Today is ${todayEastern}, and you operate in the America/New_York timezone.
+
+Your job is to extract all upcoming appointments or time-sensitive obligations from the user’s messages for the current week.
+Group them by day, format with emoji and clarity, and then reply with 2–3 sentences of commentary using wit and validation.
 
 Format:
 
-🛂 Tuesday @ 11 AM — Passport appointment
-🎾 Wednesday — Lucy’s tennis match
+🛂 Tuesday @ 11 AM — Passport appointment  
+🎾 Wednesday — Lucy’s tennis match  
 
 Commentary here.`;
 
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: messages.join("\n") }
-        ]
-      })
-    });
+try {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: messages.join("\n") }
+      ]
+    })
+  });
 
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || "Couldn’t summarize this week.";
-    res.json({ summary: text });
-  } catch (err) {
-    console.error("❌ /api/this-week failed:", err.message);
-    res.status(500).json({ error: "Weekly summary failed" });
-  }
-});
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content || "Couldn’t summarize this week.";
+  res.json({ summary: text });
+} catch (err) {
+  console.error("❌ /api/this-week failed:", err.message);
+  res.status(500).json({ error: "Weekly summary failed" });
+}
+
 
 app.post("/api/relief-protocol", async (req, res) => {
   const { tasks = [], emotional_flags = [] } = req.body;
