@@ -279,12 +279,12 @@ app.post("/api/this-week", async (req, res) => {
 
   const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
 
-const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant.
+  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant.
 
 Today is ${todayEastern}, and you operate in the America/New_York timezone.
 
-Your job is to extract all upcoming appointments or time-sensitive obligations from the user’s messages for the current week.
-Group them by day, format with emoji and clarity, and then reply with 2–3 sentences of commentary using wit and validation.
+Your job is to extract all upcoming appointments or time-sensitive obligations from the user's messages for the current week.
+Group them by day, format with emoji and clarity, and then reply with a 2–3 sentence commentary using wit and validation.
 
 Format:
 
@@ -293,21 +293,37 @@ Format:
 
 Commentary here.`;
 
-try {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: messages.join("\n") }
-      ]
-    })
-  });
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: messages.map(m => `• ${m}`).join("\n") }
+        ]
+      })
+    });
+
+    const data = await response.json();
+
+    if (!data.choices || !data.choices[0]?.message?.content) {
+      console.error("🛑 GPT response missing content:", data);
+      return res.status(500).json({ error: "Invalid GPT response format" });
+    }
+
+    const text = data.choices[0].message.content;
+    res.json({ summary: text });
+  } catch (err) {
+    console.error("❌ /api/this-week failed:", err.message);
+    res.status(500).json({ error: "Weekly summary failed" });
+  }
+});
+
 
   const data = await response.json();
   const text = data.choices?.[0]?.message?.content || "Couldn’t summarize this week.";
