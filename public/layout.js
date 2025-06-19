@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     right: "dayGridMonth,timeGridWeek,timeGridDay"
   },
   events: [],
+  eventDisplay: "block",
   dateClick: function (info) {
     const title = prompt("Add an event:");
     if (title) {
@@ -73,17 +74,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   },
 eventDidMount: function (info) {
-  tippy(info.el, {
-    content: `
-      <strong>${info.event.title}</strong><br>
-      ${new Date(info.event.start).toLocaleString()}
-    `,
-    allowHTML: true,
-    placement: 'top',
-    theme: 'light-border',
-    delay: [0, 0],
-  });
+  if (typeof tippy === "function") {
+    tippy(info.el, {
+      content: `
+        <strong>${info.event.title}</strong><br>
+        ${new Date(info.event.start).toLocaleString()}
+      `,
+      allowHTML: true,
+      placement: 'top',
+      theme: 'light-border',
+      delay: [0, 0],
+    });
+  } else {
+    console.warn("⚠️ Tippy.js not available on eventDidMount");
+  }
 }
+
   // Attach to body so it doesn't get clipped
   document.body.appendChild(tooltip);
 
