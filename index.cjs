@@ -124,46 +124,80 @@ Respond like this:
 ]`;
 
 
-const chrono = require("chrono-node"); // make sure this is at the top
-
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    // 🧠 FIRST CALL — get emotionally intelligent reply
+    const friendlyPrompt = `You are HomeOps — a personal chief of staff for busy families.
+
+Write a short, emotionally intelligent reply (1–2 lines) based on this message. Be warm, direct, and a little witty.`;
+
+    const friendlyRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "gpt-4o",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: message },
-        ],
-      }),
+          { role: "system", content: friendlyPrompt },
+          { role: "user", content: message }
+        ]
+      })
     });
 
-    const data = await openaiRes.json();
-    const gptReply = data.choices?.[0]?.message?.content || "Sorry, I blanked.";
+    const friendlyData = await friendlyRes.json();
+    const gptReply = friendlyData.choices?.[0]?.message?.content || "Got it.";
 
-    // Extract JSON from GPT response (assumes it's below the reply text)
-    const eventsMatch = gptReply.match(/\[(.|\n)*\]/);
+    // 🧠 SECOND CALL — extract all event phrases
+    const extractionPrompt = `Extract all time-based calendar events from this message. Do not skip any.
+
+Return only this JSON structure:
+
+[
+  {
+    "title": "Doctor appointment",
+    "when": "tomorrow at 9am"
+  },
+  {
+    "title": "Wedding",
+    "when": "Friday at 2pm"
+  }
+]`;
+
+    const eventRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: extractionPrompt },
+          { role: "user", content: message }
+        ]
+      })
+    });
+
+    const eventData = await eventRes.json();
+    const jsonMatch = eventData.choices?.[0]?.message?.content.match(/\[(.|\n)*\]/);
     let rawEvents = [];
 
-    if (eventsMatch) {
+    if (jsonMatch) {
       try {
-        rawEvents = JSON.parse(eventsMatch[0]);
+        rawEvents = JSON.parse(jsonMatch[0]);
       } catch (err) {
-        console.error("❌ Failed to parse JSON from GPT response:", err.message);
+        console.error("❌ Failed to parse GPT event JSON:", err.message);
       }
     }
 
-    // Convert `when` → `start` using chrono + luxon
+    // 🔁 Convert `when` → `start`
     const events = rawEvents.map((event) => {
       const parsed = chrono.parseDate(event.when, {
-        timezone: "America/New_York",
+        timezone: "America/New_York"
       });
 
       return {
@@ -171,17 +205,17 @@ app.post("/chat", async (req, res) => {
         start: DateTime.fromJSDate(parsed)
           .setZone("America/New_York")
           .toISO(),
-        allDay: false,
+        allDay: false
       };
     });
 
-    console.log("📤 Extracted events:", events);
+    console.log("📤 Final parsed events:", events);
 
     await db.collection("messages").add({
       user_id,
       message,
       reply: gptReply,
-      timestamp: new Date(),
+      timestamp: new Date()
     });
 
     res.json({ reply: gptReply, events });
