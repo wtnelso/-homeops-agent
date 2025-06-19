@@ -437,3 +437,31 @@ body.dark {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   max-width: 200px;
 }
+/* Calendar Event Hover Card */
+.hover-card {
+  position: absolute;
+  display: none;
+  z-index: 9999;
+  background: #fff;
+  color: #111;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+  line-height: 1.4;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  min-width: 160px;
+  max-width: 260px;
+  border: 1px solid #e2e2e2;
+}
+
+.hover-card-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.hover-card-time {
+  font-size: 12px;
+  color: #666;
+}
