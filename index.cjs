@@ -151,6 +151,7 @@ app.post("/chat", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 // ✅ Save event to Firestore
 app.post("/api/events", async (req, res) => {
   const { event } = req.body;
@@ -168,6 +169,27 @@ app.post("/api/events", async (req, res) => {
   } catch (err) {
     console.error("❌ Failed to save event:", err.message);
     res.status(500).json({ error: "Failed to save event" });
+  }
+});
+// 🔄 Update an existing event by ID
+app.put("/api/events/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedData = req.body;
+
+  if (!id || !updatedData || typeof updatedData !== "object") {
+    return res.status(400).json({ error: "Invalid request format" });
+  }
+
+  try {
+    const eventRef = db.collection("events").doc(id);
+    await eventRef.update({
+      ...updatedData,
+      updated_at: new Date(),
+    });
+    res.json({ success: true, message: `Event ${id} updated.` });
+  } catch (err) {
+    console.error(`❌ Failed to update event ${id}:`, err.message);
+    res.status(500).json({ error: "Failed to update event" });
   }
 });
 
