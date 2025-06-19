@@ -419,3 +419,17 @@ body.dark {
   50% { background-color: #ffe56a; }
   100% { background-color: inherit; }
 }
+/* ───── FullCalendar Custom Tooltip ───── */
+.fc-event-tooltip {
+  position: absolute;
+  z-index: 9999;
+  background: #ffffff;
+  color: #000;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  font-size: 0.85rem;
+  pointer-events: none;
+  white-space: nowrap;
+}

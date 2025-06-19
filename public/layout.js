@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      window.calendar = new FullCalendar.Calendar(calendarEl, {
+   window.calendar = new FullCalendar.Calendar(calendarEl, {
   initialView: "dayGridMonth",
   height: 600,
   headerToolbar: {
@@ -71,8 +71,28 @@ document.addEventListener("DOMContentLoaded", () => {
         allDay: true
       });
     }
+  },
+  eventDidMount: function (info) {
+    const tooltip = document.createElement("div");
+    tooltip.className = "fc-event-tooltip";
+    tooltip.innerHTML = `
+      <strong>${info.event.title}</strong><br>
+      ${new Date(info.event.start).toLocaleString()}
+    `;
+
+    info.el.addEventListener("mouseenter", (e) => {
+      document.body.appendChild(tooltip);
+      tooltip.style.position = "absolute";
+      tooltip.style.top = `${e.pageY + 12}px`;
+      tooltip.style.left = `${e.pageX + 12}px`;
+    });
+
+    info.el.addEventListener("mouseleave", () => {
+      tooltip.remove();
+    });
   }
 });
+
 
 
       window.calendar.render();
