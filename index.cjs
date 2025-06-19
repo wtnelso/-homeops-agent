@@ -160,33 +160,66 @@ Format:
     const gptReply = toneData.choices?.[0]?.message?.content || "Got it.";
 
     // GPT call 2 — extract JSON with "when"
-    const extractRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: extractPrompt },
-          { role: "user", content: message }
-        ]
-      })
-    });
+   const extractRes = await fetch("https://api.openai.com/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: "gpt-4o",
+    temperature: 0.2,
+    response_format: "json", // 🧠 forces GPT to return pure JSON
+    messages: [
+      {
+        role: "system",
+        content: `
+You are HomeOps — a structured household assistant.
+When the user shares calendar-related messages, respond only with a valid JSON object in this format:
 
-    const extractData = await extractRes.json();
-    const raw = extractData.choices?.[0]?.message?.content || "";
-    const jsonMatch = raw.match(/\[(.|\n)*\]/);
-    let parsed = [];
-
-    if (jsonMatch) {
-      try {
-        parsed = JSON.parse(jsonMatch[0]);
-      } catch (err) {
-        console.error("❌ Failed to parse GPT JSON:", err.message);
-      }
+{
+  "reply": "✅ I’ve added your events to the calendar.",
+  "events": [
+    {
+      "title": "Doctor Appointment",
+      "start": "2025-06-21T14:00:00",
+      "allDay": false
+    },
+    {
+      "title": "Golf",
+      "start": "2025-06-22T12:00:00",
+      "allDay": false
     }
+  ]
+}
+
+⚠️ Do not include markdown, code blocks, or natural language outside the 'reply'. Always return only valid JSON.
+        `.trim()
+      },
+      {
+        role: "user",
+        content: message
+      }
+    ]
+  })
+});
+
+
+  const result = await extractRes.json();
+
+let events = [];
+let reply = "✅ I’ve added your events.";
+
+try {
+  if (result.choices?.[0]?.message?.content) {
+    const parsed = JSON.parse(result.choices[0].message.content);
+    events = parsed.events || [];
+    reply = parsed.reply || reply;
+  }
+} catch (err) {
+  console.error("❌ GPT JSON parsing failed:", err.message);
+}
+
 
     // Convert "when" → "start"
     const events = parsed.map((event) => {
