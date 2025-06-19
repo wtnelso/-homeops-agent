@@ -178,6 +178,7 @@ Only output bullet points. No commentary, no extra text.`;
     });
 
     const extractData = await extractRes.json();
+    console.log("🧠 GPT raw extract:", extractData.choices?.[0]?.message?.content);
     const bullets = extractData.choices?.[0]?.message?.content || "";
 
     // 🔹 Step 3: Parse bullet points like: "• Doctor appointment — tomorrow at 9am"
