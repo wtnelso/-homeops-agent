@@ -128,7 +128,7 @@ app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
-    // 🧠 FIRST CALL — get emotionally intelligent reply
+    // 🧠 1. Get warm human reply
     const friendlyPrompt = `You are HomeOps — a personal chief of staff for busy families.
 
 Write a short, emotionally intelligent reply (1–2 lines) based on this message. Be warm, direct, and a little witty.`;
@@ -151,23 +151,18 @@ Write a short, emotionally intelligent reply (1–2 lines) based on this message
     const friendlyData = await friendlyRes.json();
     const gptReply = friendlyData.choices?.[0]?.message?.content || "Got it.";
 
-    // 🧠 SECOND CALL — extract all event phrases
-    const extractionPrompt = `Extract all time-based calendar events from this message. Do not skip any.
+    // 🔎 2. Use GPT to return just bullet-point lines for events
+    const extractionPrompt = `From the following message, extract every calendar-related event as a bullet point in this format:
 
-Return only this JSON structure:
+"when" — title
 
-[
-  {
-    "title": "Doctor appointment",
-    "when": "tomorrow at 9am"
-  },
-  {
-    "title": "Wedding",
-    "when": "Friday at 2pm"
-  }
-]`;
+Examples:
+"tomorrow at 9am" — Doctor appointment
+"Friday at 2pm" — Wedding
 
-    const eventRes = await fetch("https://api.openai.com/v1/chat/completions", {
+Only include real time-based events. No JSON. Just a clean list.`;
+
+    const extractionRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -182,34 +177,30 @@ Return only this JSON structure:
       })
     });
 
-    const eventData = await eventRes.json();
-    const jsonMatch = eventData.choices?.[0]?.message?.content.match(/\[(.|\n)*\]/);
-    let rawEvents = [];
+    const extractionData = await extractionRes.json();
+    const lines = extractionData.choices?.[0]?.message?.content?.split("\n") || [];
 
-    if (jsonMatch) {
-      try {
-        rawEvents = JSON.parse(jsonMatch[0]);
-      } catch (err) {
-        console.error("❌ Failed to parse GPT event JSON:", err.message);
-      }
-    }
+    // 🧠 3. Parse lines into structured events
+    const events = lines
+      .map((line) => {
+        const match = line.match(/"(.+?)"\s*—\s*(.+)/);
+        if (!match) return null;
 
-    // 🔁 Convert `when` → `start`
-    const events = rawEvents.map((event) => {
-      const parsed = chrono.parseDate(event.when, {
-        timezone: "America/New_York"
-      });
+        const when = match[1].trim();
+        const title = match[2].trim();
+        const parsed = chrono.parseDate(when, {
+          timezone: "America/New_York"
+        });
 
-      return {
-        title: event.title,
-        start: DateTime.fromJSDate(parsed)
-          .setZone("America/New_York")
-          .toISO(),
-        allDay: false
-      };
-    });
+        return {
+          title,
+          start: DateTime.fromJSDate(parsed).setZone("America/New_York").toISO(),
+          allDay: false
+        };
+      })
+      .filter(Boolean);
 
-    console.log("📤 Final parsed events:", events);
+    console.log("📅 Parsed events:", events);
 
     await db.collection("messages").add({
       user_id,
@@ -220,7 +211,7 @@ Return only this JSON structure:
 
     res.json({ reply: gptReply, events });
   } catch (err) {
-    console.error("❌ /chat route error:", err.message);
+    console.error("❌ /chat route failed:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });
