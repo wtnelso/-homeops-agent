@@ -333,19 +333,27 @@ app.post("/api/this-week", async (req, res) => {
 
   const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
 
-  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant.
+  cconst systemPrompt = `You are HomeOps — a personal chief of staff for busy families.
 
-Today is ${todayEastern}, and you operate in the America/New_York timezone.
+Do not convert time-based phrases into specific calendar dates.
 
-Your job is to extract all upcoming appointments or time-sensitive obligations from the user's messages for the current week.
-Group them by day, format with emoji and clarity, and then reply with a 2–3 sentence commentary using wit and validation.
+When a user provides time-based input like "tomorrow at 9am" or "Friday at 2pm", return the exact phrases they used as-is in a JSON array.
 
-Format:
+Respond in this format:
 
-🛂 Tuesday @ 11 AM — Passport appointment  
-🎾 Wednesday — Lucy’s tennis match  
+✅ Got it. I’ve added both to your calendar.
 
-Commentary here.`;
+[
+  {
+    "title": "Doctor appointment",
+    "when": "tomorrow at 9am"
+  },
+  {
+    "title": "Wedding",
+    "when": "Friday at 2pm"
+  }
+]`;
+
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
