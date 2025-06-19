@@ -43,51 +43,58 @@ document.addEventListener("DOMContentLoaded", () => {
       const cleanReply = data.reply?.split("[")[0].trim() || "🤖 No reply received.";
       appendMessage("HomeOps", cleanReply, "agent");
 
-      if (Array.isArray(data.events)) {
-        if (window.calendar) {
-          for (const event of data.events) {
-            console.log("📅 Attempting to add event:", event);
+if (Array.isArray(data.events)) {
+  if (window.calendar) {
+    for (const event of data.events) {
+      console.log("📅 Attempting to inject event:", event);
 
-            if (!event || typeof event !== "object") {
-              console.warn("❗ Skipping invalid event:", event);
-              continue;
-            }
-
-            const safeEvent = {
-              title: typeof event.title === "string" && event.title.trim() !== "" 
-                ? event.title.trim() 
-                : "📝 Untitled Event",
-              start: event.start,
-              allDay: event.allDay ?? false,
-            };
-
-            if (!safeEvent.start) {
-              console.warn("⚠️ Missing start time, skipping event:", safeEvent);
-              continue;
-            }
-
-            const newEvent = window.calendar.addEvent(safeEvent);
-            highlightCalendarEvent(newEvent);
-
-            try {
-              const saveRes = await fetch("/api/events", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ event: safeEvent }),
-              });
-
-              const result = await saveRes.json();
-              if (!result.success) throw new Error(result.error);
-              console.log("✅ Event saved to Firestore:", result.id);
-            } catch (err) {
-              console.error("❌ Firestore save error:", err.message);
-            }
-          }
-        } else {
-          console.warn("⚠️ window.calendar not found — queueing events.");
-          window.pendingCalendarEvents.push(...data.events);
-        }
+      // Sanity checks
+      if (!event || typeof event !== "object") {
+        console.warn("❗ Skipping non-object event:", event);
+        continue;
       }
+
+      if (!event.start || isNaN(new Date(event.start))) {
+        console.warn("⚠️ Invalid or missing 'start' field:", event);
+        continue;
+      }
+
+      const cleanTitle = typeof event.title === "string" && event.title.trim() !== ""
+        ? event.title.trim()
+        : "📝 Untitled Event";
+
+      const parsedDate = new Date(event.start);
+      const localDate = new Date(parsedDate.getTime() + parsedDate.getTimezoneOffset() * 60000);
+
+      const safeEvent = {
+        title: cleanTitle,
+        start: localDate.toISOString(),
+        allDay: event.allDay ?? false,
+      };
+
+      try {
+        const injected = window.calendar.addEvent(safeEvent);
+        highlightCalendarEvent?.(injected);
+
+        const saveRes = await fetch("/api/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event: safeEvent }),
+        });
+
+        const result = await saveRes.json();
+        if (!result.success) throw new Error(result.error);
+        console.log("✅ Event saved to Firestore:", result.id);
+      } catch (err) {
+        console.error("❌ Failed to inject/save event:", err.message);
+      }
+    }
+  } else {
+    console.warn("⚠️ Calendar not ready, queuing events");
+    window.pendingCalendarEvents.push(...data.events);
+  }
+}
+
 
     } catch (error) {
       document.getElementById("typing")?.remove();
