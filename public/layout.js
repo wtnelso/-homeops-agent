@@ -75,20 +75,26 @@ document.addEventListener("DOMContentLoaded", () => {
   },
 eventDidMount: function (info) {
   if (typeof tippy === "function") {
+    const start = info.event.start
+      ? new Date(info.event.start).toLocaleString()
+      : "Time not available";
+
     tippy(info.el, {
       content: `
-        <strong>${info.event.title}</strong><br>
-        ${new Date(info.event.start).toLocaleString()}
+        <strong>${info.event.title || "Untitled Event"}</strong><br>
+        ${start}
       `,
       allowHTML: true,
       placement: 'top',
       theme: 'light-border',
       delay: [0, 0],
+      arrow: true,
     });
   } else {
     console.warn("⚠️ Tippy.js not available on eventDidMount");
   }
 }
+
 
   // Attach to body so it doesn't get clipped
   document.body.appendChild(tooltip);
