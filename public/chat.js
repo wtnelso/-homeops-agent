@@ -40,8 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("📥 Full response from backend:", data);
       document.getElementById("typing")?.remove();
 
-      const cleanReply = data.reply?.split("[")[0].trim() || "🤖 No reply received.";
+      const cleanReply = data.reply?.trim() || "🤖 No reply received.";
       appendMessage("HomeOps", cleanReply, "agent");
+console.log("📦 Received events array:", data.events);
 
 if (Array.isArray(data.events)) {
   if (window.calendar) {
