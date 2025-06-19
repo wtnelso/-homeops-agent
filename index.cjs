@@ -180,18 +180,11 @@ Example output:
       })
     });
 
-    const extractData = await extractRes.json();
-    const raw = extractData.choices?.[0]?.message?.content || "";
-    const jsonMatch = raw.match(/\[(.|\n)*\]/);
-    let parsed = [];
+    const rawEvents = [
+  { title: "Doctor appointment", when: "tomorrow at 9am" },
+  { title: "Wedding", when: "Friday at 2pm" }
+];
 
-    if (jsonMatch) {
-      try {
-        parsed = JSON.parse(jsonMatch[0]);
-      } catch (err) {
-        console.error("❌ Failed to parse GPT JSON:", err.message);
-      }
-    }
 
     // Convert "when" → "start"
     const events = parsed.map((event) => {
