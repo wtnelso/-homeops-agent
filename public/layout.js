@@ -73,25 +73,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   },
   eventDidMount: function (info) {
-    const tooltip = document.createElement("div");
-    tooltip.className = "fc-event-tooltip";
-    tooltip.innerHTML = `
-      <strong>${info.event.title}</strong><br>
-      ${new Date(info.event.start).toLocaleString()}
-    `;
+  const tooltip = document.createElement("div");
+  tooltip.className = "fc-event-tooltip";
+  tooltip.innerHTML = `
+    <strong>${info.event.title}</strong><br>
+    ${new Date(info.event.start).toLocaleString()}
+  `;
 
-    info.el.addEventListener("mouseenter", (e) => {
-      document.body.appendChild(tooltip);
-      tooltip.style.position = "absolute";
-      tooltip.style.top = `${e.pageY + 12}px`;
-      tooltip.style.left = `${e.pageX + 12}px`;
-    });
+  // Attach to body so it doesn't get clipped
+  document.body.appendChild(tooltip);
 
-    info.el.addEventListener("mouseleave", () => {
-      tooltip.remove();
-    });
-  }
-});
+  // Track mouse position continuously
+  info.el.addEventListener("mousemove", (e) => {
+    tooltip.style.display = "block";
+    tooltip.style.position = "absolute";
+    tooltip.style.top = `${e.pageY + 10}px`;
+    tooltip.style.left = `${e.pageX + 10}px`;
+  });
+
+  // Clean up on leave
+  info.el.addEventListener("mouseleave", () => {
+    tooltip.remove();
+  });
+}
 
 
 
