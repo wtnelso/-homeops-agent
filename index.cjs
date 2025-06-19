@@ -132,13 +132,18 @@ app.post("/chat", async (req, res) => {
 
 Write a short, emotionally intelligent reply to this message. Be warm, validating, and clear. One or two lines only.`;
 
-    const extractPrompt = `Extract all time-based events from this message and return them in JSON. Do not resolve time. Use the exact phrasing the user used.
+    const extractPrompt = `You are a backend assistant that extracts time-based events from user messages.
 
-Format:
+DO NOT convert any dates or times.
+
+Your job is only to extract exactly what the user said. Use their exact words for when the event occurs. Only return JSON — no commentary.
+
+Example output:
 [
   { "title": "Doctor appointment", "when": "tomorrow at 9am" },
   { "title": "Wedding", "when": "Friday at 2pm" }
 ]`;
+
 
     // GPT call 1 — tone reply
     const toneRes = await fetch("https://api.openai.com/v1/chat/completions", {
