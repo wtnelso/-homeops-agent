@@ -128,11 +128,19 @@ app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
-    // 🔹 Step 1: Get human response from GPT
     const tonePrompt = `You are HomeOps — a personal chief of staff for busy families.
 
 Write a short, emotionally intelligent reply to this message. Be warm, validating, and clear. One or two lines only.`;
 
+    const extractPrompt = `Extract all time-based events from this message and return them in JSON. Do not resolve time. Use the exact phrasing the user used.
+
+Format:
+[
+  { "title": "Doctor appointment", "when": "tomorrow at 9am" },
+  { "title": "Wedding", "when": "Friday at 2pm" }
+]`;
+
+    // GPT call 1 — tone reply
     const toneRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -149,19 +157,9 @@ Write a short, emotionally intelligent reply to this message. Be warm, validatin
     });
 
     const toneData = await toneRes.json();
-    const gptReply = toneData.choices?.[0]?.message?.content || "All set.";
+    const gptReply = toneData.choices?.[0]?.message?.content || "Got it.";
 
-    // 🔹 Step 2: Ask GPT to return raw bullet list of title + time strings
-    const extractPrompt = `Extract all time-based events from this message and return each as a bullet point in the following format:
-
-Event title — when it happens
-
-Examples:
-• Doctor appointment — tomorrow at 9am  
-• Wedding — Friday at 2pm
-
-Only output bullet points. No commentary, no extra text.`;
-
+    // GPT call 2 — extract JSON with "when"
     const extractRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -178,29 +176,32 @@ Only output bullet points. No commentary, no extra text.`;
     });
 
     const extractData = await extractRes.json();
-    console.log("🧠 GPT raw extract:", extractData.choices?.[0]?.message?.content);
-    const bullets = extractData.choices?.[0]?.message?.content || "";
+    const raw = extractData.choices?.[0]?.message?.content || "";
+    const jsonMatch = raw.match(/\[(.|\n)*\]/);
+    let parsed = [];
 
-    // 🔹 Step 3: Parse bullet points like: "• Doctor appointment — tomorrow at 9am"
-    const lines = bullets.split("\n").filter(line => line.trim().startsWith("•"));
-    const events = lines.map((line) => {
-      const match = line.match(/•\s*(.+?)\s+—\s+(.+)/);
-      if (!match) return null;
+    if (jsonMatch) {
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch (err) {
+        console.error("❌ Failed to parse GPT JSON:", err.message);
+      }
+    }
 
-      const title = match[1].trim();
-      const when = match[2].trim();
-      const parsed = chrono.parseDate(when, { timezone: "America/New_York" });
-
-      if (!parsed) return null;
+    // Convert "when" → "start"
+    const events = parsed.map((event) => {
+      const parsedDate = chrono.parseDate(event.when, {
+        timezone: "America/New_York"
+      });
 
       return {
-        title,
-        start: DateTime.fromJSDate(parsed).setZone("America/New_York").toISO(),
+        title: event.title,
+        start: DateTime.fromJSDate(parsedDate).setZone("America/New_York").toISO(),
         allDay: false
       };
-    }).filter(Boolean);
+    });
 
-    console.log("✅ Final events parsed:", events);
+    console.log("✅ Final parsed events:", events);
 
     await db.collection("messages").add({
       user_id,
@@ -211,7 +212,7 @@ Only output bullet points. No commentary, no extra text.`;
 
     res.json({ reply: gptReply, events });
   } catch (err) {
-    console.error("❌ Final fallback /chat route failed:", err.message);
+    console.error("❌ /chat route failed:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -333,27 +334,19 @@ app.post("/api/this-week", async (req, res) => {
 
   const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
 
-  cconst systemPrompt = `You are HomeOps — a personal chief of staff for busy families.
+  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant.
 
-Do not convert time-based phrases into specific calendar dates.
+Today is ${todayEastern}, and you operate in the America/New_York timezone.
 
-When a user provides time-based input like "tomorrow at 9am" or "Friday at 2pm", return the exact phrases they used as-is in a JSON array.
+Your job is to extract all upcoming appointments or time-sensitive obligations from the user's messages for the current week.
+Group them by day, format with emoji and clarity, and then reply with a 2–3 sentence commentary using wit and validation.
 
-Respond in this format:
+Format:
 
-✅ Got it. I’ve added both to your calendar.
+🛂 Tuesday @ 11 AM — Passport appointment  
+🎾 Wednesday — Lucy’s tennis match  
 
-[
-  {
-    "title": "Doctor appointment",
-    "when": "tomorrow at 9am"
-  },
-  {
-    "title": "Wedding",
-    "when": "Friday at 2pm"
-  }
-]`;
-
+Commentary here.`;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
