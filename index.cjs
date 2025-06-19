@@ -88,8 +88,11 @@ Now extract any events from this message:
 }
 
 
+const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
+
 const SYSTEM_PROMPT = `
 You are HomeOps — a personal chief of staff for busy families.
+You operate in the America/New_York timezone. Today is ${todayEastern}.
 
 When a user shares a message, your job is to:
 1. Write a short, emotionally intelligent reply — 1 or 2 lines. No filler, no backticks.
@@ -111,6 +114,7 @@ Respond like this:
 
 <then output just the JSON block below that — no extra explanation>
 `;
+
 
 
 app.post("/chat", async (req, res) => {
