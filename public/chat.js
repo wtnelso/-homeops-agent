@@ -74,9 +74,15 @@ if (Array.isArray(data.events)) {
         allDay: event.allDay ?? false,
       };
 
-      try {
-        const injected = window.calendar.addEvent(safeEvent);
-        highlightCalendarEvent?.(injected);
+    try {
+  if (!safeEvent.start || isNaN(new Date(safeEvent.start))) {
+    console.warn("⛔️ Invalid start time, skipping:", safeEvent);
+    continue;
+  }
+
+  const injected = window.calendar.addEvent(safeEvent);
+  highlightCalendarEvent?.(injected);
+
 
         const saveRes = await fetch("/api/events", {
           method: "POST",
