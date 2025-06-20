@@ -35,28 +35,42 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 
 async function extractCalendarEvents(message) {
- const today = new Date().toLocaleDateString("en-US", {
+ const now = new Date().toLocaleString("en-US", {
   timeZone: "America/New_York",
+  weekday: "long",
   year: "numeric",
   month: "long",
   day: "numeric",
-  weekday: "long"
-}); // "Thursday, June 20, 2025"
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true
+}); // "Thursday, June 20, 2025 at 9:32 AM"
+
+const isoDate = new Date().toLocaleDateString("en-CA", {
+  timeZone: "America/New_York"
+}); // "2025-06-20"
 
 const prompt = `
 You are a datetime parser for HomeOps.
 
-Today is ${today}, and you are operating in the America/New_York timezone.
+Today is ${now} (ISO: ${isoDate}). You are operating in the America/New_York timezone.
 
-When given a phrase like "tomorrow at 8am", convert it to an ISO 8601 datetime string in New York time.
+When given phrases like "tomorrow at 8am", "Saturday at noon", or "next Monday", convert them into ISO 8601 datetime strings in local time.
 
-⚠️ Do not return UTC time.  
-⚠️ Do not include 'Z' or time zone offsets.  
-✅ Only return a valid raw JSON object like this:
+⚠️ Do not use UTC or 'Z'.
+⚠️ Do not return markdown, code blocks, or extra commentary.
+✅ Only return a valid raw JSON array like this:
 
-{ "start": "2025-06-21T08:00:00" }
+[
+  {
+    "title": "Doctor appointment",
+    "start": "2025-06-21T09:00:00",
+    "allDay": false
+  }
+]
 
-No markdown, no commentary. Just the raw JSON object.
+Now extract any events from this message:
+"""${message}"""
 `.trim();
 
 
