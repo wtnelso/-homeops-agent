@@ -176,6 +176,44 @@ Respond like this:
   }
 ]`;
 
+function resolveWhen(when) {
+  const now = DateTime.now().setZone("America/New_York");
+
+  const lower = when.toLowerCase().trim();
+
+  // Tomorrow at [time]
+  const tomorrowMatch = lower.match(/tomorrow at (\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+  if (tomorrowMatch) {
+    let hour = parseInt(tomorrowMatch[1]);
+    let minute = tomorrowMatch[2] ? parseInt(tomorrowMatch[2]) : 0;
+    const ampm = tomorrowMatch[3];
+
+    if (ampm === "pm" && hour < 12) hour += 12;
+    if (ampm === "am" && hour === 12) hour = 0;
+
+    const dt = now.plus({ days: 1 }).set({ hour, minute, second: 0 });
+    return dt.toISO({ suppressMilliseconds: true });
+  }
+
+  // [Weekday] at [time]
+  const weekdayMatch = lower.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: at (\d{1,2})(?::(\d{2}))?\s*(am|pm)?)?/);
+  if (weekdayMatch) {
+    const weekday = weekdayMatch[1];
+    let hour = weekdayMatch[2] ? parseInt(weekdayMatch[2]) : 12;
+    let minute = weekdayMatch[3] ? parseInt(weekdayMatch[3]) : 0;
+    const ampm = weekdayMatch[4];
+
+    if (ampm === "pm" && hour < 12) hour += 12;
+    if (ampm === "am" && hour === 12) hour = 0;
+
+    const targetWeekday = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"].indexOf(weekday);
+    const daysUntil = (targetWeekday + 7 - now.weekday % 7) % 7 || 7;
+    const dt = now.plus({ days: daysUntil }).set({ hour, minute, second: 0 });
+    return dt.toISO({ suppressMilliseconds: true });
+  }
+
+  return null;
+}
 
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
@@ -244,6 +282,18 @@ Format:
       const { title, when } = item;
 
       let parsedStart = null;
+      parsedStart = resolveWhen(when);
+
+if (parsedStart) {
+  events.push({
+    title: title?.trim() || "Untitled Event",
+    start: parsedStart,
+    allDay: false
+  });
+} else {
+  console.warn("⚠️ Could not parse:", when);
+}
+
 
 try {
   const easternNow = DateTime.now().setZone("America/New_York").toJSDate();
