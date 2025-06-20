@@ -44,27 +44,31 @@ async function extractCalendarEvents(message) {
   hour: "numeric",
   minute: "2-digit",
   hour12: true
-}); // "Thursday, June 20, 2025 at 9:32 AM"
+}); // Example: "Thursday, June 20, 2025 at 9:15 AM"
 
 const isoDate = new Date().toLocaleDateString("en-CA", {
   timeZone: "America/New_York"
-}); // "2025-06-20"
+}); // Example: "2025-06-20"
 
 const prompt = `
 You are a datetime parser for HomeOps.
 
-Today is ${now} (ISO: ${isoDate}). You are operating in the America/New_York timezone.
+Today's full date and time is: ${now}  
+Today's ISO date is: ${isoDate}  
+You are operating in the America/New_York timezone.
 
-When given phrases like "tomorrow at 8am", "Saturday at noon", or "next Monday", convert them into ISO 8601 datetime strings in local time.
+When given a message like "tomorrow at 8am", "Saturday golf at noon", or "Monday flight at 9", convert each event into an ISO 8601 datetime string.
 
+⚠️ Always interpret time expressions relative to the current local date and time.
 ⚠️ Do not use UTC or 'Z'.
-⚠️ Do not return markdown, code blocks, or extra commentary.
-✅ Only return a valid raw JSON array like this:
+⚠️ Do not return markdown, commentary, or code formatting.
+
+✅ Only return a clean JSON array like this:
 
 [
   {
     "title": "Doctor appointment",
-    "start": "2025-06-21T09:00:00",
+    "start": "2025-06-21T08:00:00",
     "allDay": false
   }
 ]
