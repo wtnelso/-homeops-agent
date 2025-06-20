@@ -181,6 +181,8 @@ Format:
     const extractData = await extractRes.json();
     const raw = extractData.choices?.[0]?.message?.content || "";
     const parsed = JSON.parse(raw); // parsed = array of { title, when }
+    console.log("🧪 Extracted events from GPT:", parsed);
+
 
     // 3. Convert 'when' → 'start'
     const events = [];
@@ -218,7 +220,9 @@ No markdown, no extra text.
 
         const parsedTime = await parseRes.json();
         const content = parsedTime.choices?.[0]?.message?.content;
-        const parsedStart = JSON.parse(content)?.start;
+       const parsedStart = JSON.parse(content)?.start;
+console.log("🕓 Converted:", when, "→", parsedStart);
+
 
         if (parsedStart) {
           events.push({
@@ -237,6 +241,8 @@ No markdown, no extra text.
 
     // 4. Return response to frontend
     res.json({ reply: toneReply, events });
+    console.log("📦 Final events being sent:", events);
+
 
   } catch (err) {
     console.error("❌ /chat route failed:", err.message);
