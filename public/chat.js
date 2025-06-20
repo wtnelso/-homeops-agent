@@ -61,8 +61,9 @@ if (Array.isArray(data.events)) {
       }
 
       const cleanTitle = typeof event.title === "string" && event.title.trim() !== ""
-        ? event.title.trim()
-        : "📝 Untitled Event";
+  ? event.title.trim()
+  : `📅 Untitled (${event.start?.slice(11, 16) || "??:??"})`;
+
 
       const parsedDate = new Date(event.start);
       const localDate = new Date(parsedDate.getTime() + parsedDate.getTimezoneOffset() * 60000);
