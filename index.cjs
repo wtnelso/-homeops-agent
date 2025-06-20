@@ -35,23 +35,58 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 
 async function extractCalendarEvents(message) {
-  const today = new Date().toISOString().split("T")[0];
+ const today = new Date().toLocaleDateString("en-US", {
+  timeZone: "America/New_York",
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  weekday: "long"
+}); // "Thursday, June 20, 2025"
 
-  const prompt = `Today’s date is ${today}.
-  
-⚠️ Do not use any Markdown formatting like \`\`\`json or \`\`\`.
-Only return a raw JSON array like this:
+const prompt = `
+You are a datetime parser for HomeOps.
 
-[
-  {
-    "title": "string",
-    "start": "ISO 8601 datetime string",
-    "allDay": boolean
+Today is ${today}, and you are operating in the America/New_York timezone.
+
+When given a phrase like "tomorrow at 8am", convert it to an ISO 8601 datetime string in New York time.
+
+⚠️ Do not return UTC time.  
+⚠️ Do not include 'Z' or time zone offsets.  
+✅ Only return a valid raw JSON object like this:
+
+{ "start": "2025-06-21T08:00:00" }
+
+No markdown, no commentary. Just the raw JSON object.
+`.trim();
+
+
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0.2,
+        response_format: "json",
+        messages: [
+          { role: "system", content: prompt },
+          { role: "user", content: message }
+        ]
+      })
+    });
+
+    const data = await res.json();
+    const raw = data.choices?.[0]?.message?.content || "";
+    return JSON.parse(raw); // Should be an array of { title, start, allDay }
+  } catch (err) {
+    console.error("❌ Failed to extract calendar events:", err);
+    return [];
   }
-]
+}
 
-Now extract any events from this message:
-"""${message}"""`;
 
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
