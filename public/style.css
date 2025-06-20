@@ -479,33 +479,45 @@ body::before {
 
 @media screen and (max-width: 768px) {
   .app-container {
+    display: flex;
     flex-direction: column;
-    width: 100vw;
+    width: 100%;
+    height: auto;
+    overflow-x: hidden;
   }
 
   .sidebar {
+    display: flex;
     flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
     width: 100%;
     height: auto;
-    justify-content: space-around;
-    padding: 8px;
+    padding: 8px 0;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
   }
 
   .nav {
+    display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: space-evenly;
     width: 100%;
   }
 
   .nav-item {
-    padding: 10px;
-    font-size: 14px;
     flex: 1;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 14px;
   }
 
   .main-content {
-    padding: 12px;
     width: 100%;
+    padding: 16px;
   }
 
   .top-bar {
@@ -552,10 +564,12 @@ body::before {
   }
 
   #calendar {
+    width: 100%;
     max-width: 100%;
     overflow-x: auto;
   }
 }
+
 @media screen and (max-width: 768px) {
   body {
     background: pink !important;
