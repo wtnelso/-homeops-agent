@@ -1,9 +1,28 @@
 document.addEventListener("DOMContentLoaded", () => {
   window.pendingCalendarEvents = [];
 
+  // 🗓️ Initialize the FullCalendar instance
+  const calendarEl = document.getElementById("calendar");
+
+  if (calendarEl) {
+    window.calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "dayGridMonth",
+      initialDate: new Date(),
+      contentHeight: "auto",
+      aspectRatio: 0.75,
+      handleWindowResize: true,
+      events: []
+    });
+
+    window.calendar.render();
+  } else {
+    console.warn("⚠️ Calendar element not found.");
+  }
+
   const input = document.getElementById("input");
   const chat = document.getElementById("chat");
   const form = document.getElementById("chatForm");
+
 
   appendMessage(
     "HomeOps",
