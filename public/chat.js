@@ -99,6 +99,16 @@ if (!window._calendarClickHandlerAttached) {
 }
 
 highlightCalendarEvent?.(injected);
+// Preserve calendar date across view switches (fixes "day" resetting to June 1)
+let lastDateViewed = new Date();
+
+window.calendar.on("datesSet", (info) => {
+  lastDateViewed = info.view.currentStart;
+});
+
+window.calendar.on("viewDidMount", () => {
+  window.calendar.gotoDate(lastDateViewed);
+});
 
 
 
