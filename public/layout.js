@@ -73,43 +73,32 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   },
-eventDidMount: function (info) {
-  if (typeof tippy === "function") {
-    const start = info.event.start
-      ? new Date(info.event.start).toLocaleString()
-      : "Time not available";
+eventDidMount: function(info) {
+  const card = document.createElement("div");
+  card.className = "hover-card";
+  card.innerHTML = `
+    <div class="hover-card-title">${info.event.title || "Untitled Event"}</div>
+    <div class="hover-card-time">${info.event.start?.toLocaleString() || "Time not available"}</div>
+  `;
 
-    tippy(info.el, {
-      content: `
-        <strong>${info.event.title || "Untitled Event"}</strong><br>
-        ${start}
-      `,
-      allowHTML: true,
-      placement: 'top',
-      theme: 'light-border',
-      delay: [0, 0],
-      arrow: true,
-    });
-  } else {
-    console.warn("⚠️ Tippy.js not available on eventDidMount");
+  document.body.appendChild(card);
+
+  function moveCard(e) {
+    card.style.top = `${e.pageY + 12}px`;
+    card.style.left = `${e.pageX + 12}px`;
   }
-}
 
-
-  // Attach to body so it doesn't get clipped
-  document.body.appendChild(tooltip);
-
-  // Track mouse position continuously
-  info.el.addEventListener("mousemove", (e) => {
-    tooltip.style.display = "block";
-    tooltip.style.position = "absolute";
-    tooltip.style.top = `${e.pageY + 10}px`;
-    tooltip.style.left = `${e.pageX + 10}px`;
+  info.el.addEventListener("mouseenter", (e) => {
+    card.style.display = "block";
+    card.style.opacity = "1";
+    moveCard(e);
   });
 
-  // Clean up on leave
+  info.el.addEventListener("mousemove", moveCard);
+
   info.el.addEventListener("mouseleave", () => {
-    tooltip.remove();
+    card.style.opacity = "0";
+    card.style.display = "none";
   });
 }
 

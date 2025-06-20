@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HomeOps</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>HomeOps</title>
+
   <link rel="stylesheet" href="style.css" />
     <!-- ✅ Add Tippy.js tooltip support -->
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
@@ -70,11 +71,38 @@
         </div>
       </header>
 
-      <!-- My Ops Center -->
       <section id="home-view" class="view">
-        <h2>🏠 My Ops Center</h2>
-        <p>Welcome to your home base. Here’s what’s on deck.</p>
-      </section>
+  <div class="top-bar">
+    <i data-lucide="home" style="margin-right: 8px;"></i> My Ops Center
+  </div>
+
+  <div id="homebase-container" class="module-stack">
+    <!-- Email Decoder -->
+    <div class="card module">
+      <h3><i data-lucide="inbox" style="margin-right: 6px;"></i>Email Decoder Engine</h3>
+      <p>We’re reading your inbox (nicely). Here's what matters...</p>
+    </div>
+
+    <!-- Coffee Cup View -->
+    <div class="card module">
+      <h3><i data-lucide="coffee" style="margin-right: 6px;"></i>Coffee Cup View</h3>
+      <p>Today’s key items will show here.</p>
+    </div>
+
+    <!-- Today + Tomorrow -->
+    <div class="card module">
+      <h3><i data-lucide="calendar-days" style="margin-right: 6px;"></i>Today + Tomorrow</h3>
+      <p>Upcoming events go here.</p>
+    </div>
+
+    <!-- Smart Suggestions -->
+    <div class="card module">
+      <h3><i data-lucide="box" style="margin-right: 6px;"></i>Smart Suggestions</h3>
+      <p>We’ll help you reorder essentials based on patterns.</p>
+    </div>
+  </div>
+</section>
+
 
       <!-- Ask HomeOps (Chat) -->
       <section id="chat-view" class="view">
@@ -174,6 +202,13 @@
 
 <!-- ✅ Icons last -->
 <script src="https://unpkg.com/lucide@latest"></script>
+<!-- ✅ Bottom nav for mobile view -->
+<div class="bottom-nav">
+  <button onclick="activateView('chat')">💬</button>
+  <button onclick="activateView('dashboard')">📊</button>
+  <button onclick="activateView('calendar')">📅</button>
+</div>
+<script src="/homebase.js" defer></script>
 </body>
 </html>
 
