@@ -276,56 +276,32 @@ No markdown, no extra text.
           })
         });
 
-        const parsedTime = await parseRes.json();
-        const content = parsedTime.choices?.[0]?.message?.content.trim();
-let parsedStart = null;
+        let parsedStart = null;
 
 try {
-try {
-  const json = JSON.parse(content);
-  parsedStart = json.start;
+  const parsed = chrono.parseDate(when, new Date(), {
+    forwardDate: true
+  });
 
-  // 🧼 Strip Z if present (prevents UTC time shift)
-  if (parsedStart?.includes("Z")) {
-    console.warn("⚠️ Stripping Z from parsedStart to avoid UTC offset");
-    parsedStart = parsedStart.replace("Z", "");
-  }
+  parsedStart = DateTime.fromJSDate(parsed, {
+    zone: "America/New_York"
+  }).toISO({ suppressMilliseconds: true });
 
-  // 🪵 Log what GPT returned and the final value being used
-  console.log("📥 GPT raw content:", content);
-  console.log("🕓 Converted:", when, "→", parsedStart);
-
+  console.log("🕓 Parsed locally:", when, "→", parsedStart);
 } catch (err) {
-  console.error("❌ Failed to parse GPT content as JSON:", content);
+  console.error("❌ Local time parsing failed:", err.message);
 }
 
+if (parsedStart) {
+  events.push({
+    title: title?.trim() || "Untitled Event",
+    start: parsedStart,
+    allDay: false
+  });
+} else {
+  console.warn("⚠️ Could not parse:", when);
+}
 
-
-        if (parsedStart) {
-          events.push({
-            title: title?.trim() || "Untitled Event",
-            start: parsedStart,
-            allDay: false
-          });
-        } else {
-          console.warn("⚠️ Could not parse:", when);
-        }
-
-      } catch (err) {
-        console.error("❌ Date parsing failed:", err.message);
-      }
-    }
-
-    // 4. Return response to frontend
-    res.json({ reply: toneReply, events });
-    console.log("📦 Final events being sent:", events);
-
-
-  } catch (err) {
-    console.error("❌ /chat route failed:", err.message);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 
     // GPT call 1 — tone reply
