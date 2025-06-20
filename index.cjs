@@ -128,10 +128,31 @@ app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
   try {
+    // 1. Generate the tone reply
     const tonePrompt = `You are HomeOps — a personal chief of staff for busy families.
 
 Write a short, emotionally intelligent reply to this message. Be warm, validating, and clear. One or two lines only.`;
 
+    const toneRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0.2,
+        messages: [
+          { role: "system", content: tonePrompt },
+          { role: "user", content: message }
+        ]
+      })
+    });
+
+    const toneData = await toneRes.json();
+    const toneReply = toneData.choices?.[0]?.message?.content || "✅ Noted.";
+
+    // 2. Extract time-based phrases
     const extractPrompt = `Extract all time-based events from this message and return them in JSON. Do not resolve time. Use the exact phrasing the user used.
 
 Format:
@@ -139,6 +160,90 @@ Format:
   { "title": "Doctor appointment", "when": "tomorrow at 9am" },
   { "title": "Wedding", "when": "Friday at 2pm" }
 ]`;
+
+    const extractRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0.2,
+        response_format: "json",
+        messages: [
+          { role: "system", content: extractPrompt },
+          { role: "user", content: message }
+        ]
+      })
+    });
+
+    const extractData = await extractRes.json();
+    const raw = extractData.choices?.[0]?.message?.content || "";
+    const parsed = JSON.parse(raw); // parsed = array of { title, when }
+
+    // 3. Convert 'when' → 'start'
+    const events = [];
+
+    for (const item of parsed) {
+      const { title, when } = item;
+
+      try {
+        const parseRes = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-4o",
+            temperature: 0.2,
+            response_format: "json",
+            messages: [
+              {
+                role: "system",
+                content: `
+You are a datetime parser for HomeOps. Convert natural time phrases into ISO 8601 timestamps for the America/New_York timezone.
+
+Only return a valid JSON object like:
+{ "start": "2025-06-21T09:00:00" }
+
+No markdown, no extra text.
+                `.trim()
+              },
+              { role: "user", content: when }
+            ]
+          })
+        });
+
+        const parsedTime = await parseRes.json();
+        const content = parsedTime.choices?.[0]?.message?.content;
+        const parsedStart = JSON.parse(content)?.start;
+
+        if (parsedStart) {
+          events.push({
+            title: title?.trim() || "Untitled Event",
+            start: parsedStart,
+            allDay: false
+          });
+        } else {
+          console.warn("⚠️ Could not parse:", when);
+        }
+
+      } catch (err) {
+        console.error("❌ Date parsing failed:", err.message);
+      }
+    }
+
+    // 4. Return response to frontend
+    res.json({ reply: toneReply, events });
+
+  } catch (err) {
+    console.error("❌ /chat route failed:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
     // GPT call 1 — tone reply
     const toneRes = await fetch("https://api.openai.com/v1/chat/completions", {
