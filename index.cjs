@@ -421,7 +421,7 @@ try {
       };
     });
 
- console.log("✅ Final parsed events:", events);
+console.log("✅ Final parsed events:", events);
 
 // Optional: log GPT's full response for debugging
 console.log("🧪 Full GPT reply content:", gptReply);
@@ -434,8 +434,11 @@ await db.collection("messages").add({
   timestamp: new Date()
 });
 
-// Respond to frontend
-res.json({ reply: gptReply, events });
+// Clean GPT reply for frontend (strip markdown wrappers)
+const cleanedReply = gptReply.replace(/```json|```/g, "").trim();
+
+res.json({ reply: cleanedReply, events });
+
 
 
 
