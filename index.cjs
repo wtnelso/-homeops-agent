@@ -228,12 +228,24 @@ No markdown, no extra text.
 let parsedStart = null;
 
 try {
+try {
   const json = JSON.parse(content);
   parsedStart = json.start;
+
+  // 🧼 Strip Z if present (prevents UTC time shift)
+  if (parsedStart?.includes("Z")) {
+    console.warn("⚠️ Stripping Z from parsedStart to avoid UTC offset");
+    parsedStart = parsedStart.replace("Z", "");
+  }
+
+  // 🪵 Log what GPT returned and the final value being used
+  console.log("📥 GPT raw content:", content);
+  console.log("🕓 Converted:", when, "→", parsedStart);
+
 } catch (err) {
   console.error("❌ Failed to parse GPT content as JSON:", content);
 }
-console.log("🕓 Converted:", when, "→", parsedStart);
+
 
 
         if (parsedStart) {
