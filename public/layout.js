@@ -8,12 +8,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const navButtons = document.querySelectorAll(".nav-item");
   const toggleTheme = document.getElementById("toggleTheme");
 
-  function activateView(targetView) {
-    // Show only the selected view
-    views.forEach((view) => {
-      const viewName = view.id.replace("-view", "");
-      view.classList.toggle("active", viewName === targetView);
-    });
+ function activateView(viewId) {
+  console.log("🔄 Switching to view:", viewId);
+
+  document.querySelectorAll(".view").forEach((view) => {
+    view.classList.add("hidden");
+  });
+
+  const active = document.getElementById(`${viewId}-view`);
+  if (active) {
+    active.classList.remove("hidden");
+  } else {
+    console.warn("🚫 View not found:", viewId);
+  }
+}
+
 
     // Highlight the active nav button
     navButtons.forEach((btn) => {
