@@ -408,18 +408,19 @@ try {
 }
 
 
-    // Convert "when" → "start"
-    const events = parsed.map((event) => {
-      const parsedDate = chrono.parseDate(event.when, {
-        timezone: "America/New_York"
-      });
+let events = [];
+let reply = "✅ I’ve added your events.";
 
-      return {
-        title: event.title,
-        start: DateTime.fromJSDate(parsedDate).setZone("America/New_York").toISO(),
-        allDay: false
-      };
-    });
+try {
+  if (result.choices?.[0]?.message?.content) {
+    const parsed = JSON.parse(result.choices[0].message.content);
+    events = parsed.events || [];
+    reply = parsed.reply || reply;
+  }
+} catch (err) {
+  console.error("❌ GPT JSON parsing failed:", err.message);
+}
+
 
 console.log("✅ Final parsed events:", events);
 
