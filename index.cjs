@@ -178,11 +178,10 @@ Respond like this:
 
 function resolveWhen(when) {
   const now = DateTime.now().setZone("America/New_York");
-
   const lower = when.toLowerCase().trim();
 
   // Tomorrow at [time]
-  const tomorrowMatch = lower.match(/tomorrow at (\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+  const tomorrowMatch = lower.match(/tomorrow(?:.*)? at (\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
   if (tomorrowMatch) {
     let hour = parseInt(tomorrowMatch[1]);
     let minute = tomorrowMatch[2] ? parseInt(tomorrowMatch[2]) : 0;
@@ -195,8 +194,8 @@ function resolveWhen(when) {
     return dt.toISO({ suppressMilliseconds: true });
   }
 
-  // [Weekday] at [time]
-  const weekdayMatch = lower.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: at (\d{1,2})(?::(\d{2}))?\s*(am|pm)?)?/);
+  // Any weekday mention like "saturday", "monday", etc.
+  const weekdayMatch = lower.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:.*)? at (\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
   if (weekdayMatch) {
     const weekday = weekdayMatch[1];
     let hour = weekdayMatch[2] ? parseInt(weekdayMatch[2]) : 12;
@@ -207,13 +206,20 @@ function resolveWhen(when) {
     if (ampm === "am" && hour === 12) hour = 0;
 
     const targetWeekday = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"].indexOf(weekday);
-    const daysUntil = (targetWeekday + 7 - now.weekday % 7) % 7 || 7;
+    const daysUntil = (targetWeekday + 7 - now.weekday) % 7 || 7;
     const dt = now.plus({ days: daysUntil }).set({ hour, minute, second: 0 });
+    return dt.toISO({ suppressMilliseconds: true });
+  }
+
+  // Looser fallback: if it includes “lunch” → default to 12pm Sunday
+  if (lower.includes("sunday") && lower.includes("lunch")) {
+    const dt = now.plus({ days: (7 - now.weekday + 7) % 7 }).set({ hour: 12, minute: 0 });
     return dt.toISO({ suppressMilliseconds: true });
   }
 
   return null;
 }
+
 
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
