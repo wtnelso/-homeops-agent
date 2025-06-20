@@ -497,7 +497,7 @@ body::before {
     overflow-x: hidden;
   }
 
-  .sidebar {
+  .bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -511,17 +511,13 @@ body::before {
     z-index: 999;
   }
 
-  .nav {
-    flex-direction: row;
-    width: 100%;
-    justify-content: space-around;
-  }
-
-  .nav-item {
+  .bottom-nav button {
     flex: 1;
     text-align: center;
-    padding: 10px 0;
     font-size: 14px;
+    padding: 10px;
+    background: none;
+    border: none;
   }
 
   .top-bar {
@@ -534,9 +530,12 @@ body::before {
     z-index: 998;
   }
 
-  .main-content {
-    width: 100%;
+  .main-content,
+  .view {
+    width: 100vw;
     padding: 16px;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
 
   .chat-wrapper {
@@ -564,17 +563,18 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    width: 100%;
   }
 
   .dashboard-card {
     width: 100%;
-    margin-bottom: 16px;
+    box-sizing: border-box;
   }
 
   .view {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    height: calc(100vh - 60px); /* subtract bottom nav */
+    height: calc(100vh - 60px);
     padding-bottom: 80px;
   }
 
@@ -595,4 +595,40 @@ body::before {
   .fc-toolbar-title {
     font-size: 16px !important;
   }
+    /* 📆 Mobile calendar toolbar refinement */
+  .fc-header-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .fc-toolbar-title {
+    font-size: 16px !important;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .fc-button {
+    font-size: 14px !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    background-color: #f9f9f9 !important;
+    color: #333 !important;
+    border: 1px solid #ccc !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .fc-button.fc-button-active {
+    background-color: #333 !important;
+    color: white !important;
+    border-color: #333 !important;
+  }
+
+  .fc-button-group {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+  }
+
 }
