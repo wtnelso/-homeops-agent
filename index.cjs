@@ -205,12 +205,17 @@ Format:
               {
                 role: "system",
                 content: `
-You are a datetime parser for HomeOps. Convert natural time phrases into ISO 8601 timestamps for the America/New_York timezone.
+You are a datetime parser for HomeOps. Convert natural time phrases into ISO 8601 timestamps assuming the America/New_York timezone.
 
-Only return a valid JSON object like:
+Only return a valid JSON object like this:
 { "start": "2025-06-21T09:00:00" }
 
+Do not include 'Z' or any timezone offset.
+Do not convert to UTC.
+Assume the user is in New York and return timestamps in local time.
+
 No markdown, no extra text.
+
                 `.trim()
               },
               { role: "user", content: when }
@@ -219,8 +224,15 @@ No markdown, no extra text.
         });
 
         const parsedTime = await parseRes.json();
-        const content = parsedTime.choices?.[0]?.message?.content;
-       const parsedStart = JSON.parse(content)?.start;
+        const content = parsedTime.choices?.[0]?.message?.content.trim();
+let parsedStart = null;
+
+try {
+  const json = JSON.parse(content);
+  parsedStart = json.start;
+} catch (err) {
+  console.error("❌ Failed to parse GPT content as JSON:", content);
+}
 console.log("🕓 Converted:", when, "→", parsedStart);
 
 
