@@ -80,8 +80,26 @@ if (Array.isArray(data.events)) {
     continue;
   }
 
-  const injected = window.calendar.addEvent(safeEvent);
-  highlightCalendarEvent?.(injected);
+const injected = window.calendar.addEvent(safeEvent);
+
+// Add a click handler to show event details
+injected.setExtendedProp("showAlert", () => {
+  const start = new Date(safeEvent.start).toLocaleString();
+  const end = safeEvent.end ? new Date(safeEvent.end).toLocaleString() : "";
+  alert(`📅 ${safeEvent.title}\n🕒 ${start}${end ? " - " + end : ""}`);
+});
+
+// Attach the click handler once globally
+if (!window._calendarClickHandlerAttached) {
+  window.calendar.on("eventClick", (info) => {
+    info.jsEvent.preventDefault();
+    info.event.extendedProps.showAlert?.();
+  });
+  window._calendarClickHandlerAttached = true;
+}
+
+highlightCalendarEvent?.(injected);
+
 
 
         const saveRes = await fetch("/api/events", {
