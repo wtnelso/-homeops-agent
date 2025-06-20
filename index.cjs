@@ -243,53 +243,25 @@ Format:
     for (const item of parsed) {
       const { title, when } = item;
 
-      try {
-        const parseRes = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "gpt-4o",
-            temperature: 0.2,
-            response_format: "json",
-            messages: [
-              {
-                role: "system",
-                content: `
-You are a datetime parser for HomeOps. Convert natural time phrases into ISO 8601 timestamps assuming the America/New_York timezone.
-
-Only return a valid JSON object like this:
-{ "start": "2025-06-21T09:00:00" }
-
-Do not include 'Z' or any timezone offset.
-Do not convert to UTC.
-Assume the user is in New York and return timestamps in local time.
-
-No markdown, no extra text.
-
-                `.trim()
-              },
-              { role: "user", content: when }
-            ]
-          })
-        });
-
-        let parsedStart = null;
+      let parsedStart = null;
 
 try {
-  const parsed = chrono.parseDate(when, new Date(), {
-    forwardDate: true
-  });
+  const parsed = chrono.parseDate(when, new Date(), { forwardDate: true });
+
+  if (!parsed) {
+    console.warn("⛔️ Chrono failed to parse:", when);
+    continue;
+  }
 
   parsedStart = DateTime.fromJSDate(parsed, {
     zone: "America/New_York"
   }).toISO({ suppressMilliseconds: true });
 
   console.log("🕓 Parsed locally:", when, "→", parsedStart);
+
 } catch (err) {
   console.error("❌ Local time parsing failed:", err.message);
+  continue;
 }
 
 if (parsedStart) {
@@ -298,12 +270,7 @@ if (parsedStart) {
     start: parsedStart,
     allDay: false
   });
-} else {
-  console.warn("⚠️ Could not parse:", when);
 }
-
-
-
     // GPT call 1 — tone reply
     const toneRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
