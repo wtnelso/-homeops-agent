@@ -246,8 +246,8 @@ Format:
       let parsedStart = null;
 
 try {
-  const parsed = chrono.parseDate(when, new Date(), { forwardDate: true });
-
+  const easternNow = DateTime.now().setZone("America/New_York").toJSDate();
+const parsed = chrono.parseDate(when, easternNow, { forwardDate: true });
   if (!parsed) {
     console.warn("⛔️ Chrono failed to parse:", when);
     continue;
