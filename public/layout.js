@@ -84,6 +84,30 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("✅ Calendar initialized");
     }
 
+    const clearEventsBtn = document.getElementById("clear-events-btn");
+    if (clearEventsBtn) {
+      clearEventsBtn.addEventListener("click", async () => {
+        if (!confirm("Are you sure you want to delete ALL calendar events? This cannot be undone.")) {
+          return;
+        }
+        try {
+          const res = await fetch("/api/events/clear", { method: "POST" });
+          const result = await res.json();
+          if (result.success) {
+            alert("All events have been cleared.");
+            if (window.calendar) {
+              window.calendar.refetchEvents();
+            }
+          } else {
+            alert("Error clearing events: " + result.error);
+          }
+        } catch (err) {
+          alert("An error occurred while clearing events.");
+          console.error("Clear events error:", err);
+        }
+      });
+    }
+
     // Default to chat view on load
     activateView("chat");
     document.querySelector('.nav-item[data-view="chat"]').classList.add("active");

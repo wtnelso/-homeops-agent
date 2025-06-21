@@ -337,6 +337,26 @@ Output format:
   }
 });
 
+app.post("/api/events/clear", async (req, res) => {
+  try {
+    const snapshot = await db.collection("events").get();
+    if (snapshot.empty) {
+      return res.json({ success: true, message: "No events to clear." });
+    }
+
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+    res.json({ success: true, message: `Deleted ${snapshot.size} events.` });
+  } catch (err) {
+    console.error("❌ Failed to clear events:", err.message);
+    res.status(500).json({ error: "Failed to clear events." });
+  }
+});
+
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });

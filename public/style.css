@@ -89,6 +89,33 @@ body.dark {
   padding: 2rem;
 }
 
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.view-header h2 {
+  margin: 0;
+}
+
+.button-danger {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.button-danger:hover {
+  background-color: #dc2626;
+}
+
 .view {
   display: none;
 }
