@@ -178,7 +178,7 @@ runCalendarTest();
     "title": "Swim lesson",
     "when": "Friday afternoon"
   }
-]`;
+
 
 function resolveWhen(when) {
   const now = DateTime.now().setZone("America/New_York");
