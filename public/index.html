@@ -192,6 +192,9 @@
 </main>
 </div>
 
+<!-- ✅ Icons MUST be loaded before your app scripts -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
 <!-- ✅ FullCalendar CSS -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" rel="stylesheet" />
 
@@ -203,14 +206,12 @@
 <script src="chat.js" defer></script>
 <script src="/relief.js" defer></script>
 
-<!-- ✅ Icons last -->
-<script src="https://unpkg.com/lucide@latest"></script>
 <!-- ✅ Bottom nav for mobile view -->
 <div class="bottom-nav">
-  <button onclick="activateView('home')">🏠</button>
-  <button onclick="activateView('chat')">💬</button>
-  <button onclick="activateView('dashboard')">📊</button>
-  <button onclick="activateView('calendar')">📅</button>
+  <button data-view="home" onclick="activateView('home')">🏠</button>
+  <button data-view="chat" onclick="activateView('chat')">💬</button>
+  <button data-view="dashboard" onclick="activateView('dashboard')">📊</button>
+  <button data-view="calendar" onclick="activateView('calendar')">📅</button>
 </div>
 
 <script src="/homebase.js" defer></script>
