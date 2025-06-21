@@ -19,162 +19,67 @@ document.addEventListener("DOMContentLoaded", () => {
     console.warn("⚠️ Calendar element not found.");
   }
 
+  const chatBox = document.getElementById("chat");
+  const chatForm = document.getElementById("chatForm");
   const input = document.getElementById("input");
-  const chat = document.getElementById("chat");
-  const form = document.getElementById("chatForm");
 
+  // Function to add a message to the chat box
+  function addMessage(sender, message) {
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${sender}`;
 
-  appendMessage(
-    "HomeOps",
-    "Hi. I'm your personal chief of staff. I specialize in mental clutter, invisible labor, and things you didn’t ask to be responsible for. What’s on deck?",
-    "agent"
-  );
+    const senderDiv = document.createElement("div");
+    senderDiv.className = "sender";
+    senderDiv.textContent = sender === "user" ? "You" : "HomeOps";
 
-  form.addEventListener("submit", async (e) => {
+    const bubbleDiv = document.createElement("div");
+    bubbleDiv.className = "message-bubble";
+    bubbleDiv.textContent = message;
+
+    messageDiv.appendChild(senderDiv);
+    messageDiv.appendChild(bubbleDiv);
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+  }
+
+  // Handle form submission
+  chatForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const message = input.value.trim();
     if (!message) return;
 
-    appendMessage("You", message, "user");
+    addMessage("user", message);
     input.value = "";
 
-    const typing = document.createElement("div");
-    typing.className = "typing-indicator";
-    typing.id = "typing";
-    typing.textContent = "HomeOps is thinking...";
-    chat.appendChild(typing);
-    chat.scrollTop = chat.scrollHeight;
-
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
       const res = await fetch("/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, user_id: "user_123" }),
+        body: JSON.stringify({ message }),
       });
 
       const data = await res.json();
-
-      console.log("📥 Full response from backend:", data);
-      document.getElementById("typing")?.remove();
-
-      const cleanReply = data.reply?.trim() || "🤖 No reply received.";
-      appendMessage("HomeOps", cleanReply, "agent");
-console.log("📦 Received events array:", data.events);
-
-if (Array.isArray(data.events)) {
-  if (window.calendar) {
-    for (const event of data.events) {
-      console.log("📅 Attempting to inject event:", event);
-
-      // Sanity checks
-      if (!event || typeof event !== "object") {
-        console.warn("❗ Skipping non-object event:", event);
-        continue;
+      
+      if (data.reply) {
+        addMessage("agent", data.reply);
       }
 
-      if (!event.start || isNaN(new Date(event.start))) {
-        console.warn("⚠️ Invalid or missing 'start' field:", event);
-        continue;
+      // If new events were created, refresh the calendar
+      if (data.events && data.events.length > 0) {
+        if (window.calendar) {
+          window.calendar.refetchEvents();
+          console.log("✅ Calendar events refreshed.");
+        }
       }
 
-      const cleanTitle = typeof event.title === "string" && event.title.trim() !== ""
-  ? event.title.trim()
-  : `📅 Untitled (${event.start?.slice(11, 16) || "??:??"})`;
-
-
-      const parsedDate = new Date(event.start);
-      const localDate = new Date(parsedDate.getTime() + parsedDate.getTimezoneOffset() * 60000);
-
-      const safeEvent = {
-        title: cleanTitle,
-        start: localDate.toISOString(),
-        allDay: event.allDay ?? false,
-      };
-
-    try {
-  if (!safeEvent.start || isNaN(new Date(safeEvent.start))) {
-    console.warn("⛔️ Invalid start time, skipping:", safeEvent);
-    continue;
-  }
-
-const injected = window.calendar.addEvent(safeEvent);
-
-// Add a click handler to show event details
-injected.setExtendedProp("showAlert", () => {
-  const start = new Date(safeEvent.start).toLocaleString();
-  const end = safeEvent.end ? new Date(safeEvent.end).toLocaleString() : "";
-  alert(`📅 ${safeEvent.title}\n🕒 ${start}${end ? " - " + end : ""}`);
-});
-
-// Attach the click handler once globally
-if (!window._calendarClickHandlerAttached) {
-  window.calendar.on("eventClick", (info) => {
-    info.jsEvent.preventDefault();
-    info.event.extendedProps.showAlert?.();
-  });
-  window._calendarClickHandlerAttached = true;
-}
-
-highlightCalendarEvent?.(injected);
-// Preserve calendar date across view switches (fixes "day" resetting to June 1)
-let lastDateViewed = new Date();
-
-window.calendar.on("datesSet", (info) => {
-  lastDateViewed = info.view.currentStart;
-});
-
-window.calendar.on("viewDidMount", () => {
-  window.calendar.gotoDate(lastDateViewed);
-});
-
-
-
-        const saveRes = await fetch("/api/events", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ event: safeEvent }),
-        });
-
-        const result = await saveRes.json();
-        if (!result.success) throw new Error(result.error);
-        console.log("✅ Event saved to Firestore:", result.id);
-      } catch (err) {
-        console.error("❌ Failed to inject/save event:", err.message);
-      }
-    }
-  } else {
-    console.warn("⚠️ Calendar not ready, queuing events");
-    window.pendingCalendarEvents.push(...data.events);
-  }
-}
-
-
-    } catch (error) {
-      document.getElementById("typing")?.remove();
-      console.error("❌ Chat processing error:", error);
-      appendMessage("Error", "Something went wrong talking to the assistant.", "agent");
+    } catch (err) {
+      console.error("Chat error:", err);
+      addMessage("agent", "Sorry, I'm having trouble connecting. Please try again later.");
     }
   });
 
-  function appendMessage(sender, text, type) {
-    const msg = document.createElement("div");
-    msg.className = `message ${type}`;
-
-    const senderTag = document.createElement("span");
-    senderTag.className = "sender";
-    senderTag.textContent = sender;
-
-    const bubble = document.createElement("div");
-    bubble.className = "message-bubble";
-    bubble.textContent = text;
-
-    msg.appendChild(senderTag);
-    msg.appendChild(bubble);
-    chat.appendChild(msg);
-    chat.scrollTop = chat.scrollHeight;
-  }
+  // Initial greeting
+  addMessage("agent", "Hi. I'm your personal chief of staff. What can I help you with today?");
 
   function highlightCalendarEvent(eventObj) {
     if (!eventObj) return;

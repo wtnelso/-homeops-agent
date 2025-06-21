@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay"
         },
-        events: [], // Load events from your backend here
+        events: "/api/events",
       });
 
       window.calendar.render();
