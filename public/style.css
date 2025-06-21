@@ -465,18 +465,25 @@ body.dark {
   font-size: 0.8rem;
   color: #666;
 }
-body::before {
-  content: "📱 MOBILE MODE";
-  position: fixed;
-  top: 0;
-  left: 0;
-  background: #ff0;
-  padding: 4px 8px;
-  font-weight: bold;
-  z-index: 9999;
+
+/* --- Desktop First Styles --- */
+.bottom-nav {
+  display: none; /* Hidden by default on desktop */
 }
 
+/* --- Mobile Overrides --- */
 @media screen and (max-width: 768px) {
+  body::before {
+    content: "📱 MOBILE MODE";
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #ff0;
+    padding: 4px 8px;
+    font-weight: bold;
+    z-index: 9999;
+  }
+
   .app-container {
     flex-direction: column;
   }
