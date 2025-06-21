@@ -10,21 +10,30 @@ document.addEventListener("DOMContentLoaded", () => {
 function activateView(viewId) {
   console.log("🔄 Switching to view:", viewId);
 
+  // Hide all views
   document.querySelectorAll(".view").forEach((view) => {
     view.classList.add("hidden");
   });
 
+  // Show the matching view
   const active = document.getElementById(`${viewId}-view`);
   if (active) {
     active.classList.remove("hidden");
     console.log("✅ Activated view:", viewId);
+
+    // 🧪 Inject visual proof that the view is showing
+    const debugDiv = document.createElement("div");
+    debugDiv.style.cssText = "padding: 1rem; background: #fff; border: 1px solid #ccc; margin-top: 1rem;";
+    debugDiv.textContent = `🧪 This is being shown by activateView("${viewId}")`;
+    active.appendChild(debugDiv);
   } else {
     console.warn("🚫 View not found:", viewId);
   }
 }
 
-// ✅ Expose it globally for inline onclick to work
+// ✅ Expose to global scope for inline HTML access
 window.activateView = activateView;
+
 
 
 // Set up navigation + highlight active nav button
