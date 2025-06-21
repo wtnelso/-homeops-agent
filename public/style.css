@@ -1,4 +1,3 @@
-
 /* Reset */
 * {
   margin: 0;
@@ -463,7 +462,7 @@ body.dark {
 }
 
 .hover-card-time {
-  font-size: 12px;
+  font-size: 0.8rem;
   color: #666;
 }
 body::before {
@@ -478,46 +477,36 @@ body::before {
 }
 
 @media screen and (max-width: 768px) {
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    overflow-x: hidden;
-    font-size: 16px;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #fff;
+  .app-container {
+    flex-direction: column;
   }
 
-  .app-container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: auto;
-    padding-bottom: 60px; /* space for bottom nav */
-    overflow-x: hidden;
+  .sidebar {
+    display: none; /* Hide sidebar on mobile */
+  }
+
+  .main-content {
+    padding: 1rem;
   }
 
   .bottom-nav {
+    display: flex; /* Show bottom nav on mobile */
     position: fixed;
     bottom: 0;
     left: 0;
-    width: 100%;
-    height: 60px;
-    background: #fff;
-    border-top: 1px solid #ddd;
-    display: flex;
+    right: 0;
+    background-color: #111827;
     justify-content: space-around;
-    align-items: center;
-    z-index: 999;
+    padding: 0.5rem 0;
+    z-index: 100;
   }
 
   .bottom-nav button {
-    flex: 1;
-    text-align: center;
-    font-size: 14px;
-    padding: 10px;
     background: none;
     border: none;
+    color: white;
+    font-size: 1.2rem;
+    padding: 0.5rem 1rem;
   }
 
   .top-bar {
