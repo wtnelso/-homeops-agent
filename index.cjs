@@ -184,8 +184,13 @@ app.put("/api/events/:id", async (req, res) => {
 
 // ✅ Fetch all saved events
 app.get("/api/events", async (req, res) => {
+  const { user_id = "user_123" } = req.query;
   try {
-    const snapshot = await db.collection("events").orderBy("start").get();
+    const snapshot = await db
+      .collection("events")
+      .where("user_id", "==", user_id)
+      .orderBy("start")
+      .get();
     const events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.json(events);
   } catch (err) {
@@ -338,10 +343,14 @@ Output format:
 });
 
 app.post("/api/events/clear", async (req, res) => {
+  const { user_id = "user_123" } = req.body;
+  if (!user_id) {
+    return res.status(400).json({ error: "User ID is required." });
+  }
   try {
-    const snapshot = await db.collection("events").get();
+    const snapshot = await db.collection("events").where("user_id", "==", user_id).get();
     if (snapshot.empty) {
-      return res.json({ success: true, message: "No events to clear." });
+      return res.json({ success: true, message: "No events to clear for this user." });
     }
 
     const batch = db.batch();

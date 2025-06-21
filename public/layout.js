@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay"
         },
-        events: "/api/events",
+        events: "/api/events?user_id=user_123",
       });
 
       window.calendar.render();
@@ -87,11 +87,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const clearEventsBtn = document.getElementById("clear-events-btn");
     if (clearEventsBtn) {
       clearEventsBtn.addEventListener("click", async () => {
-        if (!confirm("Are you sure you want to delete ALL calendar events? This cannot be undone.")) {
+        if (!confirm("Are you sure you want to delete ALL your calendar events? This cannot be undone.")) {
           return;
         }
         try {
-          const res = await fetch("/api/events/clear", { method: "POST" });
+          const res = await fetch("/api/events/clear", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id: "user_123" }),
+          });
           const result = await res.json();
           if (result.success) {
             alert("All events have been cleared.");
