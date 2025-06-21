@@ -28,45 +28,74 @@ const db = admin.firestore();
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Load the persona file content at startup
+let tonePromptContent = "";
+try {
+  tonePromptContent = fs.readFileSync(path.join(__dirname, "prompts", "tone-homeops.txt"), "utf-8");
+  console.log("✅ Persona file loaded successfully.");
+} catch (err) {
+  console.error("❌ Failed to load persona file:", err.message);
+  // Continue without it, but log the error
+}
+
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
-  const now = DateTime.now().setZone("America/New_York");
+  try {
+    // 1. Fetch the last 10 messages for context
+    const messagesSnapshot = await db.collection("messages")
+      .where("user_id", "==", user_id)
+      .orderBy("timestamp", "desc")
+      .limit(10)
+      .get();
 
-  const systemPrompt = `
-You are HomeOps — a personal chief of staff for busy families.
+    const history = messagesSnapshot.docs.map(doc => doc.data()).reverse();
 
-Today's date is: ${now.toISODate()}. You are operating in the America/New_York timezone.
+    // 2. Construct the messages array for OpenAI
+    const messagesForApi = [];
 
-When the user sends a message, do two things:
-1.  Write a short, emotionally intelligent reply (1–2 lines).
-2.  Extract all calendar events from the message. Convert all relative times (like "tomorrow at noon" or "Friday at 2pm") into full ISO 8601 datetime strings.
+    // System prompt combining the persona and the core instructions
+    const systemPrompt = `
+${tonePromptContent}
 
-Respond with ONLY a single, valid JSON object in this format. Do not include markdown, comments, or any other text outside the JSON.
+You are HomeOps. Your instructions are above.
+
+Today's date is: ${DateTime.now().setZone("America/New_York").toISODate()}.
+You are operating in the America/New_York timezone.
+
+The user's message history is provided below for context.
+Your main job is to reply in your persona AND extract calendar events.
+Convert all relative times (like "tomorrow at noon") into full ISO 8601 datetime strings.
+
+Respond with ONLY a single, valid JSON object in this format.
+Do not include markdown, comments, or any other text outside the JSON.
 
 {
-  "reply": "Your warm and witty reply goes here.",
+  "reply": "Your warm, witty, and on-brand reply goes here.",
   "events": [
-    {
-      "title": "Doctor Appointment",
-      "start": "2025-06-21T14:00:00-04:00",
-      "allDay": false
-    },
-    {
-      "title": "Golf",
-      "start": "2025-06-22T12:00:00-04:00",
-      "allDay": false
-    }
+    { "title": "Event Title", "start": "YYYY-MM-DDTHH:mm:ss-04:00", "allDay": false }
   ]
 }
+    `.trim();
 
-If no events are found, return an empty "events" array.
-  `.trim();
+    messagesForApi.push({ role: "system", content: systemPrompt });
 
-  try {
+    // Add conversation history
+    history.forEach(msg => {
+      messagesForApi.push({ role: "user", content: msg.message });
+      if (msg.reply) {
+        messagesForApi.push({ role: "assistant", content: msg.reply });
+      }
+    });
+
+    // Add the current user message
+    messagesForApi.push({ role: "user", content: message });
+
+
+    // 3. Call OpenAI API
     const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -75,12 +104,9 @@ If no events are found, return an empty "events" array.
       },
       body: JSON.stringify({
         model: "gpt-4o",
-        temperature: 0.2,
-        response_format: { type: "json_object" }, // Use the new JSON mode
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message }
-        ]
+        temperature: 0.3, // Slightly more creative for persona-driven replies
+        response_format: { type: "json_object" },
+        messages: messagesForApi
       })
     });
 
@@ -94,10 +120,7 @@ If no events are found, return an empty "events" array.
     const parsedResponse = JSON.parse(content);
     const { reply, events = [] } = parsedResponse;
 
-    console.log("✅ GPT Reply:", reply);
-    console.log("✅ Extracted Events:", events);
-
-    // Save the user message and the agent's reply to Firestore
+    // 4. Save new message and reply to history
     await db.collection("messages").add({
       user_id,
       message,
@@ -105,12 +128,12 @@ If no events are found, return an empty "events" array.
       timestamp: new Date()
     });
 
-    // Save the extracted events to Firestore
+    // 5. Save events to Firestore
     if (events.length > 0) {
       const savedEvents = [];
       const batch = db.batch();
       events.forEach(event => {
-        if (event.title && event.start) { // Basic validation
+        if (event.title && event.start) {
           const eventRef = db.collection("events").doc();
           const eventWithId = { ...event, id: eventRef.id, user_id, created_at: new Date() };
           batch.set(eventRef, eventWithId);
@@ -118,14 +141,13 @@ If no events are found, return an empty "events" array.
         }
       });
       await batch.commit();
-      console.log(`✅ Saved ${savedEvents.length} events to Firestore.`);
       res.json({ reply, events: savedEvents });
     } else {
       res.json({ reply, events: [] });
     }
 
   } catch (err) {
-    console.error("❌ /chat endpoint failed:", err.message);
+    console.error("❌ /chat endpoint failed:", err.message, err.stack);
     res.status(500).json({ error: "Failed to process your request." });
   }
 });

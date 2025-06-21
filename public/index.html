@@ -73,38 +73,56 @@
 
 
    <section id="home-view" class="view">
-  <div class="top-bar">
-    <i data-lucide="home" style="margin-right: 8px;"></i> My Ops Center
-  </div>
+    <div class="email-decoder-container">
+      <header class="decoder-header">
+        <h1>Ops Center</h1>
+        <p>Your command center for what matters.</p>
+      </header>
+      
+      <div class="email-main">
+        <aside class="email-sidebar">
+          <div class="email-sidebar-header">
+            <h2>Focus</h2>
+          </div>
+          <nav class="split-inbox-nav">
+            <a href="#" class="split-item active"><i data-lucide="inbox"></i> Inbox</a>
+            <a href="#" class="split-item"><i data-lucide="star"></i> Starred</a>
+            <a href="#" class="split-item"><i data-lucide="users"></i> From Your Team</a>
+            <a href="#" class="split-item"><i data-lucide="calendar"></i> Calendar Invites</a>
+            <a href="#" class="split-item"><i data-lucide="file-text"></i> Newsletters</a>
+          </nav>
+        </aside>
 
-  <div id="homebase-container" class="module-stack">
-
-    <!-- Email Decoder -->
-    <div class="card module">
-      <h3><i data-lucide="inbox" style="margin-right: 6px;"></i>Email Decoder Engine</h3>
-      <p>We're reading your inbox (nicely). Here's what matters...</p>
+        <main class="email-list-container">
+          <div class="email-list-header">
+            <h3>Inbox</h3>
+            <span class="email-count">3 new</span>
+          </div>
+          <ul class="email-list">
+            <!-- Emails will be dynamically inserted here -->
+            <li class="email-item">
+              <div class="email-sender">Annie Wilkinson</div>
+              <div class="email-subject">Re: Project Phoenix Launch</div>
+              <div class="email-preview">Hey, just wanted to follow up on the launch timeline. Do we have a firm date yet?</div>
+              <div class="email-timestamp">3:45 PM</div>
+            </li>
+            <li class="email-item unread">
+              <div class="email-sender">Google Calendar</div>
+              <div class="email-subject">Invitation: Q3 Strategy Meeting @ 4pm</div>
+              <div class="email-preview">You have been invited to the following event...</div>
+              <div class="email-timestamp">2:10 PM</div>
+            </li>
+            <li class="email-item">
+              <div class="email-sender">Cal Newport</div>
+              <div class="email-subject">The Case for a Digital Sabbath</div>
+              <div class="email-preview">In an age of constant connectivity, the most valuable currency is focused attention...</div>
+              <div class="email-timestamp">11:52 AM</div>
+            </li>
+          </ul>
+        </main>
+      </div>
     </div>
-
-    <!-- Coffee Cup View -->
-    <div class="card module">
-      <h3><i data-lucide="coffee" style="margin-right: 6px;"></i>Coffee Cup View</h3>
-      <p>Today's key items will show here.</p>
-    </div>
-<!-- Today + Tomorrow -->
-<div class="card module">
-  <h3><i data-lucide="calendar-days" style="margin-right: 6px;"></i>Today + Tomorrow</h3>
-  <p>Upcoming events go here.</p>
-</div>
-
-  
-
-    <!-- Smart Suggestions -->
-    <div class="card module">
-      <h3><i data-lucide="box" style="margin-right: 6px;"></i>Smart Suggestions</h3>
-      <p>We'll help you reorder essentials based on patterns.</p>
-    </div>
-  </div>
-</section>
+   </section>
 
 
       <!-- Ask HomeOps (Chat) -->
