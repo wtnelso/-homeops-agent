@@ -1,4 +1,15 @@
+console.log("🧠 layout.js is loading");
 document.addEventListener("DOMContentLoaded", () => {
+  try {
+    console.log("🧠 layout.js is loading");
+
+    // ... your existing layout.js code goes here ...
+
+  } catch (err) {
+    console.error("💥 layout.js crash:", err);
+  }
+});
+
   window.calendar = null;
   window.calendarRendered = false;
 
