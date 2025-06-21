@@ -38,6 +38,15 @@ navButtons.forEach((button) => {
 });
 
 
+    // Highlight the active button
+    navButtons.forEach((btn) => {
+      const isActive = btn.getAttribute("data-view") === viewId;
+      btn.classList.toggle("active", isActive);
+    });
+  });
+});
+
+
 
     // Load dashboard if needed
     if (targetView === "dashboard") {
