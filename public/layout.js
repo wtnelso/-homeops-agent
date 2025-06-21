@@ -82,6 +82,15 @@ document.addEventListener("DOMContentLoaded", () => {
       window.calendar.render();
       window.calendarRendered = true;
       console.log("✅ Calendar initialized");
+
+      // Add any events that were created before the calendar was ready
+      if (window.pendingCalendarEvents && window.pendingCalendarEvents.length > 0) {
+        window.pendingCalendarEvents.forEach(event => {
+          window.calendar.addEvent(event);
+        });
+        window.pendingCalendarEvents = []; // Clear the queue
+        console.log("✅ Added pending events to calendar.");
+      }
     }
 
     const clearEventsBtn = document.getElementById("clear-events-btn");

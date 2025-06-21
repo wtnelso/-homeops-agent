@@ -64,11 +64,17 @@ document.addEventListener("DOMContentLoaded", () => {
         addMessage("agent", data.reply);
       }
 
-      // If new events were created, refresh the calendar
+      // If new events were created, add them directly to the calendar
       if (data.events && data.events.length > 0) {
         if (window.calendar) {
-          window.calendar.refetchEvents();
-          console.log("✅ Calendar events refreshed.");
+          data.events.forEach(event => {
+            window.calendar.addEvent(event);
+          });
+          console.log(`✅ Added ${data.events.length} new events to the calendar.`);
+        } else {
+          // Fallback if calendar isn't rendered yet
+          window.pendingCalendarEvents = window.pendingCalendarEvents || [];
+          window.pendingCalendarEvents.push(...data.events);
         }
       }
 

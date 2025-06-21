@@ -107,22 +107,22 @@ If no events are found, return an empty "events" array.
 
     // Save the extracted events to Firestore
     if (events.length > 0) {
+      const savedEvents = [];
       const batch = db.batch();
       events.forEach(event => {
         if (event.title && event.start) { // Basic validation
           const eventRef = db.collection("events").doc();
-          batch.set(eventRef, {
-            ...event,
-            user_id,
-            created_at: new Date()
-          });
+          const eventWithId = { ...event, id: eventRef.id, user_id, created_at: new Date() };
+          batch.set(eventRef, eventWithId);
+          savedEvents.push(eventWithId);
         }
       });
       await batch.commit();
-      console.log(`✅ Saved ${events.length} events to Firestore.`);
+      console.log(`✅ Saved ${savedEvents.length} events to Firestore.`);
+      res.json({ reply, events: savedEvents });
+    } else {
+      res.json({ reply, events: [] });
     }
-
-    res.json({ reply, events });
 
   } catch (err) {
     console.error("❌ /chat endpoint failed:", err.message);
