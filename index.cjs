@@ -78,6 +78,7 @@ Now extract any events from this message:
 `.trim();
 
 
+  async function extractCalendarEvents(prompt, message) {
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -97,35 +98,12 @@ Now extract any events from this message:
     });
 
     const data = await res.json();
-    const raw = data.choices?.[0]?.message?.content || "";
-    return JSON.parse(raw); // Should be an array of { title, start, allDay }
-  } catch (err) {
-    console.error("❌ Failed to extract calendar events:", err);
-    return [];
-  }
-}
-
-
-  try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: prompt },
-          { role: "user", content: message }
-        ]
-      })
-    });
-
-    const data = await res.json();
     let raw = data.choices?.[0]?.message?.content || "[]";
+
+    // Clean up any ```json wrappers
     raw = raw.replace(/```json|```/g, "").trim();
 
+    // Extract the first JSON array found
     const match = raw.match(/\[\s*{[\s\S]*?}\s*\]/);
     if (match) {
       const parsed = JSON.parse(match[0]);
