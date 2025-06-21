@@ -73,53 +73,79 @@
 
 
    <section id="home-view" class="view">
-    <div class="email-decoder-container">
-      <header class="decoder-header">
-        <h1>Ops Center</h1>
-        <p>Your command center for what matters.</p>
+    <div class="product-brain-container">
+      <header class="product-header">
+        <h1>🧠 Product Brain (HomeOps.ai)</h1>
+        <p>One central page to understand the full product — vision, structure, systems, and modules.</p>
       </header>
-      
-      <div class="email-main">
-        <aside class="email-sidebar">
-          <div class="email-sidebar-header">
-            <h2>Focus</h2>
-          </div>
-          <nav class="split-inbox-nav">
-            <a href="#" class="split-item active"><i data-lucide="inbox"></i> Inbox</a>
-            <a href="#" class="split-item"><i data-lucide="star"></i> Starred</a>
-            <a href="#" class="split-item"><i data-lucide="users"></i> From Your Team</a>
-            <a href="#" class="split-item"><i data-lucide="calendar"></i> Calendar Invites</a>
-            <a href="#" class="split-item"><i data-lucide="file-text"></i> Newsletters</a>
-          </nav>
-        </aside>
 
-        <main class="email-list-container">
-          <div class="email-list-header">
-            <h3>Inbox</h3>
-            <span class="email-count">3 new</span>
-          </div>
-          <ul class="email-list">
-            <!-- Emails will be dynamically inserted here -->
-            <li class="email-item">
-              <div class="email-sender">Annie Wilkinson</div>
-              <div class="email-subject">Re: Project Phoenix Launch</div>
-              <div class="email-preview">Hey, just wanted to follow up on the launch timeline. Do we have a firm date yet?</div>
-              <div class="email-timestamp">3:45 PM</div>
-            </li>
-            <li class="email-item unread">
-              <div class="email-sender">Google Calendar</div>
-              <div class="email-subject">Invitation: Q3 Strategy Meeting @ 4pm</div>
-              <div class="email-preview">You have been invited to the following event...</div>
-              <div class="email-timestamp">2:10 PM</div>
-            </li>
-            <li class="email-item">
-              <div class="email-sender">Cal Newport</div>
-              <div class="email-subject">The Case for a Digital Sabbath</div>
-              <div class="email-preview">In an age of constant connectivity, the most valuable currency is focused attention...</div>
-              <div class="email-timestamp">11:52 AM</div>
-            </li>
-          </ul>
-        </main>
+      <div class="section">
+        <h2>👁️ Vision</h2>
+        <p><strong>HomeOps.ai is the mental load operating system for high-performing families.</strong></p>
+        <p>It acts as a household Chief of Staff — blending emotional intelligence, automation, and insight.</p>
+        <p>Core user: Dual-income parents managing school, schedules, logistics, and emotional labor.</p>
+      </div>
+
+      <div class="section">
+        <h2>🔧 Core Modules</h2>
+        <table class="modules-table">
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Description</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Chat Agent</strong></td>
+              <td>Emotional support + smart assistant with trained tone</td>
+              <td><span class="status-tag active">✅ Functional, refining tone</span></td>
+            </tr>
+            <tr>
+              <td><strong>Dashboard</strong></td>
+              <td>Coffee Cup View, load metrics, weekly priorities</td>
+              <td><span class="status-tag pending">⏳ Early build</span></td>
+            </tr>
+            <tr>
+              <td><strong>This Week View</strong></td>
+              <td>Structured events pulled from chat/calendar</td>
+              <td><span class="status-tag pending">⏳ Partially implemented</span></td>
+            </tr>
+            <tr>
+              <td><strong>Invisible Labor Extractor</strong></td>
+              <td>Pulls tasks, reminders, emotional flags from chat</td>
+              <td><span class="status-tag active">✅ Basic prototype live</span></td>
+            </tr>
+            <tr>
+              <td><strong>Calendar Pipeline</strong></td>
+              <td>Turns chat into events (via FullCalendar)</td>
+              <td><span class="status-tag active">✅ Working, needs polish</span></td>
+            </tr>
+            <tr>
+              <td><strong>Partner View</strong></td>
+              <td>Shared view for co-parenting & task split</td>
+              <td><span class="status-tag idea">🧠 Idea phase</span></td>
+            </tr>
+            <tr>
+              <td><strong>Gmail Intelligence</strong></td>
+              <td>Surfaces important emails (school, brands, etc.)</td>
+              <td><span class="status-tag idea">🧠 Next up</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>🧠 Architecture Overview</h2>
+        <ul>
+          <li><strong>Frontend</strong>: HTML/CSS/JS (<code>public/</code> folder)</li>
+          <li><strong>Backend</strong>: Node.js + Express (<code>index.cjs</code>)</li>
+          <li><strong>Data</strong>: Firebase Firestore</li>
+          <li><strong>Deployment</strong>: Render</li>
+          <li><strong>Chat API</strong>: OpenAI via <code>/chat</code> endpoint</li>
+          <li><strong>Calendar UI</strong>: FullCalendar JS → injects events dynamically</li>
+        </ul>
       </div>
     </div>
    </section>
