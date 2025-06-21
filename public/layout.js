@@ -7,8 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const views = document.querySelectorAll(".view");
   const navButtons = document.querySelectorAll(".nav-item");
   const toggleTheme = document.getElementById("toggleTheme");
-
- function activateView(viewId) {
+function activateView(viewId) {
   console.log("🔄 Switching to view:", viewId);
 
   document.querySelectorAll(".view").forEach((view) => {
@@ -18,10 +17,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const active = document.getElementById(`${viewId}-view`);
   if (active) {
     active.classList.remove("hidden");
+    console.log("✅ Activated view:", viewId);
   } else {
     console.warn("🚫 View not found:", viewId);
   }
 }
+
+// ✅ Expose it globally for inline onclick to work
+window.activateView = activateView;
+
 
 // Set up navigation + highlight active nav button
 navButtons.forEach((button) => {
