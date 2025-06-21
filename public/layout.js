@@ -1,186 +1,100 @@
 console.log("🧠 layout.js is loading");
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("🧠 layout.js is loading");
+
   try {
-    console.log("🧠 layout.js is loading");
+    window.calendar = null;
+    window.calendarRendered = false;
 
-    // ... your existing layout.js code goes here ...
+    lucide.createIcons();
 
-  } catch (err) {
-    console.error("💥 layout.js crash:", err);
-  }
-});
+    const views = document.querySelectorAll(".view");
+    const navButtons = document.querySelectorAll(".nav-item");
+    const bottomNavButtons = document.querySelectorAll(".bottom-nav button");
+    const toggleTheme = document.getElementById("toggleTheme");
 
-  window.calendar = null;
-  window.calendarRendered = false;
+    function activateView(viewId) {
+      console.log("🔄 Switching to view:", viewId);
 
-  lucide.createIcons();
-
-  const views = document.querySelectorAll(".view");
-  const navButtons = document.querySelectorAll(".nav-item");
-  const toggleTheme = document.getElementById("toggleTheme");
-function activateView(viewId) {
-  console.log("🔄 Switching to view:", viewId);
-
-  // Hide all views
-  document.querySelectorAll(".view").forEach((view) => {
-    view.classList.add("hidden");
-  });
-
-  // Show the matching view
-  const active = document.getElementById(`${viewId}-view`);
-  if (active) {
-    active.classList.remove("hidden");
-    console.log("✅ Activated view:", viewId);
-
-    // 🧪 Inject visual proof that the view is showing
-    const debugDiv = document.createElement("div");
-    debugDiv.style.cssText = "padding: 1rem; background: #fff; border: 1px solid #ccc; margin-top: 1rem;";
-    debugDiv.textContent = `🧪 This is being shown by activateView("${viewId}")`;
-    active.appendChild(debugDiv);
-  } else {
-    console.warn("🚫 View not found:", viewId);
-  }
-}
-
-// ✅ Expose to global scope for inline HTML access
-window.activateView = activateView;
-
-
-
-// Set up navigation + highlight active nav button
-navButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    const viewId = button.getAttribute("data-view");
-    activateView(viewId);
-
-    // Highlight the active button
-    navButtons.forEach((btn) => {
-      const isActive = btn.getAttribute("data-view") === viewId;
-      btn.classList.toggle("active", isActive);
-    });
-  });
-});
-
-
-    // Highlight the active button
-    navButtons.forEach((btn) => {
-      const isActive = btn.getAttribute("data-view") === viewId;
-      btn.classList.toggle("active", isActive);
-    });
-  });
-});
-
-
-
-    // Load dashboard if needed
-    if (targetView === "dashboard") {
-      fetch("/api/dashboard?user_id=user_123")
-        .then(res => res.json())
-        .then(data => {
-          // Panel 2 — Mental Load
-          document.querySelector(".dashboard-card:nth-child(2) ul").innerHTML = `
-            <li>You're tracking ${data.totalTasks} tasks</li>
-            <li>(Data from recent messages)</li>
-          `;
-
-          // Panel 3 — Recurring Threads
-          const themeHTML = data.topThemes.map(t => `<li>🔁 ${t}</li>`).join("");
-          document.querySelector(".dashboard-card:nth-child(3) .reframe-list").innerHTML = themeHTML;
-        })
-        .catch((err) => {
-          console.error("Dashboard fetch error:", err);
-        });
-    }
-
-    // Load calendar if not already rendered
-    if (targetView === "calendar" && !window.calendarRendered) {
-      const calendarEl = document.getElementById("calendar");
-      if (!calendarEl) {
-        console.warn("⚠️ #calendar element not found.");
-        return;
-      }
-
-      if (typeof FullCalendar === "undefined" || typeof FullCalendar.Calendar !== "function") {
-        console.error("❌ FullCalendar not loaded.");
-        return;
-      }
-
-   window.calendar = new FullCalendar.Calendar(calendarEl, {
-  initialView: "dayGridMonth",
-  height: 600,
-  headerToolbar: {
-    left: "prev,next today",
-    center: "title",
-    right: "dayGridMonth,timeGridWeek,timeGridDay"
-  },
-  events: [],
-  eventDisplay: "block",
-  dateClick: function (info) {
-    const title = prompt("Add an event:");
-    if (title) {
-      window.calendar.addEvent({
-        title,
-        start: info.dateStr,
-        allDay: true
+      views.forEach((view) => {
+        view.style.display = "none";
       });
+
+      const activeView = document.getElementById(`${viewId}-view`);
+      if (activeView) {
+        activeView.style.display = "block";
+        console.log("✅ Activated view:", viewId);
+      } else {
+        console.warn("🚫 View not found:", viewId);
+      }
+
+      // Handle calendar rendering
+      if (viewId === "calendar" && !window.calendarRendered) {
+        renderCalendar();
+      }
     }
-  },
-eventDidMount: function(info) {
-  const card = document.createElement("div");
-  card.className = "hover-card";
-  card.innerHTML = `
-    <div class="hover-card-title">${info.event.title || "Untitled Event"}</div>
-    <div class="hover-card-time">${info.event.start?.toLocaleString() || "Time not available"}</div>
-  `;
 
-  document.body.appendChild(card);
+    window.activateView = activateView;
 
-  function moveCard(e) {
-    card.style.top = `${e.pageY + 12}px`;
-    card.style.left = `${e.pageX + 12}px`;
-  }
+    function handleNavClick(button) {
+      const viewId = button.getAttribute("data-view");
+      if (viewId) {
+        activateView(viewId);
 
-  info.el.addEventListener("mouseenter", (e) => {
-    card.style.display = "block";
-    card.style.opacity = "1";
-    moveCard(e);
-  });
+        // Update active class for sidebar nav
+        navButtons.forEach((btn) => {
+          btn.classList.toggle("active", btn.getAttribute("data-view") === viewId);
+        });
+      }
+    }
 
-  info.el.addEventListener("mousemove", moveCard);
+    navButtons.forEach(button => {
+      button.addEventListener("click", () => handleNavClick(button));
+    });
 
-  info.el.addEventListener("mouseleave", () => {
-    card.style.opacity = "0";
-    card.style.display = "none";
-  });
-}
+    bottomNavButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const viewId = button.getAttribute("data-view");
+        if (viewId) {
+          activateView(viewId);
+        }
+      });
+    });
 
+    function renderCalendar() {
+      const calendarEl = document.getElementById("calendar");
+      if (!calendarEl || typeof FullCalendar === "undefined") {
+        console.error("Calendar element or FullCalendar library not found.");
+        return;
+      }
 
+      window.calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        height: "auto",
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay"
+        },
+        events: [], // Load events from your backend here
+      });
 
       window.calendar.render();
       window.calendarRendered = true;
       console.log("✅ Calendar initialized");
-
-      // ✅ Inject any queued events now that calendar is ready
-      if (window.pendingCalendarEvents?.length) {
-        window.pendingCalendarEvents.forEach((event) => {
-          const injected = window.calendar.addEvent(event);
-          highlightCalendarEvent?.(injected);
-          console.log("🗓️ Event added from queue:", event);
-        });
-        window.pendingCalendarEvents = [];
-      }
     }
-  }
 
- 
+    // Default to chat view on load
+    activateView("chat");
+    document.querySelector('.nav-item[data-view="chat"]').classList.add("active");
 
-  // Default to chat view
-  activateView("chat");
+    if (toggleTheme) {
+      toggleTheme.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+      });
+    }
 
-  // Dark mode toggle
-  if (toggleTheme) {
-    toggleTheme.addEventListener("click", () => {
-      document.body.classList.toggle("dark");
-    });
+  } catch (err) {
+    console.error("💥 layout.js crash:", err);
   }
 });
