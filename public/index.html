@@ -73,81 +73,51 @@
 
 
    <section id="home-view" class="view">
-    <div class="product-brain-container">
-      <header class="product-header">
-        <h1>🧠 Product Brain (HomeOps.ai)</h1>
-        <p>One central page to understand the full product — vision, structure, systems, and modules.</p>
-      </header>
+        <div class="home-grid">
+          <!-- Module 1: Email Decoder -->
+          <div id="email-decoder-module" class="home-module">
+            <div class="module-header">
+              <h2>📧 Email Decoder</h2>
+              <p>Connect your Gmail to automatically surface what matters.</p>
+            </div>
+            <div class="module-content">
+              <button class="gmail-connect-btn">
+                <svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" class="svg-inline--fa fa-google fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" style="width: 1em; height: 1em; vertical-align: -0.125em;"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-69.2 69.2c-20.3-19.6-48.6-31.8-79.7-31.8-62.3 0-113.5 51.2-113.5 114.3s51.2 114.3 113.5 114.3c71.2 0 98.2-47.8 101.6-72.9H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>
+                Connect Gmail Account
+              </button>
+              <p class="small-text">We'll request permission to read your emails.</p>
+            </div>
+          </div>
 
-      <div class="section">
-        <h2>👁️ Vision</h2>
-        <p><strong>HomeOps.ai is the mental load operating system for high-performing families.</strong></p>
-        <p>It acts as a household Chief of Staff — blending emotional intelligence, automation, and insight.</p>
-        <p>Core user: Dual-income parents managing school, schedules, logistics, and emotional labor.</p>
-      </div>
+          <!-- Module 2: This Week Summary -->
+          <div id="this-week-module" class="home-module">
+            <div class="module-header">
+              <h2>🗓️ This Week</h2>
+              <p>A summary of your calendar and key tasks.</p>
+            </div>
+            <div class="module-content">
+              <!-- Content will be dynamically generated -->
+              <div class="week-summary-placeholder">
+                <p>Your weekly summary will appear here...</p>
+              </div>
+            </div>
+          </div>
 
-      <div class="section">
-        <h2>🔧 Core Modules</h2>
-        <table class="modules-table">
-          <thead>
-            <tr>
-              <th>Module</th>
-              <th>Description</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Chat Agent</strong></td>
-              <td>Emotional support + smart assistant with trained tone</td>
-              <td><span class="status-tag active">✅ Functional, refining tone</span></td>
-            </tr>
-            <tr>
-              <td><strong>Dashboard</strong></td>
-              <td>Coffee Cup View, load metrics, weekly priorities</td>
-              <td><span class="status-tag pending">⏳ Early build</span></td>
-            </tr>
-            <tr>
-              <td><strong>This Week View</strong></td>
-              <td>Structured events pulled from chat/calendar</td>
-              <td><span class="status-tag pending">⏳ Partially implemented</span></td>
-            </tr>
-            <tr>
-              <td><strong>Invisible Labor Extractor</strong></td>
-              <td>Pulls tasks, reminders, emotional flags from chat</td>
-              <td><span class="status-tag active">✅ Basic prototype live</span></td>
-            </tr>
-            <tr>
-              <td><strong>Calendar Pipeline</strong></td>
-              <td>Turns chat into events (via FullCalendar)</td>
-              <td><span class="status-tag active">✅ Working, needs polish</span></td>
-            </tr>
-            <tr>
-              <td><strong>Partner View</strong></td>
-              <td>Shared view for co-parenting & task split</td>
-              <td><span class="status-tag idea">🧠 Idea phase</span></td>
-            </tr>
-            <tr>
-              <td><strong>Gmail Intelligence</strong></td>
-              <td>Surfaces important emails (school, brands, etc.)</td>
-              <td><span class="status-tag idea">🧠 Next up</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="section">
-        <h2>🧠 Architecture Overview</h2>
-        <ul>
-          <li><strong>Frontend</strong>: HTML/CSS/JS (<code>public/</code> folder)</li>
-          <li><strong>Backend</strong>: Node.js + Express (<code>index.cjs</code>)</li>
-          <li><strong>Data</strong>: Firebase Firestore</li>
-          <li><strong>Deployment</strong>: Render</li>
-          <li><strong>Chat API</strong>: OpenAI via <code>/chat</code> endpoint</li>
-          <li><strong>Calendar UI</strong>: FullCalendar JS → injects events dynamically</li>
-        </ul>
-      </div>
-    </div>
+          <!-- Module 3: Re-frame Protocol -->
+          <div id="reframe-protocol-module" class="home-module large-module">
+            <div class="module-header">
+              <h2>🧠 Re-frame Protocol</h2>
+              <p>Your personal Chief of Staff to help you unblock and refocus.</p>
+            </div>
+            <div class="module-content">
+              <textarea class="reframe-input" placeholder="What's a challenge or blocker on your mind?"></textarea>
+              <button class="reframe-btn">Get Re-frame</button>
+              <div class="reframe-output">
+                <!-- AI-generated reframe will appear here -->
+              </div>
+            </div>
+          </div>
+        </div>
    </section>
 
 

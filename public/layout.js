@@ -131,6 +131,56 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    const reframeBtn = document.querySelector('.reframe-btn');
+    const reframeInput = document.querySelector('.reframe-input');
+    const reframeOutput = document.querySelector('.reframe-output');
+
+    if (reframeBtn) {
+      reframeBtn.addEventListener('click', async () => {
+        const challenge = reframeInput.value;
+        if (!challenge.trim()) {
+          reframeOutput.innerHTML = `<p style="color: #c0392b;">Please enter a challenge first.</p>`;
+          return;
+        }
+
+        reframeOutput.innerHTML = '<p>Getting your re-frame...</p>';
+        reframeBtn.disabled = true;
+
+        try {
+          const response = await fetch('/api/reframe-protocol', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ challenge })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to get a response from the server.');
+          }
+
+          const data = await response.json();
+          
+          reframeOutput.innerHTML = `
+            <div class="reframe-result">
+              <h4>${data.title}</h4>
+              <p class="reframe-core">"${data.reframe}"</p>
+              <h5>${data.action.header}</h5>
+              <ul>
+                ${data.action.steps.map(step => `<li>${step}</li>`).join('')}
+              </ul>
+              <h6>The Science Behind It</h6>
+              <p class="reframe-science">${data.science}</p>
+            </div>
+          `;
+
+        } catch (error) {
+          reframeOutput.innerHTML = `<p style="color: #c0392b;">Sorry, something went wrong. Please try again.</p>`;
+          console.error('Re-frame Error:', error);
+        } finally {
+          reframeBtn.disabled = false;
+        }
+      });
+    }
+
   } catch (err) {
     console.error("💥 layout.js crash:", err);
   }

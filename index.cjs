@@ -364,6 +364,70 @@ Output format:
   }
 });
 
+app.post("/api/reframe-protocol", async (req, res) => {
+  const { challenge } = req.body;
+
+  if (!challenge) {
+    return res.status(400).json({ error: "No challenge provided." });
+  }
+
+  const systemPrompt = `
+You are a world-class Chief of Staff, a unique blend of three personalities:
+- **Mel Robbins:** You provide actionable, no-nonsense advice with a framework (like the 5-second rule). You're about high-fives and taking action.
+- **Jerry Seinfeld:** You find the observational humor and absurdity in the situation, making it feel less heavy. What's the *deal* with this blocker?
+- **Andrew Huberman:** You ground the advice in neuroscience and tangible protocols. How can we leverage dopamine, focus, or rest to overcome this?
+
+The user is feeling stuck. Your task is to provide a "Re-frame" that helps them see their challenge from a new perspective.
+
+**Format your response as a single, valid JSON object:**
+{
+  "title": "A witty, Seinfeld-esque observation about the problem.",
+  "reframe": "The core insight. A one-sentence re-framing of the problem into an opportunity.",
+  "action": {
+    "header": "A Mel Robbins-style call to action (e.g., 'The 5-Minute Reset').",
+    "steps": [
+      "Step 1: A concrete, immediate action.",
+      "Step 2: Another small, tangible step.",
+      "Step 3: A third, simple action."
+    ]
+  },
+  "science": "A Huberman-esque explanation of the neuroscience behind why the action plan works (e.g., 'This leverages neuroplasticity by...')."
+}
+Do not include any text outside of this JSON object.
+  `.trim();
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: challenge }
+        ]
+      })
+    });
+
+    const data = await response.json();
+
+    if (!data.choices || !data.choices[0]?.message?.content) {
+      console.error("🛑 Re-frame GPT response missing content:", data);
+      return res.status(500).json({ error: "Invalid GPT response format" });
+    }
+
+    const parsedResponse = JSON.parse(data.choices[0].message.content);
+    res.json(parsedResponse);
+  } catch (err) {
+    console.error("❌ /api/reframe-protocol failed:", err.message);
+    res.status(500).json({ error: "Re-frame Protocol failed" });
+  }
+});
+
 app.post("/api/events/clear", async (req, res) => {
   const { user_id = "user_123" } = req.body;
   if (!user_id) {
