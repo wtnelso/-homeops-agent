@@ -31,102 +31,43 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
-async function extractCalendarEvents(prompt, message) {
-  try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        temperature: 0.2,
-        response_format: "json",
-        messages: [
-          { role: "system", content: prompt },
-          { role: "user", content: message }
-        ]
-      })
-    });
-
-    const data = await res.json();
-    let raw = data.choices?.[0]?.message?.content || "[]";
-
-    // Clean up any ```json wrappers
-    raw = raw.replace(/```json|```/g, "").trim();
-
-    // Extract the first JSON array found
-    const match = raw.match(/\[\s*{[\s\S]*?}\s*\]/);
-    if (match) {
-      const parsed = JSON.parse(match[0]);
-      console.log("📤 Parsed events from GPT:", parsed);
-      return parsed;
-    } else {
-      console.warn("📭 No calendar events found.");
-      return [];
-    }
-
-  } catch (err) {
-    console.error("❌ extractCalendarEvents failed:", err.message);
-    return [];
-  }
-}
-
-function resolveWhen(when) {
-  const now = DateTime.now().setZone("America/New_York");
-  const lower = when.toLowerCase().trim();
-
-  // Tomorrow at [time]
-  const tomorrowMatch = lower.match(/tomorrow(?:.*)? at (\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
-  if (tomorrowMatch) {
-    let hour = parseInt(tomorrowMatch[1]);
-    let minute = tomorrowMatch[2] ? parseInt(tomorrowMatch[2]) : 0;
-    const ampm = tomorrowMatch[3];
-
-    if (ampm === "pm" && hour < 12) hour += 12;
-    if (ampm === "am" && hour === 12) hour = 0;
-
-    const dt = now.plus({ days: 1 }).set({ hour, minute, second: 0 });
-    return dt.toISO({ suppressMilliseconds: true });
-  }
-
-  // Any weekday mention like "saturday", "monday", etc.
-  const weekdayMatch = lower.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:.*)? at (\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
-  if (weekdayMatch) {
-    const weekday = weekdayMatch[1];
-    let hour = weekdayMatch[2] ? parseInt(weekdayMatch[2]) : 12;
-    let minute = weekdayMatch[3] ? parseInt(weekdayMatch[3]) : 0;
-    const ampm = weekdayMatch[4];
-
-    if (ampm === "pm" && hour < 12) hour += 12;
-    if (ampm === "am" && hour === 12) hour = 0;
-
-    const targetWeekday = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"].indexOf(weekday);
-    const daysUntil = (targetWeekday + 7 - now.weekday) % 7 || 7;
-    const dt = now.plus({ days: daysUntil }).set({ hour, minute, second: 0 });
-    return dt.toISO({ suppressMilliseconds: true });
-  }
-
-  // Looser fallback: if it includes "lunch" → default to 12pm Sunday
-  if (lower.includes("sunday") && lower.includes("lunch")) {
-    const dt = now.plus({ days: (7 - now.weekday + 7) % 7 }).set({ hour: 12, minute: 0 });
-    return dt.toISO({ suppressMilliseconds: true });
-  }
-
-  return null;
-}
-
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
+  const now = DateTime.now().setZone("America/New_York");
+
+  const systemPrompt = `
+You are HomeOps — a personal chief of staff for busy families.
+
+Today's date is: ${now.toISODate()}. You are operating in the America/New_York timezone.
+
+When the user sends a message, do two things:
+1.  Write a short, emotionally intelligent reply (1–2 lines).
+2.  Extract all calendar events from the message. Convert all relative times (like "tomorrow at noon" or "Friday at 2pm") into full ISO 8601 datetime strings.
+
+Respond with ONLY a single, valid JSON object in this format. Do not include markdown, comments, or any other text outside the JSON.
+
+{
+  "reply": "Your warm and witty reply goes here.",
+  "events": [
+    {
+      "title": "Doctor Appointment",
+      "start": "2025-06-21T14:00:00-04:00",
+      "allDay": false
+    },
+    {
+      "title": "Golf",
+      "start": "2025-06-22T12:00:00-04:00",
+      "allDay": false
+    }
+  ]
+}
+
+If no events are found, return an empty "events" array.
+  `.trim();
+
   try {
-    // 1. Generate the tone reply
-    const tonePrompt = `You are HomeOps — a personal chief of staff for busy families.
-
-Write a short, emotionally intelligent reply to this message. Be warm, validating, and clear. One or two lines only.`;
-
-    const toneRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -135,119 +76,61 @@ Write a short, emotionally intelligent reply to this message. Be warm, validatin
       body: JSON.stringify({
         model: "gpt-4o",
         temperature: 0.2,
+        response_format: { type: "json_object" }, // Use the new JSON mode
         messages: [
-          { role: "system", content: tonePrompt },
+          { role: "system", content: systemPrompt },
           { role: "user", content: message }
         ]
       })
     });
 
-    const toneData = await toneRes.json();
-    const gptReply = toneData.choices?.[0]?.message?.content || "Got it.";
+    const gptData = await gptRes.json();
+    const content = gptData.choices?.[0]?.message?.content;
 
-    // 2. Extract time-based phrases
-    const extractPrompt = `Extract all time-based events from this message and return them in JSON. Do not resolve time. Use the exact phrasing the user used.
-
-Format:
-[
-  { "title": "Doctor appointment", "when": "tomorrow at 9am" },
-  { "title": "Wedding", "when": "Friday at 2pm" }
-]`;
-
-    const extractRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        temperature: 0.2,
-        response_format: "json",
-        messages: [
-          { role: "system", content: extractPrompt },
-          { role: "user", content: message }
-        ]
-      })
-    });
-
-    const extractData = await extractRes.json();
-    const raw = extractData.choices?.[0]?.message?.content || "[]";
-    const parsed = JSON.parse(raw); // parsed = array of { title, when }
-    console.log("🧪 Extracted events from GPT:", parsed);
-
-    // 3. Convert 'when' → 'start'
-    const events = [];
-
-    for (const item of parsed) {
-      const { title, when } = item;
-
-      let parsedStart = null;
-      parsedStart = resolveWhen(when);
-
-      if (parsedStart) {
-        events.push({
-          title: title?.trim() || "Untitled Event",
-          start: parsedStart,
-          allDay: false
-        });
-      } else {
-        console.warn("⚠️ Could not parse:", when);
-        
-        try {
-          const easternNow = DateTime.now().setZone("America/New_York").toJSDate();
-          const parsed = chrono.parseDate(when, easternNow, { forwardDate: true });
-          if (!parsed) {
-            console.warn("⛔️ Chrono failed to parse:", when);
-            continue;
-          }
-
-          parsedStart = DateTime.fromJSDate(parsed, {
-            zone: "America/New_York"
-          }).toISO({ suppressMilliseconds: true });
-
-          console.log("🕓 Parsed locally:", when, "→", parsedStart);
-
-        } catch (err) {
-          console.error("❌ Local time parsing failed:", err.message);
-          continue;
-        }
-
-        if (parsedStart) {
-          events.push({
-            title: title?.trim() || "Untitled Event",
-            start: parsedStart,
-            allDay: false
-          });
-        }
-      }
+    if (!content) {
+      throw new Error("No content from GPT response.");
     }
 
-    console.log("✅ Final parsed events:", events);
+    const parsedResponse = JSON.parse(content);
+    const { reply, events = [] } = parsedResponse;
 
-    // Optional: log GPT's full response for debugging
-    console.log("🧪 Full GPT reply content:", gptReply);
+    console.log("✅ GPT Reply:", reply);
+    console.log("✅ Extracted Events:", events);
 
-    // Save message + reply for audit/logging
+    // Save the user message and the agent's reply to Firestore
     await db.collection("messages").add({
       user_id,
       message,
-      reply: gptReply,
+      reply: reply || "Got it.",
       timestamp: new Date()
     });
 
-    // Clean GPT reply for frontend (strip markdown wrappers)
-    const cleanedReply = gptReply.replace(/```json|```/g, "").trim();
+    // Save the extracted events to Firestore
+    if (events.length > 0) {
+      const batch = db.batch();
+      events.forEach(event => {
+        if (event.title && event.start) { // Basic validation
+          const eventRef = db.collection("events").doc();
+          batch.set(eventRef, {
+            ...event,
+            user_id,
+            created_at: new Date()
+          });
+        }
+      });
+      await batch.commit();
+      console.log(`✅ Saved ${events.length} events to Firestore.`);
+    }
 
-    res.json({ reply: cleanedReply, events });
+    res.json({ reply, events });
 
   } catch (err) {
-    console.error("❌ /chat failed:", err.message);
-    res.status(500).json({ error: "Chat processing failed" });
+    console.error("❌ /chat endpoint failed:", err.message);
+    res.status(500).json({ error: "Failed to process your request." });
   }
 });
 
-// ✅ Save event to Firestore
+// ✅ Save event to Firestore (this can be used for manual additions if needed)
 app.post("/api/events", async (req, res) => {
   const { event } = req.body;
 
