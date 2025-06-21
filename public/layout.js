@@ -26,8 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Highlight the active nav button
     navButtons.forEach((btn) => {
-      btn.classList.toggle("active", btn.getAttribute("data-view") === targetView);
-    });
+  btn.classList.remove("active");
+});
+document.querySelector(`.nav-item[data-view="${viewId}"]`)?.classList.add("active");
+
 
     // Load dashboard if needed
     if (targetView === "dashboard") {
