@@ -8,9 +8,6 @@ const fs = require("fs");
 const { DateTime } = require("luxon");
 const chrono = require("chrono-node");
 
-
-
-
 let firebaseCredentials;
 try {
   const base64 = process.env.FIREBASE_CREDENTIALS;
@@ -34,70 +31,6 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
-async function extractCalendarEvents(message) {
- const now = new Date().toLocaleString("en-US", {
-  timeZone: "America/New_York",
-  weekday: "long",
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-  hour12: true
-}); // Example: "Thursday, June 20, 2025 at 9:15 AM"
-
-const isoDate = new Date().toLocaleDateString("en-CA", {
-  timeZone: "America/New_York"
-}); // Example: "2025-06-20"
-
-const prompt = `
-You are a datetime parser for HomeOps.
-
-Today's full date and time is: ${now}  
-Today's ISO date is: ${isoDate}  
-You are operating in the America/New_York timezone.
-
-When given a message like "tomorrow at 8am", "Saturday golf at noon", or "Monday flight at 9", convert each event into an ISO 8601 datetime string.
-
-⚠️ Always interpret time expressions relative to the current local date and time.
-⚠️ Do not use UTC or 'Z'.
-⚠️ Do not return markdown, commentary, or code formatting.
-
-✅ Only return a clean JSON array like this:
-
-[
-  {
-    "title": "Doctor appointment",
-    "start": "2025-06-21T08:00:00",
-    "allDay": false
-  }
-]
-
-Now extract any events from this message:
-"""${message}"""
-`.trim();
-
-
-  async function extractCalendarEvents(prompt, message) {
-  try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        temperature: 0.2,
-        response_format: "json",
-        messages: [
-          { role: "system", content: prompt },
-          { role: "user", content: message }
-        ]
-      })
-    });
-
-// Your existing function (leave this as-is)
 async function extractCalendarEvents(prompt, message) {
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -140,46 +73,6 @@ async function extractCalendarEvents(prompt, message) {
   }
 }
 
-// ✅ Safe async wrapper for testing
-async function runCalendarTest() {
-  const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
-
-  const systemPrompt = `You are HomeOps — a personal chief of staff for busy families.
-
-Today is ${todayEastern}, and you operate in the America/New_York timezone.
-
-You are NOT responsible for converting relative time phrases like "tomorrow" or "next Friday" into specific dates. Just extract event details as written by the user.
-
-When a user shares a message, your job is to:
-1. Write a short, emotionally intelligent reply — 1–2 lines. Be warm, brief, and clear. No filler or backticks.
-2. Extract all time-based phrases *exactly as spoken* (e.g., "tomorrow at 9am", "next Friday at noon") and return them in a JSON array.
-
-The backend will convert relative phrases to exact dates.
-
-Respond like this:
-
-✅ Got it. Haircut tomorrow at 10 and swim lesson Friday afternoon — both noted.`;
-
-  const sampleMessage = "Can you book a pediatrician visit Thursday morning and haircut Friday at 2pm?";
-
-  const events = await extractCalendarEvents(systemPrompt, sampleMessage);
-  console.log("✅ Calendar events returned:", events);
-}
-
-// ✅ Run the wrapper function
-runCalendarTest();
-
-[
-  {
-    "title": "Haircut",
-    "when": "tomorrow at 10am"
-  },
-  {
-    "title": "Swim lesson",
-    "when": "Friday afternoon"
-  }
-
-
 function resolveWhen(when) {
   const now = DateTime.now().setZone("America/New_York");
   const lower = when.toLowerCase().trim();
@@ -215,7 +108,7 @@ function resolveWhen(when) {
     return dt.toISO({ suppressMilliseconds: true });
   }
 
-  // Looser fallback: if it includes “lunch” → default to 12pm Sunday
+  // Looser fallback: if it includes "lunch" → default to 12pm Sunday
   if (lower.includes("sunday") && lower.includes("lunch")) {
     const dt = now.plus({ days: (7 - now.weekday + 7) % 7 }).set({ hour: 12, minute: 0 });
     return dt.toISO({ suppressMilliseconds: true });
@@ -223,7 +116,6 @@ function resolveWhen(when) {
 
   return null;
 }
-
 
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
@@ -251,7 +143,7 @@ Write a short, emotionally intelligent reply to this message. Be warm, validatin
     });
 
     const toneData = await toneRes.json();
-    const toneReply = toneData.choices?.[0]?.message?.content || "✅ Noted.";
+    const gptReply = toneData.choices?.[0]?.message?.content || "Got it.";
 
     // 2. Extract time-based phrases
     const extractPrompt = `Extract all time-based events from this message and return them in JSON. Do not resolve time. Use the exact phrasing the user used.
@@ -280,10 +172,9 @@ Format:
     });
 
     const extractData = await extractRes.json();
-    const raw = extractData.choices?.[0]?.message?.content || "";
+    const raw = extractData.choices?.[0]?.message?.content || "[]";
     const parsed = JSON.parse(raw); // parsed = array of { title, when }
     console.log("🧪 Extracted events from GPT:", parsed);
-
 
     // 3. Convert 'when' → 'start'
     const events = [];
@@ -294,158 +185,67 @@ Format:
       let parsedStart = null;
       parsedStart = resolveWhen(when);
 
-if (parsedStart) {
-  events.push({
-    title: title?.trim() || "Untitled Event",
-    start: parsedStart,
-    allDay: false
-  });
-} else {
-  console.warn("⚠️ Could not parse:", when);
-}
+      if (parsedStart) {
+        events.push({
+          title: title?.trim() || "Untitled Event",
+          start: parsedStart,
+          allDay: false
+        });
+      } else {
+        console.warn("⚠️ Could not parse:", when);
+        
+        try {
+          const easternNow = DateTime.now().setZone("America/New_York").toJSDate();
+          const parsed = chrono.parseDate(when, easternNow, { forwardDate: true });
+          if (!parsed) {
+            console.warn("⛔️ Chrono failed to parse:", when);
+            continue;
+          }
 
+          parsedStart = DateTime.fromJSDate(parsed, {
+            zone: "America/New_York"
+          }).toISO({ suppressMilliseconds: true });
 
-try {
-  const easternNow = DateTime.now().setZone("America/New_York").toJSDate();
-const parsed = chrono.parseDate(when, easternNow, { forwardDate: true });
-  if (!parsed) {
-    console.warn("⛔️ Chrono failed to parse:", when);
-    continue;
-  }
+          console.log("🕓 Parsed locally:", when, "→", parsedStart);
 
-  parsedStart = DateTime.fromJSDate(parsed, {
-    zone: "America/New_York"
-  }).toISO({ suppressMilliseconds: true });
+        } catch (err) {
+          console.error("❌ Local time parsing failed:", err.message);
+          continue;
+        }
 
-  console.log("🕓 Parsed locally:", when, "→", parsedStart);
+        if (parsedStart) {
+          events.push({
+            title: title?.trim() || "Untitled Event",
+            start: parsedStart,
+            allDay: false
+          });
+        }
+      }
+    }
 
-} catch (err) {
-  console.error("❌ Local time parsing failed:", err.message);
-  continue;
-}
+    console.log("✅ Final parsed events:", events);
 
-if (parsedStart) {
-  events.push({
-    title: title?.trim() || "Untitled Event",
-    start: parsedStart,
-    allDay: false
-  });
-}
-    // GPT call 1 — tone reply
-    const toneRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: tonePrompt },
-          { role: "user", content: message }
-        ]
-      })
+    // Optional: log GPT's full response for debugging
+    console.log("🧪 Full GPT reply content:", gptReply);
+
+    // Save message + reply for audit/logging
+    await db.collection("messages").add({
+      user_id,
+      message,
+      reply: gptReply,
+      timestamp: new Date()
     });
 
-    const toneData = await toneRes.json();
-    const gptReply = toneData.choices?.[0]?.message?.content || "Got it.";
+    // Clean GPT reply for frontend (strip markdown wrappers)
+    const cleanedReply = gptReply.replace(/```json|```/g, "").trim();
 
-    // GPT call 2 — extract JSON with "when"
-   const extractRes = await fetch("https://api.openai.com/v1/chat/completions", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    model: "gpt-4o",
-    temperature: 0.2,
-    response_format: "json", // 🧠 forces GPT to return pure JSON
-    messages: [
-      {
-        role: "system",
-        content: `
-You are HomeOps — a structured household assistant.
-When the user shares calendar-related messages, respond only with a valid JSON object in this format:
+    res.json({ reply: cleanedReply, events });
 
-{
-  "reply": "✅ I’ve added your events to the calendar.",
-  "events": [
-    {
-      "title": "Doctor Appointment",
-      "start": "2025-06-21T14:00:00",
-      "allDay": false
-    },
-    {
-      "title": "Golf",
-      "start": "2025-06-22T12:00:00",
-      "allDay": false
-    }
-  ]
-}
-
-⚠️ Do not include markdown, code blocks, or natural language outside the 'reply'. Always return only valid JSON.
-        `.trim()
-      },
-      {
-        role: "user",
-        content: message
-      }
-    ]
-  })
-});
-
-
-  const result = await extractRes.json();
-
-let events = [];
-let reply = "✅ I’ve added your events.";
-
-try {
-  if (result.choices?.[0]?.message?.content) {
-    const parsed = JSON.parse(result.choices[0].message.content);
-    events = parsed.events || [];
-    reply = parsed.reply || reply;
+  } catch (err) {
+    console.error("❌ /chat failed:", err.message);
+    res.status(500).json({ error: "Chat processing failed" });
   }
-} catch (err) {
-  console.error("❌ GPT JSON parsing failed:", err.message);
-}
-
-
-let events = [];
-let reply = "✅ I’ve added your events.";
-
-try {
-  if (result.choices?.[0]?.message?.content) {
-    const parsed = JSON.parse(result.choices[0].message.content);
-    events = parsed.events || [];
-    reply = parsed.reply || reply;
-  }
-} catch (err) {
-  console.error("❌ GPT JSON parsing failed:", err.message);
-}
-
-
-console.log("✅ Final parsed events:", events);
-
-// Optional: log GPT's full response for debugging
-console.log("🧪 Full GPT reply content:", gptReply);
-
-// Save message + reply for audit/logging
-await db.collection("messages").add({
-  user_id,
-  message,
-  reply: gptReply,
-  timestamp: new Date()
 });
-
-// Clean GPT reply for frontend (strip markdown wrappers)
-const cleanedReply = gptReply.replace(/```json|```/g, "").trim();
-
-res.json({ reply: cleanedReply, events });
-
-
-
 
 // ✅ Save event to Firestore
 app.post("/api/events", async (req, res) => {
@@ -573,7 +373,7 @@ Group them by day, format with emoji and clarity, and then reply with a 2–3 se
 Format:
 
 🛂 Tuesday @ 11 AM — Passport appointment  
-🎾 Wednesday — Lucy’s tennis match  
+🎾 Wednesday — Lucy's tennis match  
 
 Commentary here.`;
 
@@ -607,16 +407,6 @@ Commentary here.`;
     res.status(500).json({ error: "Weekly summary failed" });
   }
 });
-
-
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content || "Couldn’t summarize this week.";
-  res.json({ summary: text });
-} catch (err) {
-  console.error("❌ /api/this-week failed:", err.message);
-  res.status(500).json({ error: "Weekly summary failed" });
-}
-
 
 app.post("/api/relief-protocol", async (req, res) => {
   const { tasks = [], emotional_flags = [] } = req.body;
