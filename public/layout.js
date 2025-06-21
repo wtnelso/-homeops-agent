@@ -23,12 +23,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 }
 
+// Set up navigation + highlight active nav button
+navButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const viewId = button.getAttribute("data-view");
+    activateView(viewId);
 
-    // Highlight the active nav button
+    // Highlight the active button
     navButtons.forEach((btn) => {
-  btn.classList.remove("active");
+      const isActive = btn.getAttribute("data-view") === viewId;
+      btn.classList.toggle("active", isActive);
+    });
+  });
 });
-document.querySelector(`.nav-item[data-view="${viewId}"]`)?.classList.add("active");
+
 
 
     // Load dashboard if needed
@@ -131,13 +139,7 @@ eventDidMount: function(info) {
     }
   }
 
-  // Set up navigation
-  navButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const target = button.getAttribute("data-view");
-      activateView(target);
-    });
-  });
+ 
 
   // Default to chat view
   activateView("chat");
