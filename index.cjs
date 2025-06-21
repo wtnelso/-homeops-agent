@@ -97,6 +97,26 @@ Now extract any events from this message:
       })
     });
 
+// Your existing function (leave this as-is)
+async function extractCalendarEvents(prompt, message) {
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0.2,
+        response_format: "json",
+        messages: [
+          { role: "system", content: prompt },
+          { role: "user", content: message }
+        ]
+      })
+    });
+
     const data = await res.json();
     let raw = data.choices?.[0]?.message?.content || "[]";
 
@@ -120,14 +140,11 @@ Now extract any events from this message:
   }
 }
 
+// ✅ Safe async wrapper for testing
+async function runCalendarTest() {
+  const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
 
-const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
-
-const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
-
-const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
-
-const systemPrompt = `You are HomeOps — a personal chief of staff for busy families.
+  const systemPrompt = `You are HomeOps — a personal chief of staff for busy families.
 
 Today is ${todayEastern}, and you operate in the America/New_York timezone.
 
@@ -141,7 +158,16 @@ The backend will convert relative phrases to exact dates.
 
 Respond like this:
 
-✅ Got it. Haircut tomorrow at 10 and swim lesson Friday afternoon — both noted.
+✅ Got it. Haircut tomorrow at 10 and swim lesson Friday afternoon — both noted.`;
+
+  const sampleMessage = "Can you book a pediatrician visit Thursday morning and haircut Friday at 2pm?";
+
+  const events = await extractCalendarEvents(systemPrompt, sampleMessage);
+  console.log("✅ Calendar events returned:", events);
+}
+
+// ✅ Run the wrapper function
+runCalendarTest();
 
 [
   {
