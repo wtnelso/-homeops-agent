@@ -41,6 +41,59 @@ try {
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
+// --- RAG Helper Functions ---
+async function createEmbedding(text) {
+  const response = await fetch("https://api.openai.com/v1/embeddings", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "text-embedding-3-small",
+      input: text
+    })
+  });
+  const data = await response.json();
+  if (!data.data || !data.data[0] || !data.data[0].embedding) {
+    throw new Error("Invalid embedding response");
+  }
+  return data.data[0].embedding;
+}
+
+function cosineSimilarity(a, b) {
+  let dot = 0.0, normA = 0.0, normB = 0.0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+async function getTopKRelevantChunks(userEmbedding, k = 5) {
+  // Fetch all knowledge chunks (for small KB; for large KB, use a vector DB)
+  const snapshot = await db.collection('knowledge_chunks').get();
+  const chunks = snapshot.docs.map(doc => doc.data());
+  // Compute similarity
+  for (const chunk of chunks) {
+    chunk.sim = cosineSimilarity(userEmbedding, chunk.embedding);
+  }
+  // Sort by similarity, descending
+  chunks.sort((a, b) => b.sim - a.sim);
+  return chunks.slice(0, k);
+}
+
+function anonymizeText(text) {
+  return text
+    .replace(/Mel Robbins/gi, "the coach")
+    .replace(/Jerry Seinfeld/gi, "the comedian")
+    .replace(/Andrew Huberman/gi, "the scientist")
+    .replace(/Amy Schumer/gi, "the comedian")
+    .replace(/Martha Beck/gi, "the author");
+}
+// --- END RAG Helper Functions ---
+
 app.post("/chat", async (req, res) => {
   const { user_id = "user_123", message } = req.body;
 
@@ -58,10 +111,23 @@ app.post("/chat", async (req, res) => {
     const messagesForApi = [];
 
     // System prompt combining the persona and the core instructions
+    let ragContext = "";
+    try {
+      const userEmbedding = await createEmbedding(message);
+      const topChunks = await getTopKRelevantChunks(userEmbedding, 5);
+      ragContext = topChunks.map(c => anonymizeText(c.content)).join("\n---\n");
+    } catch (e) {
+      console.error("RAG context fetch failed:", e.message);
+    }
     const systemPrompt = `
 ${tonePromptContent}
 
-You are HomeOps. Your instructions are above.
+Never mention the names of any real people, authors, or public figures in your reply. Always anonymize or generalize any references.
+
+Relevant context from the knowledge base:
+---
+${ragContext}
+---
 
 Today's date is: ${DateTime.now().setZone("America/New_York").toISODate()}.
 You are operating in the America/New_York timezone.
