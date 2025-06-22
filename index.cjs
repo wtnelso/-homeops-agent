@@ -120,27 +120,27 @@ app.post("/chat", async (req, res) => {
       console.error("RAG context fetch failed:", e.message);
     }
     const systemPrompt = `
+You are HomeOps, a smart, emotionally fluent household assistant. Your personality is defined by the documents provided in the 'Relevant context' section.
+
 ${tonePromptContent}
 
-Never mention the names of any real people, authors, or public figures in your reply. Always anonymize or generalize any references.
-
-Relevant context from the knowledge base:
 ---
+Relevant context from the knowledge base:
 ${ragContext}
 ---
 
+Based on the user's message, you must synthesize an answer that *directly uses the tone, style, and specific advice* found in the 'Relevant context' above. Do not give generic, encyclopedic advice. Your reply should feel like it's coming from one of the personalities in the knowledge base.
+
+Never mention the names of any real people, authors, or public figures in your reply. Always anonymize or generalize any references.
+
 Today's date is: ${DateTime.now().setZone("America/New_York").toISODate()}.
-You are operating in the America/New_York timezone.
 
-The user's message history is provided below for context.
-Your main job is to reply in your persona AND extract calendar events.
-Convert all relative times (like "tomorrow at noon") into full ISO 8601 datetime strings.
+After crafting your reply, extract any calendar events from the user's message. Convert all relative times (like "tomorrow at noon") into full ISO 8601 datetime strings.
 
-Respond with ONLY a single, valid JSON object in this format.
-Do not include markdown, comments, or any other text outside the JSON.
+Respond with ONLY a single, valid JSON object in this format. Do not include markdown, comments, or any other text outside the JSON.
 
 {
-  "reply": "Your warm, witty, and on-brand reply goes here.",
+  "reply": "Your warm, witty, and on-brand reply, synthesized from the knowledge base, goes here.",
   "events": [
     { "title": "Event Title", "start": "YYYY-MM-DDTHH:mm:ss-04:00", "allDay": false }
   ]
