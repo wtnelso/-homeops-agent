@@ -11,7 +11,7 @@ const chrono = require("chrono-node");
 // Add CORS support
 const cors = require("cors");
 
-// Force deployment update - v5 - Explicit build with npm install and verification
+// Force deployment update - v6 - Use npm start instead of direct node call
 
 // Use service account key from file for reliable initialization
 try {
