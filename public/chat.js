@@ -51,6 +51,13 @@ document.addEventListener("DOMContentLoaded", () => {
     addMessage("user", message);
     input.value = "";
 
+    // Show thinking indicator
+    const thinkingIndicator = document.createElement("div");
+    thinkingIndicator.className = "thinking-indicator";
+    thinkingIndicator.innerHTML = `<img src="img/logo.svg" alt="Thinking...">`;
+    chatBox.appendChild(thinkingIndicator);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
     try {
       const res = await fetch("/chat", {
         method: "POST",
@@ -60,6 +67,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await res.json();
       
+      // Remove thinking indicator
+      chatBox.removeChild(thinkingIndicator);
+
       if (data.reply) {
         addMessage("agent", data.reply);
       }
@@ -80,6 +90,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (err) {
       console.error("Chat error:", err);
+      // Ensure thinking indicator is removed on error
+      if (chatBox.contains(thinkingIndicator)) {
+        chatBox.removeChild(thinkingIndicator);
+      }
       addMessage("agent", "Sorry, I'm having trouble connecting. Please try again later.");
     }
   });
