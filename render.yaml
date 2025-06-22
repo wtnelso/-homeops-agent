@@ -2,7 +2,9 @@ services:
   - type: web
     name: homeops-backend
     env: node
-    buildCommand: npm ci --only=production
+    buildCommand: |
+      npm install
+      npm list luxon
     startCommand: node index.cjs
     envVars:
       - key: NODE_ENV
