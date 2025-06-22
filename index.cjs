@@ -11,6 +11,8 @@ const chrono = require("chrono-node");
 // Add CORS support
 const cors = require("cors");
 
+// Force deployment update - v2
+
 // Use service account key from file for reliable initialization
 try {
   const serviceAccount = JSON.parse(fs.readFileSync(path.join(__dirname, "homeops-sa-key.json"), "utf8"));
