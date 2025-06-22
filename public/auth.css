@@ -1,0 +1,98 @@
+/* public/auth.css */
+
+body.auth-page {
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.auth-container {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.auth-header {
+    margin-bottom: 30px;
+}
+
+.auth-logo {
+    width: 60px;
+    margin-bottom: 15px;
+}
+
+.auth-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 5px 0;
+}
+
+.auth-header p {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
+.auth-form h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box; /* Important for padding */
+}
+
+.auth-form button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #4A90E2;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.auth-form button:hover {
+    background-color: #357ABD;
+}
+
+.error-message {
+    color: #D32F2F;
+    font-size: 13px;
+    margin-top: 10px;
+    min-height: 18px; /* Reserve space */
+}
+
+.toggle-link {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
+}
+
+.toggle-link span {
+    color: #4A90E2;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.toggle-link span:hover {
+    text-decoration: underline;
+} 

@@ -2,62 +2,313 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HomeOps Dashboard</title>
-  <link rel="stylesheet" href="dashboard.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>HomeOps</title>
+
+  <link rel="stylesheet" href="style.css" />
+    <!-- ✅ Add Tippy.js tooltip support -->
+  <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://unpkg.com/tippy.js@6"></script>
+  <style>
+    .reframe-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding-top: 0.5rem;
+    }
+
+    .reframe {
+      background: #f9f9fb;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .reframe h4 {
+      margin: 0 0 0.25rem;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .reframe p {
+      margin: 0.25rem 0;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: #555;
+    }
+
+    .reframe p em {
+      color: #777;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-email {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .logout-btn {
+      background: #ff4757;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #ff3742;
+    }
+  </style>
 </head>
 <body>
-  <div class="dashboard-container">
-    <header class="dashboard-header">
-      <h1>HomeOps.ai</h1>
-      <p class="subtitle">Your intelligent command center</p>
-    </header>
+  <div class="app-container">
 
-    <section class="dashboard-grid">
-      <!-- 🧭 HomeOps Core -->
-      <div class="card" id="command-center">
-        <h2>🧭 HomeOps Core</h2>
-        <p>Loading priorities...</p>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <img src="img/logo.svg" alt="HomeOps Logo" class="sidebar-logo">
+        </div>
       </div>
+      <nav class="nav">
+        <button class="nav-item active" data-view="home" title="My Ops Center"><i data-lucide="home"></i></button>
+        <button class="nav-item" data-view="chat" title="Ask HomeOps"><i data-lucide="message-square"></i></button>
+        <button class="nav-item" data-view="dashboard" title="The House View"><i data-lucide="bar-chart-3"></i></button>
+        <button class="nav-item" data-view="calendar" title="Calendar View"><i data-lucide="calendar-days"></i></button>
+      </nav>
+    </aside>
 
-      <!-- 🧠 Cognitive Load Index -->
-      <div class="card">
-        <h2>Cognitive Load Index</h2>
-        <p id="load-score">Loading...</p>
-      </div>
+    <main class="main-content">
 
-      <!-- 🕳️ Hidden Load -->
-      <div class="card" id="invisible-labor">
-        <h2>🕳️ Hidden Load</h2>
-        <p>Analyzing...</p>
-      </div>
 
-      <!-- 🧩 Behavioral Indicators -->
-      <div class="card">
-        <h2>🧩 Behavioral Indicators</h2>
-        <ul id="emotional-themes">Loading...</ul>
-      </div>
+  <!-- Top Bar with logo + brand -->
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <img src="img/logo.svg" alt="HomeOps Logo" class="top-bar-logo">
+      <span class="brand-name">HomeOps.ai</span>
+    </div>
+    <div class="user-menu">
+      <span class="user-email" id="userEmail"></span>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+  </header>
 
-      <!-- 🧠 Insight Feed -->
-      <div class="card">
-        <h2>🧠 Insight Feed</h2>
-        <div id="context-thread">Analyzing...</div>
-      </div>
 
-      <!-- 🎯 Strategic Prompts -->
-      <div class="card">
-        <h2>🎯 Strategic Prompts</h2>
-        <div id="smart-replies">Generating...</div>
-      </div>
+   <section id="home-view" class="view">
+        <div class="home-grid">
+          <!-- Module 1: Email Decoder -->
+          <div id="email-decoder-module" class="home-module">
+            <div class="module-header">
+              <h2>📧 Email Decoder</h2>
+              <p>Connect your Gmail to automatically surface what matters.</p>
+            </div>
+            <div class="module-content">
+              <button class="gmail-connect-btn">
+                <svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" class="svg-inline--fa fa-google fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" style="width: 1em; height: 1em; vertical-align: -0.125em;"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-69.2 69.2c-20.3-19.6-48.6-31.8-79.7-31.8-62.3 0-113.5 51.2-113.5 114.3s51.2 114.3 113.5 114.3c71.2 0 98.2-47.8 101.6-72.9H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>
+                Connect Gmail Account
+              </button>
+              <p class="small-text">We'll request permission to read your emails.</p>
+            </div>
+          </div>
 
-      <!-- 🔍 Ops Intelligence -->
-      <div class="card" id="dynamic-recommendations">
-        <h2>🔍 Ops Intelligence</h2>
-        <p>Analyzing patterns...</p>
-      </div>
-    </section>
+          <!-- Module 2: This Week Summary -->
+          <div id="this-week-module" class="home-module">
+            <div class="module-header">
+              <h2>🗓️ This Week</h2>
+              <p>A summary of your calendar and key tasks.</p>
+            </div>
+            <div class="module-content">
+              <!-- Content will be dynamically generated -->
+              <div class="week-summary-placeholder">
+                <p>Your weekly summary will appear here...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Module 3: Re-frame Protocol -->
+          <div id="reframe-protocol-module" class="home-module large-module">
+            <div class="module-header">
+              <h2>🧠 Re-frame Protocol</h2>
+              <p>Your personal Chief of Staff to help you unblock and refocus.</p>
+            </div>
+            <div class="module-content">
+              <textarea class="reframe-input" placeholder="What's a challenge or blocker on your mind?"></textarea>
+              <button class="reframe-btn">Get Re-frame</button>
+              <div class="reframe-output">
+                <!-- AI-generated reframe will appear here -->
+              </div>
+            </div>
+          </div>
+        </div>
+   </section>
+
+
+      <!-- Ask HomeOps (Chat) -->
+      <section id="chat-view" class="view">
+        <div class="chat-wrapper">
+          <div id="chat" class="chat-box"></div>
+          <form id="chatForm" class="chat-form">
+            <input id="input" type="text" placeholder="Type something..." autocomplete="off" />
+            <button type="submit">Send</button>
+          </form>
+        </div>
+      </section>
+<!-- House View (Dashboard) -->
+<section id="dashboard-view" class="view">
+  <h2>📊 The House View</h2>
+  <div class="dashboard-grid">
+
+    <!-- Structured Weekly View -->
+    <div class="dashboard-card" id="structured-week-card">
+      <h3>📅 This Week</h3>
+      <div id="structured-schedule"></div>
+      <h4>🧠 Reminders</h4>
+      <ul id="structured-reminders"></ul>
+    </div>
+
+    <!-- Mental Load & Insights -->
+    <div class="dashboard-card">
+      <h3>Mental Load</h3>
+      <ul></ul>
+    </div>
+
+    <!-- Reframes (now styled as card in grid) -->
+    <div class="dashboard-card">
+      <h3>Reframes</h3>
+      <div class="reframe-list"></div>
+    </div>
+
   </div>
 
-  <script src="dashboard-v2.js"></script>
+  <!-- Relief Protocol -->
+  <div id="relief-protocol" class="relief-card">
+    <div class="relief-header">
+      <h2>🧠 Relief Protocol</h2>
+      <p class="subtle-label">Based on recent load patterns</p>
+    </div>
+
+    <div class="relief-section">
+      <label>Summary</label>
+      <p id="relief-summary">Loading...</p>
+    </div>
+
+    <div class="relief-section">
+      <label>Offload </label>
+      <p id="relief-offload">Loading...</p>
+    </div>
+
+    <div class="relief-section">
+      <label>Reclaim </label>
+      <p id="relief-reclaim">Loading...</p>
+    </div>
+
+    <div class="relief-section">
+      <label>Reconnect </label>
+      <p id="relief-reconnect">Loading...</p>
+    </div>
+
+    <div class="relief-section">
+      <label>Pattern Interrupt </label>
+      <p id="relief-interrupt">Loading...</p>
+    </div>
+
+    <div class="relief-section" id="reframe-block" style="display: none;">
+      <label>Reframe </label>
+      <p id="relief-reframe">Loading...</p>
+    </div>
+  </div>
+</section>
+
+<!-- ✅ Calendar View (moved outside of dashboard) -->
+<section id="calendar-view" class="view">
+  <div class="view-header">
+    <h2>📅 My Calendar</h2>
+    <button id="clear-events-btn" class="button-danger">Clear All Events</button>
+  </div>
+  <div id="calendar"></div>
+</section>
+
+</main>
+</div>
+
+<!-- ✅ Icons MUST be loaded before your app scripts -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<!-- ✅ FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" rel="stylesheet" />
+
+<!-- ✅ FullCalendar Global Build — works without import or modules -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
+
+<!-- Firebase configuration and auth logic -->
+<script>
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDx_ygwnomCIM-1kqY6GJBjYkHy5UaR_g8",
+  authDomain: "homeops-web.firebaseapp.com",
+  projectId: "homeops-web",
+  storageBucket: "homeops-web.firebasestorage.app",
+  messagingSenderId: "620328376664",
+  appId: "1:620328376664:web:e1aa715f26f4a2f143ad2d",
+  measurementId: "G-Q4924PYF55"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+// Check authentication state
+auth.onAuthStateChanged((user) => {
+  if (!user) {
+    // User is not signed in, redirect to login
+    window.location.href = '/';
+  } else {
+    // User is signed in, display email
+    document.getElementById('userEmail').textContent = user.email;
+  }
+});
+
+// Handle logout
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  try {
+    await auth.signOut();
+    // Redirect will happen automatically via onAuthStateChanged
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+});
+</script>
+
+<!-- ✅ Your app scripts -->
+<script src="layout.js" defer></script>
+<script src="chat.js" defer></script>
+<script src="/relief.js" defer></script>
+
+<!-- ✅ Bottom nav for mobile view -->
+<div class="bottom-nav">
+  <button data-view="home" onclick="activateView('home')">🏠</button>
+  <button data-view="chat" onclick="activateView('chat')">💬</button>
+  <button data-view="dashboard" onclick="activateView('dashboard')">📊</button>
+  <button data-view="calendar" onclick="activateView('calendar')">📅</button>
+</div>
+
+<script src="/homebase.js" defer></script>
 </body>
 </html>
+
+
+
