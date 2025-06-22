@@ -134,7 +134,7 @@ Your response MUST be a direct synthesis of the provided context. Do NOT revert 
 Never mention the names of any real people, authors, or public figures.
 Today's date is: ${DateTime.now().setZone("America/New_York").toISODate()}.
 
-After crafting your in-character reply, extract any calendar events from the user's message.
+After crafting your in-character reply, extract calendar events found in the user's **most recent message only**. If there are no new events in the last message, return an empty array.
 
 Respond with ONLY a single, valid JSON object in this format.
 
@@ -169,7 +169,8 @@ Respond with ONLY a single, valid JSON object in this format.
       },
       body: JSON.stringify({
         model: "gpt-4o",
-        temperature: 0.3, // Slightly more creative for persona-driven replies
+        temperature: 0.7,
+        top_p: 1,
         response_format: { type: "json_object" },
         messages: messagesForApi
       })
