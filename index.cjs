@@ -388,60 +388,6 @@ app.get("/api/dashboard", async (req, res) => {
   }
 });
 
-app.post("/api/this-week", async (req, res) => {
-  const { messages } = req.body;
-
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: "No messages provided." });
-  }
-
-  const todayEastern = DateTime.now().setZone("America/New_York").toISODate();
-
-  const systemPrompt = `You are HomeOps — a smart, emotionally fluent household assistant.
-
-Today is ${todayEastern}, and you operate in the America/New_York timezone.
-
-Your job is to extract all upcoming appointments or time-sensitive obligations from the user's messages for the current week.
-Group them by day, format with emoji and clarity, and then reply with a 2–3 sentence commentary using wit and validation.
-
-Format:
-
-🛂 Tuesday @ 11 AM — Passport appointment  
-🎾 Wednesday — Lucy's tennis match  
-
-Commentary here.`;
-
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: messages.map(m => `• ${m}`).join("\n") }
-        ]
-      })
-    });
-
-    const data = await response.json();
-
-    if (!data.choices || !data.choices[0]?.message?.content) {
-      console.error("🛑 GPT response missing content:", data);
-      return res.status(500).json({ error: "Invalid GPT response format" });
-    }
-
-    const text = data.choices[0].message.content;
-    res.json({ summary: text });
-  } catch (err) {
-    console.error("❌ /api/this-week failed:", err.message);
-    res.status(500).json({ error: "Weekly summary failed" });
-  }
-});
-
 app.post("/api/relief-protocol", async (req, res) => {
   const { tasks = [], emotional_flags = [] } = req.body;
 
