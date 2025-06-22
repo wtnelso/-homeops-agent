@@ -666,18 +666,20 @@ body.dark {
 /* --- Mobile Overrides --- */
 @media screen and (max-width: 768px) {
   body::before {
-    content: "📱 MOBILE MODE";
+    content: "✅ MOBILE MODE ACTIVE";
     position: fixed;
-    top: 0;
-    left: 0;
-    background: #ff0;
-    padding: 4px 8px;
-    font-weight: bold;
+    top: 8px;
+    left: 8px;
+    background: limegreen;
+    color: white;
+    padding: 2px 6px;
+    font-size: 12px;
     z-index: 9999;
   }
 
   .app-container {
     flex-direction: column;
+    height: 100vh; /* Ensure the container takes full height */
   }
 
   .sidebar {
@@ -724,6 +726,13 @@ body.dark {
     padding: 16px;
     box-sizing: border-box;
     overflow-x: hidden;
+    flex-grow: 1; /* Allow view to take up space */
+    display: flex; /* Use flexbox for child alignment */
+    flex-direction: column;
+  }
+
+  #chat-view {
+    height: 100%;
   }
 
   .chat-wrapper {
@@ -731,13 +740,23 @@ body.dark {
     flex-direction: column;
     gap: 8px;
     padding: 12px;
+    height: 100%;
+    width: 100%;
+    flex-grow: 1;
+  }
+
+  .chat-box {
+    flex-grow: 1; /* Allow chat box to take up available space */
+    overflow-y: auto;
+    margin-bottom: 0;
   }
 
   .chat-form {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* Keep form elements in a row */
     width: 100%;
     gap: 6px;
+    flex-shrink: 0; /* Prevent form from shrinking */
   }
 
   .chat-form input,
@@ -762,7 +781,7 @@ body.dark {
   .view {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    height: calc(100vh - 60px);
+    height: 100%; /* Use 100% instead of calc() */
     padding-bottom: 80px;
   }
 
@@ -894,19 +913,6 @@ body.dark {
   flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
-}
-@media screen and (max-width: 768px) {
-  body::before {
-    content: "✅ MOBILE MODE ACTIVE";
-    position: fixed;
-    top: 8px;
-    left: 8px;
-    background: limegreen;
-    color: white;
-    padding: 2px 6px;
-    font-size: 12px;
-    z-index: 9999;
-  }
 }
 
 }
