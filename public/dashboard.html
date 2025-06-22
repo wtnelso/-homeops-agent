@@ -256,40 +256,52 @@
 
 <!-- Firebase configuration and auth logic -->
 <script>
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDx_ygwnomCIM-1kqY6GJBjYkHy5UaR_g8",
-  authDomain: "homeops-web.firebaseapp.com",
-  projectId: "homeops-web",
-  storageBucket: "homeops-web.firebasestorage.app",
-  messagingSenderId: "620328376664",
-  appId: "1:620328376664:web:e1aa715f26f4a2f143ad2d",
-  measurementId: "G-Q4924PYF55"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-
-// Check authentication state
-auth.onAuthStateChanged((user) => {
-  if (!user) {
-    // User is not signed in, redirect to login
-    window.location.href = '/';
-  } else {
-    // User is signed in, display email
-    document.getElementById('userEmail').textContent = user.email;
-  }
-});
-
-// Handle logout
-document.getElementById('logoutBtn').addEventListener('click', async () => {
+// Initialize Firebase by fetching config from server
+async function initializeFirebase() {
   try {
-    await auth.signOut();
-    // Redirect will happen automatically via onAuthStateChanged
+    const response = await fetch('/api/firebase-config');
+    if (!response.ok) {
+      throw new Error('Failed to fetch Firebase config');
+    }
+    const firebaseConfig = await response.json();
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    return firebase.auth();
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error('Failed to initialize Firebase:', error);
+    throw error;
   }
+}
+
+// Initialize Firebase and set up auth
+let auth;
+initializeFirebase().then(authInstance => {
+  auth = authInstance;
+  
+  // Check authentication state
+  auth.onAuthStateChanged((user) => {
+    if (!user) {
+      // User is not signed in, redirect to login
+      window.location.href = '/';
+    } else {
+      // User is signed in, display email
+      document.getElementById('userEmail').textContent = user.email;
+    }
+  });
+
+  // Handle logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+      await auth.signOut();
+      // Redirect will happen automatically via onAuthStateChanged
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  });
+}).catch(error => {
+  console.error('Firebase initialization failed:', error);
+  document.body.innerHTML = '<div style="text-align: center; padding: 50px;"><h2>Service Unavailable</h2><p>Unable to initialize authentication service.</p></div>';
 });
 </script>
 
