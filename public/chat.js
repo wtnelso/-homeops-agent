@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Show thinking indicator
     const thinkingIndicator = document.createElement("div");
     thinkingIndicator.className = "thinking-indicator";
-    thinkingIndicator.innerHTML = `<img src="img/logo.svg" alt="Thinking...">`;
+    thinkingIndicator.innerHTML = `<img src="img/logo.png" alt="Thinking...">`;
     chatBox.appendChild(thinkingIndicator);
     chatBox.scrollTop = chatBox.scrollHeight;
 
