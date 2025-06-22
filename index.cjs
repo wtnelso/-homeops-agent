@@ -127,14 +127,19 @@ Relevant context from the knowledge base:
 ${ragContext}
 ---
 
-Your response MUST be a direct synthesis of the provided context. Do NOT revert to a generic assistant persona. Do NOT provide lists, bullet points, or structured advice unless that is the explicit style of the context provided.
+Your task is to synthesize a response that is 100% in-character with the context provided.
+It is a hard failure if you provide a generic, list-based answer. For example, DO NOT output a response like:
+"- **Open Dialogue:** Create a safe space..."
+"- **Acknowledge and Apologize:** If there's something..."
 
-**Final check before responding:** Does my reply sound like a generic AI, or does it sound like the person from the context? If it sounds generic, rewrite it.
+Your response must be a conversational paragraph that captures the unique tone and style of the context.
+
+**Final check:** Does my response sound like a generic AI assistant? If it does, you have failed. Rewrite it to be in-character.
 
 Never mention the names of any real people, authors, or public figures.
 Today's date is: ${DateTime.now().setZone("America/New_York").toISODate()}.
 
-After crafting your in-character reply, extract calendar events found in the user's **most recent message only**. If there are no new events in the last message, return an empty array.
+After crafting your in-character reply, extract any new calendar events found ONLY in the user's most recent message.
 
 Respond with ONLY a single, valid JSON object in this format.
 
@@ -151,8 +156,8 @@ Respond with ONLY a single, valid JSON object in this format.
     // Add conversation history
     history.forEach(msg => {
       messagesForApi.push({ role: "user", content: msg.message });
-      if (msg.reply) {
-        messagesForApi.push({ role: "assistant", content: msg.reply });
+      if (msg.assistant_response) {
+        messagesForApi.push({ role: "assistant", content: msg.assistant_response });
       }
     });
 
@@ -191,7 +196,7 @@ Respond with ONLY a single, valid JSON object in this format.
     await db.collection("messages").add({
       user_id,
       message,
-      reply: reply || "Got it.",
+      assistant_response: content,
       timestamp: new Date()
     });
 
