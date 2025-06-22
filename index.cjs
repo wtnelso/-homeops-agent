@@ -1,3 +1,4 @@
+console.log("🚀 DEPLOYMENT VERSION 8 - LUXON REMOVED - " + new Date().toISOString());
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
