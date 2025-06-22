@@ -1,0 +1,71 @@
+[...CONTINUED FROM PART 1...]
+
+What are the pieces that are gonna be required to cure autism, cure Parkinson's, cure schizophrenia? I, I would imagine there are several elements and bins here, understanding that the natural biology, understanding what the activity patterns are, how to modify those. Maybe you could just tell us what you think. What is the, the bento box of the perfect cure? Yeah. 
+
+I think the first thing we need is understanding what is the element in the brain that's analogous to the pumping her heart. When we think about the symptoms of depression, that's maybe, you know, we think about motivation and dopamine neurons, and so then that turns our attention as neuroscientists. We think, okay, let's think about the parts of the brain that are involved in dealing with merging complex data streams that are very high in bit rate that need to be fused together into a unitary concept. And that starts to guide us, and maybe we can, and we know other animals are social in their own way, and we can study those animals. And so that there's, that's how I think about it. 
+
+There's hope for the future, thinking about the symptoms as an engineer might, and trying to identify the circuits that are likely working to make this typical behavior happen. And that will help us understand how it becomes atypical. 
+
+We need to know the circuits, we need to know the cells Yeah. In the various brain regions and, and portions of the body and, and how they connect to one another and what the patterns of activity are under a normal quote unquote healthy interaction. Yeah. If we understand that, then it seems that the next step, which of course could be carried out in parallel, right? That that work can be done alongside work, where various elements within those circuits are tweaked just right, like the tuning of a piano in the subtle way, or maybe even like the replacement of a whole set of keys if the piano is lacking keys, so to speak. Right, right. In 2015, there was this, what I thought was a very nice article published in the New Yorker, describing your work and the current state of your work in, in the laboratory, in the clinic, and an interaction with a patient. 
+
+So this, as I recall, a woman who was severely depressed, and you reported in that article, some of the discussion with this patient, and then in real time increase the activation of the so-called vagus nerve, this 10th cranial nerve that extends outta the skull and ovates many of the, the visceral and and body. What is the potential for channel rid opsin or related types of algae engineering to be used to manipulate the vagus? Because I believe in that instance, it wasn't channel ops and stimulation Sure. Electrical stimulation. Right. Or to manipulate, for instance, a very small localized region of the brain. Let me fra reframe it a little bit differently. 
+
+In light of what we were talking about a couple minutes ago. My understanding is that if somebody has severe depression and they take any number of the available pharmaceutical agents that are out there, SSRIs, serotonin or agents increase dopamine, increase, whatever, that sometimes they experience relief, but they're often serious side effects. Sometimes they don't experience relief, but as I understand it, channel options and their related technology in principle would allow you to turn on or off the specific regions of the brain that lead to the depressive symptoms. Or maybe you turn up a happiness circuit or an, or a a positive anticipation circuit. 
+
+Where are we at now in terms of bringing this technology to the nervous system? And let's start with body and then move into the skull. 
+
+Yeah, so starting with the body is a good example because it, it highlights the opportunity and, and how far we have to go. So let's take this example of Vagus Nerve Stimulation. So the vagus nerve, it's the 10th cranial nerve. It comes from the brain, it goes down, it innervates the heart, innervates the gut. And by innervate I means it sends little connections down to help guide what happens in these, these organs in the, in the, in the abdomen and, and chest. It also collects information back. And, and there's information coming back from all those organs that go, also go through this vagus nerve, the 10th cranial nerve back to the brain. And so this is somewhat of a, of a, of a superhighway to the brain. 
+
+Then it was the idea. And maybe the idea is maybe we could put a little cuff, a little electrical device around the vagus nerve itself. So a way of getting into the brain without putting something physical into the brain. 
+
+And why the vagus, I mean, it's there, but, and it's accessible. That's 
+
+The reason, 
+
+That's the reason, 
+
+That's the reason. Yes. Really? 
+
+Yeah. You're not kidding. I'm not kidding. 
+
+It's so 
+
+Stimulating the vagus to treat depression simply because it's accessible. 
+
+It started as actually as a, as an epilepsy treatment. And it, it can help with epilepsy, but the vagus nerve lands on a particular spot in the brain called the solitary tract nucleus, which is just one synapse away from the serotonin and the dopamine and the norepinephrine. So there's 
+
+A link to chemical systems in the brain that make it a rational choice. 
+
+It, yes, it's not, it's not irrational. But I can tell you that even if that were not true, the same thing would've been tried, you know, 
+
+You know, you guys would've done 
+
+It anyway 'cause it's accessible. Yeah, 
+
+I see. How do you think it's working when it does work? Is it triggering the activation of, of neurons that release more serotonin or dopamine? It could 
+
+Be, but I would say we don't have evidence for, for that. And so I, I I, I just don't know. But what is clear is that it's dose limited in how high and strongly we can stimulate and why. It's because it's an electrode and it's stimulating everything nearby. And when you turn on the vagus nerve stimulator, the voice, patient's voice becomes strangulated. In hoarse. They can have trouble swallowing, they can have trouble speaking for sure, even some trouble breathing. 'cause everything in the neck, every electrically responsive cell and projection in the in the neck is being affected by this electrode. And so you can go up just so far with the intensity and then you have to stop. 
+
+So, you know, to to your initial question, could a more precise stimulation method like Optogenetics help in this setting? In principle, it could, because that would, if you would target the light sensitivity to just the right kind of cell, let's say cell X, that goes from point A to point B, that, you know, causes symptom relief of a particular kind, then you're in business, you can have that be the only cell that's light sensitive. You're not gonna affect any of the other cells, the larynx and the pharynx and the Projections passing through. So that's the hope, that's the opportunity. The problem is that we don't yet have that level of specific knowledge. We don't know, okay, it's the cell starting in point A, going to point B that relieves this particular sensor. 
+
+We wanna fix this key on the piano. Yeah. I'm imagining a little tiny blue light emitting thing object that's a little bigger than a clump of cells or maybe about the size of a clump of cells. So we're talking about a little tiny stamp, each edge, half a millimeter in size. I can imagine that being put under my skin. Yeah. And then I would, what, I'd hit an app on my phone and I'd say, I'd say, Dr. Deser Roth, I'm not feeling great today. Can I increase the stimulation? And you say, go for it. And then I ramp it up. Is that how it would go? 
+
+I mean, that's effectively what we already do with the Vagus Nerve Stimulation. The, the doctor in this case, and I, I have this in some of my patients in the clinic, I do Vagus Nerve Stimulation. I talk to them, I say how I, I go through the symptoms. I, I use the psychiatric interview to elicit their internal states. And then I have a radio frequency controller that I can dial in non 
+
+Right there in real time. Right there 
+
+In real time. You're 
+
+Holding the remote control to, essentially to their brain, although it's remote, remote control 
+
+Yeah. Through a couple steps, but yeah. Yeah. And I can, I can turn up, I can turn up the frequency, I can turn up the intensity all with the radio frequency and control, and then it's, it's reprogrammed or, or re dosed, and then the patient can, can then leave at this altered dose. In most patients, I don't expect an immediate mood change. What I do is I increase the, the dose until a next level up while asking the patient for side effects. Can you still breathe? Okay. Can you still swallow? Okay. And I can hear their voice as well, and, and I can get a sense And you're looking at their face and I'm looking at their face. Yeah. And so I can get a sense, is there a, am I in a, still in a safe side effect regime? 
+
+And I, and, and, and then, you know, I I I, I stop at a particular point that looks safe and then patient goes home, comes back a month later, and I get the report on how things were over that month. 
+
+That's very exciting. What are your thoughts about brain machine interface as something that's been happening for a long time now? Devices, little probes that are gonna stimulate different patterns of activity and ensembles of neurons. First 
+
+Of all, it's an, it's an amazing scientific discovery approach. As you mentioned. We and others here at Stanford are using electrodes, collecting information from tens of thousands of neurons, even separate from the Neuralink work. As you point out, many people have been doing this in humans as well as in non-human primates. And this is pretty powerful. It's important. This will let us understand what's going on in the brain, in, in psychiatric disease and neurological disease and will give us ideas for, for treatment. I see that as something that will be part of psychiatry in, in, in the long run already with deep brain stimulation approaches, we can help people with psychiatric disorders. 
+
+And that's putting just a single electrode, not even a, a complex, you know, closed loop system where you're both playing in and getting information back. Even just a single stimulation electrode in the brain can help people with OCD, for example, quite powerfully. 
+
+[...CONTINUED IN PART 3...] 
