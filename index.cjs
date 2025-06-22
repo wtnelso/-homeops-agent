@@ -8,6 +8,9 @@ const fs = require("fs");
 const { DateTime } = require("luxon");
 const chrono = require("chrono-node");
 
+// Add CORS support
+const cors = require("cors");
+
 // Use service account key from file for reliable initialization
 try {
   const serviceAccount = JSON.parse(fs.readFileSync(path.join(__dirname, "homeops-sa-key.json"), "utf8"));
@@ -55,6 +58,17 @@ try {
 
 app.use(bodyParser.json());
 app.use(express.static("public"));
+
+// Enable CORS for all routes
+app.use(cors({
+  origin: [
+    'https://homeops-web.web.app',
+    'https://homeops-web.firebaseapp.com',
+    'http://localhost:3000',
+    'http://localhost:5000'
+  ],
+  credentials: true
+}));
 
 // --- RAG Helper Functions ---
 async function createEmbedding(text) {

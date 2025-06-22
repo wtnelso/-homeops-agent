@@ -1,14 +1,10 @@
 // Initialize Firebase by fetching config from server
 async function initializeFirebase() {
   try {
-    const response = await fetch('/api/firebase-config');
-    if (!response.ok) {
-      throw new Error('Failed to fetch Firebase config');
-    }
-    const firebaseConfig = await response.json();
+    const response = await apiCall('/api/firebase-config');
     
     // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(response);
     return firebase.auth();
   } catch (error) {
     console.error('Failed to initialize Firebase:', error);

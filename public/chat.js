@@ -34,8 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
     async function fetchAndRenderEvents() {
       if (!calendar) return;
       try {
-        const response = await fetch(`/events?user_id=${userId}`); // Pass user_id
-        const events = await response.json();
+        const events = await apiCall(`/events?user_id=${userId}`);
         calendar.removeAllEvents(); // Clear existing events
         calendar.addEventSource(events); // Add new events
         console.log("✅ Calendar updated with the latest events.");
@@ -117,13 +116,10 @@ document.addEventListener("DOMContentLoaded", () => {
       chatBox.scrollTop = chatBox.scrollHeight;
 
       try {
-        const res = await fetch("/chat", {
+        const data = await apiCall("/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message, user_id: userId }), // Pass user_id
+          body: JSON.stringify({ message, user_id: userId })
         });
-
-        const data = await res.json();
         
         // Remove typing indicator
         const indicator = document.getElementById("typing-indicator-container");
