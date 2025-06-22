@@ -110,7 +110,10 @@ function anonymizeText(text) {
 // --- END RAG Helper Functions ---
 
 app.post("/chat", async (req, res) => {
-  const { user_id = "user_123", message } = req.body;
+  const { user_id, message } = req.body;
+  if (!user_id || !message) {
+    return res.status(400).json({ error: "User ID and message are required" });
+  }
 
   try {
     // 1. Fetch the last 10 messages for context
@@ -560,7 +563,10 @@ app.post("/api/events/clear", async (req, res) => {
 });
 
 app.get("/events", async (req, res) => {
-  const { user_id = "user_123" } = req.query; // Or from session, etc.
+  const { user_id } = req.query; // Or from session, etc.
+  if (!user_id) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
   try {
     const eventsSnapshot = await db.collection("events")
       .where("user_id", "==", user_id)

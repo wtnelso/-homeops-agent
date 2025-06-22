@@ -205,21 +205,22 @@ body.dark {
   padding: 0;
 }
 
-.sender {
-  font-size: 0.75rem;
-  font-weight: 600;
-  opacity: 0.6;
-  margin-bottom: 0.25rem;
-  padding-left: 0.25rem;
+.message .sender {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.message.agent .sender {
+  color: #4A90E2;
 }
 
 .message-bubble {
-  max-width: 85%;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  line-height: 1.4;
+  padding: 12px 18px;
+  border-radius: 20px;
+  max-width: 80%;
   word-wrap: break-word;
-  white-space: pre-wrap;
 }
 
 .message.agent {
@@ -272,18 +273,21 @@ body.dark {
 
 /* Typing Indicator */
 .typing-indicator {
-  font-size: 0.9rem;
-  color: #666;
-  font-style: italic;
-  margin-bottom: 1rem;
-  padding-left: 0.5rem;
-  opacity: 0.8;
-  animation: pulse 1.2s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.8; }
+.typing-indicator img {
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
+  margin-right: 10px;
+}
+
+.typing-indicator span {
+  font-style: italic;
+  color: #999;
 }
 
 /* Dashboard */

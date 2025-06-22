@@ -1,4 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // --- User Identification ---
+  function getOrSetUserId() {
+    let userId = localStorage.getItem("homeops_user_id");
+    if (!userId) {
+      // Basic UUID generator
+      userId = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+      );
+      localStorage.setItem("homeops_user_id", userId);
+    }
+    return userId;
+  }
+  const userId = getOrSetUserId();
+  console.log("User ID:", userId);
+  // -------------------------
+
   window.pendingCalendarEvents = [];
 
   // 🗓️ Initialize the FullCalendar instance
@@ -9,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchAndRenderEvents() {
     if (!calendar) return;
     try {
-      const response = await fetch("/events"); // New endpoint to get all events
+      const response = await fetch(`/events?user_id=${userId}`); // Pass user_id
       const events = await response.json();
       calendar.removeAllEvents(); // Clear existing events
       calendar.addEventSource(events); // Add new events
@@ -95,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, user_id: userId }), // Pass user_id
       });
 
       const data = await res.json();
