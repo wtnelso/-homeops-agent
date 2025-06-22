@@ -177,6 +177,7 @@ Do not include markdown, comments, or any other text outside the JSON.
     });
 
     const gptData = await gptRes.json();
+    console.log("OpenAI Response Body:", JSON.stringify(gptData, null, 2));
     const content = gptData.choices?.[0]?.message?.content;
 
     if (!content) {
