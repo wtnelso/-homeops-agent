@@ -3,20 +3,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 🗓️ Initialize the FullCalendar instance
   const calendarEl = document.getElementById("calendar");
+  let calendar;
+
+  // Function to fetch and render events
+  async function fetchAndRenderEvents() {
+    if (!calendar) return;
+    try {
+      const response = await fetch("/events"); // New endpoint to get all events
+      const events = await response.json();
+      calendar.removeAllEvents(); // Clear existing events
+      calendar.addEventSource(events); // Add new events
+      console.log("✅ Calendar updated with the latest events.");
+    } catch (error) {
+      console.error("❌ Error fetching or rendering events:", error);
+    }
+  }
 
   if (calendarEl) {
-    window.calendar = new FullCalendar.Calendar(calendarEl, {
+    calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: "dayGridMonth",
-      initialDate: new Date(),
-      contentHeight: "auto",
-      aspectRatio: 0.75,
-      handleWindowResize: true,
-      events: []
+      headerToolbar: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,timeGridDay",
+      },
+      editable: true,
+      events: fetchAndRenderEvents, // Fetch events on init
     });
-
-    window.calendar.render();
+    calendar.render();
   } else {
-    console.warn("⚠️ Calendar element not found.");
+    console.warn("⚠️ Calendar element not found on this page.");
   }
 
   const chatBox = document.getElementById("chat");
@@ -51,11 +67,28 @@ document.addEventListener("DOMContentLoaded", () => {
     addMessage("user", message);
     input.value = "";
 
-    // Show thinking indicator
-    const thinkingIndicator = document.createElement("div");
-    thinkingIndicator.className = "thinking-indicator";
-    thinkingIndicator.innerHTML = `<img src="img/logo.svg" alt="Thinking...">`;
-    chatBox.appendChild(thinkingIndicator);
+    // Show typing indicator
+    const typingIndicatorContainer = document.createElement("div");
+    typingIndicatorContainer.className = "message agent";
+    typingIndicatorContainer.id = "typing-indicator-container"; // To make it easy to find and remove
+
+    const senderDiv = document.createElement("div");
+    senderDiv.className = "sender";
+    senderDiv.textContent = "HomeOps";
+
+    const bubbleDiv = document.createElement("div");
+    bubbleDiv.className = "message-bubble"; 
+    
+    bubbleDiv.innerHTML = `
+      <div class="typing-indicator">
+        <img src="img/logo.svg" alt="Thinking...">
+        <span>is thinking...</span>
+      </div>
+    `;
+
+    typingIndicatorContainer.appendChild(senderDiv);
+    typingIndicatorContainer.appendChild(bubbleDiv);
+    chatBox.appendChild(typingIndicatorContainer);
     chatBox.scrollTop = chatBox.scrollHeight;
 
     try {
@@ -67,32 +100,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await res.json();
       
-      // Remove thinking indicator
-      chatBox.removeChild(thinkingIndicator);
+      // Remove typing indicator
+      const indicator = document.getElementById("typing-indicator-container");
+      if (indicator) {
+        chatBox.removeChild(indicator);
+      }
 
       if (data.reply) {
         addMessage("agent", data.reply);
       }
 
-      // If new events were created, add them directly to the calendar
+      // If new events were created, refetch all events to update the calendar
       if (data.events && data.events.length > 0) {
-        if (window.calendar) {
-          data.events.forEach(event => {
-            window.calendar.addEvent(event);
-          });
-          console.log(`✅ Added ${data.events.length} new events to the calendar.`);
-        } else {
-          // Fallback if calendar isn't rendered yet
-          window.pendingCalendarEvents = window.pendingCalendarEvents || [];
-          window.pendingCalendarEvents.push(...data.events);
-        }
+        console.log(`✅ ${data.events.length} new event(s) created. Refreshing calendar...`);
+        fetchAndRenderEvents(); // Refetch all events to update the calendar
       }
 
     } catch (err) {
       console.error("Chat error:", err);
-      // Ensure thinking indicator is removed on error
-      if (chatBox.contains(thinkingIndicator)) {
-        chatBox.removeChild(thinkingIndicator);
+      // Ensure typing indicator is removed on error
+      const indicator = document.getElementById("typing-indicator-container");
+      if (indicator) {
+        chatBox.removeChild(indicator);
       }
       addMessage("agent", "Sorry, I'm having trouble connecting. Please try again later.");
     }

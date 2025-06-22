@@ -1,5 +1,5 @@
 # Dependencies
-/node_modules
+node_modules
 
 # Environment Variables
 .env
@@ -27,3 +27,5 @@ lerna-debug.log*
 # OS-specific
 .DS_Store
 Thumbs.db
+
+homeops-sa-key.json

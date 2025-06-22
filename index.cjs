@@ -8,20 +8,35 @@ const fs = require("fs");
 const { DateTime } = require("luxon");
 const chrono = require("chrono-node");
 
-let firebaseCredentials;
+// Use service account key from file for reliable initialization
 try {
-  const base64 = process.env.FIREBASE_CREDENTIALS;
-  const decoded = Buffer.from(base64, "base64").toString("utf-8");
-  firebaseCredentials = JSON.parse(decoded);
+  const serviceAccount = JSON.parse(fs.readFileSync(path.join(__dirname, "homeops-sa-key.json"), "utf8"));
 
   if (!admin.apps.length) {
     admin.initializeApp({
-      credential: admin.credential.cert(firebaseCredentials),
+      credential: admin.credential.cert(serviceAccount),
     });
+    console.log("✅ Firebase initialized successfully via service account file.");
   }
 } catch (err) {
   console.error("❌ Firebase init failed:", err.message);
-  process.exit(1);
+  // Attempt to use environment variable as a fallback (for Render, etc.)
+  try {
+    const base64 = process.env.FIREBASE_CREDENTIALS;
+    if (!base64) throw new Error("FIREBASE_CREDENTIALS env var not set.");
+    const decoded = Buffer.from(base64, "base64").toString("utf-8");
+    const firebaseCredentials = JSON.parse(decoded);
+
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(firebaseCredentials),
+      });
+      console.log("✅ Firebase initialized successfully via environment variable.");
+    }
+  } catch (fallbackErr) {
+    console.error("❌ Firebase fallback init also failed:", fallbackErr.message);
+    process.exit(1); // Exit if no valid credential source found
+  }
 }
 
 const db = admin.firestore();
@@ -146,7 +161,7 @@ Respond with ONLY a single, valid JSON object in this format.
 {
   "reply": "Your in-character, conversational reply synthesized from the knowledge base goes here.",
   "events": [
-    { "title": "Event Title", "start": "YYYY-MM-DDTHH:mm:ss-04:00", "allDay": false }
+    { "title": "Event Title", "when": "A descriptive, natural language time like 'This coming Tuesday at 2pm' or 'August 15th at 10am'", "allDay": false }
   ]
 }
     `.trim();
@@ -204,12 +219,32 @@ Respond with ONLY a single, valid JSON object in this format.
     if (events.length > 0) {
       const savedEvents = [];
       const batch = db.batch();
+      
+      // Get the current time in the target timezone to use as a reference for parsing
+      const referenceDate = DateTime.now().setZone("America/New_York").toJSDate();
+
       events.forEach(event => {
-        if (event.title && event.start) {
-          const eventRef = db.collection("events").doc();
-          const eventWithId = { ...event, id: eventRef.id, user_id, created_at: new Date() };
-          batch.set(eventRef, eventWithId);
-          savedEvents.push(eventWithId);
+        if (event.title && event.when) {
+          // Parse the natural language "when" string
+          const parsedStart = chrono.parseDate(event.when, referenceDate, { forwardDate: true });
+
+          if (parsedStart) {
+            // Convert to the required ISO 8601 format with timezone
+            const startISO = DateTime.fromJSDate(parsedStart).setZone("America/New_York").toISO();
+
+            const eventRef = db.collection("events").doc();
+            const eventWithId = { 
+              ...event, 
+              start: startISO, // Add the parsed start time
+              id: eventRef.id, 
+              user_id, 
+              created_at: new Date() 
+            };
+            delete eventWithId.when; // Clean up the original 'when' field
+            
+            batch.set(eventRef, eventWithId);
+            savedEvents.push(eventWithId);
+          }
         }
       });
       await batch.commit();
@@ -521,6 +556,21 @@ app.post("/api/events/clear", async (req, res) => {
   } catch (err) {
     console.error("❌ Failed to clear events:", err.message);
     res.status(500).json({ error: "Failed to clear events." });
+  }
+});
+
+app.get("/events", async (req, res) => {
+  const { user_id = "user_123" } = req.query; // Or from session, etc.
+  try {
+    const eventsSnapshot = await db.collection("events")
+      .where("user_id", "==", user_id)
+      .orderBy("start", "asc")
+      .get();
+    const events = eventsSnapshot.docs.map(doc => doc.data());
+    res.json(events);
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    res.status(500).json({ error: "Failed to fetch events" });
   }
 });
 
