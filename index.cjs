@@ -558,8 +558,9 @@ app.get("/api/firebase-config", (req, res) => {
   res.json(firebaseConfig);
 });
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", message: "HomeOps Backend is running" });
 });
 
 async function startServer() {
