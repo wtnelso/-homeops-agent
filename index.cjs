@@ -614,6 +614,15 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.listen(port, () => {
-  console.log(`✅ Server listening on port ${port}`);
-});
+async function startServer() {
+  try {
+    app.listen(port, () => {
+      console.log(`✅ Server listening on port ${port}`);
+    });
+  } catch (err) {
+    console.error("❌ Server failed to start:", err);
+    process.exit(1);
+  }
+}
+
+startServer();
