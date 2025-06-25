@@ -18,15 +18,16 @@ document.addEventListener("DOMContentLoaded", () => {
     function activateView(viewId) {
       console.log("🔄 Switching to view:", viewId);
 
+      // Remove .active from all views
       document.querySelectorAll('.view').forEach(view => {
         view.classList.remove('active');
       });
+      // Add .active to the selected view
       const activeView = document.getElementById(`${viewId}-view`);
       if (activeView) {
         activeView.classList.add('active');
-        console.log("✅ Activated view:", viewId);
       }
-      // Always hide the calendar unless calendar view is active
+      // Hide calendar unless calendar view is active
       const calendarEl = document.getElementById('calendar');
       if (calendarEl) {
         if (viewId === 'calendar') {
