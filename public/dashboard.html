@@ -92,7 +92,6 @@
 
     <main class="main-content">
 
-
   <!-- Top Bar with logo + brand -->
   <header class="top-bar">
     <div class="top-bar-left">
@@ -105,140 +104,121 @@
     </div>
   </header>
 
-
-   <section id="home-view" class="view">
-        <div class="home-grid">
-          <!-- Module 1: Email Decoder -->
-          <div id="email-decoder-module" class="home-module">
-            <div class="module-header">
-              <h2>📧 Email Decoder</h2>
-              <p>Connect your Gmail to automatically surface what matters.</p>
-            </div>
-            <div class="module-content">
-              <button class="gmail-connect-btn">
-                <svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" class="svg-inline--fa fa-google fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" style="width: 1em; height: 1em; vertical-align: -0.125em;"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-69.2 69.2c-20.3-19.6-48.6-31.8-79.7-31.8-62.3 0-113.5 51.2-113.5 114.3s51.2 114.3 113.5 114.3c71.2 0 98.2-47.8 101.6-72.9H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>
-                Connect Gmail Account
-              </button>
-              <p class="small-text">We'll request permission to read your emails.</p>
-            </div>
-          </div>
-
-          <!-- Module 2: This Week Summary -->
-          <div id="this-week-module" class="home-module">
-            <div class="module-header">
-              <h2>🗓️ This Week</h2>
-              <p>A summary of your calendar and key tasks.</p>
-            </div>
-            <div class="module-content">
-              <!-- Content will be dynamically generated -->
-              <div class="week-summary-placeholder">
-                <p>Your weekly summary will appear here...</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Module 3: Re-frame Protocol -->
-          <div id="reframe-protocol-module" class="home-module large-module">
-            <div class="module-header">
-              <h2>🧠 Re-frame Protocol</h2>
-              <p>Your personal Chief of Staff to help you unblock and refocus.</p>
-            </div>
-            <div class="module-content">
-              <textarea class="reframe-input" placeholder="What's a challenge or blocker on your mind?"></textarea>
-              <button class="reframe-btn">Get Re-frame</button>
-              <div class="reframe-output">
-                <!-- AI-generated reframe will appear here -->
-              </div>
-            </div>
+  <!-- Home View -->
+  <section id="home-view" class="view">
+    <div class="home-grid">
+      <!-- Email Decoder -->
+      <div id="email-decoder-module" class="home-module">
+        <div class="module-header">
+          <h2>📧 Email Decoder</h2>
+          <p>Connect your Gmail to automatically surface what matters.</p>
+        </div>
+        <div class="module-content">
+          <button class="gmail-connect-btn">
+            <!-- SVG icon -->
+            <svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" class="svg-inline--fa fa-google fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" style="width: 1em; height: 1em; vertical-align: -0.125em;"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-69.2 69.2c-20.3-19.6-48.6-31.8-79.7-31.8-62.3 0-113.5 51.2-113.5 114.3s51.2 114.3 113.5 114.3c71.2 0 98.2-47.8 101.6-72.9H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>
+            Connect Gmail Account
+          </button>
+          <p class="small-text">We'll request permission to read your emails.</p>
+        </div>
+      </div>
+      <!-- This Week Summary -->
+      <div id="this-week-module" class="home-module">
+        <div class="module-header">
+          <h2>🗓️ This Week</h2>
+          <p>A summary of your calendar and key tasks.</p>
+        </div>
+        <div class="module-content">
+          <div class="week-summary-placeholder">
+            <p>Your weekly summary will appear here...</p>
           </div>
         </div>
-   </section>
-
-
-      <!-- Ask HomeOps (Chat) -->
-      <section id="chat-view" class="view active">
-        <div class="chat-wrapper">
-          <div id="chat" class="chat-box"></div>
-          <form id="chatForm" class="chat-form">
-            <input id="input" type="text" placeholder="Type something..." autocomplete="off" />
-            <button type="submit">Send</button>
-          </form>
+      </div>
+      <!-- Re-frame Protocol -->
+      <div id="reframe-protocol-module" class="home-module large-module">
+        <div class="module-header">
+          <h2>🧠 Re-frame Protocol</h2>
+          <p>Your personal Chief of Staff to help you unblock and refocus.</p>
         </div>
-      </section>
-<!-- House View (Dashboard) -->
-<section id="dashboard-view" class="view">
-  <h2>📊 The House View</h2>
-  <div class="dashboard-grid">
-
-    <!-- Structured Weekly View -->
-    <div class="dashboard-card" id="structured-week-card">
-      <h3>📅 This Week</h3>
-      <div id="structured-schedule"></div>
-      <h4>🧠 Reminders</h4>
-      <ul id="structured-reminders"></ul>
+        <div class="module-content">
+          <textarea class="reframe-input" placeholder="What's a challenge or blocker on your mind?"></textarea>
+          <button class="reframe-btn">Get Re-frame</button>
+          <div class="reframe-output"></div>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <!-- Mental Load & Insights -->
-    <div class="dashboard-card">
-      <h3>Mental Load</h3>
-      <ul></ul>
+  <!-- Chat View -->
+  <section id="chat-view" class="view">
+    <div class="chat-wrapper">
+      <div id="chat" class="chat-box"></div>
+      <form id="chatForm" class="chat-form">
+        <input id="input" type="text" placeholder="Type something..." autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
     </div>
+  </section>
 
-    <!-- Reframes (now styled as card in grid) -->
-    <div class="dashboard-card">
-      <h3>Reframes</h3>
-      <div class="reframe-list"></div>
+  <!-- Dashboard View -->
+  <section id="dashboard-view" class="view">
+    <h2>📊 The House View</h2>
+    <div class="dashboard-grid">
+      <div class="dashboard-card" id="structured-week-card">
+        <h3>📅 This Week</h3>
+        <div id="structured-schedule"></div>
+        <h4>🧠 Reminders</h4>
+        <ul id="structured-reminders"></ul>
+      </div>
+      <div class="dashboard-card">
+        <h3>Mental Load</h3>
+        <ul></ul>
+      </div>
+      <div class="dashboard-card">
+        <h3>Reframes</h3>
+        <div class="reframe-list"></div>
+      </div>
     </div>
-
-  </div>
-
-  <!-- Relief Protocol -->
-  <div id="relief-protocol" class="relief-card">
-    <div class="relief-header">
-      <h2>🧠 Relief Protocol</h2>
-      <p class="subtle-label">Based on recent load patterns</p>
+    <div id="relief-protocol" class="relief-card">
+      <div class="relief-header">
+        <h2>🧠 Relief Protocol</h2>
+        <p class="subtle-label">Based on recent load patterns</p>
+      </div>
+      <div class="relief-section">
+        <label>Summary</label>
+        <p id="relief-summary">Loading...</p>
+      </div>
+      <div class="relief-section">
+        <label>Offload </label>
+        <p id="relief-offload">Loading...</p>
+      </div>
+      <div class="relief-section">
+        <label>Reclaim </label>
+        <p id="relief-reclaim">Loading...</p>
+      </div>
+      <div class="relief-section">
+        <label>Reconnect </label>
+        <p id="relief-reconnect">Loading...</p>
+      </div>
+      <div class="relief-section">
+        <label>Pattern Interrupt </label>
+        <p id="relief-interrupt">Loading...</p>
+      </div>
+      <div class="relief-section" id="reframe-block" style="display: none;">
+        <label>Reframe </label>
+        <p id="relief-reframe">Loading...</p>
+      </div>
     </div>
+  </section>
 
-    <div class="relief-section">
-      <label>Summary</label>
-      <p id="relief-summary">Loading...</p>
+  <!-- Calendar View -->
+  <section id="calendar-view" class="view">
+    <div class="view-header">
+      <h2>📅 My Calendar</h2>
+      <button id="clear-events-btn" class="button-danger">Clear All Events</button>
     </div>
-
-    <div class="relief-section">
-      <label>Offload </label>
-      <p id="relief-offload">Loading...</p>
-    </div>
-
-    <div class="relief-section">
-      <label>Reclaim </label>
-      <p id="relief-reclaim">Loading...</p>
-    </div>
-
-    <div class="relief-section">
-      <label>Reconnect </label>
-      <p id="relief-reconnect">Loading...</p>
-    </div>
-
-    <div class="relief-section">
-      <label>Pattern Interrupt </label>
-      <p id="relief-interrupt">Loading...</p>
-    </div>
-
-    <div class="relief-section" id="reframe-block" style="display: none;">
-      <label>Reframe </label>
-      <p id="relief-reframe">Loading...</p>
-    </div>
-  </div>
-</section>
-
-<!-- ✅ Calendar View (moved outside of dashboard) -->
-<section id="calendar-view" class="view">
-  <div class="view-header">
-    <h2>📅 My Calendar</h2>
-    <button id="clear-events-btn" class="button-danger">Clear All Events</button>
-  </div>
-  <div id="calendar"></div>
-</section>
+    <div id="calendar"></div>
+  </section>
 
 </main>
 </div>
