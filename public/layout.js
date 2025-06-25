@@ -16,17 +16,19 @@ document.addEventListener("DOMContentLoaded", () => {
     function activateView(viewId) {
       console.log("🔄 Switching to view:", viewId);
 
-      views.forEach((view) => {
-        view.style.display = "none";
+      // Hide all views
+      document.querySelectorAll('.view').forEach(view => {
+        view.classList.remove('active');
       });
-
+      // Show the selected view
       const activeView = document.getElementById(`${viewId}-view`);
       if (activeView) {
-        activeView.style.display = "block";
-        console.log("✅ Activated view:", viewId);
-      } else {
-        console.warn("🚫 View not found:", viewId);
+        activeView.classList.add('active');
       }
+      // Update nav active state
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
+      });
 
       // Handle calendar rendering
       if (viewId === "calendar" && !window.calendarRendered) {
@@ -40,11 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const viewId = button.getAttribute("data-view");
       if (viewId) {
         activateView(viewId);
-
-        // Update active class for sidebar nav
-        navButtons.forEach((btn) => {
-          btn.classList.toggle("active", btn.getAttribute("data-view") === viewId);
-        });
       }
     }
 
@@ -121,9 +118,8 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Default to chat view on load
-    activateView("chat");
-    document.querySelector('.nav-item[data-view="chat"]').classList.add("active");
+    // On load, set chat view as active
+    activateView('chat');
 
     if (toggleTheme) {
       toggleTheme.addEventListener("click", () => {

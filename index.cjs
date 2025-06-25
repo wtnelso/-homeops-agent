@@ -1,3 +1,10 @@
+process.on('uncaughtException', err => {
+  console.error('Uncaught Exception:', err);
+});
+process.on('unhandledRejection', err => {
+  console.error('Unhandled Rejection:', err);
+});
+
 console.log("🚀 DEPLOYMENT VERSION 8 - LUXON REMOVED - " + new Date().toISOString());
 require("dotenv").config();
 const express = require("express");
@@ -582,3 +589,5 @@ async function startServer() {
 }
 
 startServer();
+
+console.log('End of index.cjs reached');

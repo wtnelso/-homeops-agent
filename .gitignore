@@ -28,4 +28,7 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
+# Firebase service account keys
 homeops-sa-key.json
+homeops-web-firebase-adminsdk-fbsvc-0a737a8eee.json
+*-firebase-adminsdk-*.json
