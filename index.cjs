@@ -66,7 +66,8 @@ const port = process.env.PORT || 3000;
 app.use(cors({
   origin: [
     'https://homeops-web.web.app',
-    'https://homeops-web.firebaseapp.com'
+    'https://homeops-web.firebaseapp.com',
+    'https://homeops-backend.onrender.com'
   ],
   credentials: true
 }));
@@ -75,7 +76,8 @@ app.use(cors({
 app.options('*', cors({
   origin: [
     'https://homeops-web.web.app',
-    'https://homeops-web.firebaseapp.com'
+    'https://homeops-web.firebaseapp.com',
+    'https://homeops-backend.onrender.com'
   ],
   credentials: true
 }));
