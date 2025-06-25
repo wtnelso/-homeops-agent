@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
         activeView.classList.add('active');
         console.log("✅ Activated view:", viewId);
       }
-      // Hide calendar element unless calendar view is active
+      // Always hide the calendar unless calendar view is active
       const calendarEl = document.getElementById('calendar');
       if (calendarEl) {
         if (viewId === 'calendar') {
