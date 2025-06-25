@@ -62,6 +62,17 @@ const db = admin.firestore();
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Enable CORS for all routes at the very top
+app.use(cors({
+  origin: [
+    'https://homeops-web.web.app',
+    'https://homeops-web.firebaseapp.com',
+    'http://localhost:3000',
+    'http://localhost:5000'
+  ],
+  credentials: true
+}));
+
 // Load the persona file content at startup
 let tonePromptContent = "";
 try {
@@ -74,17 +85,6 @@ try {
 
 app.use(bodyParser.json());
 app.use(express.static("public"));
-
-// Enable CORS for all routes
-app.use(cors({
-  origin: [
-    'https://homeops-web.web.app',
-    'https://homeops-web.firebaseapp.com',
-    'http://localhost:3000',
-    'http://localhost:5000'
-  ],
-  credentials: true
-}));
 
 // --- RAG Helper Functions ---
 async function createEmbedding(text) {
