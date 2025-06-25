@@ -18,21 +18,27 @@ document.addEventListener("DOMContentLoaded", () => {
     function activateView(viewId) {
       console.log("🔄 Switching to view:", viewId);
 
-      // Hide all views
       document.querySelectorAll('.view').forEach(view => {
         view.classList.remove('active');
       });
-      // Show the selected view
       const activeView = document.getElementById(`${viewId}-view`);
       if (activeView) {
         activeView.classList.add('active');
         console.log("✅ Activated view:", viewId);
       }
+      // Hide calendar element unless calendar view is active
+      const calendarEl = document.getElementById('calendar');
+      if (calendarEl) {
+        if (viewId === 'calendar') {
+          calendarEl.style.display = 'block';
+        } else {
+          calendarEl.style.display = 'none';
+        }
+      }
       // Update nav active state
       document.querySelectorAll('.nav-item').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
       });
-
       // Handle calendar rendering
       if (viewId === "calendar" && !window.calendarRendered) {
         renderCalendar();
