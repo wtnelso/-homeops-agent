@@ -66,9 +66,16 @@ const port = process.env.PORT || 3000;
 app.use(cors({
   origin: [
     'https://homeops-web.web.app',
-    'https://homeops-web.firebaseapp.com',
-    'http://localhost:3000',
-    'http://localhost:5000'
+    'https://homeops-web.firebaseapp.com'
+  ],
+  credentials: true
+}));
+
+// Handle CORS preflight requests
+app.options('*', cors({
+  origin: [
+    'https://homeops-web.web.app',
+    'https://homeops-web.firebaseapp.com'
   ],
   credentials: true
 }));
