@@ -95,9 +95,11 @@ try {
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
-// Serve dashboard as main page
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+// Serve dashboard.html for all non-API, non-static requests (SPA support)
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api') && !req.path.includes('.')) {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+  }
 });
 
 // Test endpoint to check environment variables
