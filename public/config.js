@@ -1,7 +1,5 @@
-// Backend API configuration
-const BACKEND_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:3000'  // Local development
-  : 'https://homeops-backend.onrender.com';  // Production backend
+// Backend API configuration - now everything runs on the same domain
+const BACKEND_URL = window.location.origin;  // Use the same domain
 
 // Helper function to make API calls
 async function apiCall(endpoint, options = {}) {

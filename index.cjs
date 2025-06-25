@@ -95,6 +95,25 @@ try {
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
+// Serve dashboard as main page
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
+
+// Test endpoint to check environment variables
+app.get("/api/test-env", (req, res) => {
+  res.json({
+    hasOpenAI: !!process.env.OPENAI_API_KEY,
+    hasFirebase: !!process.env.FIREBASE_CREDENTIALS,
+    hasFirebaseAPI: !!process.env.FIREBASE_API_KEY,
+    envVars: {
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY ? "SET" : "NOT SET",
+      FIREBASE_CREDENTIALS: process.env.FIREBASE_CREDENTIALS ? "SET" : "NOT SET",
+      FIREBASE_API_KEY: process.env.FIREBASE_API_KEY ? "SET" : "NOT SET"
+    }
+  });
+});
+
 // --- RAG Helper Functions ---
 async function createEmbedding(text) {
   const response = await fetch("https://api.openai.com/v1/embeddings", {
