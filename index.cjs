@@ -567,6 +567,16 @@ app.get("/events", async (req, res) => {
 
 // Secure endpoint to provide Firebase config
 app.get("/api/firebase-config", (req, res) => {
+  // Debug: Log environment variables
+  console.log("🔍 Environment Variables Debug:");
+  console.log("FIREBASE_API_KEY:", process.env.FIREBASE_API_KEY ? "SET" : "NOT SET");
+  console.log("FIREBASE_AUTH_DOMAIN:", process.env.FIREBASE_AUTH_DOMAIN ? "SET" : "NOT SET");
+  console.log("FIREBASE_PROJECT_ID:", process.env.FIREBASE_PROJECT_ID ? "SET" : "NOT SET");
+  console.log("FIREBASE_STORAGE_BUCKET:", process.env.FIREBASE_STORAGE_BUCKET ? "SET" : "NOT SET");
+  console.log("FIREBASE_MESSAGING_SENDER_ID:", process.env.FIREBASE_MESSAGING_SENDER_ID ? "SET" : "NOT SET");
+  console.log("FIREBASE_APP_ID:", process.env.FIREBASE_APP_ID ? "SET" : "NOT SET");
+  console.log("FIREBASE_MEASUREMENT_ID:", process.env.FIREBASE_MEASUREMENT_ID ? "SET" : "NOT SET");
+  
   // Provide a basic Firebase config for the homeops-web project
   const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBxGxGxGxGxGxGxGxGxGxGxGxGxGxGxGx",
