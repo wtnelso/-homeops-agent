@@ -67,39 +67,109 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // Firebase Auth Setup
-    function setupFirebaseAuth() {
+    // Only run Firebase Auth logic after Firebase is initialized
+    initializeFirebase().then(authInstance => {
+      const auth = authInstance;
       console.log("🔥 Firebase auth available, setting up auth state listener");
-      
-      // Check if Firebase is available
-      if (typeof firebase !== 'undefined' && firebase.auth) {
-        firebase.auth().onAuthStateChanged((user) => {
-          if (user) {
-            console.log("🔥 Auth state changed: User logged in");
-            window.userId = user.uid;
-            window.userIdReady = true;
-            console.log("✅ window.userId set:", window.userId);
-            console.log("✅ window.userIdReady set to true");
-            
-            // Initialize calendar if not rendered yet
-            if (!window.calendarRendered) {
-              console.log("🔄 Calendar not rendered yet, initializing...");
-              renderCalendar();
-            }
-          } else {
-            console.log("🔥 Auth state changed: User logged out");
-            window.userId = null;
-            window.userIdReady = false;
+      // Check authentication state
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          // User is not signed in, redirect to login
+          window.location.href = '/';
+        } else {
+          // User is signed in, display email
+          document.getElementById('userEmail').textContent = user.email;
+          window.userId = user.uid;
+          window.userIdReady = true;
+          // Initialize calendar if not rendered yet
+          if (!window.calendarRendered) {
+            renderCalendar();
           }
-        });
-      } else {
-        console.warn("⚠️ Firebase not available, using fallback user ID");
-        window.userId = "ER4LFJqyUidTfc4a53DaPjeZYKE3"; // Fallback for testing
-        window.userIdReady = true;
-        renderCalendar();
-      }
+        }
+      });
+
+      // Handle logout
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+          await auth.signOut();
+          // Redirect will happen automatically via onAuthStateChanged
+        } catch (error) {
+          console.error('Logout error:', error);
+        }
+      });
+
+      // If Firebase auth takes time, initialize calendar after a delay
+      setTimeout(() => {
+        if (window.userIdReady && !window.calendarRendered) {
+          console.log("🔄 Calendar initialization triggered after userId set");
+          renderCalendar();
+        }
+      }, 1000);
+
+      // On load, set chat view as active
+      activateView('chat');
+    }).catch(error => {
+      console.error('Firebase initialization failed:', error);
+      document.body.innerHTML = '<div style="text-align: center; padding: 50px;"><h2>Service Unavailable</h2><p>Unable to initialize authentication service.</p></div>';
+    });
+
+    if (toggleTheme) {
+      toggleTheme.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+      });
     }
 
+    const reframeBtn = document.querySelector('.reframe-btn');
+    const reframeInput = document.querySelector('.reframe-input');
+    const reframeOutput = document.querySelector('.reframe-output');
+
+    if (reframeBtn) {
+      reframeBtn.addEventListener('click', async () => {
+        const challenge = reframeInput.value;
+        if (!challenge.trim()) {
+          reframeOutput.innerHTML = `<p style="color: #c0392b;">Please enter a challenge first.</p>`;
+          return;
+        }
+
+        reframeOutput.innerHTML = '<p>Getting your re-frame...</p>';
+        reframeBtn.disabled = true;
+
+        try {
+          const response = await fetch('/api/reframe-protocol', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ challenge })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to get a response from the server.');
+          }
+
+          const data = await response.json();
+          
+          reframeOutput.innerHTML = `
+            <div class="reframe-result">
+              <h4>${data.title}</h4>
+              <p class="reframe-core">"${data.reframe}"</p>
+              <h5>${data.action.header}</h5>
+              <ul>
+                ${data.action.steps.map(step => `<li>${step}</li>`).join('')}
+              </ul>
+              <h6>The Science Behind It</h6>
+              <p class="reframe-science">${data.science}</p>
+            </div>
+          `;
+
+        } catch (error) {
+          reframeOutput.innerHTML = `<p style="color: #c0392b;">Sorry, something went wrong. Please try again.</p>`;
+          console.error('Re-frame Error:', error);
+        } finally {
+          reframeBtn.disabled = false;
+        }
+      });
+    }
+
+    // --- Calendar logic remains outside, but only uses window.userIdReady/window.userId
     function renderCalendar() {
       console.log("🔄 renderCalendar called");
       console.log("🔄 window.userId:", window.userId);
@@ -219,76 +289,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const newRect = calendarEl.getBoundingClientRect();
         console.log("🔄 Calendar dimensions after updateSize:", newRect.width, "x", newRect.height);
       }, 100);
-    }
-
-    // Initialize Firebase auth
-    setupFirebaseAuth();
-
-    // If Firebase auth takes time, initialize calendar after a delay
-    setTimeout(() => {
-      if (window.userIdReady && !window.calendarRendered) {
-        console.log("🔄 Calendar initialization triggered after userId set");
-        renderCalendar();
-      }
-    }, 1000);
-
-    // On load, set chat view as active
-    activateView('chat');
-
-    if (toggleTheme) {
-      toggleTheme.addEventListener("click", () => {
-        document.body.classList.toggle("dark");
-      });
-    }
-
-    const reframeBtn = document.querySelector('.reframe-btn');
-    const reframeInput = document.querySelector('.reframe-input');
-    const reframeOutput = document.querySelector('.reframe-output');
-
-    if (reframeBtn) {
-      reframeBtn.addEventListener('click', async () => {
-        const challenge = reframeInput.value;
-        if (!challenge.trim()) {
-          reframeOutput.innerHTML = `<p style="color: #c0392b;">Please enter a challenge first.</p>`;
-          return;
-        }
-
-        reframeOutput.innerHTML = '<p>Getting your re-frame...</p>';
-        reframeBtn.disabled = true;
-
-        try {
-          const response = await fetch('/api/reframe-protocol', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ challenge })
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to get a response from the server.');
-          }
-
-          const data = await response.json();
-          
-          reframeOutput.innerHTML = `
-            <div class="reframe-result">
-              <h4>${data.title}</h4>
-              <p class="reframe-core">"${data.reframe}"</p>
-              <h5>${data.action.header}</h5>
-              <ul>
-                ${data.action.steps.map(step => `<li>${step}</li>`).join('')}
-              </ul>
-              <h6>The Science Behind It</h6>
-              <p class="reframe-science">${data.science}</p>
-            </div>
-          `;
-
-        } catch (error) {
-          reframeOutput.innerHTML = `<p style="color: #c0392b;">Sorry, something went wrong. Please try again.</p>`;
-          console.error('Re-frame Error:', error);
-        } finally {
-          reframeBtn.disabled = false;
-        }
-      });
     }
 
   } catch (err) {
