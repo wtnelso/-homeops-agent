@@ -3,6 +3,8 @@ const BACKEND_URL = window.location.origin;  // Use the same domain
 
 // Helper function to make API calls
 async function apiCall(endpoint, options = {}) {
+  // Ensure /api/ prefix for firebase-config
+  if (endpoint === '/firebase-config') endpoint = '/api/firebase-config';
   const url = `${BACKEND_URL}${endpoint}`;
   const response = await fetch(url, {
     ...options,
