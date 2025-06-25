@@ -1,4 +1,16 @@
 console.log("🧠 layout.js is loading");
+async function initializeFirebase() {
+  try {
+    const response = await fetch('/api/firebase-config');
+    const firebaseConfig = await response.json();
+    firebase.initializeApp(firebaseConfig);
+    return firebase.auth();
+  } catch (error) {
+    console.error('Failed to initialize Firebase:', error);
+    throw error;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🧠 layout.js is loading");
 
@@ -16,13 +28,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggleTheme = document.getElementById("toggleTheme");
 
     function activateView(viewId) {
-      console.log("🔄 Switching to view:", viewId);
-
-      // Remove .active from all views
+      // Hide all views
       document.querySelectorAll('.view').forEach(view => {
         view.classList.remove('active');
       });
-      // Add .active to the selected view
+      // Show the selected view
       const activeView = document.getElementById(`${viewId}-view`);
       if (activeView) {
         activeView.classList.add('active');
@@ -32,6 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (calendarEl) {
         if (viewId === 'calendar') {
           calendarEl.style.display = 'block';
+          if (!window.calendarRendered) {
+            renderCalendar();
+          }
         } else {
           calendarEl.style.display = 'none';
         }
@@ -40,10 +53,10 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll('.nav-item').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
       });
-      // Handle calendar rendering
-      if (viewId === "calendar" && !window.calendarRendered) {
-        renderCalendar();
-      }
+      // Update bottom nav active state
+      document.querySelectorAll('.bottom-nav button').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
+      });
     }
 
     window.activateView = activateView;
@@ -82,10 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById('userEmail').textContent = user.email;
           window.userId = user.uid;
           window.userIdReady = true;
-          // Initialize calendar if not rendered yet
-          if (!window.calendarRendered) {
-            renderCalendar();
-          }
         }
       });
 
@@ -98,14 +107,6 @@ document.addEventListener("DOMContentLoaded", () => {
           console.error('Logout error:', error);
         }
       });
-
-      // If Firebase auth takes time, initialize calendar after a delay
-      setTimeout(() => {
-        if (window.userIdReady && !window.calendarRendered) {
-          console.log("🔄 Calendar initialization triggered after userId set");
-          renderCalendar();
-        }
-      }, 1000);
 
       // On load, set chat view as active
       activateView('chat');
