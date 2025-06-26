@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{ standard_header_includes }}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeOps – The Mental Load Operating System for High-Performing Families & Professionals</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      color: #222;
+    }
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 64px 16px 32px 16px;
+      text-align: center;
+    }
+    .hero-logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 18px;
+    }
+    .hero-title {
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: 0.01em;
+    }
+    .hero-tagline {
+      font-size: 1.3rem;
+      color: #f3f3f3;
+      margin-bottom: 32px;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+    .mockup-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      justify-content: center;
+      margin-bottom: 48px;
+    }
+    .mockup-card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px 0 rgba(80, 80, 120, 0.10);
+      padding: 24px 20px 20px 20px;
+      min-width: 320px;
+      max-width: 370px;
+      flex: 1 1 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 420px;
+    }
+    .mockup-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #667eea;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+    .mockup-content {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+    }
+    .features-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 32px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .feature-box {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px 0 rgba(80, 80, 120, 0.08);
+      padding: 24px 20px 20px 20px;
+      width: 290px;
+      max-width: 90vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .feature-icon {
+      margin-bottom: 12px;
+    }
+    .feature-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #333;
+      text-align: center;
+    }
+    .feature-desc {
+      font-size: 1rem;
+      color: #555;
+      text-align: center;
+    }
+    .footer {
+      margin-top: 48px;
+      padding: 32px 0 16px 0;
+      text-align: center;
+      color: #fff;
+      font-size: 1rem;
+      background: none;
+    }
+    .footer-logo {
+      width: 48px;
+      height: 48px;
+      vertical-align: middle;
+      margin-bottom: 8px;
+    }
+    .footer-links {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+    }
+    .footer-links a {
+      color: #fff;
+      text-decoration: underline;
+      font-size: 1rem;
+    }
+    @media (max-width: 900px) {
+      .mockup-row {
+        flex-direction: column;
+        gap: 24px;
+      }
+      .mockup-card {
+        min-width: 90vw;
+        max-width: 98vw;
+      }
+      .features-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+      }
+      .feature-box {
+        width: 95vw;
+        max-width: 400px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="hero">
+    <img src="img/logo.svg" alt="HomeOps Logo" class="hero-logo">
+    <div class="hero-title">HomeOps</div>
+    <div class="hero-tagline">The Mental Load Operating System for High-Performing Families &amp; Professionals</div>
+  </div>
+  <div class="mockup-row">
+    <!-- Chat Mockup -->
+    <div class="mockup-card">
+      <div class="mockup-title"><i data-lucide="message-square"></i> Chat Agent</div>
+      <div class="mockup-content">
+        <div class="chat-box" style="height:220px;overflow-y:auto;background:#f7f8fa;border-radius:12px;padding:12px 8px 8px 8px;margin-bottom:10px;">
+          <div class="message agent"><div class="sender">HomeOps</div><div class="message-bubble">Hi. I'm your personal chief of staff. What can I help you with today?</div></div>
+          <div class="message user"><div class="sender">You</div><div class="message-bubble">Show me my appointments for this week.</div></div>
+          <div class="message agent"><div class="sender">HomeOps</div><div class="message-bubble">You have a doctor's appointment on Friday at 10am and a playdate on Saturday at 2pm.</div></div>
+        </div>
+        <form class="chat-form" style="display:flex;gap:8px;">
+          <input type="text" placeholder="Type something..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid #e0e0e0;">
+          <button type="submit" style="background:#667eea;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;">Send</button>
+        </form>
+      </div>
+    </div>
+    <!-- Calendar Mockup -->
+    <div class="mockup-card">
+      <div class="mockup-title"><i data-lucide="calendar-days"></i> Calendar</div>
+      <div class="mockup-content">
+        <div id="calendar" style="height:220px;background:#f7f8fa;border-radius:12px;padding:8px;overflow:hidden;">
+          <div style="text-align:center;color:#667eea;font-weight:600;margin-bottom:8px;">July 2025</div>
+          <div style="display:flex;justify-content:space-between;font-size:0.95rem;color:#888;margin-bottom:4px;">
+            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:0.95rem;">
+            <span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+            <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span>
+            <span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span>
+            <span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span>
+            <span>28</span><span>29</span><span>30</span><span>31</span><span></span><span></span><span></span>
+          </div>
+          <div style="margin-top:8px;text-align:left;font-size:0.98rem;">
+            <div style="background:#e0e7ff;color:#3730a3;border-radius:6px;padding:2px 8px;margin-bottom:2px;display:inline-block;">Fri 10am: Doctor's Appointment</div><br>
+            <div style="background:#fef9c3;color:#b45309;border-radius:6px;padding:2px 8px;display:inline-block;">Sat 2pm: Playdate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Homebase/Dashboard Mockup -->
+    <div class="mockup-card">
+      <div class="mockup-title"><i data-lucide="home"></i> Homebase</div>
+      <div class="mockup-content">
+        <div class="home-module modern-placeholder" style="background:#f7f8fa;border-radius:12px;padding:12px 10px 10px 10px;">
+          <h3 style="font-size:1.1rem;color:#667eea;margin-bottom:6px;display:flex;align-items:center;gap:0.4em;"><i data-lucide="brain"></i> Email Decoder Engine</h3>
+          <div style="font-size:0.98rem;color:#555;margin-bottom:8px;">A new way to interact with email for high-performing modern families. Connect your Gmail to surface only what matters—school alerts, doctor updates, smart deals, and more.</div>
+          <div class="email-decoder-examples">
+            <div class="family-signal-card example-card" style="margin-bottom:8px;">
+              <i data-lucide="school" class="signal-icon" style="width:1.2rem;height:1.2rem;color:#1e88e5;vertical-align:middle;"></i>
+              <div style="display:inline-block;margin-left:6px;">
+                <strong>Family Signal</strong><br>
+                Picture Day – Oct 15 at 9 AM<br>
+                <span style="color:#1565c0;">Location: Woods Academy | Action: Send in photo form</span><br>
+                <button class="form-btn" style="margin-top:2px;">Form attached</button>
+              </div>
+            </div>
+            <div class="smart-deal-card example-card">
+              <i data-lucide="shopping-cart" class="deal-icon" style="width:1.2rem;height:1.2rem;color:#b26a00;vertical-align:middle;"></i>
+              <div style="display:inline-block;margin-left:6px;">
+                <strong>Smart Deal</strong><br>
+                You've bought Honest Co. 4x this year<br>
+                <span style="color:#b26a00;">Today: 15% off sitewide + free shipping</span><br>
+                <button class="deal-btn" style="margin-top:2px;">Reorder Diapers</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="home-module" style="background:#f7f8fa;border-radius:12px;padding:10px 10px 8px 10px;margin-top:10px;">
+          <h3 style="font-size:1.05rem;color:#667eea;margin-bottom:4px;">🗓️ This Week</h3>
+          <div style="font-size:0.97rem;color:#555;">Doctor's appointment on Friday at 10am. Playdate on Saturday at 2pm. 2 action items due.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="features-row">
+    <div class="feature-box">
+      <span class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail-check" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 6-8.97 6.66a2 2 0 0 1-2.36 0L2 6m15 10 2 2 4-4"/></svg>
+      </span>
+      <div class="feature-title">Connect Your Inbox</div>
+      <div class="feature-desc">No forms. No setup. Just link Gmail and let HomeOps organize what matters—appointments, alerts, RSVPs, and more.</div>
+    </div>
+    <div class="feature-box">
+      <span class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      </span>
+      <div class="feature-title">Unified Dashboard</div>
+      <div class="feature-desc">See everything that matters in one place—appointments, reminders, errands, and reorders, all in a clean, actionable feed.</div>
+    </div>
+    <div class="feature-box">
+      <span class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot" viewBox="0 0 24 24"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4m-6 4v2m12-2v2"/></svg>
+      </span>
+      <div class="feature-title">Let the Agent Act</div>
+      <div class="feature-desc">HomeOps can add events, send reminders, and help you offload the mental load—just ask in chat.</div>
+    </div>
+  </div>
+  <div class="footer">
+    <img src="img/logo.svg" alt="HomeOps Logo" class="footer-logo"><br>
+    &copy; 2025 HomeOps. All rights reserved.
+    <div class="footer-links">
+      <a href="/privacy-policy.html">Privacy Policy</a>
+      <a href="/terms-of-service.html">Terms of Service</a>
+    </div>
+  </div>
+  <script>lucide.createIcons();</script>
+  {{ standard_footer_includes }}
+</body>
+</html> 

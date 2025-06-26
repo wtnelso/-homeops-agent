@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{ standard_header_includes }}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service - HomeOps</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      background: #f7f8fa;
+      color: #222;
+      line-height: 1.6;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      color: #667eea;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .content {
+      background: #fff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    .section h2 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+    .section h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 15px;
+      margin-top: 25px;
+    }
+    .section p {
+      margin-bottom: 15px;
+      color: #555;
+    }
+    .section ul {
+      margin-bottom: 15px;
+      padding-left: 20px;
+    }
+    .section li {
+      margin-bottom: 8px;
+      color: #555;
+    }
+    .highlight-box {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    .highlight-box h4 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .contact-info {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 30px;
+      border-radius: 12px;
+      margin-top: 40px;
+      text-align: center;
+    }
+    .contact-info h3 {
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .contact-info p {
+      color: #666;
+      margin-bottom: 10px;
+    }
+    .contact-info a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .contact-info a:hover {
+      text-decoration: underline;
+    }
+    .footer {
+      background: #333;
+      color: #fff;
+      padding: 30px 20px;
+      text-align: center;
+      margin-top: 40px;
+    }
+    .footer-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .footer-logo-icon {
+      width: 35px;
+      height: 35px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: #fff;
+    }
+    .footer-logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .footer-bottom {
+      border-top: 1px solid #555;
+      padding-top: 20px;
+      opacity: 0.7;
+    }
+    .last-updated {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .last-updated strong {
+      color: #856404;
+    }
+    .important-notice {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    .important-notice h4 {
+      color: #0c5460;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .important-notice p {
+      color: #0c5460;
+      margin-bottom: 0;
+    }
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+      .content {
+        padding: 25px;
+      }
+      .section h2 {
+        font-size: 1.5rem;
+      }
+      .section h3 {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-logo">
+      <div class="logo-icon">H</div>
+      <div class="logo-text">HomeOps</div>
+    </div>
+    <h1>Terms of Service</h1>
+    <p>Terms and conditions for using the HomeOps mental load operating system</p>
+  </header>
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="content">
+      <div class="last-updated">
+        <strong>Last Updated:</strong> December 2024
+      </div>
+
+      <div class="important-notice">
+        <h4>Important Notice</h4>
+        <p>By accessing or using HomeOps, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.</p>
+      </div>
+
+      <div class="section">
+        <h2>1. Acceptance of Terms</h2>
+        <p>These Terms of Service ("Terms") govern your use of HomeOps, a mental load operating system platform operated by HomeOps ("we," "our," or "us"). By accessing or using our website, mobile applications, and services (collectively, the "Service"), you agree to be bound by these Terms and our Privacy Policy.</p>
+        
+        <p>If you are using our Service on behalf of an organization, you represent that you have the authority to bind that organization to these Terms.</p>
+      </div>
+
+      <div class="section">
+        <h2>2. Description of Service</h2>
+        <p>HomeOps is a comprehensive mental load operating system designed for high-performing families and professionals. Our Service includes:</p>
+        <ul>
+          <li>AI-powered email processing and decoding</li>
+          <li>Smart calendar management and scheduling</li>
+          <li>AI chat assistant for life management</li>
+          <li>Task organization and prioritization</li>
+          <li>Integration with Gmail and Google Calendar</li>
+          <li>Mobile and web applications</li>
+        </ul>
+        
+        <div class="highlight-box">
+          <h4>Service Availability</h4>
+          <p>We strive to provide reliable service but cannot guarantee uninterrupted access. We may modify, suspend, or discontinue any part of the Service at any time with reasonable notice.</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>3. User Accounts and Registration</h2>
+        
+        <h3>Account Creation</h3>
+        <p>To use certain features of our Service, you must create an account. You agree to provide accurate, current, and complete information during registration and to update such information as necessary.</p>
+        
+        <h3>Account Security</h3>
+        <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account.</p>
+        
+        <h3>Account Termination</h3>
+        <p>You may terminate your account at any time. We may terminate or suspend your account if you violate these Terms or for any other reason at our sole discretion.</p>
+      </div>
+
+      <div class="section">
+        <h2>4. Gmail Integration and Data Processing</h2>
+        
+        <h3>OAuth Consent</h3>
+        <p>When you connect your Gmail account to HomeOps, you grant us permission to access and process your emails for the purpose of extracting appointments, tasks, and other relevant information. This access is limited to reading emails only.</p>
+        
+        <h3>Data Processing Scope</h3>
+        <p>We process your emails to:</p>
+        <ul>
+          <li>Extract calendar events and appointments</li>
+          <li>Identify tasks and deadlines</li>
+          <li>Generate AI-powered insights and recommendations</li>
+          <li>Organize information for better mental load management</li>
+        </ul>
+        
+        <div class="highlight-box">
+          <h4>Data Protection</h4>
+          <p>We do not store email content, send emails on your behalf, or modify your emails. All processing is done securely and in accordance with Google's OAuth requirements and our Privacy Policy.</p>
+        </div>
+        
+        <h3>Revocation of Access</h3>
+        <p>You can revoke our access to your Gmail account at any time through your Google account settings or by disconnecting the integration within our Service.</p>
+      </div>
+
+      <div class="section">
+        <h2>5. Acceptable Use Policy</h2>
+        <p>You agree to use our Service only for lawful purposes and in accordance with these Terms. You agree not to:</p>
+        <ul>
+          <li>Use the Service for any illegal or unauthorized purpose</li>
+          <li>Attempt to gain unauthorized access to our systems or other users' accounts</li>
+          <li>Interfere with or disrupt the Service or servers</li>
+          <li>Transmit viruses, malware, or other harmful code</li>
+          <li>Violate any applicable laws or regulations</li>
+          <li>Use the Service to process emails for third parties without authorization</li>
+          <li>Reverse engineer, decompile, or disassemble any part of the Service</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>6. Intellectual Property Rights</h2>
+        
+        <h3>Our Rights</h3>
+        <p>HomeOps and its original content, features, and functionality are owned by us and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.</p>
+        
+        <h3>Your Content</h3>
+        <p>You retain ownership of any content you submit to our Service. By submitting content, you grant us a non-exclusive, worldwide, royalty-free license to use, modify, and display such content in connection with providing the Service.</p>
+        
+        <h3>Feedback</h3>
+        <p>If you provide feedback, suggestions, or ideas about our Service, you grant us the right to use such feedback without restriction or compensation.</p>
+      </div>
+
+      <div class="section">
+        <h2>7. Privacy and Data Protection</h2>
+        <p>Your privacy is important to us. Our collection, use, and protection of your personal information is governed by our Privacy Policy, which is incorporated into these Terms by reference.</p>
+        
+        <p>By using our Service, you consent to the collection and use of your information as described in our Privacy Policy.</p>
+      </div>
+
+      <div class="section">
+        <h2>8. Disclaimers and Limitations of Liability</h2>
+        
+        <h3>Service Availability</h3>
+        <p>Our Service is provided "as is" and "as available" without warranties of any kind, either express or implied. We do not guarantee that the Service will be uninterrupted, secure, or error-free.</p>
+        
+        <h3>AI and Automation</h3>
+        <p>While we strive for accuracy, our AI-powered features may not always be 100% accurate. You should verify important information and not rely solely on automated processing for critical decisions.</p>
+        
+        <h3>Limitation of Liability</h3>
+        <p>To the maximum extent permitted by law, HomeOps shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or use.</p>
+        
+        <div class="highlight-box">
+          <h4>Maximum Liability</h4>
+          <p>Our total liability to you for any claims arising from your use of the Service shall not exceed the amount you paid us in the 12 months preceding the claim.</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>9. Indemnification</h2>
+        <p>You agree to indemnify and hold harmless HomeOps, its officers, directors, employees, and agents from and against any claims, damages, obligations, losses, liabilities, costs, or debt arising from:</p>
+        <ul>
+          <li>Your use of the Service</li>
+          <li>Your violation of these Terms</li>
+          <li>Your violation of any third-party rights</li>
+          <li>Any content you submit to the Service</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>10. Subscription and Payment Terms</h2>
+        
+        <h3>Free Trial</h3>
+        <p>We may offer a free trial period for new users. After the trial period ends, you may be required to subscribe to continue using premium features.</p>
+        
+        <h3>Subscription Plans</h3>
+        <p>Subscription plans are billed on a recurring basis. You authorize us to charge your payment method for all fees associated with your subscription.</p>
+        
+        <h3>Cancellation</h3>
+        <p>You may cancel your subscription at any time. Cancellation will take effect at the end of your current billing period. No refunds will be provided for partial billing periods.</p>
+        
+        <h3>Price Changes</h3>
+        <p>We may change our pricing with 30 days' notice. Continued use of the Service after a price change constitutes acceptance of the new pricing.</p>
+      </div>
+
+      <div class="section">
+        <h2>11. Third-Party Services</h2>
+        <p>Our Service integrates with third-party services such as Gmail, Google Calendar, and other Google services. Your use of these third-party services is subject to their respective terms of service and privacy policies.</p>
+        
+        <p>We are not responsible for the availability, accuracy, or content of third-party services.</p>
+      </div>
+
+      <div class="section">
+        <h2>12. Termination</h2>
+        
+        <h3>Termination by You</h3>
+        <p>You may terminate your use of the Service at any time by deleting your account or discontinuing use.</p>
+        
+        <h3>Termination by Us</h3>
+        <p>We may terminate or suspend your access to the Service immediately, without prior notice, for conduct that we believe violates these Terms or is harmful to other users or the Service.</p>
+        
+        <h3>Effect of Termination</h3>
+        <p>Upon termination, your right to use the Service will cease immediately. We may delete your account and data in accordance with our Privacy Policy.</p>
+      </div>
+
+      <div class="section">
+        <h2>13. Governing Law and Dispute Resolution</h2>
+        
+        <h3>Governing Law</h3>
+        <p>These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which HomeOps operates, without regard to conflict of law principles.</p>
+        
+        <h3>Dispute Resolution</h3>
+        <p>Any disputes arising from these Terms or your use of the Service shall be resolved through binding arbitration in accordance with the rules of the American Arbitration Association.</p>
+        
+        <h3>Class Action Waiver</h3>
+        <p>You agree that any arbitration will be conducted on an individual basis and not as a class action or other representative proceeding.</p>
+      </div>
+
+      <div class="section">
+        <h2>14. Changes to Terms</h2>
+        <p>We may modify these Terms at any time. We will notify you of material changes by:</p>
+        <ul>
+          <li>Posting the updated Terms on our website</li>
+          <li>Sending you an email notification</li>
+          <li>Displaying a notice in our Service</li>
+        </ul>
+        
+        <p>Your continued use of the Service after any changes indicates your acceptance of the updated Terms.</p>
+      </div>
+
+      <div class="section">
+        <h2>15. Severability</h2>
+        <p>If any provision of these Terms is found to be unenforceable or invalid, that provision will be limited or eliminated to the minimum extent necessary so that these Terms will otherwise remain in full force and effect.</p>
+      </div>
+
+      <div class="section">
+        <h2>16. Entire Agreement</h2>
+        <p>These Terms, together with our Privacy Policy, constitute the entire agreement between you and HomeOps regarding your use of the Service and supersede all prior agreements and understandings.</p>
+      </div>
+
+      <div class="contact-info">
+        <h3>Contact Us</h3>
+        <p>If you have any questions about these Terms of Service, please contact us:</p>
+        <p><strong>Email:</strong> <a href="mailto:legal@homeops.ai">legal@homeops.ai</a></p>
+        <p><strong>Address:</strong> HomeOps Legal Team</p>
+        <p>We will respond to your inquiry within 30 days.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <div class="footer-logo-icon">H</div>
+        <div class="footer-logo-text">HomeOps</div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 HomeOps. The Mental Load Operating System for High-Performing Families & Professionals.</p>
+      </div>
+    </div>
+  </footer>
+
+  {{ standard_footer_includes }}
+</body>
+</html> 

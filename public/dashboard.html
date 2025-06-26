@@ -76,7 +76,7 @@
   <div class="app-container">
 
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="logo">
           <img src="img/logo.svg" alt="HomeOps Logo" class="sidebar-logo">
@@ -92,11 +92,18 @@
 
     <main class="main-content">
 
-  <!-- Top Bar with logo + brand -->
+  <!-- Top Bar with logo + brand and hamburger -->
   <header class="top-bar">
     <div class="top-bar-left">
-      <img src="img/logo.svg" alt="HomeOps Logo" class="top-bar-logo">
-      <span class="brand-name">HomeOps.ai</span>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      </button>
+      <a href="#" onclick="activateView('home'); return false;" class="top-bar-logo-link">
+        <img src="img/logo.svg" alt="HomeOps Logo" class="top-bar-logo">
+        <span class="brand-name">HomeOps</span>
+      </a>
     </div>
     <div class="user-menu">
       <span class="user-email" id="userEmail"></span>
@@ -107,19 +114,101 @@
   <!-- Home View -->
   <section id="home-view" class="view">
     <div class="home-grid">
-      <!-- Email Decoder -->
-      <div id="email-decoder-module" class="home-module">
+      <!-- Email Decoder Engine Card -->
+      <div id="email-decoder-engine-card" class="home-module modern-placeholder">
         <div class="module-header">
-          <h2>📧 Email Decoder</h2>
-          <p>Connect your Gmail to automatically surface what matters.</p>
+          <h2 style="font-size:2rem;display:flex;align-items:center;gap:0.5rem;">
+            <i data-lucide="brain" style="width:2.2rem;height:2.2rem;"></i> Email Decoder Engine
+          </h2>
+          <p style="font-size:1.1rem;color:#555;max-width:600px;">A new way to interact with email for high-performing modern families. Connect your Gmail to surface only what matters—school alerts, doctor updates, smart deals, and more.</p>
+          
+          <!-- Gmail Connection Status -->
+          <div id="gmail-status" class="gmail-status">
+            <div id="gmail-not-connected" class="gmail-not-connected">
+              <button id="connect-gmail-btn" class="gmail-connect-btn">
+                <i data-lucide="mail" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
+                Connect Gmail
+              </button>
+              <p class="gmail-status-text">Connect your Gmail to start decoding emails</p>
+            </div>
+            <div id="gmail-connected" class="gmail-connected" style="display:none;">
+              <div class="gmail-status-success">
+                <i data-lucide="check-circle" style="width:1.2rem;height:1.2rem;color:#10b981;margin-right:0.5rem;"></i>
+                <span>Gmail Connected</span>
+              </div>
+              <button id="process-emails-btn" class="process-emails-btn">
+                <i data-lucide="refresh-cw" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
+                Process Emails
+              </button>
+            </div>
+          </div>
+
+          <!-- Email Processing Status -->
+          <div id="email-processing-status" class="email-processing-status" style="display:none;">
+            <div class="processing-indicator">
+              <i data-lucide="loader-2" class="spinning" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
+              <span>Processing your emails...</span>
+            </div>
+          </div>
+
+          <!-- Email Summary -->
+          <div id="email-summary" class="email-summary" style="display:none;">
+            <div class="summary-stats">
+              <div class="stat-item">
+                <span class="stat-number" id="total-emails">0</span>
+                <span class="stat-label">Processed</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="family-signals">0</span>
+                <span class="stat-label">Family Signals</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="smart-deals">0</span>
+                <span class="stat-label">Smart Deals</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="action-items">0</span>
+                <span class="stat-label">Action Items</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="module-content">
-          <button class="gmail-connect-btn">
-            <!-- SVG icon -->
-            <svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" class="svg-inline--fa fa-google fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" style="width: 1em; height: 1em; vertical-align: -0.125em;"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-69.2 69.2c-20.3-19.6-48.6-31.8-79.7-31.8-62.3 0-113.5 51.2-113.5 114.3s51.2 114.3 113.5 114.3c71.2 0 98.2-47.8 101.6-72.9H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>
-            Connect Gmail Account
-          </button>
-          <p class="small-text">We'll request permission to read your emails.</p>
+
+        <!-- Decoded Email Cards -->
+        <div id="decoded-emails-container" class="decoded-emails-container" style="display:none;">
+          <h3 style="margin:1.5rem 0 1rem;font-size:1.3rem;color:#1e293b;">Recent Decoded Emails</h3>
+          <div id="decoded-emails-list" class="decoded-emails-list">
+            <!-- Dynamic email cards will be inserted here -->
+          </div>
+        </div>
+
+        <!-- Example Cards (shown when no emails processed) -->
+        <div id="email-decoder-examples" class="email-decoder-examples">
+          <div class="example-header">
+            <h3 style="margin:1.5rem 0 1rem;font-size:1.3rem;color:#1e293b;">How it works</h3>
+          </div>
+          <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+            <!-- Example Family Signal Card -->
+            <div class="family-signal-card example-card">
+              <i data-lucide="school" class="signal-icon" style="width:2rem;height:2rem;color:#1e88e5;vertical-align:middle;"></i>
+              <div>
+                <strong>Family Signal</strong><br>
+                Picture Day – Oct 15 at 9 AM<br>
+                <span style="color:#1565c0;">Location: Woods Academy | Action: Send in photo form</span><br>
+                <button class="form-btn">Form attached</button>
+              </div>
+            </div>
+            <!-- Example Smart Deal Card -->
+            <div class="smart-deal-card example-card">
+              <i data-lucide="shopping-cart" class="deal-icon" style="width:2rem;height:2rem;color:#b26a00;vertical-align:middle;"></i>
+              <div>
+                <strong>Smart Deal</strong><br>
+                You've bought Honest Co. 4x this year<br>
+                <span style="color:#b26a00;">Today: 15% off sitewide + free shipping</span><br>
+                <button class="deal-btn">Reorder Diapers</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <!-- This Week Summary -->
@@ -132,18 +221,6 @@
           <div class="week-summary-placeholder">
             <p>Your weekly summary will appear here...</p>
           </div>
-        </div>
-      </div>
-      <!-- Re-frame Protocol -->
-      <div id="reframe-protocol-module" class="home-module large-module">
-        <div class="module-header">
-          <h2>🧠 Re-frame Protocol</h2>
-          <p>Your personal Chief of Staff to help you unblock and refocus.</p>
-        </div>
-        <div class="module-content">
-          <textarea class="reframe-input" placeholder="What's a challenge or blocker on your mind?"></textarea>
-          <button class="reframe-btn">Get Re-frame</button>
-          <div class="reframe-output"></div>
         </div>
       </div>
     </div>
@@ -214,7 +291,7 @@
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
     <div class="view-header">
-      <h2>📅 My Calendar</h2>
+      <h2><i data-lucide="calendar-days" style="width:1.2em;height:1.2em;vertical-align:-0.2em;margin-right:0.4em;"></i>My Calendar</h2>
       <button id="clear-events-btn" class="button-danger">Clear All Events</button>
     </div>
     <div id="calendar"></div>
@@ -235,52 +312,6 @@
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
-
-<!-- Firebase configuration and auth logic -->
-<script>
-// Initialize Firebase by fetching config from server
-async function initializeFirebase() {
-  try {
-    const firebaseConfig = await apiCall('/api/firebase-config');
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    return firebase.auth();
-  } catch (error) {
-    console.error('Failed to initialize Firebase:', error);
-    throw error;
-  }
-}
-
-// Initialize Firebase and set up auth
-let auth;
-initializeFirebase().then(authInstance => {
-  auth = authInstance;
-  
-  // Check authentication state
-  auth.onAuthStateChanged((user) => {
-    if (!user) {
-      // User is not signed in, redirect to login
-      window.location.href = '/';
-    } else {
-      // User is signed in, display email
-      document.getElementById('userEmail').textContent = user.email;
-    }
-  });
-
-  // Handle logout
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-      await auth.signOut();
-      // Redirect will happen automatically via onAuthStateChanged
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  });
-}).catch(error => {
-  console.error('Firebase initialization failed:', error);
-  document.body.innerHTML = '<div style="text-align: center; padding: 50px;"><h2>Service Unavailable</h2><p>Unable to initialize authentication service.</p></div>';
-});
-</script>
 
 <!-- ✅ Your app scripts -->
 <script src="layout.js" defer></script>

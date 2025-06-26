@@ -37,17 +37,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (activeView) {
         activeView.classList.add('active');
       }
-      // Hide calendar unless calendar view is active
-      const calendarEl = document.getElementById('calendar');
-      if (calendarEl) {
-        if (viewId === 'calendar') {
-          calendarEl.style.display = 'block';
+      // Handle calendar rendering when calendar view is activated
+      if (viewId === 'calendar') {
+        // Use setTimeout to ensure the view is active before rendering
+        setTimeout(() => {
           if (!window.calendarRendered) {
             renderCalendar();
+          } else if (window.calendar) {
+            // If already rendered, just update the size
+            window.calendar.updateSize();
           }
-        } else {
-          calendarEl.style.display = 'none';
-        }
+        }, 100);
       }
       // Update nav active state
       document.querySelectorAll('.nav-item').forEach(btn => {
@@ -95,6 +95,10 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById('userEmail').textContent = user.email;
           window.userId = user.uid;
           window.userIdReady = true;
+          // Initialize chat after Firebase is ready and user is authenticated
+          if (window.initializeChat) {
+            window.initializeChat(auth, user);
+          }
         }
       });
 
@@ -174,6 +178,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Calendar logic remains outside, but only uses window.userIdReady/window.userId
     function renderCalendar() {
       console.log("🔄 renderCalendar called");
+      
+      // Check if calendar view is actually active
+      const calendarView = document.getElementById('calendar-view');
+      const isCalendarViewActive = calendarView && calendarView.classList.contains('active');
+      console.log("🔄 Calendar view active:", isCalendarViewActive);
+      
+      if (!isCalendarViewActive) {
+        console.log("❌ Calendar view is not active, skipping renderCalendar");
+        return;
+      }
+      
       console.log("🔄 window.userId:", window.userId);
       console.log("🔄 window.userIdReady:", window.userIdReady);
       console.log("🔄 window.calendarRendered:", window.calendarRendered);
@@ -187,21 +202,18 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Ensure calendar element is visible and properly sized
+      calendarEl.style.display = "block";
+      calendarEl.style.height = "600px";
+      calendarEl.style.minHeight = "600px";
+      calendarEl.style.width = "100%";
+      calendarEl.style.visibility = "visible";
+      
       // Check calendar element dimensions
       const rect = calendarEl.getBoundingClientRect();
       console.log("🔄 Calendar element dimensions:", rect.width, "x", rect.height);
       console.log("🔄 Calendar element display:", window.getComputedStyle(calendarEl).display);
       console.log("🔄 Calendar element visibility:", window.getComputedStyle(calendarEl).visibility);
-
-      // Force calendar element to have proper dimensions
-      if (rect.height === 0) {
-        console.log("⚠️ Calendar element has 0 dimensions, forcing size");
-        calendarEl.style.height = "600px";
-        calendarEl.style.minHeight = "600px";
-        calendarEl.style.width = "100%";
-        calendarEl.style.display = "block";
-        console.log("🔄 Applied forced styles to calendar element");
-      }
 
       if (typeof FullCalendar === "undefined") {
         console.error("❌ FullCalendar library not found");
@@ -209,7 +221,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (window.calendarRendered) {
-        console.log("🔄 Calendar already rendered, skipping");
+        console.log("🔄 Calendar already rendered, updating size");
+        if (window.calendar) {
+          window.calendar.updateSize();
+        }
         return;
       }
 
@@ -255,6 +270,11 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         },
         eventDisplay: "block",
+        eventClick: function(info) {
+          // Show event modal with details and reframe
+          showEventModal(info.event);
+          info.jsEvent.preventDefault();
+        },
         dateClick: function(info) {
           const title = prompt("Add an event:");
           if (title) {
@@ -284,14 +304,335 @@ document.addEventListener("DOMContentLoaded", () => {
       window.calendarRendered = true;
       console.log("✅ Calendar initialized and rendered");
       
-      // Force calendar to update its size
+      // Force calendar to update its size after a short delay
       setTimeout(() => {
         console.log("🔄 Forcing calendar updateSize after initialization");
-        window.calendar.updateSize();
+        if (window.calendar) {
+          window.calendar.updateSize();
+        }
         const newRect = calendarEl.getBoundingClientRect();
         console.log("🔄 Calendar dimensions after updateSize:", newRect.width, "x", newRect.height);
-      }, 100);
+      }, 200);
     }
+
+    // Make renderCalendar available globally
+    window.renderCalendar = renderCalendar;
+
+    // Event Modal System
+    function showEventModal(event) {
+      // Create modal HTML
+      const modalHTML = `
+        <div id="event-modal" class="event-modal-overlay">
+          <div class="event-modal">
+            <div class="event-modal-header">
+              <h2>${event.title}</h2>
+              <button class="event-modal-close" onclick="closeEventModal()">×</button>
+            </div>
+            <div class="event-modal-content">
+              <div class="event-details">
+                <div class="event-detail-item">
+                  <i class="lucide-calendar"></i>
+                  <span>${formatEventDate(event.start)}</span>
+                </div>
+                <div class="event-detail-item">
+                  <i class="lucide-clock"></i>
+                  <span>${formatEventTime(event.start, event.end)}</span>
+                </div>
+                ${event.extendedProps.location ? `
+                  <div class="event-detail-item">
+                    <i class="lucide-map-pin"></i>
+                    <span>${event.extendedProps.location}</span>
+                  </div>
+                ` : ''}
+                ${event.extendedProps.description ? `
+                  <div class="event-detail-item">
+                    <i class="lucide-file-text"></i>
+                    <span>${event.extendedProps.description}</span>
+                  </div>
+                ` : ''}
+              </div>
+              
+              <div class="event-reframe-section">
+                <h3>🤔 Need a reframe?</h3>
+                <p>Get a fresh perspective on this event with AI-powered reframing.</p>
+                <button class="reframe-event-btn" onclick="reframeEvent('${event.title}')">
+                  <i class="lucide-sparkles"></i>
+                  Get Reframe
+                </button>
+                <div id="event-reframe-output" class="event-reframe-output"></div>
+              </div>
+              
+              <div class="event-actions">
+                <button class="event-action-btn edit-btn" onclick="editEvent('${event.id}')">
+                  <i class="lucide-edit"></i>
+                  Edit
+                </button>
+                <button class="event-action-btn delete-btn" onclick="deleteEvent('${event.id}')">
+                  <i class="lucide-trash-2"></i>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Add modal to body
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      
+      // Add event listeners for modal interactions
+      document.getElementById('event-modal').addEventListener('click', function(e) {
+        if (e.target.id === 'event-modal') {
+          closeEventModal();
+        }
+      });
+      
+      // Add escape key listener
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeEventModal();
+        }
+      });
+    }
+
+    function closeEventModal() {
+      const modal = document.getElementById('event-modal');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    function formatEventDate(date) {
+      return new Date(date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+
+    function formatEventTime(start, end) {
+      const startTime = new Date(start);
+      const endTime = end ? new Date(end) : null;
+      
+      if (endTime) {
+        return `${startTime.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit' 
+        })} - ${endTime.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit' 
+        })}`;
+      } else {
+        return startTime.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit' 
+        });
+      }
+    }
+
+    async function reframeEvent(eventTitle) {
+      const reframeOutput = document.getElementById('event-reframe-output');
+      const reframeBtn = document.querySelector('.reframe-event-btn');
+      
+      reframeOutput.innerHTML = '<div class="reframe-loading"><i class="lucide-loader-2"></i> Getting your reframe...</div>';
+      reframeBtn.disabled = true;
+      
+      try {
+        const response = await fetch('/api/reframe-protocol', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            challenge: `I have an event coming up: "${eventTitle}". I'm feeling a bit anxious about it and could use a fresh perspective.` 
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get a response from the server.');
+        }
+
+        const data = await response.json();
+        
+        reframeOutput.innerHTML = `
+          <div class="event-reframe-result">
+            <h4>${data.title}</h4>
+            <p class="reframe-core">"${data.reframe}"</p>
+            <h5>${data.action.header}</h5>
+            <ul>
+              ${data.action.steps.map(step => `<li>${step}</li>`).join('')}
+            </ul>
+            <h6>The Science Behind It</h6>
+            <p class="reframe-science">${data.science}</p>
+          </div>
+        `;
+
+      } catch (error) {
+        reframeOutput.innerHTML = `<div class="reframe-error">Sorry, something went wrong. Please try again.</div>`;
+        console.error('Event Reframe Error:', error);
+      } finally {
+        reframeBtn.disabled = false;
+      }
+    }
+
+    async function editEvent(eventId) {
+      // TODO: Implement event editing
+      alert('Event editing coming soon!');
+    }
+
+    async function deleteEvent(eventId) {
+      if (confirm('Are you sure you want to delete this event?')) {
+        try {
+          const userId = window.userId || "ER4LFJqyUidTfc4a53DaPjeZYKE3";
+          const response = await fetch('/api/delete-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              user_id: userId,
+              event_id: eventId 
+            })
+          });
+          
+          if (response.ok) {
+            window.calendar.refetchEvents();
+            closeEventModal();
+          } else {
+            alert('Failed to delete event');
+          }
+        } catch (error) {
+          console.error('Error deleting event:', error);
+          alert('Error deleting event');
+        }
+      }
+    }
+
+    // Make functions globally available
+    window.closeEventModal = closeEventModal;
+    window.reframeEvent = reframeEvent;
+    window.editEvent = editEvent;
+    window.deleteEvent = deleteEvent;
+
+    // Add clear events functionality
+    const clearEventsBtn = document.getElementById('clear-events-btn');
+    if (clearEventsBtn) {
+      clearEventsBtn.addEventListener('click', async () => {
+        if (confirm('Are you sure you want to clear all calendar events? This cannot be undone.')) {
+          try {
+            const userId = window.userId || "ER4LFJqyUidTfc4a53DaPjeZYKE3";
+            const response = await fetch('/api/events/clear', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user_id: userId })
+            });
+            
+            if (response.ok) {
+              // Clear the calendar display
+              if (window.calendar) {
+                window.calendar.removeAllEvents();
+              }
+              // Reset calendar state
+              window.calendarRendered = false;
+              console.log('✅ All calendar events cleared');
+            } else {
+              console.error('❌ Failed to clear events');
+            }
+          } catch (error) {
+            console.error('❌ Error clearing events:', error);
+          }
+        }
+      });
+    }
+
+    // Account dropdown menu logic
+    const accountMenu = document.getElementById('accountMenu');
+    const accountBtn = document.getElementById('accountBtn');
+    const accountDropdown = document.getElementById('accountDropdown');
+
+    accountBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      accountMenu.classList.toggle('open');
+      accountBtn.setAttribute('aria-expanded', accountMenu.classList.contains('open'));
+      if (accountMenu.classList.contains('open')) {
+        accountDropdown.focus();
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!accountMenu.contains(e.target)) {
+        accountMenu.classList.remove('open');
+        accountBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        accountMenu.classList.remove('open');
+        accountBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Logout logic
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Add your logout logic here
+        window.location.href = '/';
+      });
+    }
+
+    // Sidebar mobile toggle logic
+    const sidebar = document.getElementById('sidebar');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    let sidebarBackdrop = null;
+
+    function openSidebar() {
+      sidebar.classList.add('open');
+      hamburgerBtn.setAttribute('aria-expanded', 'true');
+      // Add backdrop
+      sidebarBackdrop = document.createElement('div');
+      sidebarBackdrop.className = 'sidebar-backdrop';
+      document.body.appendChild(sidebarBackdrop);
+      sidebarBackdrop.addEventListener('click', closeSidebar);
+    }
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      hamburgerBtn.setAttribute('aria-expanded', 'false');
+      if (sidebarBackdrop) {
+        sidebarBackdrop.remove();
+        sidebarBackdrop = null;
+      }
+    }
+    hamburgerBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (sidebar.classList.contains('open')) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    });
+    // Close sidebar on nav click (mobile)
+    document.querySelectorAll('.sidebar .nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (window.innerWidth <= 900) closeSidebar();
+      });
+    });
+    // Close sidebar on outside click (mobile)
+    document.addEventListener('click', function(e) {
+      if (window.innerWidth > 900) return;
+      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== hamburgerBtn) {
+        closeSidebar();
+      }
+    });
+
+    // Nuke any rogue nav, nav-item, or icon outside sidebar/bottom-nav
+    function nukeRogueNavs() {
+      document.querySelectorAll('.nav, .nav-item, i').forEach(el => {
+        if (!el.closest('.sidebar') && !el.closest('.bottom-nav')) {
+          el.remove();
+        }
+      });
+    }
+    document.addEventListener('DOMContentLoaded', nukeRogueNavs);
 
   } catch (err) {
     console.error("💥 layout.js crash:", err);

@@ -9,7 +9,21 @@ console.log("🚀 DEPLOYMENT VERSION 8 - LUXON REMOVED - " + new Date().toISOStr
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
-const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
+// Use a more reliable fetch approach
+let fetch;
+try {
+  // Try to use global fetch first (Node 18+)
+  if (global.fetch) {
+    fetch = global.fetch;
+  } else {
+    // Fallback to node-fetch v2
+    fetch = require("node-fetch");
+  }
+} catch (err) {
+  console.error("❌ Failed to initialize fetch:", err.message);
+  // Last resort: try dynamic import
+  fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
+}
 const admin = require("firebase-admin");
 const path = require("path");
 const fs = require("fs");
@@ -27,22 +41,36 @@ function getCurrentDate() {
   return now.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
 }
 
-// Use service account key from file for reliable initialization
-try {
-  const serviceAccount = JSON.parse(fs.readFileSync(path.join(__dirname, "homeops-sa-key.json"), "utf8"));
+// Improved Firebase initialization with proper error handling
+let firebaseInitialized = false;
 
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-    console.log("✅ Firebase initialized successfully via service account file.");
+// Try to initialize with service account file first
+try {
+  const serviceAccountPath = path.join(__dirname, "homeops-sa-key.json");
+  if (fs.existsSync(serviceAccountPath)) {
+    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
+    
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+      firebaseInitialized = true;
+      console.log("✅ Firebase initialized successfully via service account file.");
+    }
+  } else {
+    console.log("ℹ️ Service account file not found, trying environment variables...");
   }
 } catch (err) {
-  console.error("❌ Firebase init failed:", err.message);
-  // Attempt to use environment variable as a fallback (for Render, etc.)
+  console.log("ℹ️ Service account file error, trying environment variables...");
+}
+
+// Fallback to environment variables if service account file failed
+if (!firebaseInitialized) {
   try {
     const base64 = process.env.FIREBASE_CREDENTIALS;
-    if (!base64) throw new Error("FIREBASE_CREDENTIALS env var not set.");
+    if (!base64) {
+      throw new Error("FIREBASE_CREDENTIALS env var not set.");
+    }
     const decoded = Buffer.from(base64, "base64").toString("utf-8");
     const firebaseCredentials = JSON.parse(decoded);
 
@@ -50,10 +78,12 @@ try {
       admin.initializeApp({
         credential: admin.credential.cert(firebaseCredentials),
       });
+      firebaseInitialized = true;
       console.log("✅ Firebase initialized successfully via environment variable.");
     }
   } catch (fallbackErr) {
-    console.error("❌ Firebase fallback init also failed:", fallbackErr.message);
+    console.error("❌ Firebase initialization failed:", fallbackErr.message);
+    console.error("❌ No valid credential source found. Please check your configuration.");
     process.exit(1); // Exit if no valid credential source found
   }
 }
@@ -95,11 +125,20 @@ try {
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
-// Serve dashboard.html for all non-API, non-static requests (SPA support)
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api') && !req.path.includes('.')) {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-  }
+// All API routes should be defined above the SPA catch-all
+app.get("/api/firebase-config", (req, res) => {
+  // Provide a basic Firebase config for the homeops-web project
+  const firebaseConfig = {
+    apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBxGxGxGxGxGxGxGxGxGxGxGxGxGxGxGx",
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN || "homeops-web.firebaseapp.com",
+    projectId: process.env.FIREBASE_PROJECT_ID || "homeops-web",
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "homeops-web.appspot.com",
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "123456789",
+    appId: process.env.FIREBASE_APP_ID || "1:123456789:web:abcdef123456",
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID || "G-XXXXXXXXXX"
+  };
+  
+  res.json(firebaseConfig);
 });
 
 // Test endpoint to check environment variables
@@ -288,8 +327,8 @@ Respond with ONLY a single, valid JSON object in this format.
 
       events.forEach(event => {
         if (event.title && event.when) {
-          // Parse the natural language "when" string
-          const parsedStart = chrono.parseDate(event.when, referenceDate, { forwardDate: true });
+          // Parse the natural language "when" string in America/New_York timezone
+          const parsedStart = chrono.parseDate(event.when, referenceDate, { forwardDate: true, timezone: "America/New_York" });
 
           if (parsedStart) {
             // Convert to the required ISO 8601 format with timezone
@@ -388,6 +427,118 @@ app.get("/api/events", async (req, res) => {
   } catch (err) {
     console.error("❌ Failed to fetch events:", err.message);
     res.status(500).json({ error: "Failed to fetch events" });
+  }
+});
+
+// ✅ Get events for calendar (FullCalendar format)
+app.get("/api/get-events", async (req, res) => {
+  const { user_id = "user_123" } = req.query;
+  try {
+    const snapshot = await db
+      .collection("events")
+      .where("user_id", "==", user_id)
+      .orderBy("start")
+      .get();
+    
+    const events = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title,
+        start: data.start,
+        end: data.end || null,
+        allDay: data.allDay || false,
+        user_id: data.user_id,
+        location: data.location || null,
+        description: data.description || null,
+        extendedProps: {
+          location: data.location || null,
+          description: data.description || null
+        }
+      };
+    });
+    
+    res.json(events);
+  } catch (err) {
+    console.error("❌ Failed to fetch events for calendar:", err.message);
+    res.status(500).json({ error: "Failed to fetch events" });
+  }
+});
+
+// ✅ Add event from calendar (FullCalendar dateClick)
+app.post("/api/add-event", async (req, res) => {
+  const { user_id, title, start, end, allDay = false, location, description } = req.body;
+  
+  if (!user_id || !title || !start) {
+    return res.status(400).json({ error: "Missing required fields: user_id, title, or start" });
+  }
+
+  try {
+    const eventData = {
+      user_id,
+      title,
+      start,
+      allDay,
+      created_at: new Date()
+    };
+
+    // Add optional fields if provided
+    if (end) eventData.end = end;
+    if (location) eventData.location = location;
+    if (description) eventData.description = description;
+
+    const docRef = await db.collection("events").add(eventData);
+
+    res.json({ 
+      success: true, 
+      id: docRef.id,
+      event: { 
+        id: docRef.id, 
+        title, 
+        start, 
+        end: end || null,
+        allDay, 
+        user_id,
+        location: location || null,
+        description: description || null
+      }
+    });
+  } catch (err) {
+    console.error("❌ Failed to add event:", err.message);
+    res.status(500).json({ error: "Failed to add event" });
+  }
+});
+
+// ✅ Delete event
+app.post("/api/delete-event", async (req, res) => {
+  const { user_id, event_id } = req.body;
+  
+  if (!user_id || !event_id) {
+    return res.status(400).json({ error: "Missing required fields: user_id or event_id" });
+  }
+
+  try {
+    // Verify the event belongs to the user before deleting
+    const eventDoc = await db.collection("events").doc(event_id).get();
+    
+    if (!eventDoc.exists) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+    
+    const eventData = eventDoc.data();
+    if (eventData.user_id !== user_id) {
+      return res.status(403).json({ error: "Unauthorized to delete this event" });
+    }
+    
+    await db.collection("events").doc(event_id).delete();
+    
+    res.json({ 
+      success: true, 
+      message: "Event deleted successfully" 
+    });
+  } catch (err) {
+    console.error("❌ Failed to delete event:", err.message);
+    res.status(500).json({ error: "Failed to delete event" });
   }
 });
 
@@ -586,36 +737,242 @@ app.get("/events", async (req, res) => {
   }
 });
 
-// Secure endpoint to provide Firebase config
-app.get("/api/firebase-config", (req, res) => {
-  // Debug: Log environment variables
-  console.log("🔍 Environment Variables Debug:");
-  console.log("FIREBASE_API_KEY:", process.env.FIREBASE_API_KEY ? "SET" : "NOT SET");
-  console.log("FIREBASE_AUTH_DOMAIN:", process.env.FIREBASE_AUTH_DOMAIN ? "SET" : "NOT SET");
-  console.log("FIREBASE_PROJECT_ID:", process.env.FIREBASE_PROJECT_ID ? "SET" : "NOT SET");
-  console.log("FIREBASE_STORAGE_BUCKET:", process.env.FIREBASE_STORAGE_BUCKET ? "SET" : "NOT SET");
-  console.log("FIREBASE_MESSAGING_SENDER_ID:", process.env.FIREBASE_MESSAGING_SENDER_ID ? "SET" : "NOT SET");
-  console.log("FIREBASE_APP_ID:", process.env.FIREBASE_APP_ID ? "SET" : "NOT SET");
-  console.log("FIREBASE_MEASUREMENT_ID:", process.env.FIREBASE_MEASUREMENT_ID ? "SET" : "NOT SET");
-  
-  // Provide a basic Firebase config for the homeops-web project
-  const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBxGxGxGxGxGxGxGxGxGxGxGxGxGxGxGx",
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN || "homeops-web.firebaseapp.com",
-    projectId: process.env.FIREBASE_PROJECT_ID || "homeops-web",
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "homeops-web.appspot.com",
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "123456789",
-    appId: process.env.FIREBASE_APP_ID || "1:123456789:web:abcdef123456",
-    measurementId: process.env.FIREBASE_MEASUREMENT_ID || "G-XXXXXXXXXX"
-  };
-  
-  console.log("🔧 Providing Firebase config:", firebaseConfig);
-  res.json(firebaseConfig);
+// Gmail OAuth and Email Decoder Engine
+const { google } = require('googleapis');
+
+// Gmail OAuth configuration
+const GMAIL_OAUTH_CONFIG = {
+  clientId: process.env.GMAIL_CLIENT_ID,
+  clientSecret: process.env.GMAIL_CLIENT_SECRET,
+  redirectUri: process.env.GMAIL_REDIRECT_URI || 'http://localhost:3000/auth/google/callback'
+};
+
+// Gmail OAuth endpoints
+app.get('/auth/google', (req, res) => {
+  const oauth2Client = new google.auth.OAuth2(
+    GMAIL_OAUTH_CONFIG.clientId,
+    GMAIL_OAUTH_CONFIG.clientSecret,
+    GMAIL_OAUTH_CONFIG.redirectUri
+  );
+
+  const scopes = [
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.metadata'
+  ];
+
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: scopes,
+    prompt: 'consent'
+  });
+
+  res.redirect(authUrl);
 });
 
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.json({ status: "ok", message: "HomeOps Backend is running" });
+app.get('/auth/google/callback', async (req, res) => {
+  const { code } = req.query;
+  const userId = req.query.state || 'default_user';
+
+  try {
+    const oauth2Client = new google.auth.OAuth2(
+      GMAIL_OAUTH_CONFIG.clientId,
+      GMAIL_OAUTH_CONFIG.clientSecret,
+      GMAIL_OAUTH_CONFIG.redirectUri
+    );
+
+    const { tokens } = await oauth2Client.getToken(code);
+    
+    // Store tokens in Firestore
+    await db.collection('gmail_tokens').doc(userId).set({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expiry_date: tokens.expiry_date,
+      created_at: new Date()
+    });
+
+    res.redirect('/?gmail_connected=true');
+  } catch (error) {
+    console.error('❌ Gmail OAuth error:', error);
+    res.redirect('/?gmail_error=true');
+  }
+});
+
+// Email Decoder Engine - Process emails
+app.post('/api/email-decoder/process', async (req, res) => {
+  const { user_id } = req.body;
+  
+  try {
+    // Get Gmail tokens
+    const tokenDoc = await db.collection('gmail_tokens').doc(user_id).get();
+    if (!tokenDoc.exists) {
+      return res.status(401).json({ error: 'Gmail not connected' });
+    }
+
+    const tokens = tokenDoc.data();
+    const oauth2Client = new google.auth.OAuth2(
+      GMAIL_OAUTH_CONFIG.clientId,
+      GMAIL_OAUTH_CONFIG.clientSecret,
+      GMAIL_OAUTH_CONFIG.redirectUri
+    );
+
+    oauth2Client.setCredentials(tokens);
+
+    // Fetch recent emails
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    const response = await gmail.users.messages.list({
+      userId: 'me',
+      maxResults: 50,
+      q: 'in:inbox OR in:category_promotions OR in:category_updates OR in:category_personal'
+    });
+
+    const messages = response.data.messages || [];
+    const decodedEmails = [];
+
+    // Process each email through the decoder
+    for (const message of messages.slice(0, 10)) { // Process first 10 for now
+      const emailData = await gmail.users.messages.get({
+        userId: 'me',
+        id: message.id
+      });
+
+      const decoded = await processEmailThroughDecoder(emailData.data, user_id);
+      if (decoded) {
+        decodedEmails.push(decoded);
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      emails: decodedEmails,
+      summary: generateEmailSummary(decodedEmails)
+    });
+
+  } catch (error) {
+    console.error('❌ Email decoder error:', error);
+    res.status(500).json({ error: 'Failed to process emails' });
+  }
+});
+
+// Process individual email through AI decoder
+async function processEmailThroughDecoder(emailData, userId) {
+  try {
+    const headers = emailData.payload?.headers || [];
+    const subject = headers.find(h => h.name === 'Subject')?.value || '';
+    const from = headers.find(h => h.name === 'From')?.value || '';
+    const date = headers.find(h => h.name === 'Date')?.value || '';
+
+    // Extract email body
+    let body = '';
+    if (emailData.payload?.body?.data) {
+      body = Buffer.from(emailData.payload.body.data, 'base64').toString();
+    } else if (emailData.payload?.parts) {
+      const textPart = emailData.payload.parts.find(part => 
+        part.mimeType === 'text/plain' || part.mimeType === 'text/html'
+      );
+      if (textPart?.body?.data) {
+        body = Buffer.from(textPart.body.data, 'base64').toString();
+      }
+    }
+
+    // Use AI to decode the email
+    const prompt = `
+    Analyze this email and extract structured information:
+
+    SUBJECT: ${subject}
+    FROM: ${from}
+    DATE: ${date}
+    BODY: ${body.substring(0, 1000)}...
+
+    Return JSON with:
+    {
+      "type": "family_signal|smart_deal|other",
+      "category": "school|healthcare|logistics|rsvp|deadline|purchase|promotion|brand_opportunity|reorder_nudge",
+      "priority": "high|medium|low",
+      "summary": "1-2 sentence summary",
+      "action_required": "What action is needed",
+      "extracted_data": {
+        "date": "extracted date if any",
+        "time": "extracted time if any", 
+        "location": "extracted location if any",
+        "amount": "extracted amount if any",
+        "deadline": "extracted deadline if any"
+      },
+      "brand_loyalty_score": 0-10 if applicable
+    }
+    `;
+
+    const aiResponse = await callOpenAI(prompt, 'gpt-4o-mini');
+    const decoded = JSON.parse(aiResponse);
+
+    // Store decoded email
+    await db.collection('decoded_emails').add({
+      user_id: userId,
+      gmail_id: emailData.id,
+      subject,
+      from,
+      date,
+      decoded_data: decoded,
+      created_at: new Date()
+    });
+
+    return {
+      id: emailData.id,
+      subject,
+      from,
+      date,
+      decoded: decoded
+    };
+
+  } catch (error) {
+    console.error('❌ Email processing error:', error);
+    return null;
+  }
+}
+
+// Generate email summary for dashboard
+function generateEmailSummary(decodedEmails) {
+  const familySignals = decodedEmails.filter(e => e.decoded.type === 'family_signal');
+  const smartDeals = decodedEmails.filter(e => e.decoded.type === 'smart_deal');
+  
+  return {
+    total_processed: decodedEmails.length,
+    family_signals: familySignals.length,
+    smart_deals: smartDeals.length,
+    high_priority: decodedEmails.filter(e => e.decoded.priority === 'high').length,
+    action_items: decodedEmails.filter(e => e.decoded.action_required).length
+  };
+}
+
+// Get decoded emails for dashboard
+app.get('/api/email-decoder/emails', async (req, res) => {
+  const { user_id } = req.query;
+  
+  try {
+    const snapshot = await db.collection('decoded_emails')
+      .where('user_id', '==', user_id)
+      .orderBy('created_at', 'desc')
+      .limit(20)
+      .get();
+
+    const emails = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.json({ success: true, emails });
+  } catch (error) {
+    console.error('❌ Failed to fetch decoded emails:', error);
+    res.status(500).json({ error: 'Failed to fetch emails' });
+  }
+});
+
+// SPA catch-all route should be last
+app.get('*', (req, res) => {
+  // Serve dashboard.html for all non-API routes
+  // This includes /dashboard.html, /, and any other route that's not an API call
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+  }
 });
 
 async function startServer() {
