@@ -39,15 +39,7 @@ const CATEGORIES = [
 
 // Get the real Firebase user ID
 function getUserId() {
-    // Try Firebase Auth
-    if (window.firebase && window.firebase.auth && window.firebase.auth().currentUser) {
-        return window.firebase.auth().currentUser.uid;
-    }
-    // Fallback to window.userId if set
-    if (window.userId) {
-        return window.userId;
-    }
-    // Final fallback for local dev
+    // FORCE for local dev: always use test_user
     return "test_user";
 }
 
