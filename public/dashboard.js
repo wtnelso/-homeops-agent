@@ -54,13 +54,15 @@ function getUserId() {
 // Wait for user ID to be available
 async function waitForUserId() {
     console.log('🔍 waitForUserId: Starting...');
+    
     // Try immediate
     let uid = getUserId();
     if (uid) {
         console.log('🔍 waitForUserId: Got userId immediately:', uid);
         return uid;
     }
-    // Wait for Firebase Auth to initialize (max 3s)
+    
+    // Wait for Firebase Auth to initialize (max 2s instead of 3s)
     return new Promise((resolve) => {
         let waited = 0;
         const interval = setInterval(() => {
@@ -71,10 +73,10 @@ async function waitForUserId() {
                 resolve(uid);
             }
             waited += 100;
-            if (waited > 3000) {
+            if (waited > 2000) { // Reduced from 3000 to 2000
                 clearInterval(interval);
-                console.warn('⚠️ waitForUserId: Timed out, using fallback userId:', uid);
-                resolve(uid);
+                console.warn('⚠️ waitForUserId: Timed out, using fallback userId: test_user');
+                resolve('test_user'); // Always return test_user as fallback
             }
         }, 100);
     });
@@ -88,40 +90,60 @@ async function initializeDecoderView() {
     }
     dashboardView.innerHTML = '<div style="padding:2rem;text-align:center;">Loading Email Decoder...</div>';
     console.log('🚀 initializeDecoderView: Starting...');
-    let userId = await waitForUserId();
-    console.log('🚀 initializeDecoderView: Got userId:', userId);
-    // Check for Gmail connection param
-    const urlParams = new URLSearchParams(window.location.search);
-    const gmailConnected = urlParams.get('gmail_connected');
-    if (gmailConnected === 'true') {
-        // After OAuth, always check status
-        try {
-            const res = await fetch(`/api/gmail/status?user_id=${encodeURIComponent(userId)}`);
-            const data = await res.json();
-            if (data.connected) {
-                showDecoderReadyUI();
-                return;
-            } else {
+    
+    // Add safety timeout
+    const safetyTimeout = setTimeout(() => {
+        console.warn('⚠️ initializeDecoderView: Safety timeout reached, showing onboarding');
+        showOnboardingFlow();
+    }, 5000); // 5 second safety timeout
+    
+    try {
+        let userId = await waitForUserId();
+        console.log('🚀 initializeDecoderView: Got userId:', userId);
+        
+        // Check for Gmail connection param
+        const urlParams = new URLSearchParams(window.location.search);
+        const gmailConnected = urlParams.get('gmail_connected');
+        
+        if (gmailConnected === 'true') {
+            // After OAuth, always check status
+            try {
+                const res = await fetch(`/api/gmail/status?user_id=${encodeURIComponent(userId)}`);
+                const data = await res.json();
+                clearTimeout(safetyTimeout);
+                if (data.connected) {
+                    showDecoderReadyUI();
+                    return;
+                } else {
+                    showOnboardingFlow();
+                    return;
+                }
+            } catch (err) {
+                console.error('❌ Error checking Gmail status after OAuth:', err);
+                clearTimeout(safetyTimeout);
                 showOnboardingFlow();
                 return;
             }
-        } catch (err) {
-            console.error('❌ Error checking Gmail status after OAuth:', err);
-            showOnboardingFlow();
-            return;
         }
-    }
-    // Normal load: check status
-    try {
-        const res = await fetch(`/api/gmail/status?user_id=${encodeURIComponent(userId)}`);
-        const data = await res.json();
-        if (data.connected) {
-            showDecoderReadyUI();
-        } else {
+        
+        // Normal load: check status
+        try {
+            const res = await fetch(`/api/gmail/status?user_id=${encodeURIComponent(userId)}`);
+            const data = await res.json();
+            clearTimeout(safetyTimeout);
+            if (data.connected) {
+                showDecoderReadyUI();
+            } else {
+                showOnboardingFlow();
+            }
+        } catch (err) {
+            console.error('❌ Error checking Gmail status:', err);
+            clearTimeout(safetyTimeout);
             showOnboardingFlow();
         }
     } catch (err) {
-        console.error('❌ Error checking Gmail status:', err);
+        console.error('❌ Error in initializeDecoderView:', err);
+        clearTimeout(safetyTimeout);
         showOnboardingFlow();
     }
 }
