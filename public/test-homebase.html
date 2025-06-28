@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeBase Test</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="homebase-container">
+    <!-- HomeBase Component will be injected here -->
+  </div>
+
+  <script src="homebase.js"></script>
+  <script>
+    console.log('Test page loaded');
+    console.log('HomeBaseComponent available:', window.HomeBaseComponent);
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded in test page');
+      const container = document.getElementById('homebase-container');
+      console.log('Container found:', container);
+      
+      if (container && window.HomeBaseComponent) {
+        console.log('Initializing HomeBaseComponent...');
+        window.HomeBaseComponent.init(container);
+      } else {
+        console.log('Missing container or component');
+      }
+    });
+  </script>
+</body>
+</html> 

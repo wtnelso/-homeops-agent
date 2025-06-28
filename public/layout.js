@@ -37,6 +37,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (activeView) {
         activeView.classList.add('active');
       }
+      
+      // Handle HomeBase component initialization when home view is activated
+      if (viewId === 'home') {
+        setTimeout(() => {
+          const homebaseContainer = document.getElementById('homebase-container');
+          if (homebaseContainer && window.HomeBaseComponent) {
+            window.HomeBaseComponent.init(homebaseContainer);
+            console.log("🏠 HomeBase Component initialized on view activation");
+          }
+        }, 100);
+      }
+      
       // Handle calendar rendering when calendar view is activated
       if (viewId === 'calendar') {
         // Use setTimeout to ensure the view is active before rendering
@@ -98,8 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
           // Initialize chat after Firebase is ready and user is authenticated
           if (window.initializeChat) {
             window.initializeChat(auth, user);
-          }
-        }
+      }
+    }
       });
 
       // Handle logout
@@ -112,8 +124,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // On load, set chat view as active
-      activateView('chat');
+      // On load, set chat view as active (instead of home)
+    activateView('chat');
+      
+      // Optionally, remove or comment out forced HomeBase initialization
+      // setTimeout(() => {
+      //   const homebaseContainer = document.getElementById('homebase-container');
+      //   if (homebaseContainer && window.HomeBaseComponent) {
+      //     console.log(" Force initializing HomeBase Component...");
+      //     window.HomeBaseComponent.init(homebaseContainer);
+      //   } else {
+      //     console.log("❌ HomeBase Component not available:", {
+      //       container: homebaseContainer,
+      //       component: window.HomeBaseComponent
+      //     });
+      //   }
+      // }, 500);
+
     }).catch(error => {
       console.error('Firebase initialization failed:', error);
       document.body.innerHTML = '<div style="text-align: center; padding: 50px;"><h2>Service Unavailable</h2><p>Unable to initialize authentication service.</p></div>';

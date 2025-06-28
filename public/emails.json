@@ -1,0 +1,145 @@
+{
+  "emails": [
+    {
+      "id": "email_abc123",
+      "source": "The Woods Academy",
+      "subject": "Arts Celebration & Camp Info",
+      "summary": "Arts Celebration is May 27–30. Summer camps June 11–13. Sneak Peek Day June 2.",
+      "category": "School",
+      "priority": "Medium",
+      "actions": ["Add to Calendar", "Download PDF", "Save to Ops"],
+      "eventDates": [
+        { "label": "Arts Celebration", "start": "2025-05-27", "end": "2025-05-30" },
+        { "label": "Sneak Peek Day", "start": "2025-06-02" }
+      ],
+      "feedback": null,
+      "column": "schedule"
+    },
+    {
+      "id": "email_def456",
+      "source": "Dr. Sarah Chen - Pediatrician",
+      "subject": "Appointment Confirmation: Tomorrow 2:30 PM",
+      "summary": "Your child's annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early.",
+      "category": "Medical",
+      "priority": "High",
+      "actions": ["Confirm", "Reschedule", "Add to Calendar"],
+      "eventDates": [
+        { "label": "Annual Checkup", "start": "2025-01-28T14:30:00" }
+      ],
+      "feedback": null,
+      "column": "urgent"
+    },
+    {
+      "id": "email_ghi789",
+      "source": "Amazon Prime",
+      "subject": "Order #123-4567890-1234567 has shipped",
+      "summary": "Your order containing 'Organic Baby Formula' will arrive tomorrow between 2-6 PM.",
+      "category": "Shopping",
+      "priority": "High",
+      "actions": ["Track Package", "View Order", "Save to Ops"],
+      "eventDates": [
+        { "label": "Package Delivery", "start": "2025-01-28T14:00:00", "end": "2025-01-28T18:00:00" }
+      ],
+      "feedback": null,
+      "column": "urgent"
+    },
+    {
+      "id": "email_jkl012",
+      "source": "Jessica Martinez - School Principal",
+      "subject": "Parent-Teacher Conference: This Friday",
+      "summary": "Reminder: Your parent-teacher conference is scheduled for this Friday at 3:00 PM.",
+      "category": "School",
+      "priority": "High",
+      "actions": ["RSVP Yes", "Reschedule", "Add to Calendar"],
+      "eventDates": [
+        { "label": "Parent-Teacher Conference", "start": "2025-01-31T15:00:00" }
+      ],
+      "feedback": null,
+      "column": "urgent"
+    },
+    {
+      "id": "email_mno345",
+      "source": "Golf Club Pro Shop",
+      "subject": "Tee Time Confirmation: Saturday 9:00 AM",
+      "summary": "Your tee time for Saturday morning is confirmed. Please arrive 30 minutes early. Weather looks perfect!",
+      "category": "Recreation",
+      "priority": "Medium",
+      "actions": ["Add to Calendar", "Cancel", "Save to Ops"],
+      "eventDates": [
+        { "label": "Golf Tee Time", "start": "2025-02-01T09:00:00" }
+      ],
+      "feedback": null,
+      "column": "schedule"
+    },
+    {
+      "id": "email_pqr678",
+      "source": "Dental Associates",
+      "subject": "Appointment Reminder: Next Tuesday 10:00 AM",
+      "summary": "This is a friendly reminder of your dental cleaning appointment next Tuesday. Please call if you need to reschedule.",
+      "category": "Medical",
+      "priority": "Medium",
+      "actions": ["Confirm", "Reschedule", "Add to Calendar"],
+      "eventDates": [
+        { "label": "Dental Cleaning", "start": "2025-02-04T10:00:00" }
+      ],
+      "feedback": null,
+      "column": "schedule"
+    },
+    {
+      "id": "email_stu901",
+      "source": "Mom & Dad",
+      "subject": "Weekend Visit – This Saturday",
+      "summary": "Hi honey! We're planning to visit this Saturday around 2 PM. Can't wait to see the kids! Should we bring anything?",
+      "category": "Family",
+      "priority": "Medium",
+      "actions": ["Reply", "Call", "Add to Calendar"],
+      "eventDates": [
+        { "label": "Grandparents Visit", "start": "2025-02-01T14:00:00" }
+      ],
+      "feedback": null,
+      "column": "context"
+    },
+    {
+      "id": "email_vwx234",
+      "source": "Soccer League",
+      "subject": "Season Schedule Posted",
+      "summary": "The fall soccer season schedule is now available. Games start September 15th. Practice times remain the same.",
+      "category": "Sports",
+      "priority": "Low",
+      "actions": ["View Schedule", "Download", "Save to Ops"],
+      "eventDates": [
+        { "label": "Soccer Season Start", "start": "2025-09-15" }
+      ],
+      "feedback": null,
+      "column": "context"
+    },
+    {
+      "id": "email_yz0567",
+      "source": "Neighborhood Watch",
+      "subject": "Block Party Planning – Save the Date",
+      "summary": "Mark your calendars! Our annual block party is scheduled for September 28th. More details coming soon.",
+      "category": "Community",
+      "priority": "Low",
+      "actions": ["Save Date", "Volunteer", "Add to Calendar"],
+      "eventDates": [
+        { "label": "Block Party", "start": "2025-09-28" }
+      ],
+      "feedback": null,
+      "column": "context"
+    },
+    {
+      "id": "email_abc890",
+      "source": "Local Library",
+      "subject": "Book Club Meeting: Next Thursday 7:00 PM",
+      "summary": "Join us for our monthly book club discussion of 'The Midnight Library' by Matt Haig. Light refreshments provided.",
+      "category": "Community",
+      "priority": "Low",
+      "actions": ["RSVP", "More Info", "Add to Calendar"],
+      "eventDates": [
+        { "label": "Book Club Meeting", "start": "2025-01-30T19:00:00" }
+      ],
+      "feedback": null,
+      "column": "schedule"
+    }
+  ]
+} 

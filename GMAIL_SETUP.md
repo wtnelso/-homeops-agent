@@ -1,165 +1,182 @@
 # Gmail OAuth Setup for Email Decoder Engine
 
-## Overview
-The Email Decoder Engine requires Gmail OAuth credentials to access and process emails. This guide walks you through setting up the necessary Google Cloud Console project and credentials.
+This guide will help you set up Gmail OAuth credentials for the HomeOps Email Decoder Engine.
+
+## Prerequisites
+
+- Google account
+- Access to Google Cloud Console
+- HomeOps backend running locally or deployed
 
 ## Step 1: Google Cloud Console Setup
 
-### 1.1 Create a Google Cloud Project
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Click "Select a project" → "New Project"
-3. Name your project (e.g., "HomeOps Email Decoder")
-4. Click "Create"
+### 1.1 Access Google Cloud Console
+1. Go to [https://console.cloud.google.com/](https://console.cloud.google.com/)
+2. Sign in with your Google account
 
-### 1.2 Enable Gmail API
-1. In your project, go to "APIs & Services" → "Library"
+### 1.2 Create or Select Project
+1. If you have an existing project, select it from the dropdown
+2. If not, click "New Project" and create one named "HomeOps Email Decoder"
+
+### 1.3 Enable Gmail API
+1. In the left sidebar, go to "APIs & Services" > "Library"
 2. Search for "Gmail API"
-3. Click on "Gmail API" → "Enable"
+3. Click on "Gmail API" in the results
+4. Click "Enable" button
 
-### 1.3 Create OAuth 2.0 Credentials
-1. Go to "APIs & Services" → "Credentials"
-2. Click "Create Credentials" → "OAuth client ID"
-3. If prompted, configure the OAuth consent screen:
-   - User Type: External
-   - App name: "HomeOps Email Decoder"
-   - User support email: Your email
-   - Developer contact information: Your email
-   - Save and continue through the steps
+## Step 2: Configure OAuth Consent Screen
 
-4. Create OAuth Client ID:
-   - Application type: Web application
-   - Name: "HomeOps Web Client"
-   - Authorized redirect URIs: 
-     - `http://localhost:3000/auth/google/callback` (for development)
-     - `https://your-domain.com/auth/google/callback` (for production)
-   - Click "Create"
+### 2.1 Create OAuth Consent Screen
+1. Go to "APIs & Services" > "OAuth consent screen"
+2. Choose "External" user type (unless you have a Google Workspace)
+3. Click "Create"
 
-5. **Save the credentials** - you'll get a Client ID and Client Secret
+### 2.2 Fill in App Information
+- **App name**: `HomeOps Email Decoder`
+- **User support email**: Your email address
+- **App logo**: Optional - you can add the HomeOps logo
+- **App domain**: Leave blank for now
+- **Developer contact information**: Your email address
 
-## Step 2: Environment Variables
+### 2.3 Add Scopes
+1. Click "Add or remove scopes"
+2. Find and select: `https://www.googleapis.com/auth/gmail.readonly`
+3. Click "Update"
 
+### 2.4 Add Test Users
+1. Click "Add users"
+2. Add your email address as a test user
+3. Click "Add"
+
+### 2.5 Save and Continue
+1. Review the summary
+2. Click "Back to dashboard"
+
+## Step 3: Create OAuth 2.0 Credentials
+
+### 3.1 Create Credentials
+1. Go to "APIs & Services" > "Credentials"
+2. Click "Create Credentials" > "OAuth 2.0 Client IDs"
+
+### 3.2 Configure OAuth Client
+- **Application type**: Web application
+- **Name**: `HomeOps Email Decoder Web Client`
+
+### 3.3 Add Authorized Redirect URIs
+Add these redirect URIs:
+
+**For Development:**
+```
+http://localhost:3000/api/gmail/oauth/callback
+```
+
+**For Production (replace with your domain):**
+```
+https://your-homeops-domain.com/api/gmail/oauth/callback
+```
+
+### 3.4 Create Client
+1. Click "Create"
+2. **IMPORTANT**: Copy the Client ID and Client Secret immediately
+3. You won't be able to see the Client Secret again
+
+## Step 4: Set Environment Variables
+
+### 4.1 Local Development
 Add these to your `.env` file:
 
 ```bash
 # Gmail OAuth Credentials
 GMAIL_CLIENT_ID=your_client_id_here
 GMAIL_CLIENT_SECRET=your_client_secret_here
-GMAIL_REDIRECT_URI=http://localhost:3000/auth/google/callback
 ```
 
-## Step 3: Testing the Setup
+### 4.2 Production (Render)
+1. Go to your Render dashboard
+2. Select your HomeOps backend service
+3. Go to "Environment" tab
+4. Add these environment variables:
+   - `GMAIL_CLIENT_ID`: Your Gmail Client ID
+   - `GMAIL_CLIENT_SECRET`: Your Gmail Client Secret
+5. Redeploy the service
 
-### 3.1 Start the Server
+## Step 5: Test the Setup
+
+### 5.1 Start Your Server
 ```bash
 npm start
 ```
 
-### 3.2 Test Gmail Connection
-1. Open your app at `http://localhost:3000`
-2. Go to the Home view
-3. Click "Connect Gmail" in the Email Decoder Engine card
+### 5.2 Test Gmail Connection
+1. Go to your HomeOps app
+2. Navigate to the Email Decoder Engine
+3. Click "Connect Gmail"
 4. You should be redirected to Google's OAuth consent screen
-5. Grant permissions to access Gmail
-6. You should be redirected back to your app
+5. Authorize the application
+6. You should be redirected back to HomeOps
 
-### 3.3 Test Email Processing
-1. After connecting Gmail, click "Process Emails"
-2. The system will fetch and decode your recent emails
-3. You should see decoded email cards with:
-   - Family Signals (school, healthcare, logistics)
-   - Smart Deals (brand loyalty, promotions)
-   - Priority levels and action items
+## Step 6: Production Deployment
 
-## Step 4: Production Deployment
-
-### 4.1 Update Redirect URIs
+### 6.1 Update OAuth Consent Screen
 1. Go back to Google Cloud Console
-2. Update your OAuth client with production redirect URI
-3. Add your production domain to authorized redirect URIs
+2. Navigate to "OAuth consent screen"
+3. Add your production domain to "Authorized domains"
+4. Publish the app (if ready for production)
 
-### 4.2 Environment Variables
-Set these in your production environment:
-```bash
-GMAIL_CLIENT_ID=your_production_client_id
-GMAIL_CLIENT_SECRET=your_production_client_secret
-GMAIL_REDIRECT_URI=https://your-domain.com/auth/google/callback
-```
-
-## Security Considerations
-
-### 4.1 OAuth Consent Screen
-- Add your production domain to authorized domains
-- Add privacy policy and terms of service URLs
-- Request verification for production use (if needed)
-
-### 4.2 Token Storage
-- Gmail tokens are stored securely in Firestore
-- Tokens are encrypted and tied to user IDs
-- Implement token refresh logic for long-term access
-
-### 4.3 Data Privacy
-- Only read access to Gmail (no write permissions)
-- Process emails locally, don't store raw email content
-- Store only decoded, structured data
-- Implement data retention policies
+### 6.2 Update Redirect URIs
+1. Go to "Credentials" > Your OAuth client
+2. Add your production redirect URI
+3. Remove the localhost URI for production
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **"Invalid redirect URI"**
-   - Check that your redirect URI exactly matches what's in Google Cloud Console
-   - Ensure no trailing slashes or typos
+**"redirect_uri_mismatch" Error**
+- Ensure the redirect URI in Google Cloud Console matches exactly
+- Check for trailing slashes or protocol differences
 
-2. **"Access denied"**
-   - Verify your OAuth consent screen is configured
-   - Check that Gmail API is enabled
-   - Ensure your app is in testing or published
+**"access_denied" Error**
+- Make sure you're using a test user email
+- Check that the Gmail API is enabled
 
-3. **"Quota exceeded"**
-   - Gmail API has daily quotas
-   - Implement rate limiting in production
-   - Monitor API usage in Google Cloud Console
+**"invalid_client" Error**
+- Verify your Client ID and Client Secret are correct
+- Check that environment variables are properly set
 
-4. **"Token expired"**
-   - Implement automatic token refresh
-   - Handle token expiration gracefully
-   - Prompt user to reconnect if needed
+### Security Best Practices
 
-### Debug Mode
-Enable debug logging by adding to your `.env`:
-```bash
-DEBUG_GMAIL=true
-```
+1. **Never commit credentials to version control**
+2. **Use environment variables for all secrets**
+3. **Rotate credentials regularly**
+4. **Use HTTPS in production**
+5. **Limit OAuth scopes to minimum required**
 
 ## Next Steps
 
 Once Gmail OAuth is working:
 
-1. **Implement Brand Loyalty Engine**
-   - Track purchase patterns
-   - Build loyalty profiles
-   - Surface relevant deals
-
-2. **Add Email Scheduling**
-   - Process emails periodically
-   - Send notifications for high-priority items
-   - Implement smart filtering
-
-3. **Enhance AI Processing**
-   - Improve email categorization
-   - Extract more structured data
-   - Add sentiment analysis
-
-4. **Mobile Optimization**
-   - Responsive email cards
-   - Touch-friendly interactions
-   - Push notifications
+1. **Test email processing**: Try processing some emails
+2. **Verify decoded emails**: Check that emails are being stored in Firestore
+3. **Test the Home Base UI**: Ensure decoded emails appear in the interface
+4. **Monitor usage**: Check Google Cloud Console for API usage
 
 ## Support
 
-For issues with:
-- **Google Cloud Console**: Check Google's documentation
-- **OAuth Flow**: Review OAuth 2.0 best practices
-- **Gmail API**: Consult Gmail API documentation
-- **HomeOps Integration**: Check server logs and browser console 
+If you encounter issues:
+
+1. Check the server logs for detailed error messages
+2. Verify all environment variables are set correctly
+3. Ensure the Gmail API is enabled in your Google Cloud project
+4. Check that your OAuth consent screen is properly configured
+
+## API Endpoints
+
+The Email Decoder Engine provides these endpoints:
+
+- `GET /api/gmail/oauth/url` - Get OAuth authorization URL
+- `GET /api/gmail/oauth/callback` - Handle OAuth callback
+- `POST /api/gmail/process` - Process emails with AI
+- `GET /api/gmail/decoded` - Get decoded emails for user
+
+All endpoints require Firebase authentication and proper Gmail OAuth setup. 

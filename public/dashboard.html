@@ -70,6 +70,366 @@
     .logout-btn:hover {
       background: #ff3742;
     }
+
+    /* ===== EMAIL DECODER ENGINE STYLES ===== */
+    .demo-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .header .logo {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 1rem;
+    }
+
+    .header .title {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .header .subtitle {
+      font-size: 1.2rem;
+      color: #64748b;
+      font-weight: 400;
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1.5rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      border: 1px solid #e2e8f0;
+    }
+
+    .stat-number {
+      display: block;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-subtitle {
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+
+    .email-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .email-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .email-item.urgent {
+      border-left: 4px solid #dc2626;
+    }
+
+    .email-item.action {
+      border-left: 4px solid #2563eb;
+    }
+
+    .email-item.info {
+      border-left: 4px solid #16a34a;
+    }
+
+    .priority-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .priority-high {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    .priority-medium {
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    .priority-low {
+      background: #f0fdf4;
+      color: #16a34a;
+    }
+
+    .email-sender {
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    .email-subject {
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.75rem;
+    }
+
+    .email-preview {
+      color: #6b7280;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .action-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn.primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .action-btn.primary:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .action-btn.secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .action-btn.secondary:hover {
+      background: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .connect-section {
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 3rem;
+      border-radius: 20px;
+      margin-top: 2rem;
+    }
+
+    .connect-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .connect-desc {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+
+    .connect-btn {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .connect-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .demo-container {
+        padding: 1rem;
+      }
+      
+      .header .title {
+        font-size: 2rem;
+      }
+      
+      .stats-bar {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+
+    /* Process Emails Button */
+    .process-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .process-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .process-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .process-icon {
+      font-size: 1rem;
+    }
+
+    .process-text {
+      font-weight: 600;
+    }
+
+    .process-btn.processing .process-icon {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 1100px) {
+      .onboarding-modules { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      .onboarding-modules { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -83,9 +443,8 @@
         </div>
       </div>
       <nav class="nav">
-        <button class="nav-item active" data-view="home" title="My Ops Center"><i data-lucide="home"></i></button>
         <button class="nav-item" data-view="chat" title="Ask HomeOps"><i data-lucide="message-square"></i></button>
-        <button class="nav-item" data-view="dashboard" title="The House View"><i data-lucide="bar-chart-3"></i></button>
+        <button class="nav-item" data-view="dashboard" title="Email Decoder"><i data-lucide="brain"></i></button>
         <button class="nav-item" data-view="calendar" title="Calendar View"><i data-lucide="calendar-days"></i></button>
       </nav>
     </aside>
@@ -239,62 +598,228 @@
 
   <!-- Dashboard View -->
   <section id="dashboard-view" class="view">
-    <h2>📊 The House View</h2>
-    <div class="dashboard-grid">
-      <div class="dashboard-card" id="structured-week-card">
-        <h3>📅 This Week</h3>
-        <div id="structured-schedule"></div>
-        <h4>🧠 Reminders</h4>
-        <ul id="structured-reminders"></ul>
+    <div class="demo-container">
+      <div class="header fade-in">
+        <img src="img/logo.svg" alt="HomeOps Logo" class="logo">
+        <h1 class="title">HomeOps</h1>
+        <p class="subtitle">Your inbox, decoded. Signal vs. noise, sorted.</p>
       </div>
-      <div class="dashboard-card">
-        <h3>Mental Load</h3>
-        <ul></ul>
+
+      <div class="stats-bar fade-in">
+        <div class="stat-card">
+          <span class="stat-number">47</span>
+          <span class="stat-label">Emails Processed</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">12</span>
+          <span class="stat-label">Action Items Found</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">3.2hr</span>
+          <span class="stat-label">Time Saved Today</span>
+        </div>
+        <div class="stat-card">
+          <button id="process-emails-btn" class="process-btn" onclick="processEmails()">
+            <span class="process-icon">🔄</span>
+            <span class="process-text">Process Emails</span>
+          </button>
+        </div>
       </div>
-      <div class="dashboard-card">
-        <h3>Reframes</h3>
-        <div class="reframe-list"></div>
-      </div>
-    </div>
-    <div id="relief-protocol" class="relief-card">
-      <div class="relief-header">
-        <h2>🧠 Relief Protocol</h2>
-        <p class="subtle-label">Based on recent load patterns</p>
-      </div>
-      <div class="relief-section">
-        <label>Summary</label>
-        <p id="relief-summary">Loading...</p>
-      </div>
-      <div class="relief-section">
-        <label>Offload </label>
-        <p id="relief-offload">Loading...</p>
-      </div>
-      <div class="relief-section">
-        <label>Reclaim </label>
-        <p id="relief-reclaim">Loading...</p>
-      </div>
-      <div class="relief-section">
-        <label>Reconnect </label>
-        <p id="relief-reconnect">Loading...</p>
-      </div>
-      <div class="relief-section">
-        <label>Pattern Interrupt </label>
-        <p id="relief-interrupt">Loading...</p>
-      </div>
-      <div class="relief-section" id="reframe-block" style="display: none;">
-        <label>Reframe </label>
-        <p id="relief-reframe">Loading...</p>
+
+      <div class="main-grid">
+        <!-- URGENT & ACTIONABLE -->
+        <div class="card fade-in">
+          <div class="card-header">
+            <div class="card-icon" style="background: #fef2f2; color: #dc2626;">
+              ⚡
+            </div>
+            <div>
+              <div class="card-title">Urgent & Actionable</div>
+              <div class="card-subtitle">Requires immediate attention</div>
+            </div>
+          </div>
+
+          <div class="email-item urgent">
+            <div class="priority-badge priority-high">High Priority</div>
+            <div class="email-sender">Dr. Sarah Chen - Pediatrician</div>
+            <div class="email-subject">Appointment Confirmation: Tomorrow 2:30 PM</div>
+            <div class="email-preview">Your child's annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early to complete paperwork.</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">Confirm</button>
+              <button class="action-btn secondary">Reschedule</button>
+            </div>
+          </div>
+
+          <div class="email-item urgent">
+            <div class="priority-badge priority-high">High Priority</div>
+            <div class="email-sender">Amazon Prime</div>
+            <div class="email-subject">Your order #123-4567890-1234567 has shipped</div>
+            <div class="email-preview">Your order containing "Organic Baby Formula" will arrive tomorrow between 2-6 PM. Track your package here.</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">Track Package</button>
+              <button class="action-btn secondary">View Order</button>
+            </div>
+          </div>
+
+          <div class="email-item urgent">
+            <div class="priority-badge priority-high">High Priority</div>
+            <div class="email-sender">Jessica Martinez - School Principal</div>
+            <div class="email-subject">Parent-Teacher Conference: This Friday</div>
+            <div class="email-preview">Reminder: Your parent-teacher conference is scheduled for this Friday at 3:00 PM. Please confirm your attendance.</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">RSVP Yes</button>
+              <button class="action-btn secondary">Reschedule</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- APPOINTMENTS & SCHEDULE -->
+        <div class="card fade-in">
+          <div class="card-header">
+            <div class="card-icon" style="background: #eff6ff; color: #2563eb;">
+              📅
+            </div>
+            <div>
+              <div class="card-title">Appointments & Schedule</div>
+              <div class="card-subtitle">Calendar items & reminders</div>
+            </div>
+          </div>
+
+          <div class="email-item action">
+            <div class="priority-badge priority-medium">Medium Priority</div>
+            <div class="email-sender">Golf Club Pro Shop</div>
+            <div class="email-subject">Tee Time Confirmation: Saturday 9:00 AM</div>
+            <div class="email-preview">Your tee time for Saturday morning is confirmed. Please arrive 30 minutes early. Weather looks perfect!</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">Add to Calendar</button>
+              <button class="action-btn secondary">Cancel</button>
+            </div>
+          </div>
+
+          <div class="email-item action">
+            <div class="priority-badge priority-medium">Medium Priority</div>
+            <div class="email-sender">Dental Associates</div>
+            <div class="email-subject">Appointment Reminder: Next Tuesday 10:00 AM</div>
+            <div class="email-preview">This is a friendly reminder of your dental cleaning appointment next Tuesday. Please call if you need to reschedule.</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">Confirm</button>
+              <button class="action-btn secondary">Reschedule</button>
+            </div>
+          </div>
+
+          <div class="email-item action">
+            <div class="priority-badge priority-low">Low Priority</div>
+            <div class="email-sender">Local Library</div>
+            <div class="email-subject">Book Club Meeting: Next Thursday 7:00 PM</div>
+            <div class="email-preview">Join us for our monthly book club discussion of "The Midnight Library" by Matt Haig. Light refreshments provided.</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">RSVP</button>
+              <button class="action-btn secondary">More Info</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAMILY & CONTEXT -->
+        <div class="card fade-in">
+          <div class="card-header">
+            <div class="card-icon" style="background: #f0fdf4; color: #16a34a;">
+              👨‍👩‍👧‍👦
+            </div>
+            <div>
+              <div class="card-title">Family & Context</div>
+              <div class="card-subtitle">Personal & family matters</div>
+            </div>
+          </div>
+
+          <div class="email-item info">
+            <div class="priority-badge priority-medium">Medium Priority</div>
+            <div class="email-sender">Mom & Dad</div>
+            <div class="email-subject">Weekend Visit - This Saturday</div>
+            <div class="email-preview">Hi honey! We're planning to visit this Saturday around 2 PM. Can't wait to see the kids! Should we bring anything?</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">Reply</button>
+              <button class="action-btn secondary">Call</button>
+            </div>
+          </div>
+
+          <div class="email-item info">
+            <div class="priority-badge priority-low">Low Priority</div>
+            <div class="email-sender">Soccer League</div>
+            <div class="email-subject">Season Schedule Posted</div>
+            <div class="email-preview">The fall soccer season schedule is now available. Games start September 15th. Practice times remain the same.</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">View Schedule</button>
+              <button class="action-btn secondary">Download</button>
+            </div>
+          </div>
+
+          <div class="email-item info">
+            <div class="priority-badge priority-low">Low Priority</div>
+            <div class="email-sender">Neighborhood Watch</div>
+            <div class="email-subject">Block Party Planning - Save the Date</div>
+            <div class="email-preview">Mark your calendars! Our annual block party is scheduled for September 28th. More details coming soon.</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">Save Date</button>
+              <button class="action-btn secondary">Volunteer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Commerce Inbox -->
+        <div class="card fade-in">
+          <div class="card-header">
+            <div class="card-icon" style="background: #f59e42;">
+              🛒
+            </div>
+            <div>
+              <div class="card-title">Commerce Inbox</div>
+              <div class="card-subtitle">Receipts, orders, shipping, and purchases</div>
+            </div>
+          </div>
+
+          <div class="email-item info">
+            <div class="priority-badge priority-low">Low Priority</div>
+            <div class="email-sender">Amazon</div>
+            <div class="email-subject">Order #1234567890</div>
+            <div class="email-preview">Your order from Amazon is on its way. Tracking details sent to your email.</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">Track Order</button>
+              <button class="action-btn secondary">View Details</button>
+            </div>
+          </div>
+
+          <div class="email-item info">
+            <div class="priority-badge priority-low">Low Priority</div>
+            <div class="email-sender">eBay</div>
+            <div class="email-subject">Your purchase from eBay</div>
+            <div class="email-preview">Thank you for your purchase! Your item is on its way. Tracking details sent to your email.</div>
+            <div class="action-buttons">
+              <button class="action-btn primary">Track Package</button>
+              <button class="action-btn secondary">View Receipt</button>
+            </div>
+          </div>
+
+          <div class="email-item info">
+            <div class="priority-badge priority-low">Low Priority</div>
+            <div class="connect-section fade-in">
+              <h2 class="connect-title">Ready to decode your inbox?</h2>
+              <p class="connect-desc">Connect your Gmail and let HomeOps organize what matters. No setup, no forms—just instant clarity.</p>
+              <button class="connect-btn pulse">Get Started with HomeOps</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
-    <div class="view-header">
-      <h2><i data-lucide="calendar-days" style="width:1.2em;height:1.2em;vertical-align:-0.2em;margin-right:0.4em;"></i>My Calendar</h2>
-      <button id="clear-events-btn" class="button-danger">Clear All Events</button>
+    <div class="view-header" style="justify-content: flex-end;">
+      <button id="clear-events-btn" class="calendar-clear-btn">Clear All Events</button>
     </div>
-    <div id="calendar"></div>
+    <div class="calendar-outer">
+      <div id="calendar"></div>
+    </div>
   </section>
 
 </main>
@@ -317,6 +842,7 @@
 <script src="layout.js" defer></script>
 <script src="chat.js" defer></script>
 <script src="/relief.js" defer></script>
+<script src="dashboard.js" defer></script>
 
 <!-- ✅ Bottom nav for mobile view -->
 <div class="bottom-nav">

@@ -49,13 +49,13 @@ try {
   const serviceAccountPath = path.join(__dirname, "homeops-sa-key.json");
   if (fs.existsSync(serviceAccountPath)) {
     const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
-    
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
+
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
       firebaseInitialized = true;
-      console.log("✅ Firebase initialized successfully via service account file.");
+    console.log("✅ Firebase initialized successfully via service account file.");
     }
   } else {
     console.log("ℹ️ Service account file not found, trying environment variables...");
@@ -124,6 +124,7 @@ try {
 
 app.use(bodyParser.json());
 app.use(express.static("public"));
+app.use("/mock", express.static("mock"));
 
 // All API routes should be defined above the SPA catch-all
 app.get("/api/firebase-config", (req, res) => {
@@ -153,6 +154,54 @@ app.get("/api/test-env", (req, res) => {
       FIREBASE_API_KEY: process.env.FIREBASE_API_KEY ? "SET" : "NOT SET"
     }
   });
+});
+
+// Test endpoint to check Gmail OAuth configuration
+app.get("/api/gmail/test-config", (req, res) => {
+  res.json({
+    gmailConfig: {
+      clientId: GMAIL_OAUTH_CONFIG.clientId ? "SET" : "NOT SET",
+      clientSecret: GMAIL_OAUTH_CONFIG.clientSecret ? "SET" : "NOT SET",
+      redirectUri: GMAIL_OAUTH_CONFIG.redirectUri
+    },
+    scopes: ['https://www.googleapis.com/auth/gmail.readonly'],
+    authUrl: `/auth/google`
+  });
+});
+
+// Test endpoint to check token status for a user
+app.get("/api/gmail/test-tokens", async (req, res) => {
+  const { user_id } = req.query;
+  
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id parameter required' });
+  }
+  
+  try {
+    const tokenDoc = await db.collection('gmail_tokens').doc(user_id).get();
+    
+    if (!tokenDoc.exists) {
+      return res.json({
+        hasTokens: false,
+        message: 'No tokens found for this user'
+      });
+    }
+    
+    const tokens = tokenDoc.data();
+    return res.json({
+      hasTokens: true,
+      tokenInfo: {
+        hasAccessToken: !!tokens.access_token,
+        hasRefreshToken: !!tokens.refresh_token,
+        expiryDate: tokens.expiry_date,
+        createdAt: tokens.created_at,
+        scopes: tokens.scopes || 'unknown'
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error checking tokens:', error);
+    res.status(500).json({ error: 'Failed to check tokens' });
+  }
 });
 
 // --- RAG Helper Functions ---
@@ -740,6 +789,43 @@ app.get("/events", async (req, res) => {
 // Gmail OAuth and Email Decoder Engine
 const { google } = require('googleapis');
 
+// Helper function to call OpenAI API
+async function callOpenAI(prompt, model = 'gpt-4o-mini') {
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: model,
+        temperature: 0.3,
+        messages: [
+          {
+            role: "system",
+            content: "You are an email analysis assistant. Analyze emails and extract structured information. Always respond with valid JSON."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error("Invalid OpenAI response");
+    }
+
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('❌ OpenAI API call failed:', error);
+    throw error;
+  }
+}
+
 // Gmail OAuth configuration
 const GMAIL_OAUTH_CONFIG = {
   clientId: process.env.GMAIL_CLIENT_ID,
@@ -747,8 +833,16 @@ const GMAIL_OAUTH_CONFIG = {
   redirectUri: process.env.GMAIL_REDIRECT_URI || 'http://localhost:3000/auth/google/callback'
 };
 
+// Debug OAuth configuration
+console.log('🔍 Gmail OAuth Config Debug:');
+console.log('Client ID:', GMAIL_OAUTH_CONFIG.clientId ? 'SET' : 'NOT SET');
+console.log('Client Secret:', GMAIL_OAUTH_CONFIG.clientSecret ? 'SET' : 'NOT SET');
+console.log('Redirect URI:', GMAIL_OAUTH_CONFIG.redirectUri);
+
 // Gmail OAuth endpoints
 app.get('/auth/google', (req, res) => {
+  console.log('🔍 Starting Gmail OAuth flow...');
+  
   const oauth2Client = new google.auth.OAuth2(
     GMAIL_OAUTH_CONFIG.clientId,
     GMAIL_OAUTH_CONFIG.clientSecret,
@@ -756,22 +850,33 @@ app.get('/auth/google', (req, res) => {
   );
 
   const scopes = [
-    'https://www.googleapis.com/auth/gmail.readonly',
-    'https://www.googleapis.com/auth/gmail.metadata'
+    'https://www.googleapis.com/auth/gmail.readonly'
   ];
+
+  console.log('🔍 Using scopes:', scopes);
+
+  // Add a unique state parameter to force re-authorization
+  const state = `force_reauth_${Date.now()}`;
 
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: scopes,
-    prompt: 'consent'
+    prompt: 'consent',
+    include_granted_scopes: true,
+    state: state
   });
 
+  console.log('🔍 Generated auth URL:', authUrl);
   res.redirect(authUrl);
 });
 
 app.get('/auth/google/callback', async (req, res) => {
   const { code } = req.query;
   const userId = req.query.state || 'default_user';
+
+  console.log('🔍 OAuth callback received');
+  console.log('Code present:', !!code);
+  console.log('State:', userId);
 
   try {
     const oauth2Client = new google.auth.OAuth2(
@@ -782,18 +887,123 @@ app.get('/auth/google/callback', async (req, res) => {
 
     const { tokens } = await oauth2Client.getToken(code);
     
+    console.log('🔍 Tokens received:');
+    console.log('Access token present:', !!tokens.access_token);
+    console.log('Refresh token present:', !!tokens.refresh_token);
+    console.log('Expiry date:', tokens.expiry_date);
+    
     // Store tokens in Firestore
     await db.collection('gmail_tokens').doc(userId).set({
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
       expiry_date: tokens.expiry_date,
-      created_at: new Date()
+      created_at: new Date(),
+      scopes: tokens.scope || 'https://www.googleapis.com/auth/gmail.readonly' // Store the actual scopes
     });
 
-    res.redirect('/?gmail_connected=true');
+    console.log('✅ Tokens stored successfully');
+
+    // Redirect to Dashboard (Email Decoder) after successful Gmail connection
+    res.redirect('/dashboard?gmail_connected=true');
   } catch (error) {
     console.error('❌ Gmail OAuth error:', error);
-    res.redirect('/?gmail_error=true');
+    console.error('❌ Error details:', error.message);
+    res.redirect('/dashboard?gmail_error=true');
+  }
+});
+
+// Endpoint to check Gmail connection status for a user
+app.get('/api/gmail/status', async (req, res) => {
+  const userId = req.query.user_id;
+  if (!userId) return res.json({ connected: false });
+  try {
+    const tokenDoc = await db.collection('gmail_tokens').doc(userId).get();
+    res.json({ connected: tokenDoc.exists });
+  } catch (err) {
+    res.json({ connected: false });
+  }
+});
+
+// Endpoint to clear Gmail tokens and force re-authorization
+app.post('/api/gmail/clear-tokens', async (req, res) => {
+  const { user_id } = req.body;
+  
+  try {
+    // Delete existing tokens
+    await db.collection('gmail_tokens').doc(user_id).delete();
+    
+    // Also clear any decoded emails for this user
+    const decodedEmailsSnapshot = await db.collection('decoded_emails')
+      .where('user_id', '==', user_id)
+      .get();
+    
+    const batch = db.batch();
+    decodedEmailsSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+    
+    res.json({ success: true, message: 'Gmail tokens cleared. Please reconnect.' });
+  } catch (error) {
+    console.error('❌ Error clearing Gmail tokens:', error);
+    res.status(500).json({ error: 'Failed to clear tokens' });
+  }
+});
+
+// Force re-authorization endpoint with scope fix
+app.post('/api/gmail/force-reauth', async (req, res) => {
+  const { user_id } = req.body;
+  
+  try {
+    console.log('🔍 Force re-authorization requested for user:', user_id);
+    
+    // Delete existing tokens
+    await db.collection('gmail_tokens').doc(user_id).delete();
+    console.log('✅ Cleared existing tokens');
+    
+    // Also clear any decoded emails for this user
+    const decodedEmailsSnapshot = await db.collection('decoded_emails')
+      .where('user_id', '==', user_id)
+      .get();
+    
+    const batch = db.batch();
+    decodedEmailsSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+    console.log('✅ Cleared decoded emails');
+    
+    // Generate OAuth URL with correct scope
+    const oauth2Client = new google.auth.OAuth2(
+      GMAIL_OAUTH_CONFIG.clientId,
+      GMAIL_OAUTH_CONFIG.clientSecret,
+      GMAIL_OAUTH_CONFIG.redirectUri
+    );
+
+    const scopes = [
+      'https://www.googleapis.com/auth/gmail.readonly'
+    ];
+
+    const state = `force_reauth_${Date.now()}_${user_id}`;
+
+    const authUrl = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: scopes,
+      prompt: 'consent',
+      include_granted_scopes: true,
+      state: state
+    });
+
+    console.log('✅ Generated re-authorization URL with correct scope');
+    
+    res.json({ 
+      success: true, 
+      message: 'Tokens cleared. Redirecting to OAuth with correct scope.',
+      authUrl: authUrl
+    });
+  } catch (error) {
+    console.error('❌ Error in force re-authorization:', error);
+    res.status(500).json({ error: 'Failed to force re-authorization' });
   }
 });
 
@@ -801,14 +1011,21 @@ app.get('/auth/google/callback', async (req, res) => {
 app.post('/api/email-decoder/process', async (req, res) => {
   const { user_id } = req.body;
   
+  console.log('🔍 Starting email processing for user:', user_id);
+  
   try {
     // Get Gmail tokens
     const tokenDoc = await db.collection('gmail_tokens').doc(user_id).get();
     if (!tokenDoc.exists) {
+      console.log('❌ No Gmail tokens found for user:', user_id);
       return res.status(401).json({ error: 'Gmail not connected' });
     }
 
     const tokens = tokenDoc.data();
+    console.log('🔍 Retrieved tokens for user:', user_id);
+    console.log('🔍 Token scopes:', tokens.scopes);
+    console.log('🔍 Token expiry:', tokens.expiry_date);
+    
     const oauth2Client = new google.auth.OAuth2(
       GMAIL_OAUTH_CONFIG.clientId,
       GMAIL_OAUTH_CONFIG.clientSecret,
@@ -819,25 +1036,37 @@ app.post('/api/email-decoder/process', async (req, res) => {
 
     // Fetch recent emails
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    console.log('🔍 Attempting to fetch emails...');
+    
     const response = await gmail.users.messages.list({
       userId: 'me',
-      maxResults: 50,
-      q: 'in:inbox OR in:category_promotions OR in:category_updates OR in:category_personal'
+      maxResults: 10
     });
 
+    console.log('✅ Successfully fetched email list');
     const messages = response.data.messages || [];
+    console.log('🔍 Found', messages.length, 'messages');
+
     const decodedEmails = [];
 
     // Process each email through the decoder
     for (const message of messages.slice(0, 10)) { // Process first 10 for now
-      const emailData = await gmail.users.messages.get({
-        userId: 'me',
-        id: message.id
-      });
+      console.log('🔍 Processing message:', message.id);
+      
+      try {
+        const emailData = await gmail.users.messages.get({
+          userId: 'me',
+          id: message.id,
+          format: 'full'
+        });
 
-      const decoded = await processEmailThroughDecoder(emailData.data, user_id);
-      if (decoded) {
-        decodedEmails.push(decoded);
+        const decoded = await processEmailThroughDecoder(emailData.data, user_id);
+        if (decoded) {
+          decodedEmails.push(decoded);
+        }
+      } catch (emailError) {
+        console.error('❌ Error processing individual email:', emailError.message);
+        console.error('❌ Email error details:', emailError);
       }
     }
 
@@ -849,6 +1078,16 @@ app.post('/api/email-decoder/process', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Email decoder error:', error);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error code:', error.code);
+    console.error('❌ Error status:', error.status);
+    
+    // Check if it's a scope error
+    if (error.message && error.message.includes('Metadata scope')) {
+      console.error('❌ DETECTED SCOPE ERROR - Tokens have wrong scope!');
+      console.error('❌ Need to clear tokens and re-authorize with correct scope');
+    }
+    
     res.status(500).json({ error: 'Failed to process emails' });
   }
 });
@@ -929,48 +1168,128 @@ async function processEmailThroughDecoder(emailData, userId) {
   }
 }
 
-// Generate email summary for dashboard
+// Generate summary of decoded emails
 function generateEmailSummary(decodedEmails) {
-  const familySignals = decodedEmails.filter(e => e.decoded.type === 'family_signal');
-  const smartDeals = decodedEmails.filter(e => e.decoded.type === 'smart_deal');
-  
-  return {
-    total_processed: decodedEmails.length,
-    family_signals: familySignals.length,
-    smart_deals: smartDeals.length,
-    high_priority: decodedEmails.filter(e => e.decoded.priority === 'high').length,
-    action_items: decodedEmails.filter(e => e.decoded.action_required).length
+  const summary = {
+    total: decodedEmails.length,
+    byType: {},
+    byCategory: {},
+    byPriority: {},
+    highPriority: 0
   };
+
+  decodedEmails.forEach(email => {
+    const decoded = email.decoded;
+    
+    // Count by type
+    summary.byType[decoded.type] = (summary.byType[decoded.type] || 0) + 1;
+    
+    // Count by category
+    summary.byCategory[decoded.category] = (summary.byCategory[decoded.category] || 0) + 1;
+    
+    // Count by priority
+    summary.byPriority[decoded.priority] = (summary.byPriority[decoded.priority] || 0) + 1;
+    
+    // Count high priority
+    if (decoded.priority === 'high') {
+      summary.highPriority++;
+    }
+  });
+
+  return summary;
 }
 
-// Get decoded emails for dashboard
+// Email Decoder Engine - Get decoded emails for a user
 app.get('/api/email-decoder/emails', async (req, res) => {
   const { user_id } = req.query;
   
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id parameter required' });
+  }
+  
   try {
-    const snapshot = await db.collection('decoded_emails')
+    console.log('🔍 Fetching decoded emails for user:', user_id);
+    
+    const decodedEmailsSnapshot = await db.collection('decoded_emails')
       .where('user_id', '==', user_id)
       .orderBy('created_at', 'desc')
-      .limit(20)
+      .limit(50)
       .get();
-
-    const emails = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    res.json({ success: true, emails });
+    
+    const emails = [];
+    decodedEmailsSnapshot.forEach(doc => {
+      const data = doc.data();
+      emails.push({
+        id: data.gmail_id,
+        subject: data.subject,
+        from: data.from,
+        date: data.date,
+        decoded: data.decoded_data
+      });
+    });
+    
+    console.log('✅ Found', emails.length, 'decoded emails');
+    
+    res.json({
+      success: true,
+      emails: emails
+    });
+    
   } catch (error) {
-    console.error('❌ Failed to fetch decoded emails:', error);
-    res.status(500).json({ error: 'Failed to fetch emails' });
+    console.error('❌ Error fetching decoded emails:', error);
+    res.status(500).json({ error: 'Failed to fetch decoded emails' });
+  }
+});
+
+// Manual token revocation endpoint
+app.post('/api/gmail/revoke-all', async (req, res) => {
+  try {
+    // Delete all Gmail tokens from Firestore
+    const tokensSnapshot = await db.collection('gmail_tokens').get();
+    const deletePromises = tokensSnapshot.docs.map(doc => doc.ref.delete());
+    await Promise.all(deletePromises);
+    
+    // Delete all decoded emails
+    const emailsSnapshot = await db.collection('decoded_emails').get();
+    const deleteEmailPromises = emailsSnapshot.docs.map(doc => doc.ref.delete());
+    await Promise.all(deleteEmailPromises);
+    
+    console.log('✅ All Gmail tokens and emails cleared');
+    res.json({ success: true, message: 'All Gmail tokens revoked' });
+  } catch (error) {
+    console.error('❌ Error revoking tokens:', error);
+    res.status(500).json({ error: 'Failed to revoke tokens' });
+  }
+});
+
+// Email feedback endpoint
+app.post('/api/email-decoder/feedback', async (req, res) => {
+  const { user_id, email_id, feedback } = req.body;
+  if (!user_id || !email_id || !['up', 'down'].includes(feedback)) {
+    return res.status(400).json({ error: 'Invalid feedback data' });
+  }
+  try {
+    await db.collection('email_feedback').add({
+      user_id,
+      email_id,
+      feedback,
+      timestamp: new Date()
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Failed to store email feedback:', error);
+    res.status(500).json({ error: 'Failed to store feedback' });
   }
 });
 
 // SPA catch-all route should be last
 app.get('*', (req, res) => {
-  // Serve dashboard.html for all non-API routes
-  // This includes /dashboard.html, /, and any other route that's not an API call
-  if (!req.path.startsWith('/api')) {
+  // Serve index.html for the root path (landing page)
+  if (req.path === '/' || req.path === '/index.html') {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  }
+  // Serve dashboard.html for all other non-API routes (authenticated app)
+  else if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
   }
 });

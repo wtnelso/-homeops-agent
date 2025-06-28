@@ -4,211 +4,613 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HomeOps - The Operating System for Modern Family Life</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="auth.css">
     <style>
-        html, body {
-            height: 100%;
-            min-height: 100vh;
+        * {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Montserrat', sans-serif;
-            color: #222;
+            box-sizing: border-box;
         }
+
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             min-height: 100vh;
-            height: 100%;
+            color: #0f172a;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        .center-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            width: 100vw;
+
+        .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 48px 24px;
         }
+
+        .header {
+            text-align: center;
+            margin-bottom: 64px;
+            color: #0f172a;
+        }
+
         .logo {
-            width: 96px;
-            height: 96px;
-            margin-bottom: 18px;
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 24px;
+            display: block;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
         }
+
         .title {
-            font-size: 2.4rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: 0.01em;
-            text-align: center;
-            color: #fff;
-        }
-        .tagline {
-            font-size: 1.2rem;
-            font-weight: 400;
-            color: #f3f3f3;
-            margin-bottom: 32px;
-            text-align: center;
-            letter-spacing: 0.01em;
-        }
-        .auth-card {
-            background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 4px 24px 0 rgba(80, 80, 120, 0.10);
-            padding: 32px 32px 24px 32px;
-            width: 340px;
-            max-width: 90vw;
-            margin-bottom: 32px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .auth-card input[type="email"],
-        .auth-card input[type="password"] {
-            width: 100%;
-            padding: 12px;
+            font-size: 3.5rem;
+            font-weight: 800;
             margin-bottom: 16px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1rem;
+            background: linear-gradient(135deg, #0f172a 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
         }
-        .auth-card button {
-            width: 100%;
-            padding: 12px;
-            background: #667eea;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 8px;
-            transition: background 0.2s;
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
         }
-        .auth-card button:hover {
-            background: #5a67d8;
-        }
-        .auth-card .toggle-link {
-            color: #888;
-            font-size: 0.95rem;
-            margin-top: 8px;
-        }
-        .auth-card .toggle-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .features-row {
+
+        .stats-bar {
             display: flex;
-            flex-direction: row;
             justify-content: center;
-            gap: 32px;
-            margin-top: 32px;
-            margin-bottom: 24px;
+            gap: 40px;
+            margin-bottom: 64px;
             flex-wrap: wrap;
         }
-        .feature-box {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 2px 12px 0 rgba(80, 80, 120, 0.08);
-            padding: 24px 20px 20px 20px;
-            width: 290px;
-            max-width: 90vw;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 12px;
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px 40px;
+            text-align: center;
+            color: #0f172a;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+            min-width: 160px;
         }
-        .feature-icon {
-            margin-bottom: 12px;
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        .feature-title {
-            font-size: 1.1rem;
-            font-weight: 700;
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            display: block;
             margin-bottom: 8px;
-            color: #333;
-            text-align: center;
+            color: #0f172a;
+            letter-spacing: -0.02em;
         }
-        .feature-desc {
-            font-size: 1rem;
-            color: #555;
-            text-align: center;
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        @media (max-width: 900px) {
-            .features-row {
-                flex-direction: column;
-                align-items: center;
-                gap: 18px;
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 64px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 28px;
+            gap: 16px;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+        }
+
+        .card-subtitle {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .email-item {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+        }
+
+        .email-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            background: white;
+        }
+
+        .email-item.urgent {
+            border-left-color: #ef4444;
+            background: linear-gradient(135deg, #fef2f2 0%, #fef2f2 100%);
+        }
+
+        .email-item.action {
+            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff 0%, #eff6ff 100%);
+        }
+
+        .email-item.info {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #f0fdf4 100%);
+        }
+
+        .email-sender {
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+
+        .email-subject {
+            font-size: 0.875rem;
+            color: #475569;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .email-preview {
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+        }
+
+        .priority-high {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .priority-medium {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fed7aa;
+        }
+
+        .priority-low {
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.025em;
+        }
+
+        .action-btn.primary {
+            background: #0f172a;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #1e293b;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+        }
+
+        .action-btn.secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .action-btn.secondary:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .connect-section {
+            text-align: center;
+            background: white;
+            border-radius: 32px;
+            padding: 48px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .connect-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 16px;
+            letter-spacing: -0.01em;
+        }
+
+        .connect-desc {
+            color: #64748b;
+            margin-bottom: 32px;
+            font-size: 1.125rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .connect-btn {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 16px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            letter-spacing: 0.025em;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #64748b;
+        }
+
+        .empty-icon {
+            font-size: 3.5rem;
+            margin-bottom: 24px;
+            opacity: 0.4;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
             }
-            .feature-box {
-                width: 95vw;
-                max-width: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
             }
+
+            .stats-bar {
+                gap: 20px;
+            }
+
+            .stat-card {
+                padding: 24px 28px;
+                min-width: 140px;
+            }
+
+            .title {
+                font-size: 2.5rem;
+            }
+
+            .demo-container {
+                padding: 32px 20px;
+            }
+
+            .connect-section {
+                padding: 32px 24px;
+            }
+
+            .connect-title {
+                font-size: 1.75rem;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Focus states for accessibility */
+        .action-btn:focus,
+        .connect-btn:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        .email-item:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
         }
     </style>
 </head>
 <body>
-    <div class="center-container">
-        <img src="img/logo.svg" alt="HomeOps Logo" class="logo">
-        <div class="title">HomeOps</div>
-        <div class="tagline">The Mental Load Operating System for High-Performing Families &amp; Professionals</div>
-        <div class="auth-card">
-            <form id="signInForm" class="auth-form">
-                <input type="email" id="signInEmail" placeholder="Email" required>
-                <input type="password" id="signInPassword" placeholder="Password" required>
-                <button type="submit">Sign In</button>
-            </form>
-            <div class="auth-footer">
-                Don't have an account? <a href="#" id="toggleToSignUp">Sign Up</a>
+    <div class="demo-container">
+        <div class="header fade-in">
+            <img src="img/logo.svg" alt="HomeOps Logo" class="logo">
+            <h1 class="title">HomeOps</h1>
+            <p class="subtitle">Your inbox, decoded. Signal vs. noise, sorted.</p>
+        </div>
+
+        <div class="stats-bar fade-in">
+            <div class="stat-card">
+                <span class="stat-number">47</span>
+                <span class="stat-label">Emails Processed</span>
             </div>
-            <form id="signUpForm" class="auth-form" style="display: none;" autocomplete="off">
-                <!-- Honeypot field for bot protection -->
-                <input type="text" name="website" id="website" style="display:none" tabindex="-1" autocomplete="off">
-                <input type="email" id="signUpEmail" placeholder="Email" required>
-                <input type="password" id="signUpPassword" placeholder="Password" required>
-                <button type="submit">Create Account</button>
-            </form>
-            <div class="auth-footer" id="toggleToSignIn" style="display: none;">
-                Already have an account? <a href="#">Sign In</a>
+            <div class="stat-card">
+                <span class="stat-number">12</span>
+                <span class="stat-label">Action Items Found</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">3.2hr</span>
+                <span class="stat-label">Time Saved Today</span>
             </div>
         </div>
-        <div class="features-row">
-            <div class="feature-box">
-                <span class="feature-icon">
-                    <!-- Lucide: MailCheck -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail-check" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 6-8.97 6.66a2 2 0 0 1-2.36 0L2 6m15 10 2 2 4-4"/></svg>
-                </span>
-                <div class="feature-title">Connect Your Inbox</div>
-                <div class="feature-desc">No forms. No setup. Just link Gmail and let HomeOps organize what matters—appointments, alerts, RSVPs, and more.</div>
+
+        <div class="main-grid">
+            <!-- URGENT & ACTIONABLE -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <div class="card-icon" style="background: #fef2f2; color: #dc2626;">
+                        ⚡
+                    </div>
+                    <div>
+                        <div class="card-title">Urgent & Actionable</div>
+                        <div class="card-subtitle">Requires immediate attention</div>
+                    </div>
+                </div>
+
+                <div class="email-item urgent">
+                    <div class="priority-badge priority-high">High Priority</div>
+                    <div class="email-sender">Dr. Sarah Chen - Pediatrician</div>
+                    <div class="email-subject">Appointment Confirmation: Tomorrow 2:30 PM</div>
+                    <div class="email-preview">Your child's annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early to complete paperwork.</div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary">Confirm</button>
+                        <button class="action-btn secondary">Reschedule</button>
+                    </div>
+                </div>
+
+                <div class="email-item urgent">
+                    <div class="priority-badge priority-high">High Priority</div>
+                    <div class="email-sender">Amazon Prime</div>
+                    <div class="email-subject">Your order #123-4567890-1234567 has shipped</div>
+                    <div class="email-preview">Your order containing "Organic Baby Formula" will arrive tomorrow between 2-6 PM. Track your package here.</div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary">Track Package</button>
+                        <button class="action-btn secondary">View Order</button>
+                    </div>
+                </div>
+
+                <div class="email-item urgent">
+                    <div class="priority-badge priority-high">High Priority</div>
+                    <div class="email-sender">Jessica Martinez - School Principal</div>
+                    <div class="email-subject">Parent-Teacher Conference: This Friday</div>
+                    <div class="email-preview">Reminder: Your parent-teacher conference is scheduled for this Friday at 3:00 PM. Please confirm your attendance.</div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary">RSVP Yes</button>
+                        <button class="action-btn secondary">Reschedule</button>
+                    </div>
+                </div>
             </div>
-            <div class="feature-box">
-                <span class="feature-icon">
-                    <!-- Lucide: LayoutDashboard -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-                </span>
-                <div class="feature-title">Unified Dashboard</div>
-                <div class="feature-desc">See everything that matters in one place—appointments, reminders, errands, and reorders, all in a clean, actionable feed.</div>
+
+            <!-- APPOINTMENTS & SCHEDULE -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <div class="card-icon" style="background: #eff6ff; color: #2563eb;">
+                        📅
+                    </div>
+                    <div>
+                        <div class="card-title">Appointments & Schedule</div>
+                        <div class="card-subtitle">Calendar items & reminders</div>
+                    </div>
+                </div>
+
+                <div class="email-item action">
+                    <div class="priority-badge priority-medium">Medium Priority</div>
+                    <div class="email-sender">Golf Club Pro Shop</div>
+                    <div class="email-subject">Tee Time Confirmation: Saturday 9:00 AM</div>
+                    <div class="email-preview">Your tee time for Saturday morning is confirmed. Please arrive 30 minutes early. Weather looks perfect!</div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary">Add to Calendar</button>
+                        <button class="action-btn secondary">Cancel</button>
+                    </div>
+                </div>
+
+                <div class="email-item action">
+                    <div class="priority-badge priority-medium">Medium Priority</div>
+                    <div class="email-sender">Dental Associates</div>
+                    <div class="email-subject">Appointment Reminder: Next Tuesday 10:00 AM</div>
+                    <div class="email-preview">This is a friendly reminder of your dental cleaning appointment next Tuesday. Please call if you need to reschedule.</div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary">Confirm</button>
+                        <button class="action-btn secondary">Reschedule</button>
+                    </div>
+                </div>
+
+                <div class="email-item action">
+                    <div class="priority-badge priority-low">Low Priority</div>
+                    <div class="email-sender">Local Library</div>
+                    <div class="email-subject">Book Club Meeting: Next Thursday 7:00 PM</div>
+                    <div class="email-preview">Join us for our monthly book club discussion of "The Midnight Library" by Matt Haig. Light refreshments provided.</div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary">RSVP</button>
+                        <button class="action-btn secondary">More Info</button>
+                    </div>
+                </div>
             </div>
-            <div class="feature-box">
-                <span class="feature-icon">
-                    <!-- Lucide: Bot -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot" viewBox="0 0 24 24"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4m-6 4v2m12-2v2"/></svg>
-                </span>
-                <div class="feature-title">Let the Agent Act</div>
-                <div class="feature-desc">HomeOps doesn't just organize—it acts. RSVP, confirm, reorder, and more. Just tap, and it's handled.</div>
+
+            <!-- FAMILY & CONTEXT -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <div class="card-icon" style="background: #f0fdf4; color: #16a34a;">
+                        👨‍👩‍👧‍👦
+                    </div>
+                    <div>
+                        <div class="card-title">Family & Context</div>
+                        <div class="card-subtitle">Personal & family matters</div>
+                    </div>
+                </div>
+
+                <div class="email-item info">
+                    <div class="priority-badge priority-medium">Medium Priority</div>
+                    <div class="email-sender">Mom & Dad</div>
+                    <div class="email-subject">Weekend Visit - This Saturday</div>
+                    <div class="email-preview">Hi honey! We're planning to visit this Saturday around 2 PM. Can't wait to see the kids! Should we bring anything?</div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary">Reply</button>
+                        <button class="action-btn secondary">Call</button>
+                    </div>
+                </div>
+
+                <div class="email-item info">
+                    <div class="priority-badge priority-low">Low Priority</div>
+                    <div class="email-sender">Soccer League</div>
+                    <div class="email-subject">Season Schedule Posted</div>
+                    <div class="email-preview">The fall soccer season schedule is now available. Games start September 15th. Practice times remain the same.</div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary">View Schedule</button>
+                        <button class="action-btn secondary">Download</button>
+                    </div>
+                </div>
+
+                <div class="email-item info">
+                    <div class="priority-badge priority-low">Low Priority</div>
+                    <div class="email-sender">Neighborhood Watch</div>
+                    <div class="email-subject">Block Party Planning - Save the Date</div>
+                    <div class="email-preview">Mark your calendars! Our annual block party is scheduled for September 28th. More details coming soon.</div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary">Save Date</button>
+                        <button class="action-btn secondary">Volunteer</button>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <div class="connect-section fade-in">
+            <h2 class="connect-title">Ready to decode your inbox?</h2>
+            <p class="connect-desc">Connect your Gmail and let HomeOps organize what matters. No setup, no forms—just instant clarity.</p>
+            <button class="connect-btn pulse">Get Started with HomeOps</button>
         </div>
     </div>
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
+    <script>
+        // Add some interactive elements for demo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stats on load
+            const stats = document.querySelectorAll('.stat-number');
+            stats.forEach((stat, index) => {
+                setTimeout(() => {
+                    stat.style.opacity = '1';
+                    stat.style.transform = 'scale(1)';
+                }, index * 200);
+            });
 
-    <!-- API Configuration -->
-    <script src="config.js"></script>
-    <script src="auth.js"></script>
+            // Add click handlers for demo buttons
+            const actionButtons = document.querySelectorAll('.action-btn');
+            actionButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    this.style.background = '#10b981';
+                    this.textContent = '✓ Done';
+                    setTimeout(() => {
+                        this.style.background = '';
+                        this.textContent = this.textContent === '✓ Done' ? 'Confirm' : this.textContent;
+                    }, 2000);
+                });
+            });
+
+            // Connect button demo
+            const connectBtn = document.querySelector('.connect-btn');
+            connectBtn.addEventListener('click', function() {
+                // Navigate to the dashboard
+                window.location.href = '/dashboard';
+            });
+        });
+    </script>
 </body>
 </html> 
