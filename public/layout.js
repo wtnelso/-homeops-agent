@@ -124,22 +124,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // On load, set chat view as active (instead of home)
-    activateView('chat');
+      // On load, check for Gmail connection parameter and set appropriate view
+      const urlParams = new URLSearchParams(window.location.search);
+      const gmailConnected = urlParams.get('gmail_connected');
       
-      // Optionally, remove or comment out forced HomeBase initialization
-      // setTimeout(() => {
-      //   const homebaseContainer = document.getElementById('homebase-container');
-      //   if (homebaseContainer && window.HomeBaseComponent) {
-      //     console.log(" Force initializing HomeBase Component...");
-      //     window.HomeBaseComponent.init(homebaseContainer);
-      //   } else {
-      //     console.log("❌ HomeBase Component not available:", {
-      //       container: homebaseContainer,
-      //       component: window.HomeBaseComponent
-      //     });
-      //   }
-      // }, 500);
+      if (gmailConnected === 'true') {
+        // Gmail was just connected, show the Email Decoder dashboard
+        activateView('dashboard');
+        // Clean up the URL parameter
+        const newUrl = window.location.pathname + window.location.search.replace(/[?&]gmail_connected=true/, '');
+        window.history.replaceState({}, document.title, newUrl);
+      } else {
+        // Default to chat view
+        activateView('chat');
+      }
 
     }).catch(error => {
       console.error('Firebase initialization failed:', error);

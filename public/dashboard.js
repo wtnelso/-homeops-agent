@@ -1,5 +1,5 @@
 // Email Decoder Engine - Clear Onboarding Flow
-const userId = "user_123"; // 🔐 Replace with dynamic user ID later
+// User ID is now dynamically retrieved from Firebase Auth
 
 // Global state
 let decodedEmails = [];
@@ -37,45 +37,105 @@ const CATEGORIES = [
   }
 ];
 
-// Wait for Firebase auth to be ready and get userId
-function waitForUserId() {
+// Get the real Firebase user ID
+function getUserId() {
+    // Try Firebase Auth
+    if (window.firebase && window.firebase.auth && window.firebase.auth().currentUser) {
+        return window.firebase.auth().currentUser.uid;
+    }
+    // Fallback to window.userId if set
+    if (window.userId) {
+        return window.userId;
+    }
+    // Final fallback for local dev
+    return "test_user";
+}
+
+// Wait for user ID to be available
+async function waitForUserId() {
+    console.log('🔍 waitForUserId: Starting...');
+    // Try immediate
+    let uid = getUserId();
+    if (uid) {
+        console.log('🔍 waitForUserId: Got userId immediately:', uid);
+        return uid;
+    }
+    // Wait for Firebase Auth to initialize (max 3s)
     return new Promise((resolve) => {
-        if (window.userId) return resolve(window.userId);
-        const check = () => {
-            if (window.userId) {
-                resolve(window.userId);
-            } else {
-                setTimeout(check, 100);
+        let waited = 0;
+        const interval = setInterval(() => {
+            uid = getUserId();
+            if (uid) {
+                clearInterval(interval);
+                console.log('🔍 waitForUserId: Got userId after wait:', uid);
+                resolve(uid);
             }
-        };
-        check();
+            waited += 100;
+            if (waited > 3000) {
+                clearInterval(interval);
+                console.warn('⚠️ waitForUserId: Timed out, using fallback userId:', uid);
+                resolve(uid);
+            }
+        }, 100);
     });
 }
 
 async function initializeDecoderView() {
     const dashboardView = document.getElementById('dashboard-view');
-    dashboardView.innerHTML = '';
+    if (!dashboardView) {
+        console.error('❌ dashboard-view element not found!');
+        return;
+    }
+    dashboardView.innerHTML = '<div style="padding:2rem;text-align:center;">Loading Email Decoder...</div>';
+    console.log('🚀 initializeDecoderView: Starting...');
     let userId = await waitForUserId();
+    console.log('🚀 initializeDecoderView: Got userId:', userId);
+    // Check for Gmail connection param
+    const urlParams = new URLSearchParams(window.location.search);
+    const gmailConnected = urlParams.get('gmail_connected');
+    if (gmailConnected === 'true') {
+        // After OAuth, always check status
+        try {
+            const res = await fetch(`/api/gmail/status?user_id=${encodeURIComponent(userId)}`);
+            const data = await res.json();
+            if (data.connected) {
+                showDecoderReadyUI();
+                return;
+            } else {
+                showOnboardingFlow();
+                return;
+            }
+        } catch (err) {
+            console.error('❌ Error checking Gmail status after OAuth:', err);
+            showOnboardingFlow();
+            return;
+        }
+    }
+    // Normal load: check status
     try {
         const res = await fetch(`/api/gmail/status?user_id=${encodeURIComponent(userId)}`);
         const data = await res.json();
         if (data.connected) {
-            // Gmail is connected, show decoder/process UI
             showDecoderReadyUI();
         } else {
-            // Not connected, show onboarding
             showOnboardingFlow();
         }
     } catch (err) {
-        console.error('Failed to check Gmail status:', err);
+        console.error('❌ Error checking Gmail status:', err);
         showOnboardingFlow();
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Email Decoder Engine Initialized');
-    initializeDecoderView();
-    setupEventListeners();
+    try {
+        initializeDecoderView();
+        setupEventListeners();
+    } catch (err) {
+        console.error('❌ DOMContentLoaded error:', err);
+        // Show onboarding as fallback
+        showOnboardingFlow();
+    }
 });
 
 function showOnboardingFlow() {
@@ -296,15 +356,18 @@ function prevStep() {
 }
 
 async function connectGmail() {
+    // Show processing step
+    document.getElementById('step-1')?.classList.remove('active');
+    document.getElementById('step-2')?.classList.remove('active');
+    document.getElementById('step-3')?.classList.add('active');
+
     try {
-        // Show processing step
-        nextStep();
-        
-        // Redirect to Gmail OAuth
+        // Start OAuth flow - use the correct endpoint
         window.location.href = '/auth/google';
-    } catch (error) {
-        console.error('❌ Error connecting Gmail:', error);
-        showErrorMessage('Failed to connect Gmail. Please try again.');
+    } catch (err) {
+        showErrorMessage('Failed to start Gmail connection.');
+        // Fallback: show onboarding again
+        showOnboardingFlow();
     }
 }
 
@@ -429,26 +492,34 @@ function renderDecodedEmails() {
     // Clear existing content
     clearColumns();
     
-    // Categorize emails
+    // Categorize emails into the 4 columns
     const urgentEmails = decodedEmails.filter(email => email.decoded.priority === 'high');
     const appointmentEmails = decodedEmails.filter(email => 
         email.decoded.category === 'healthcare' || 
         email.decoded.category === 'rsvp' ||
-        email.decoded.category === 'deadline'
+        email.decoded.category === 'deadline' ||
+        email.decoded.category === 'school'
     );
     const familyEmails = decodedEmails.filter(email => 
         email.decoded.type === 'family_signal' ||
-        email.decoded.category === 'school' ||
-        email.decoded.category === 'logistics'
+        email.decoded.category === 'logistics' ||
+        email.decoded.category === 'school'
+    );
+    const commerceEmails = decodedEmails.filter(email => 
+        email.decoded.category === 'purchase' ||
+        email.decoded.category === 'promotion' ||
+        email.decoded.category === 'brand_opportunity' ||
+        email.decoded.category === 'reorder_nudge'
     );
     
     // Render each category
     renderEmailColumn('urgentCards', urgentEmails, 'urgent');
     renderEmailColumn('appointmentCards', appointmentEmails, 'action');
     renderEmailColumn('familyCards', familyEmails, 'info');
+    renderEmailColumn('commerceCards', commerceEmails, 'commerce');
     
-    // Show the real content
-    document.querySelector('.demo-container').style.display = 'block';
+    // Show success message
+    showSuccessMessage(`Processed ${decodedEmails.length} emails!`);
 }
 
 function renderEmailColumn(containerId, emails, type) {
@@ -464,18 +535,89 @@ function renderEmailColumn(containerId, emails, type) {
 function createEmailCard(email, type) {
     const card = document.createElement('div');
     card.className = `email-item ${type}`;
+    card.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-left: 4px solid ${getTypeColor(type)};
+        transition: all 0.2s ease;
+        cursor: pointer;
+    `;
+    
     card.innerHTML = `
-        <div class="priority-badge priority-${email.decoded.priority}">${email.decoded.priority.toUpperCase()} PRIORITY</div>
-        <div class="email-sender">${email.from}</div>
-        <div class="email-subject">${email.subject}</div>
-        <div class="email-preview">${email.decoded.summary}</div>
-        <div class="action-buttons">
-            <button class="action-btn primary" onclick="handleEmailAction('${email.id}', 'primary')">${getPrimaryAction(email.decoded)}</button>
-            <button class="action-btn secondary" onclick="handleEmailAction('${email.id}', 'secondary')">More Info</button>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+            <div style="font-weight: 600; color: #374151; font-size: 0.9rem;">${email.from}</div>
+            <div style="
+                background: ${getPriorityColor(email.decoded.priority)};
+                color: white;
+                padding: 0.25rem 0.5rem;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            ">${email.decoded.priority} Priority</div>
+        </div>
+        <div style="font-weight: 700; color: #1f2937; margin-bottom: 0.75rem; font-size: 1rem;">${email.subject}</div>
+        <div style="color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">${email.decoded.summary}</div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="action-btn primary" onclick="handleEmailAction('${email.id}', 'primary')" style="
+                background: ${getTypeColor(type)};
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+            ">${getPrimaryAction(email.decoded)}</button>
+            <button class="action-btn secondary" onclick="handleEmailAction('${email.id}', 'secondary')" style="
+                background: #f3f4f6;
+                color: #374151;
+                border: 1px solid #d1d5db;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                font-size: 0.85rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s;
+            ">More Info</button>
         </div>
     `;
     
+    // Add hover effects
+    card.addEventListener('mouseenter', () => {
+        card.style.transform = 'translateY(-2px)';
+        card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)';
+    });
+    
+    card.addEventListener('mouseleave', () => {
+        card.style.transform = 'translateY(0)';
+        card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+    });
+    
     return card;
+}
+
+function getTypeColor(type) {
+    const colors = {
+        urgent: '#ef4444',
+        action: '#3b82f6',
+        info: '#22c55e',
+        commerce: '#f59e42'
+    };
+    return colors[type] || '#6b7280';
+}
+
+function getPriorityColor(priority) {
+    const colors = {
+        high: '#ef4444',
+        medium: '#f59e42',
+        low: '#10b981'
+    };
+    return colors[priority] || '#6b7280';
 }
 
 function getPrimaryAction(decoded) {
@@ -484,7 +626,11 @@ function getPrimaryAction(decoded) {
         case 'rsvp': return 'RSVP';
         case 'deadline': return 'Mark Done';
         case 'purchase': return 'View Order';
+        case 'promotion': return 'View Deal';
+        case 'brand_opportunity': return 'View Offer';
         case 'reorder_nudge': return 'Reorder';
+        case 'school': return 'View Details';
+        case 'logistics': return 'Track';
         default: return 'View';
     }
 }
@@ -531,140 +677,185 @@ function animateNumber(element, start, end, duration) {
 }
 
 function showDemoMode() {
-    // Hide the real content and show demo
-    document.querySelector('.demo-container').style.display = 'none';
-    
-    // Show demo decoded emails
-    const demoEmails = [
-        {
-            id: 'demo1',
-            from: 'Dr. Sarah Chen - Pediatrician',
-            subject: 'Appointment Confirmation: Tomorrow 2:30 PM',
-            decoded: {
-                type: 'family_signal',
-                category: 'healthcare',
-                priority: 'high',
-                summary: 'Your child\'s annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early.',
-                action_required: 'Confirm appointment and prepare paperwork'
-            }
-        },
-        {
-            id: 'demo2',
-            from: 'Amazon Prime',
-            subject: 'Your order #123-4567890-1234567 has shipped',
-            decoded: {
-                type: 'smart_deal',
-                category: 'purchase',
-                priority: 'medium',
-                summary: 'Your order containing "Organic Baby Formula" will arrive tomorrow between 2-6 PM.',
-                action_required: 'Track package and prepare for delivery'
-            }
-        },
-        {
-            id: 'demo3',
-            from: 'Jessica Martinez - School Principal',
-            subject: 'Parent-Teacher Conference: This Friday',
-            decoded: {
-                type: 'family_signal',
-                category: 'school',
-                priority: 'high',
-                summary: 'Reminder: Your parent-teacher conference is scheduled for this Friday at 3:00 PM.',
-                action_required: 'RSVP and prepare questions'
-            }
-        },
-        {
-            id: 'demo4',
-            from: 'Golf Club Pro Shop',
-            subject: 'Tee Time Confirmation: Saturday 9:00 AM',
-            decoded: {
-                type: 'other',
-                category: 'logistics',
-                priority: 'medium',
-                summary: 'Your tee time for Saturday morning is confirmed. Please arrive 30 minutes early.',
-                action_required: 'Add to calendar and prepare equipment'
-            }
-        },
-        {
-            id: 'demo5',
-            from: 'Mom & Dad',
-            subject: 'Weekend Visit - This Saturday',
-            decoded: {
-                type: 'family_signal',
-                category: 'logistics',
-                priority: 'medium',
-                summary: 'Hi honey! We\'re planning to visit this Saturday around 2 PM. Can\'t wait to see the kids!',
-                action_required: 'Reply and prepare for visit'
-            }
-        }
-    ];
-    
-    // Create demo container
-    const demoContainer = document.createElement('div');
-    demoContainer.className = 'demo-mode-container';
-    demoContainer.style.cssText = `
-        padding: 2rem;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-        margin: 2rem;
-    `;
-    
-    demoContainer.innerHTML = `
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <h2 style="color: #1e293b; margin-bottom: 0.5rem;">📧 Email Decoder Demo</h2>
-            <p style="color: #64748b; margin-bottom: 2rem;">Here's how HomeOps would organize your emails:</p>
-            <button onclick="connectGmail()" class="connect-btn pulse" style="
-                background: #3b82f6;
-                color: white;
-                border: none;
-                padding: 1rem 2rem;
-                border-radius: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-            ">Connect Gmail to Start</button>
-        </div>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-            <div style="background: #fef2f2; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #dc2626;">
-                <h3 style="color: #dc2626; margin-bottom: 1rem;">⚡ Urgent & Actionable</h3>
-                ${demoEmails.filter(e => e.decoded.priority === 'high').map(email => `
-                    <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <div style="font-weight: 600; color: #dc2626; font-size: 0.875rem;">HIGH PRIORITY</div>
-                        <div style="font-weight: 600; margin: 0.5rem 0;">${email.from}</div>
-                        <div style="color: #374151; margin-bottom: 0.5rem;">${email.subject}</div>
-                        <div style="color: #6b7280; font-size: 0.875rem;">${email.decoded.summary}</div>
-                    </div>
-                `).join('')}
+    const dashboardView = document.getElementById('dashboard-view');
+    dashboardView.innerHTML = `
+        <div class="demo-container" style="max-width:1400px;margin:0 auto;padding:2rem;">
+            <div style="text-align:center;margin-bottom:3rem;">
+                <h2 style="color:#1e293b;margin-bottom:0.5rem;">📧 Email Decoder Demo</h2>
+                <p style="color:#64748b;margin-bottom:2rem;">Here's how HomeOps would organize your emails:</p>
+                <button onclick="connectGmail()" class="connect-btn pulse" style="
+                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                    color: white;
+                    border: none;
+                    padding: 1rem 2rem;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                    transition: all 0.2s;
+                ">Connect Gmail to Start</button>
             </div>
             
-            <div style="background: #eff6ff; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #2563eb;">
-                <h3 style="color: #2563eb; margin-bottom: 1rem;">📅 Appointments & Schedule</h3>
-                ${demoEmails.filter(e => e.decoded.category === 'healthcare' || e.decoded.category === 'school').map(email => `
-                    <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <div style="font-weight: 600; color: #2563eb; font-size: 0.875rem;">MEDIUM PRIORITY</div>
-                        <div style="font-weight: 600; margin: 0.5rem 0;">${email.from}</div>
-                        <div style="color: #374151; margin-bottom: 0.5rem;">${email.subject}</div>
-                        <div style="color: #6b7280; font-size: 0.875rem;">${email.decoded.summary}</div>
+            <!-- 4-Column Demo Layout -->
+            <div class="decoder-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;">
+                <!-- Urgent & Actionable -->
+                <div class="decoder-col" style="background: rgba(239,68,68,0.05); border-radius: 16px; padding: 1.5rem;">
+                    <div class="decoder-col-header" style="
+                        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 12px;
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-weight: 600;
+                    ">
+                        <i data-lucide="zap" style="width:1.2em;height:1.2em;"></i>
+                        Urgent & Actionable
                     </div>
-                `).join('')}
-            </div>
-            
-            <div style="background: #f0fdf4; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #16a34a;">
-                <h3 style="color: #16a34a; margin-bottom: 1rem;">👨‍👩‍👧‍👦 Family & Context</h3>
-                ${demoEmails.filter(e => e.decoded.type === 'family_signal').map(email => `
-                    <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <div style="font-weight: 600; color: #16a34a; font-size: 0.875rem;">MEDIUM PRIORITY</div>
-                        <div style="font-weight: 600; margin: 0.5rem 0;">${email.from}</div>
-                        <div style="color: #374151; margin-bottom: 0.5rem;">${email.subject}</div>
-                        <div style="color: #6b7280; font-size: 0.875rem;">${email.decoded.summary}</div>
+                    <div id="urgentCards" class="decoder-cards">
+                        <div class="email-item urgent" style="
+                            background: white;
+                            border-radius: 12px;
+                            padding: 1.5rem;
+                            margin-bottom: 1rem;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                            border-left: 4px solid #ef4444;
+                        ">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <div style="font-weight: 600; color: #374151; font-size: 0.9rem;">Dr. Sarah Chen - Pediatrician</div>
+                                <div style="background: #ef4444; color: white; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">High Priority</div>
+                            </div>
+                            <div style="font-weight: 700; color: #1f2937; margin-bottom: 0.75rem; font-size: 1rem;">Appointment Confirmation: Tomorrow 2:30 PM</div>
+                            <div style="color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">Your child's annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early.</div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button style="background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Confirm</button>
+                                <button style="background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer;">More Info</button>
+                            </div>
+                        </div>
                     </div>
-                `).join('')}
+                </div>
+                
+                <!-- Appointments & Schedule -->
+                <div class="decoder-col" style="background: rgba(59,130,246,0.05); border-radius: 16px; padding: 1.5rem;">
+                    <div class="decoder-col-header" style="
+                        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 12px;
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-weight: 600;
+                    ">
+                        <i data-lucide="calendar-days" style="width:1.2em;height:1.2em;"></i>
+                        Appointments & Schedule
+                    </div>
+                    <div id="appointmentCards" class="decoder-cards">
+                        <div class="email-item action" style="
+                            background: white;
+                            border-radius: 12px;
+                            padding: 1.5rem;
+                            margin-bottom: 1rem;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                            border-left: 4px solid #3b82f6;
+                        ">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <div style="font-weight: 600; color: #374151; font-size: 0.9rem;">Jessica Martinez - School Principal</div>
+                                <div style="background: #ef4444; color: white; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">High Priority</div>
+                            </div>
+                            <div style="font-weight: 700; color: #1f2937; margin-bottom: 0.75rem; font-size: 1rem;">Parent-Teacher Conference: This Friday</div>
+                            <div style="color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">Reminder: Your parent-teacher conference is scheduled for this Friday at 3:00 PM.</div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button style="background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">RSVP</button>
+                                <button style="background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer;">More Info</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Family & Context -->
+                <div class="decoder-col" style="background: rgba(34,197,94,0.05); border-radius: 16px; padding: 1.5rem;">
+                    <div class="decoder-col-header" style="
+                        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 12px;
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-weight: 600;
+                    ">
+                        <i data-lucide="users" style="width:1.2em;height:1.2em;"></i>
+                        Family & Context
+                    </div>
+                    <div id="familyCards" class="decoder-cards">
+                        <div class="email-item info" style="
+                            background: white;
+                            border-radius: 12px;
+                            padding: 1.5rem;
+                            margin-bottom: 1rem;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                            border-left: 4px solid #22c55e;
+                        ">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <div style="font-weight: 600; color: #374151; font-size: 0.9rem;">Soccer League Coordinator</div>
+                                <div style="background: #f59e42; color: white; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Medium Priority</div>
+                            </div>
+                            <div style="font-weight: 700; color: #1f2937; margin-bottom: 0.75rem; font-size: 1rem;">Weekend Game Schedule Update</div>
+                            <div style="color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">Due to weather, this Saturday's soccer game has been moved to Sunday at 10 AM.</div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button style="background: #22c55e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">View Details</button>
+                                <button style="background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer;">More Info</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Commerce Inbox -->
+                <div class="decoder-col" style="background: rgba(245,158,66,0.05); border-radius: 16px; padding: 1.5rem;">
+                    <div class="decoder-col-header" style="
+                        background: linear-gradient(135deg, #f59e42 0%, #fbbf24 100%);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 12px;
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-weight: 600;
+                    ">
+                        <i data-lucide="shopping-bag" style="width:1.2em;height:1.2em;"></i>
+                        Commerce Inbox
+                    </div>
+                    <div id="commerceCards" class="decoder-cards">
+                        <div class="email-item commerce" style="
+                            background: white;
+                            border-radius: 12px;
+                            padding: 1.5rem;
+                            margin-bottom: 1rem;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                            border-left: 4px solid #f59e42;
+                        ">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <div style="font-weight: 600; color: #374151; font-size: 0.9rem;">Amazon Prime</div>
+                                <div style="background: #f59e42; color: white; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Medium Priority</div>
+                            </div>
+                            <div style="font-weight: 700; color: #1f2937; margin-bottom: 0.75rem; font-size: 1rem;">Your order #123-4567890-1234567 has shipped</div>
+                            <div style="color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">Your order containing "Organic Baby Formula" will arrive tomorrow between 2-6 PM.</div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button style="background: #f59e42; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">View Order</button>
+                                <button style="background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer;">More Info</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
-    
-    document.getElementById('dashboard-view').appendChild(demoContainer);
 }
 
 function handleEmailAction(emailId, actionType) {
@@ -767,7 +958,7 @@ function showErrorMessage(message) {
 }
 
 function clearColumns() {
-    const containers = ['urgentCards', 'appointmentCards', 'familyCards'];
+    const containers = ['urgentCards', 'appointmentCards', 'familyCards', 'commerceCards'];
     containers.forEach(id => {
         const container = document.getElementById(id);
         if (container) {
@@ -826,20 +1017,114 @@ document.head.appendChild(style);
 
 console.log('✅ Email Decoder Engine Ready');
 
-// Add a simple decoder/process UI for when Gmail is connected
+// Add a proper 4-column Email Decoder UI for when Gmail is connected
 function showDecoderReadyUI() {
     const dashboardView = document.getElementById('dashboard-view');
     dashboardView.innerHTML = `
-        <div class="decoder-ready-container" style="max-width:700px;margin:0 auto;padding:2rem;text-align:center;">
-            <div style="font-size:3rem;margin-bottom:1rem;">🧠</div>
-            <h2 style="color:#1e293b;margin-bottom:0.5rem;">Gmail Connected!</h2>
-            <p style="color:#64748b;font-size:1.1rem;margin-bottom:2rem;">You're ready to decode your inbox. Click below to process your emails.</p>
-            <button id="process-emails-btn" class="process-btn" style="margin-bottom:1.5rem;">
-                <span class="process-text">Process Emails</span>
-            </button>
+        <div class="decoder-ready-container" style="max-width:1400px;margin:0 auto;padding:2rem;">
+            <div style="text-align:center;margin-bottom:3rem;">
+                <div style="font-size:3rem;margin-bottom:1rem;">🧠</div>
+                <h2 style="color:#1e293b;margin-bottom:0.5rem;">Gmail Connected!</h2>
+                <p style="color:#64748b;font-size:1.1rem;margin-bottom:2rem;">You're ready to decode your inbox. Click below to process your emails.</p>
+                <button id="process-emails-btn" class="process-btn" style="
+                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                    color: white;
+                    border: none;
+                    padding: 1rem 2rem;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                    transition: all 0.2s;
+                ">
+                    <span class="process-text">Process Emails</span>
+                </button>
+            </div>
+            
+            <!-- 4-Column Email Decoder Layout -->
+            <div class="decoder-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;">
+                <!-- Urgent & Actionable -->
+                <div class="decoder-col" style="background: rgba(239,68,68,0.05); border-radius: 16px; padding: 1.5rem;">
+                    <div class="decoder-col-header" style="
+                        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 12px;
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-weight: 600;
+                    ">
+                        <i data-lucide="zap" style="width:1.2em;height:1.2em;"></i>
+                        Urgent & Actionable
+                    </div>
+                    <div id="urgentCards" class="decoder-cards"></div>
+                </div>
+                
+                <!-- Appointments & Schedule -->
+                <div class="decoder-col" style="background: rgba(59,130,246,0.05); border-radius: 16px; padding: 1.5rem;">
+                    <div class="decoder-col-header" style="
+                        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 12px;
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-weight: 600;
+                    ">
+                        <i data-lucide="calendar-days" style="width:1.2em;height:1.2em;"></i>
+                        Appointments & Schedule
+                    </div>
+                    <div id="appointmentCards" class="decoder-cards"></div>
+                </div>
+                
+                <!-- Family & Context -->
+                <div class="decoder-col" style="background: rgba(34,197,94,0.05); border-radius: 16px; padding: 1.5rem;">
+                    <div class="decoder-col-header" style="
+                        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 12px;
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-weight: 600;
+                    ">
+                        <i data-lucide="users" style="width:1.2em;height:1.2em;"></i>
+                        Family & Context
+                    </div>
+                    <div id="familyCards" class="decoder-cards"></div>
+                </div>
+                
+                <!-- Commerce Inbox -->
+                <div class="decoder-col" style="background: rgba(245,158,66,0.05); border-radius: 16px; padding: 1.5rem;">
+                    <div class="decoder-col-header" style="
+                        background: linear-gradient(135deg, #f59e42 0%, #fbbf24 100%);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 12px;
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-weight: 600;
+                    ">
+                        <i data-lucide="shopping-bag" style="width:1.2em;height:1.2em;"></i>
+                        Commerce Inbox
+                    </div>
+                    <div id="commerceCards" class="decoder-cards"></div>
+                </div>
+            </div>
+            
             <div id="decoded-emails-container"></div>
         </div>
     `;
+    
     // Attach event listener for process button
     const processBtn = document.getElementById('process-emails-btn');
     if (processBtn) {
