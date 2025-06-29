@@ -4,6 +4,8 @@
 // Global state
 let decodedEmails = [];
 let isProcessing = false;
+let onboardingStep = 1;
+let onboardingFeedback = [];
 
 // Add 'Commerce Inbox' to the categories
 const CATEGORIES = [
@@ -80,7 +82,7 @@ async function initializeDecoderView() {
         console.error('❌ dashboard-view element not found!');
         return;
     }
-    dashboardView.innerHTML = '<div style="padding:2rem;text-align:center;">Loading Email Decoder...</div>';
+    
     console.log('🚀 initializeDecoderView: Starting...');
     
     // Add safety timeout
@@ -137,6 +139,181 @@ async function initializeDecoderView() {
         console.error('❌ Error in initializeDecoderView:', err);
         clearTimeout(safetyTimeout);
         showOnboardingFlow();
+    }
+}
+
+// New onboarding flow functions
+function showOnboardingFlow() {
+    console.log('🎯 Showing onboarding flow');
+    
+    // Hide the main decoder content
+    const mainContent = document.getElementById('decoder-main-content');
+    if (mainContent) {
+        mainContent.style.display = 'none';
+    }
+    
+    // Show the onboarding
+    const onboarding = document.getElementById('decoder-onboarding');
+    if (onboarding) {
+        onboarding.style.display = 'flex';
+        showOnboardingStep(1);
+    }
+    
+    // Setup onboarding event listeners
+    setupOnboardingEventListeners();
+}
+
+function showOnboardingStep(step) {
+    console.log(`🎯 Showing onboarding step ${step}`);
+    onboardingStep = step;
+    
+    // Hide all steps
+    const steps = document.querySelectorAll('.onboarding-step');
+    steps.forEach(s => s.style.display = 'none');
+    
+    // Show current step
+    const currentStep = document.getElementById(`onboarding-step-${step}`);
+    if (currentStep) {
+        currentStep.style.display = 'block';
+    }
+    
+    // Update progress if on step 2
+    if (step === 2) {
+        updateOnboardingProgress();
+    }
+}
+
+function setupOnboardingEventListeners() {
+    // Gmail connect button
+    const connectBtn = document.getElementById('connect-gmail-btn');
+    if (connectBtn) {
+        connectBtn.addEventListener('click', connectGmail);
+    }
+    
+    // Category buttons for sample emails
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    categoryBtns.forEach(btn => {
+        btn.addEventListener('click', handleCategorySelection);
+    });
+    
+    // Start decoding button
+    const startBtn = document.getElementById('start-decoding-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', startDecoding);
+    }
+}
+
+async function connectGmail() {
+    console.log('🔗 Connecting Gmail...');
+    
+    try {
+        const userId = await waitForUserId();
+        const response = await fetch('/api/gmail/auth', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id: userId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.auth_url) {
+            window.location.href = data.auth_url;
+        } else {
+            console.error('❌ No auth URL received');
+            showErrorMessage('Failed to start Gmail connection');
+        }
+    } catch (error) {
+        console.error('❌ Error connecting Gmail:', error);
+        showErrorMessage('Failed to connect Gmail');
+    }
+}
+
+function handleCategorySelection(event) {
+    const btn = event.target;
+    const emailCard = btn.closest('.sample-email-card');
+    const emailId = emailCard.dataset.emailId;
+    const category = btn.dataset.category;
+    
+    // Remove selected class from all buttons in this email
+    const allBtns = emailCard.querySelectorAll('.category-btn');
+    allBtns.forEach(b => b.classList.remove('selected'));
+    
+    // Add selected class to clicked button
+    btn.classList.add('selected');
+    
+    // Mark email as categorized
+    emailCard.classList.add('categorized');
+    
+    // Store feedback
+    onboardingFeedback[emailId] = category;
+    
+    // Update progress
+    updateOnboardingProgress();
+    
+    // Check if all emails are categorized
+    if (Object.keys(onboardingFeedback).length === 3) {
+        setTimeout(() => {
+            showOnboardingStep(3);
+        }, 1000);
+    }
+}
+
+function updateOnboardingProgress() {
+    const progressFill = document.querySelector('.progress-fill');
+    const progressText = document.querySelector('.progress-text');
+    
+    const categorized = Object.keys(onboardingFeedback).length;
+    const total = 3;
+    const percentage = (categorized / total) * 100;
+    
+    if (progressFill) {
+        progressFill.style.width = `${percentage}%`;
+    }
+    
+    if (progressText) {
+        progressText.textContent = `${categorized} of ${total} emails categorized`;
+    }
+}
+
+function startDecoding() {
+    console.log('🚀 Starting decoding...');
+    
+    // Hide onboarding
+    const onboarding = document.getElementById('decoder-onboarding');
+    if (onboarding) {
+        onboarding.style.display = 'none';
+    }
+    
+    // Show main decoder content
+    const mainContent = document.getElementById('decoder-main-content');
+    if (mainContent) {
+        mainContent.style.display = 'block';
+    }
+    
+    // Initialize the decoder
+    showDecoderReadyUI();
+}
+
+function showDecoderReadyUI() {
+    console.log('🎯 Showing decoder ready UI');
+    
+    // Hide onboarding
+    const onboarding = document.getElementById('decoder-onboarding');
+    if (onboarding) {
+        onboarding.style.display = 'none';
+    }
+    
+    // Show main decoder content
+    const mainContent = document.getElementById('decoder-main-content');
+    if (mainContent) {
+        mainContent.style.display = 'block';
+    }
+    
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
     }
 }
 
@@ -366,22 +543,6 @@ function prevStep() {
         currentStep.style.display = 'none';
         prevStepElement.classList.add('active');
         prevStepElement.style.display = 'block';
-    }
-}
-
-async function connectGmail() {
-    // Show processing step
-    document.getElementById('step-1')?.classList.remove('active');
-    document.getElementById('step-2')?.classList.remove('active');
-    document.getElementById('step-3')?.classList.add('active');
-
-    try {
-        // Start OAuth flow - use the correct endpoint
-        window.location.href = '/auth/google';
-    } catch (err) {
-        showErrorMessage('Failed to start Gmail connection.');
-        // Fallback: show onboarding again
-        showOnboardingFlow();
     }
 }
 

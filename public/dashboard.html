@@ -594,7 +594,122 @@
 
   <!-- Dashboard View -->
   <section id="dashboard-view" class="view">
-    <div class="demo-container">
+    <!-- Email Decoder Onboarding Flow -->
+    <div id="decoder-onboarding" class="decoder-onboarding" style="display: none;">
+      <!-- Step 1: Gmail Connection -->
+      <div id="onboarding-step-1" class="onboarding-step">
+        <div class="onboarding-header">
+          <h1 class="onboarding-title">Connect Your Gmail</h1>
+          <p class="onboarding-subtitle">Let's start by connecting your Gmail account to begin decoding your emails</p>
+        </div>
+        
+        <div class="onboarding-content">
+          <div class="gmail-connect-card">
+            <div class="gmail-icon">
+              <i data-lucide="mail" style="width: 3rem; height: 3rem; color: #ea4335;"></i>
+            </div>
+            <h3>Connect Gmail Account</h3>
+            <p>Securely connect your Gmail to start processing and categorizing your emails</p>
+            <button id="connect-gmail-btn" class="connect-btn">
+              <i data-lucide="link" style="width: 1.2rem; height: 1.2rem; margin-right: 0.5rem;"></i>
+              Connect Gmail
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Learning Engine -->
+      <div id="onboarding-step-2" class="onboarding-step" style="display: none;">
+        <div class="onboarding-header">
+          <h1 class="onboarding-title">Teach the AI</h1>
+          <p class="onboarding-subtitle">Help the AI understand your email patterns by providing feedback on sample emails</p>
+        </div>
+        
+        <div class="onboarding-content">
+          <div class="sample-emails-container">
+            <div class="sample-email-card" data-email-id="1">
+              <div class="email-header">
+                <span class="sender">Amazon Prime</span>
+                <span class="subject">Your order has shipped</span>
+              </div>
+              <div class="email-preview">
+                Your order #123-4567890-1234567 containing "Organic Baby Formula" will arrive tomorrow between 2-6 PM.
+              </div>
+              <div class="email-categories">
+                <button class="category-btn" data-category="urgent">Handle Now</button>
+                <button class="category-btn" data-category="schedule">On the Schedule</button>
+                <button class="category-btn" data-category="commerce">Commerce Inbox</button>
+                <button class="category-btn" data-category="archive">Archive</button>
+              </div>
+            </div>
+
+            <div class="sample-email-card" data-email-id="2">
+              <div class="email-header">
+                <span class="sender">Dr. Sarah Chen</span>
+                <span class="subject">Appointment Confirmation</span>
+              </div>
+              <div class="email-preview">
+                Your child's annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early.
+              </div>
+              <div class="email-categories">
+                <button class="category-btn" data-category="urgent">Handle Now</button>
+                <button class="category-btn" data-category="schedule">On the Schedule</button>
+                <button class="category-btn" data-category="commerce">Commerce Inbox</button>
+                <button class="category-btn" data-category="archive">Archive</button>
+              </div>
+            </div>
+
+            <div class="sample-email-card" data-email-id="3">
+              <div class="email-header">
+                <span class="sender">Netflix</span>
+                <span class="subject">New shows added to your list</span>
+              </div>
+              <div class="email-preview">
+                Check out the latest shows and movies we've added based on your viewing history.
+              </div>
+              <div class="email-categories">
+                <button class="category-btn" data-category="urgent">Handle Now</button>
+                <button class="category-btn" data-category="schedule">On the Schedule</button>
+                <button class="category-btn" data-category="commerce">Commerce Inbox</button>
+                <button class="category-btn" data-category="archive">Archive</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="onboarding-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 0%"></div>
+            </div>
+            <span class="progress-text">0 of 3 emails categorized</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Ready to Decode -->
+      <div id="onboarding-step-3" class="onboarding-step" style="display: none;">
+        <div class="onboarding-header">
+          <h1 class="onboarding-title">You're All Set!</h1>
+          <p class="onboarding-subtitle">The AI has learned your preferences. Let's start decoding your emails</p>
+        </div>
+        
+        <div class="onboarding-content">
+          <div class="ready-card">
+            <div class="success-icon">
+              <i data-lucide="check-circle" style="width: 4rem; height: 4rem; color: #10b981;"></i>
+            </div>
+            <h3>Ready to Decode</h3>
+            <p>Your Gmail is connected and the AI is trained. Click below to start processing your emails.</p>
+            <button id="start-decoding-btn" class="start-btn">
+              <i data-lucide="play" style="width: 1.2rem; height: 1.2rem; margin-right: 0.5rem;"></i>
+              Start Decoding
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Existing Decoder Content (shown when Gmail is connected) -->
+    <div id="decoder-main-content" class="demo-container">
       <div class="header fade-in">
         <img src="img/logo.svg" alt="HomeOps Logo" class="logo">
         <h1 class="title">HomeOps</h1>

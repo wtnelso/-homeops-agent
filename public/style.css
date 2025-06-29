@@ -5038,3 +5038,252 @@ body > i,
 .decoder-col-commerce .lucide-shopping-bag {
   color: #f59e42;
 }
+
+/* Email Decoder Onboarding Styles */
+.decoder-onboarding {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.onboarding-step {
+  max-width: 800px;
+  width: 100%;
+  text-align: center;
+}
+
+.onboarding-header {
+  margin-bottom: 3rem;
+}
+
+.onboarding-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.onboarding-subtitle {
+  font-size: 1.2rem;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.6;
+}
+
+.onboarding-content {
+  background: white;
+  border-radius: 1rem;
+  padding: 3rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+/* Gmail Connection Step */
+.gmail-connect-card {
+  text-align: center;
+}
+
+.gmail-icon {
+  margin-bottom: 1.5rem;
+}
+
+.gmail-connect-card h3 {
+  font-size: 1.5rem;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.gmail-connect-card p {
+  color: #64748b;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.connect-btn {
+  background: linear-gradient(135deg, #ea4335, #d93025);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(234, 67, 53, 0.3);
+}
+
+.connect-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(234, 67, 53, 0.4);
+}
+
+/* Learning Engine Step */
+.sample-emails-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.sample-email-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.sample-email-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.sample-email-card.categorized {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.email-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.sender {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.subject {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.email-preview {
+  color: #475569;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.email-categories {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.category-btn {
+  background: white;
+  border: 2px solid #e2e8f0;
+  color: #64748b;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-btn:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.category-btn.selected {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+/* Progress Bar */
+.onboarding-progress {
+  margin-top: 2rem;
+}
+
+.progress-bar {
+  background: #e2e8f0;
+  border-radius: 1rem;
+  height: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #10b981, #059669);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Ready Step */
+.ready-card {
+  text-align: center;
+}
+
+.success-icon {
+  margin-bottom: 1.5rem;
+}
+
+.ready-card h3 {
+  font-size: 1.5rem;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.ready-card p {
+  color: #64748b;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .decoder-onboarding {
+    padding: 1rem;
+  }
+  
+  .onboarding-title {
+    font-size: 2rem;
+  }
+  
+  .onboarding-content {
+    padding: 2rem;
+  }
+  
+  .email-categories {
+    flex-direction: column;
+  }
+  
+  .category-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
