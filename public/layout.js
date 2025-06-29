@@ -49,6 +49,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 100);
       }
       
+      // Handle chat initialization when chat view is activated
+      if (viewId === 'chat') {
+        setTimeout(() => {
+          const chatBox = document.getElementById('chat');
+          const chatForm = document.getElementById('chatForm');
+          const input = document.getElementById('input');
+          
+          // Check if chat is already initialized (has event listeners)
+          if (chatBox && chatForm && input && !chatForm.hasAttribute('data-initialized')) {
+            console.log("💬 Initializing chat on view activation");
+            // Create a mock user object for development mode
+            const mockUser = {
+              uid: window.userId || "test_user"
+            };
+            // Initialize chat
+            if (window.initializeChat) {
+              window.initializeChat(null, mockUser);
+              chatForm.setAttribute('data-initialized', 'true');
+            }
+          } else if (chatBox && chatForm && input) {
+            console.log("💬 Chat already initialized");
+          } else {
+            console.error("💬 Chat elements not found for initialization");
+          }
+        }, 100);
+      }
+      
       // Handle calendar rendering when calendar view is activated
       if (viewId === 'calendar') {
         // Use setTimeout to ensure the view is active before rendering
@@ -100,29 +127,43 @@ document.addEventListener("DOMContentLoaded", () => {
       // Check authentication state
       auth.onAuthStateChanged((user) => {
         if (!user) {
-          // User is not signed in, redirect to login
-          window.location.href = '/';
+          // User is not signed in, redirect to auth page
+          if (window.location.pathname === '/dashboard' || window.location.pathname === '/dashboard.html') {
+            console.log("❌ User not authenticated, redirecting to auth page");
+            window.location.href = '/auth';
+            return;
+          }
+          // For other pages, redirect to auth
+          if (window.location.pathname !== '/auth' && window.location.pathname !== '/auth.html' && window.location.pathname !== '/') {
+            window.location.href = '/auth';
+          }
         } else {
           // User is signed in, display email
-          document.getElementById('userEmail').textContent = user.email;
+          const userEmailElement = document.getElementById('userEmail');
+          if (userEmailElement) {
+            userEmailElement.textContent = user.email;
+          }
           window.userId = user.uid;
           window.userIdReady = true;
           // Initialize chat after Firebase is ready and user is authenticated
           if (window.initializeChat) {
             window.initializeChat(auth, user);
-      }
-    }
+          }
+        }
       });
 
       // Handle logout
-      document.getElementById('logoutBtn').addEventListener('click', async () => {
-        try {
-          await auth.signOut();
-          // Redirect will happen automatically via onAuthStateChanged
-        } catch (error) {
-          console.error('Logout error:', error);
-        }
-      });
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+          try {
+            await auth.signOut();
+            window.location.href = '/auth';
+          } catch (error) {
+            console.error('Logout error:', error);
+          }
+        });
+      }
 
       // On load, check for Gmail connection parameter and set appropriate view
       const urlParams = new URLSearchParams(window.location.search);
@@ -572,28 +613,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const accountBtn = document.getElementById('accountBtn');
     const accountDropdown = document.getElementById('accountDropdown');
 
-    accountBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      accountMenu.classList.toggle('open');
-      accountBtn.setAttribute('aria-expanded', accountMenu.classList.contains('open'));
-      if (accountMenu.classList.contains('open')) {
-        accountDropdown.focus();
-      }
-    });
+    if (accountBtn && accountMenu && accountDropdown) {
+      accountBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        accountMenu.classList.toggle('open');
+        accountBtn.setAttribute('aria-expanded', accountMenu.classList.contains('open'));
+        if (accountMenu.classList.contains('open')) {
+          accountDropdown.focus();
+        }
+      });
 
-    document.addEventListener('click', function(e) {
-      if (!accountMenu.contains(e.target)) {
-        accountMenu.classList.remove('open');
-        accountBtn.setAttribute('aria-expanded', 'false');
-      }
-    });
+      document.addEventListener('click', function(e) {
+        if (!accountMenu.contains(e.target)) {
+          accountMenu.classList.remove('open');
+          accountBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
 
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        accountMenu.classList.remove('open');
-        accountBtn.setAttribute('aria-expanded', 'false');
-      }
-    });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          accountMenu.classList.remove('open');
+          accountBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
 
     // Logout logic
     const logoutBtn = document.getElementById('logoutBtn');
@@ -610,44 +653,46 @@ document.addEventListener("DOMContentLoaded", () => {
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     let sidebarBackdrop = null;
 
-    function openSidebar() {
-      sidebar.classList.add('open');
-      hamburgerBtn.setAttribute('aria-expanded', 'true');
-      // Add backdrop
-      sidebarBackdrop = document.createElement('div');
-      sidebarBackdrop.className = 'sidebar-backdrop';
-      document.body.appendChild(sidebarBackdrop);
-      sidebarBackdrop.addEventListener('click', closeSidebar);
-    }
-    function closeSidebar() {
-      sidebar.classList.remove('open');
-      hamburgerBtn.setAttribute('aria-expanded', 'false');
-      if (sidebarBackdrop) {
-        sidebarBackdrop.remove();
-        sidebarBackdrop = null;
+    if (sidebar && hamburgerBtn) {
+      function openSidebar() {
+        sidebar.classList.add('open');
+        hamburgerBtn.setAttribute('aria-expanded', 'true');
+        // Add backdrop
+        sidebarBackdrop = document.createElement('div');
+        sidebarBackdrop.className = 'sidebar-backdrop';
+        document.body.appendChild(sidebarBackdrop);
+        sidebarBackdrop.addEventListener('click', closeSidebar);
       }
-    }
-    hamburgerBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (sidebar.classList.contains('open')) {
-        closeSidebar();
-      } else {
-        openSidebar();
+      function closeSidebar() {
+        sidebar.classList.remove('open');
+        hamburgerBtn.setAttribute('aria-expanded', 'false');
+        if (sidebarBackdrop) {
+          sidebarBackdrop.remove();
+          sidebarBackdrop = null;
+        }
       }
-    });
-    // Close sidebar on nav click (mobile)
-    document.querySelectorAll('.sidebar .nav-item').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (window.innerWidth <= 900) closeSidebar();
+      hamburgerBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (sidebar.classList.contains('open')) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
       });
-    });
-    // Close sidebar on outside click (mobile)
-    document.addEventListener('click', function(e) {
-      if (window.innerWidth > 900) return;
-      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== hamburgerBtn) {
-        closeSidebar();
-      }
-    });
+      // Close sidebar on nav click (mobile)
+      document.querySelectorAll('.sidebar .nav-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      // Close sidebar on outside click (mobile)
+      document.addEventListener('click', function(e) {
+        if (window.innerWidth > 900) return;
+        if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== hamburgerBtn) {
+          closeSidebar();
+        }
+      });
+    }
 
     // Nuke any rogue nav, nav-item, or icon outside sidebar/bottom-nav
     function nukeRogueNavs() {
@@ -663,3 +708,4 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("💥 layout.js crash:", err);
   }
 });
+

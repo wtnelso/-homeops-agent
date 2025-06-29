@@ -872,11 +872,11 @@ app.get('/auth/google', (req, res) => {
 
 app.get('/auth/google/callback', async (req, res) => {
   const { code } = req.query;
-  const userId = req.query.state || 'default_user';
+  const state = req.query.state || 'default_user';
 
   console.log('🔍 OAuth callback received');
   console.log('Code present:', !!code);
-  console.log('State:', userId);
+  console.log('State:', state);
 
   try {
     const oauth2Client = new google.auth.OAuth2(
@@ -892,6 +892,9 @@ app.get('/auth/google/callback', async (req, res) => {
     console.log('Refresh token present:', !!tokens.refresh_token);
     console.log('Expiry date:', tokens.expiry_date);
     
+    // Use consistent user ID for development
+    const userId = 'test_user';
+    
     // Store tokens in Firestore
     await db.collection('gmail_tokens').doc(userId).set({
       access_token: tokens.access_token,
@@ -901,7 +904,7 @@ app.get('/auth/google/callback', async (req, res) => {
       scopes: tokens.scope || 'https://www.googleapis.com/auth/gmail.readonly' // Store the actual scopes
     });
 
-    console.log('✅ Tokens stored successfully');
+    console.log('✅ Tokens stored successfully for user:', userId);
 
     // Redirect to Dashboard (Email Decoder) after successful Gmail connection
     res.redirect('/dashboard?gmail_connected=true');
@@ -1034,6 +1037,26 @@ app.post('/api/email-decoder/process', async (req, res) => {
 
     oauth2Client.setCredentials(tokens);
 
+    // Check if tokens are expired and refresh if needed
+    if (tokens.expiry_date && Date.now() > tokens.expiry_date) {
+      console.log('🔍 Tokens expired, attempting to refresh...');
+      try {
+        const { credentials } = await oauth2Client.refreshAccessToken();
+        oauth2Client.setCredentials(credentials);
+        
+        // Update tokens in database
+        await db.collection('gmail_tokens').doc(user_id).update({
+          access_token: credentials.access_token,
+          expiry_date: credentials.expiry_date
+        });
+        
+        console.log('✅ Tokens refreshed successfully');
+      } catch (refreshError) {
+        console.error('❌ Failed to refresh tokens:', refreshError);
+        return res.status(401).json({ error: 'Gmail tokens expired. Please reconnect.' });
+      }
+    }
+
     // Fetch recent emails
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
     console.log('🔍 Attempting to fetch emails...');
@@ -1046,6 +1069,15 @@ app.post('/api/email-decoder/process', async (req, res) => {
     console.log('✅ Successfully fetched email list');
     const messages = response.data.messages || [];
     console.log('🔍 Found', messages.length, 'messages');
+
+    if (messages.length === 0) {
+      console.log('🔍 No messages found, returning empty result');
+      return res.json({ 
+        success: true, 
+        emails: [],
+        summary: { total: 0, byType: {}, byCategory: {}, byPriority: {}, highPriority: 0 }
+      });
+    }
 
     const decodedEmails = [];
 
@@ -1063,12 +1095,15 @@ app.post('/api/email-decoder/process', async (req, res) => {
         const decoded = await processEmailThroughDecoder(emailData.data, user_id);
         if (decoded) {
           decodedEmails.push(decoded);
+          console.log('✅ Successfully decoded email:', message.id);
         }
       } catch (emailError) {
         console.error('❌ Error processing individual email:', emailError.message);
         console.error('❌ Email error details:', emailError);
       }
     }
+
+    console.log('✅ Email processing complete. Processed', decodedEmails.length, 'emails');
 
     res.json({ 
       success: true, 
@@ -1088,30 +1123,41 @@ app.post('/api/email-decoder/process', async (req, res) => {
       console.error('❌ Need to clear tokens and re-authorize with correct scope');
     }
     
-    res.status(500).json({ error: 'Failed to process emails' });
+    res.status(500).json({ error: 'Failed to process emails: ' + error.message });
   }
 });
 
 // Process individual email through AI decoder
 async function processEmailThroughDecoder(emailData, userId) {
   try {
+    console.log('🔍 Processing email:', emailData.id);
+    
     const headers = emailData.payload?.headers || [];
     const subject = headers.find(h => h.name === 'Subject')?.value || '';
     const from = headers.find(h => h.name === 'From')?.value || '';
     const date = headers.find(h => h.name === 'Date')?.value || '';
+
+    console.log('🔍 Email headers - Subject:', subject.substring(0, 50) + '...');
+    console.log('🔍 Email headers - From:', from);
 
     // Extract email body
     let body = '';
     if (emailData.payload?.body?.data) {
       body = Buffer.from(emailData.payload.body.data, 'base64').toString();
     } else if (emailData.payload?.parts) {
+      // Try to find text/plain first, then text/html
       const textPart = emailData.payload.parts.find(part => 
-        part.mimeType === 'text/plain' || part.mimeType === 'text/html'
+        part.mimeType === 'text/plain'
+      ) || emailData.payload.parts.find(part => 
+        part.mimeType === 'text/html'
       );
+      
       if (textPart?.body?.data) {
         body = Buffer.from(textPart.body.data, 'base64').toString();
       }
     }
+
+    console.log('🔍 Email body length:', body.length);
 
     // Use AI to decode the email
     const prompt = `
@@ -1140,8 +1186,12 @@ async function processEmailThroughDecoder(emailData, userId) {
     }
     `;
 
+    console.log('🔍 Calling OpenAI for email analysis...');
     const aiResponse = await callOpenAI(prompt, 'gpt-4o-mini');
+    console.log('🔍 OpenAI response received');
+    
     const decoded = JSON.parse(aiResponse);
+    console.log('🔍 Decoded email data:', decoded.type, decoded.category, decoded.priority);
 
     // Store decoded email
     await db.collection('decoded_emails').add({
@@ -1154,6 +1204,8 @@ async function processEmailThroughDecoder(emailData, userId) {
       created_at: new Date()
     });
 
+    console.log('✅ Email stored in database');
+
     return {
       id: emailData.id,
       subject,
@@ -1164,6 +1216,7 @@ async function processEmailThroughDecoder(emailData, userId) {
 
   } catch (error) {
     console.error('❌ Email processing error:', error);
+    console.error('❌ Error details:', error.message);
     return null;
   }
 }
@@ -1287,6 +1340,10 @@ app.get('*', (req, res) => {
   // Serve index.html for the root path (landing page)
   if (req.path === '/' || req.path === '/index.html') {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  }
+  // Serve auth.html for authentication
+  else if (req.path === '/auth' || req.path === '/auth.html') {
+    res.sendFile(path.join(__dirname, 'public', 'auth.html'));
   }
   // Serve dashboard.html for all other non-API routes (authenticated app)
   else if (!req.path.startsWith('/api')) {

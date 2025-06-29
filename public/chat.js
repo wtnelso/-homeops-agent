@@ -3,7 +3,7 @@
 
 // Refactored chat.js to export initializeChat
 window.initializeChat = function(auth, user) {
-  console.log("💬 Initializing chat for user:", user.uid);
+  console.log("💬 Initializing chat for user:", user ? user.uid : "test_user");
   const chatBox = document.getElementById("chat");
   const chatForm = document.getElementById("chatForm");
   const input = document.getElementById("input");
@@ -11,6 +11,10 @@ window.initializeChat = function(auth, user) {
     console.error("💬 Chat elements not found", { chatBox, chatForm, input });
     return;
   }
+  
+  // Clear any existing content
+  chatBox.innerHTML = '';
+  
   function addMessage(sender, message) {
     const messageDiv = document.createElement("div");
     messageDiv.className = `message ${sender}`;
@@ -25,34 +29,48 @@ window.initializeChat = function(auth, user) {
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
+  
   // Add initial greeting
   addMessage("agent", "Hi. I'm your personal chief of staff. What can I help you with today?");
+  
   // Handle form submission
   chatForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const message = input.value.trim();
     if (!message) return;
+    
     // Add user message
     addMessage("user", message);
     input.value = "";
+    
     // Show typing indicator
     const typingDiv = document.createElement("div");
     typingDiv.className = "typing-indicator";
     typingDiv.innerHTML = '<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDNDMTMuODY2IDMgMTcgNi4xMzQwMSAxNyAxMEMxNyAxMy44NjYgMTMuODY2IDE3IDEwIDE3QzYuMTM0MDEgMTcgMyAxMy44NjYgMyAxMEMzIDYuMTM0MDEgNi4xMzQwMSAzIDEwIDNaTTEwIDVjLTIuNzYxNDIgMC01IDIuMjM4NTgtNSA1czIuMjM4NTggNSA1IDVjMi43NjE0MiAwIDUtMi4yMzg1OCA1LTVTMTIuNzYxNCA1IDEwIDVaIiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik04IDhDOC44Mjg0MyA4IDkuNSA4LjY3MTU3IDkuNSA5LjVDOS41IDEwLjMyODQgOC44Mjg0MyAxMSA4IDExQzcuMTcxNTcgMTEgNi41IDEwLjMyODQgNi41IDkuNUM2LjUgOC42NzE1NyA3LjE3MTU3IDggOCA4WiIgZmlsbD0iIzk5OSIvPgo8cGF0aCBkPSJNMTIgOEMxMi44Mjg0IDggMTMuNSA4LjY3MTU3IDEzLjUgOS41QzEzLjUgMTAuMzI4NCAxMi44Mjg0IDExIDEyIDExQzExLjE3MTYgMTEgMTAuNSAxMC4zMjg0IDEwLjUgOS41QzEwLjUgOC42NzE1NyAxMS4xNzE2IDggMTIgOFoiIGZpbGw9IiM5OTkiLz4KPC9zdmc+Cg==" alt="Typing" /><span>HomeOps is thinking...</span>';
     chatBox.appendChild(typingDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
+    
     try {
+      // Use the user ID from the user object or fallback to test_user
+      const userId = user ? user.uid : (window.userId || "test_user");
+      
       const response = await fetch("/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, user_id: user.uid })
+        body: JSON.stringify({ message, user_id: userId })
       });
+      
       if (!response.ok) {
         throw new Error(`API call failed: ${response.status}`);
       }
+      
       const data = await response.json();
+      
       // Remove typing indicator
-      chatBox.removeChild(typingDiv);
+      if (typingDiv.parentNode) {
+        chatBox.removeChild(typingDiv);
+      }
+      
       // Add agent message (use data.reply, not data.response)
       if (data.reply && data.reply.trim()) {
         addMessage("agent", data.reply);
@@ -77,7 +95,9 @@ window.initializeChat = function(auth, user) {
     } catch (error) {
       console.error("💬 Chat error:", error);
       // Remove typing indicator
-      chatBox.removeChild(typingDiv);
+      if (typingDiv.parentNode) {
+        chatBox.removeChild(typingDiv);
+      }
       // Add error message
       addMessage("agent", "Sorry, I'm having trouble connecting right now. Please try again.");
     }

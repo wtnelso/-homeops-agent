@@ -74,45 +74,6 @@ async function waitForUserId() {
     });
 }
 
-// --- Superhuman-Style Onboarding ---
-function showOnboardingFlow() {
-    const dashboardView = document.getElementById('dashboard-view');
-    if (!dashboardView) return;
-    dashboardView.innerHTML = `
-      <div class="superhuman-onboarding" style="display:flex;justify-content:center;align-items:center;min-height:70vh;">
-        <div style="background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);border-radius:2rem;box-shadow:0 8px 32px rgba(0,0,0,0.08);padding:3rem 2.5rem;max-width:540px;width:100%;text-align:center;">
-          <img src='/public/img/logo.svg' alt='HomeOps Logo' style='height:48px;margin-bottom:1.5rem;' />
-          <h1 style="font-size:2.2rem;font-weight:800;color:#1e293b;margin-bottom:0.5rem;">Your inbox, decoded.</h1>
-          <div style="font-size:1.15rem;color:#64748b;margin-bottom:2.5rem;">Signal vs. noise, sorted.</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:2.5rem;">
-            <div class="feature-card" style="background:rgba(255,0,0,0.06);border-radius:1rem;padding:1.1rem 1rem;text-align:left;">
-              <div style="font-size:1.5rem;color:#ef4444;margin-bottom:0.3rem;display:inline-block;vertical-align:middle;">⚡</div>
-              <div style="font-weight:700;color:#ef4444;">Urgent & Actionable</div>
-              <div style="font-size:0.98rem;color:#334155;">What actually needs your attention — now.</div>
-            </div>
-            <div class="feature-card" style="background:rgba(59,130,246,0.06);border-radius:1rem;padding:1.1rem 1rem;text-align:left;">
-              <div style="font-size:1.5rem;color:#3b82f6;margin-bottom:0.3rem;display:inline-block;vertical-align:middle;">📅</div>
-              <div style="font-weight:700;color:#3b82f6;">Appointments & Schedule</div>
-              <div style="font-size:0.98rem;color:#334155;">Everything coming up, already decoded.</div>
-            </div>
-            <div class="feature-card" style="background:rgba(16,185,129,0.06);border-radius:1rem;padding:1.1rem 1rem;text-align:left;">
-              <div style="font-size:1.5rem;color:#10b981;margin-bottom:0.3rem;display:inline-block;vertical-align:middle;">👨‍👩‍👧‍👦</div>
-              <div style="font-weight:700;color:#10b981;">Family & Context</div>
-              <div style="font-size:0.98rem;color:#334155;">The rhythm of your family, in one place.</div>
-            </div>
-            <div class="feature-card" style="background:rgba(251,146,60,0.06);border-radius:1rem;padding:1.1rem 1rem;text-align:left;">
-              <div style="font-size:1.5rem;color:#fb923c;margin-bottom:0.3rem;display:inline-block;vertical-align:middle;">🛍️</div>
-              <div style="font-weight:700;color:#fb923c;">Commerce Inbox</div>
-              <div style="font-size:0.98rem;color:#334155;">Your inbox, reimagined as a personal shopper — decoding purchase behavior to surface what's trusted, what's next, and what's worth your time.</div>
-            </div>
-          </div>
-          <button onclick="connectGmail()" class="connect-btn pulse" style="background:linear-gradient(90deg,#6366f1 0%,#3b82f6 100%);color:white;font-size:1.15rem;font-weight:700;padding:1rem 2.5rem;border:none;border-radius:1.5rem;box-shadow:0 2px 8px rgba(59,130,246,0.10);cursor:pointer;transition:box-shadow 0.2s;">Connect Gmail</button>
-        </div>
-      </div>
-    `;
-}
-
-// After OAuth, always skip onboarding if Gmail is connected
 async function initializeDecoderView() {
     const dashboardView = document.getElementById('dashboard-view');
     if (!dashboardView) {
@@ -120,24 +81,61 @@ async function initializeDecoderView() {
         return;
     }
     dashboardView.innerHTML = '<div style="padding:2rem;text-align:center;">Loading Email Decoder...</div>';
+    console.log('🚀 initializeDecoderView: Starting...');
+    
+    // Add safety timeout
+    const safetyTimeout = setTimeout(() => {
+        console.warn('⚠️ initializeDecoderView: Safety timeout reached, showing onboarding');
+        showOnboardingFlow();
+    }, 5000); // 5 second safety timeout
+    
     try {
         let userId = await waitForUserId();
-        // Check for Gmail connection parameter first
+        console.log('🚀 initializeDecoderView: Got userId:', userId);
+        
+        // Check for Gmail connection param
         const urlParams = new URLSearchParams(window.location.search);
         const gmailConnected = urlParams.get('gmail_connected');
+        
         if (gmailConnected === 'true') {
-            showDecoderReadyUI();
-            return;
+            // After OAuth, always check status
+            try {
+                const res = await fetch(`/api/gmail/status?user_id=${encodeURIComponent(userId)}`);
+                const data = await res.json();
+                clearTimeout(safetyTimeout);
+                if (data.connected) {
+                    showDecoderReadyUI();
+                    return;
+                } else {
+                    showOnboardingFlow();
+                    return;
+                }
+            } catch (err) {
+                console.error('❌ Error checking Gmail status after OAuth:', err);
+                clearTimeout(safetyTimeout);
+                showOnboardingFlow();
+                return;
+            }
         }
-        // Check Gmail connection status
-        const res = await fetch(`/api/gmail/status?user_id=${encodeURIComponent(userId)}`);
-        const data = await res.json();
-        if (data.connected) {
-            showDecoderReadyUI();
-        } else {
+        
+        // Normal load: check status
+        try {
+            const res = await fetch(`/api/gmail/status?user_id=${encodeURIComponent(userId)}`);
+            const data = await res.json();
+            clearTimeout(safetyTimeout);
+            if (data.connected) {
+                showDecoderReadyUI();
+            } else {
+                showOnboardingFlow();
+            }
+        } catch (err) {
+            console.error('❌ Error checking Gmail status:', err);
+            clearTimeout(safetyTimeout);
             showOnboardingFlow();
         }
     } catch (err) {
+        console.error('❌ Error in initializeDecoderView:', err);
+        clearTimeout(safetyTimeout);
         showOnboardingFlow();
     }
 }
@@ -154,7 +152,229 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+function showOnboardingFlow() {
+    // Clear any existing content
+    const dashboardView = document.getElementById('dashboard-view');
+    dashboardView.innerHTML = '';
+    
+    // Create onboarding container
+    const onboardingContainer = document.createElement('div');
+    onboardingContainer.className = 'onboarding-container';
+    onboardingContainer.style.cssText = `
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    onboardingContainer.innerHTML = `
+        <!-- Step 1: Welcome -->
+        <div class="onboarding-step active" id="step-1">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📧</div>
+                <h1 style="color: #1e293b; margin-bottom: 0.5rem; font-size: 2.5rem;">Welcome to HomeOps</h1>
+                <p style="color: #64748b; font-size: 1.2rem; line-height: 1.6;">
+                    Your inbox, decoded. Signal vs. noise, sorted.
+                </p>
+            </div>
+            <div style="background: rgba(255,255,255,0.85); border-radius: 28px; padding: 2.5rem 2rem; box-shadow: 0 8px 32px rgba(30,41,59,0.10); margin-bottom: 2.5rem;">
+                <h2 style="color: #1e293b; margin-bottom: 2.2rem; font-size: 2rem; font-weight: 800; letter-spacing: -0.01em;">What HomeOps Does</h2>
+                <div class="lucide-onboarding-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.2rem;">
+                    <div class="lucide-onboarding-card" style="backdrop-filter: blur(8px); background: rgba(255, 68, 68, 0.07); border-radius: 20px; padding: 2.2rem 1.2rem 1.7rem 1.2rem; text-align: center; box-shadow: 0 2px 16px rgba(239,68,68,0.07);">
+                        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 1.1rem;">
+                            <i data-lucide="zap" style="width:2.2em;height:2.2em;color:#ef4444;"></i>
+                        </div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #ef4444; margin-bottom: 0.7rem; letter-spacing: -0.01em;">Urgent & Actionable</div>
+                        <div style="color: #1e293b; font-size: 1.08rem; font-weight: 500; opacity: 0.82;">What needs your attention — now.</div>
+                    </div>
+                    <div class="lucide-onboarding-card" style="backdrop-filter: blur(8px); background: rgba(59,130,246,0.07); border-radius: 20px; padding: 2.2rem 1.2rem 1.7rem 1.2rem; text-align: center; box-shadow: 0 2px 16px rgba(59,130,246,0.07);">
+                        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 1.1rem;">
+                            <i data-lucide="calendar-days" style="width:2.2em;height:2.2em;color:#2563eb;"></i>
+                        </div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #2563eb; margin-bottom: 0.7rem; letter-spacing: -0.01em;">Appointments & Schedule</div>
+                        <div style="color: #1e293b; font-size: 1.08rem; font-weight: 500; opacity: 0.82;">Everything coming up, already decoded.</div>
+                    </div>
+                    <div class="lucide-onboarding-card" style="backdrop-filter: blur(8px); background: rgba(34,197,94,0.07); border-radius: 20px; padding: 2.2rem 1.2rem 1.7rem 1.2rem; text-align: center; box-shadow: 0 2px 16px rgba(34,197,94,0.07);">
+                        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 1.1rem;">
+                            <i data-lucide="users" style="width:2.2em;height:2.2em;color:#22c55e;"></i>
+                        </div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #22c55e; margin-bottom: 0.7rem; letter-spacing: -0.01em;">Family & Context</div>
+                        <div style="color: #1e293b; font-size: 1.08rem; font-weight: 500; opacity: 0.82;">The rhythm of your family, in one place.</div>
+                    </div>
+                    <div class="lucide-onboarding-card" style="backdrop-filter: blur(8px); background: rgba(245,158,66,0.07); border-radius: 20px; padding: 2.2rem 1.2rem 1.7rem 1.2rem; text-align: center; box-shadow: 0 2px 16px rgba(245,158,66,0.07);">
+                        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 1.1rem;">
+                            <i data-lucide="shopping-bag" style="width:2.2em;height:2.2em;color:#f59e42;"></i>
+                        </div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #f59e42; margin-bottom: 0.7rem; letter-spacing: -0.01em;">Commerce Inbox</div>
+                        <div style="color: #1e293b; font-size: 1.08rem; font-weight: 500; opacity: 0.82;">What you've bought. What matters. What's next.</div>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <button onclick="nextStep()" class="primary-btn" style="
+                    background: #3b82f6;
+                    color: white;
+                    border: none;
+                    padding: 1rem 2rem;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                    transition: all 0.2s;
+                ">Get Started →</button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Connect Gmail -->
+        <div class="onboarding-step" id="step-2" style="display: none;">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🔗</div>
+                <h1 style="color: #1e293b; margin-bottom: 0.5rem;">Connect Your Gmail</h1>
+                <p style="color: #64748b; font-size: 1.2rem;">
+                    HomeOps needs access to your Gmail to decode your emails
+                </p>
+            </div>
+            
+            <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.08); margin-bottom: 2rem;">
+                <h2 style="color: #1e293b; margin-bottom: 1rem;">How it works:</h2>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                        <div style="background: #3b82f6; color: white; width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</div>
+                        <div>
+                            <strong>Click "Connect Gmail"</strong>
+                            <p style="color: #64748b; margin: 0; font-size: 0.9rem;">You'll be redirected to Google's secure login</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                        <div style="background: #3b82f6; color: white; width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</div>
+                        <div>
+                            <strong>Grant Permission</strong>
+                            <p style="color: #64748b; margin: 0; font-size: 0.9rem;">Allow HomeOps to read your emails (we never send emails)</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                        <div style="background: #3b82f6; color: white; width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</div>
+                        <div>
+                            <strong>Start Decoding</strong>
+                            <p style="color: #64748b; margin: 0; font-size: 0.9rem;">Your emails will be organized automatically</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button onclick="connectGmail()" class="connect-gmail-btn" style="
+                    background: #3b82f6;
+                    color: white;
+                    border: none;
+                    padding: 1.5rem 3rem;
+                    border-radius: 12px;
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                    transition: all 0.2s;
+                    margin-bottom: 1rem;
+                ">🔗 Connect Gmail</button>
+                <br>
+                <button onclick="prevStep()" class="secondary-btn" style="
+                    background: transparent;
+                    color: #64748b;
+                    border: 1px solid #e2e8f0;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 500;
+                ">← Back</button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Processing -->
+        <div class="onboarding-step" id="step-3" style="display: none;">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🔄</div>
+                <h1 style="color: #1e293b; margin-bottom: 0.5rem;">Processing Your Emails</h1>
+                <p style="color: #64748b; font-size: 1.2rem;">
+                    HomeOps is analyzing your inbox...
+                </p>
+            </div>
+            
+            <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.08); margin-bottom: 2rem;">
+                <div style="text-align: center;">
+                    <div class="loading-spinner" style="
+                        width: 3rem;
+                        height: 3rem;
+                        border: 4px solid #e2e8f0;
+                        border-top: 4px solid #3b82f6;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin: 0 auto 1rem;
+                    "></div>
+                    <h3 style="color: #1e293b; margin-bottom: 0.5rem;">AI is decoding your emails</h3>
+                    <p style="color: #64748b;">This usually takes 10-30 seconds</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    dashboardView.appendChild(onboardingContainer);
+    
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .connect-gmail-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .secondary-btn:hover {
+            background: #f8fafc;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function nextStep() {
+    const currentStep = document.querySelector('.onboarding-step.active');
+    const nextStepElement = currentStep.nextElementSibling;
+    
+    if (currentStep && nextStepElement) {
+        currentStep.classList.remove('active');
+        currentStep.style.display = 'none';
+        nextStepElement.classList.add('active');
+        nextStepElement.style.display = 'block';
+    }
+}
+
+function prevStep() {
+    const currentStep = document.querySelector('.onboarding-step.active');
+    const prevStepElement = currentStep.previousElementSibling;
+    
+    if (currentStep && prevStepElement) {
+        currentStep.classList.remove('active');
+        currentStep.style.display = 'none';
+        prevStepElement.classList.add('active');
+        prevStepElement.style.display = 'block';
+    }
+}
+
 async function connectGmail() {
+    // Show processing step
+    document.getElementById('step-1')?.classList.remove('active');
+    document.getElementById('step-2')?.classList.remove('active');
+    document.getElementById('step-3')?.classList.add('active');
+
     try {
         // Start OAuth flow - use the correct endpoint
         window.location.href = '/auth/google';

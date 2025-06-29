@@ -1,164 +1,209 @@
-// Initialize Firebase by fetching config from server
-async function initializeFirebase() {
-  try {
-    const response = await apiCall('/api/firebase-config');
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: 'AIzaSyDx_ygwnomCIM-1kqY6GJBjYkHy5UaR_g8',
+    authDomain: 'homeops-web.firebaseapp.com',
+    projectId: 'homeops-web',
+    storageBucket: 'homeops-web.firebasestorage.app',
+    messagingSenderId: '620328376664',
+    appId: '1:620328376664:web:e1aa715f26f4a2f143ad2d',
+    measurementId: 'G-Q4924PYF55'
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+// DOM elements
+const tabBtns = document.querySelectorAll('.tab-btn');
+const authForms = document.querySelectorAll('.auth-form');
+const signinForm = document.getElementById('signin-form');
+const signupForm = document.getElementById('signup-form');
+const googleSigninBtn = document.getElementById('google-signin');
+const googleSignupBtn = document.getElementById('google-signup');
+
+// Tab switching functionality
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const targetTab = btn.dataset.tab;
+        
+        // Update active tab button
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Update active form
+        authForms.forEach(form => form.classList.remove('active'));
+        if (targetTab === 'signin') {
+            signinForm.classList.add('active');
+        } else {
+            signupForm.classList.add('active');
+        }
+    });
+});
+
+// Form submission handlers
+signinForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signin-email').value;
+    const password = document.getElementById('signin-password').value;
     
-    // Initialize Firebase
-    firebase.initializeApp(response);
-    return firebase.auth();
-  } catch (error) {
-    console.error('Failed to initialize Firebase from API:', error);
-    console.log('Using fallback Firebase config');
+    await signInWithEmail(email, password);
+});
+
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('signup-name').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
     
-    // Fallback Firebase config for homeops-web project
-    const fallbackConfig = {
-      apiKey: "AIzaSyBxGxGxGxGxGxGxGxGxGxGxGxGxGxGxGx",
-      authDomain: "homeops-web.firebaseapp.com",
-      projectId: "homeops-web",
-      storageBucket: "homeops-web.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "1:123456789:web:abcdef123456"
-    };
+    await signUpWithEmail(name, email, password);
+});
+
+// Google authentication
+googleSigninBtn.addEventListener('click', () => signInWithGoogle());
+googleSignupBtn.addEventListener('click', () => signInWithGoogle());
+
+// Email/Password Sign In
+async function signInWithEmail(email, password) {
+    const btn = signinForm.querySelector('.auth-btn.primary');
+    setLoading(btn, true);
     
-    // Initialize Firebase with fallback config
-    firebase.initializeApp(fallbackConfig);
-    return firebase.auth();
-  }
+    try {
+        clearErrors();
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        console.log('Signed in successfully:', userCredential.user.email);
+        redirectToDashboard();
+    } catch (error) {
+        console.error('Sign in error:', error);
+        showError('signin-email', getErrorMessage(error.code));
+    } finally {
+        setLoading(btn, false);
+    }
 }
 
-// Wait for DOM to be ready
-window.addEventListener('DOMContentLoaded', () => {
-  // Show loading indicator
-  const loadingDiv = document.createElement('div');
-  loadingDiv.id = 'authLoading';
-  loadingDiv.style = 'text-align:center;padding:50px;';
-  loadingDiv.innerHTML = '<h2>Loading...</h2>';
-  document.body.appendChild(loadingDiv);
-
-  // Hide forms initially
-  const signInForm = document.getElementById('signInForm');
-  const signUpForm = document.getElementById('signUpForm');
-  const toggleToSignUp = document.getElementById('toggleToSignUp');
-  const toggleToSignIn = document.getElementById('toggleToSignIn');
-  const signInError = document.getElementById('signInError');
-  const signUpError = document.getElementById('signUpError');
-  if (signInForm) signInForm.style.display = 'none';
-  if (signUpForm) signUpForm.style.display = 'none';
-  if (toggleToSignUp) toggleToSignUp.style.display = 'none';
-  if (toggleToSignIn) toggleToSignIn.style.display = 'none';
-
-  // Initialize Firebase and set up auth
-  let auth;
-  initializeFirebase().then(authInstance => {
-    auth = authInstance;
-    // Listen for auth state changes
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        // User is signed in, redirect to dashboard
-        window.location.href = '/dashboard.html';
-      } else {
-        // Not signed in, show forms
-        if (loadingDiv) loadingDiv.remove();
-        if (signInForm) signInForm.style.display = 'block';
-        if (toggleToSignUp) toggleToSignUp.style.display = 'inline';
-        setupFormHandlers();
-      }
-    });
-  }).catch(error => {
-    console.error('Firebase initialization failed:', error);
-    if (loadingDiv) loadingDiv.innerHTML = '<h2>Service Unavailable</h2><p>Unable to initialize authentication service.</p>';
-  });
-
-  function setupFormHandlers() {
-    // Toggle between sign in and sign up forms
-    toggleToSignUp.addEventListener('click', () => {
-      signInForm.style.display = 'none';
-      signUpForm.style.display = 'block';
-      toggleToSignUp.style.display = 'none';
-      toggleToSignIn.style.display = 'inline';
-      signInError.textContent = '';
-      signUpError.textContent = '';
-    });
-    toggleToSignIn.addEventListener('click', () => {
-      signUpForm.style.display = 'none';
-      signInForm.style.display = 'block';
-      toggleToSignIn.style.display = 'none';
-      toggleToSignUp.style.display = 'inline';
-      signInError.textContent = '';
-      signUpError.textContent = '';
-    });
-    // Handle sign in
-    signInForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      setLoading(signInForm, true);
-      const email = document.getElementById('signInEmail').value;
-      const password = document.getElementById('signInPassword').value;
-      try {
-        signInError.textContent = '';
-        await auth.signInWithEmailAndPassword(email, password);
-        // Redirect will happen automatically via onAuthStateChanged
-      } catch (error) {
-        setLoading(signInForm, false);
-        console.error('Sign in error:', error);
-        switch (error.code) {
-          case 'auth/user-not-found':
-            signInError.textContent = 'No account found with this email address.';
-            break;
-          case 'auth/wrong-password':
-            signInError.textContent = 'Incorrect password.';
-            break;
-          case 'auth/invalid-email':
-            signInError.textContent = 'Invalid email address.';
-            break;
-          case 'auth/user-disabled':
-            signInError.textContent = 'This account has been disabled.';
-            break;
-          default:
-            signInError.textContent = 'An error occurred during sign in.';
-        }
-      }
-    });
-    // Handle sign up
-    signUpForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      setLoading(signUpForm, true);
-      const email = document.getElementById('signUpEmail').value;
-      const password = document.getElementById('signUpPassword').value;
-      try {
-        signUpError.textContent = '';
-        await auth.createUserWithEmailAndPassword(email, password);
-        // Redirect will happen automatically via onAuthStateChanged
-      } catch (error) {
-        setLoading(signUpForm, false);
+// Email/Password Sign Up
+async function signUpWithEmail(name, email, password) {
+    const btn = signupForm.querySelector('.auth-btn.primary');
+    setLoading(btn, true);
+    
+    try {
+        clearErrors();
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        
+        // Update user profile with display name
+        await userCredential.user.updateProfile({
+            displayName: name
+        });
+        
+        console.log('Account created successfully:', userCredential.user.email);
+        redirectToDashboard();
+    } catch (error) {
         console.error('Sign up error:', error);
-        switch (error.code) {
-          case 'auth/email-already-in-use':
-            signUpError.textContent = 'An account with this email already exists.';
-            break;
-          case 'auth/invalid-email':
-            signUpError.textContent = 'Invalid email address.';
-            break;
-          case 'auth/weak-password':
-            signUpError.textContent = 'Password should be at least 6 characters.';
-            break;
-          default:
-            signUpError.textContent = 'An error occurred during sign up.';
-        }
-      }
-    });
-    // Add loading states
-    function setLoading(form, loading) {
-      const button = form.querySelector('button[type="submit"]');
-      if (loading) {
-        button.textContent = 'Loading...';
-        button.disabled = true;
-      } else {
-        button.textContent = button.textContent.includes('Sign In') ? 'Sign In' : 'Sign Up';
-        button.disabled = false;
-      }
+        showError('signup-email', getErrorMessage(error.code));
+    } finally {
+        setLoading(btn, false);
     }
-    // Reset loading state on error
-    signInError.addEventListener('DOMSubtreeModified', () => setLoading(signInForm, false));
-    signUpError.addEventListener('DOMSubtreeModified', () => setLoading(signUpForm, false));
-  }
+}
+
+// Google Sign In
+async function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/gmail.readonly');
+    
+    try {
+        clearErrors();
+        const result = await auth.signInWithPopup(provider);
+        console.log('Google sign in successful:', result.user.email);
+        redirectToDashboard();
+    } catch (error) {
+        console.error('Google sign in error:', error);
+        if (error.code === 'auth/popup-closed-by-user') {
+            // User closed the popup, no need to show error
+            return;
+        }
+        showError('signin-email', getErrorMessage(error.code));
+    }
+}
+
+// Utility functions
+function setLoading(button, loading) {
+    if (loading) {
+        button.classList.add('loading');
+        button.disabled = true;
+    } else {
+        button.classList.remove('loading');
+        button.disabled = false;
+    }
+}
+
+function showError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const formGroup = field.closest('.form-group');
+    const errorElement = formGroup.querySelector('.error-message') || createErrorElement(formGroup);
+    
+    formGroup.classList.add('error');
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+}
+
+function createErrorElement(formGroup) {
+    const errorElement = document.createElement('div');
+    errorElement.className = 'error-message';
+    formGroup.appendChild(errorElement);
+    return errorElement;
+}
+
+function clearErrors() {
+    document.querySelectorAll('.form-group.error').forEach(group => {
+        group.classList.remove('error');
+        const errorElement = group.querySelector('.error-message');
+        if (errorElement) {
+            errorElement.style.display = 'none';
+        }
+    });
+}
+
+function getErrorMessage(errorCode) {
+    const errorMessages = {
+        'auth/user-not-found': 'No account found with this email address.',
+        'auth/wrong-password': 'Incorrect password. Please try again.',
+        'auth/invalid-email': 'Please enter a valid email address.',
+        'auth/weak-password': 'Password should be at least 6 characters long.',
+        'auth/email-already-in-use': 'An account with this email already exists.',
+        'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
+        'auth/network-request-failed': 'Network error. Please check your connection.',
+        'auth/popup-closed-by-user': 'Sign-in was cancelled.',
+        'auth/cancelled-popup-request': 'Sign-in was cancelled.',
+        'auth/popup-blocked': 'Pop-up was blocked. Please allow pop-ups for this site.'
+    };
+    
+    return errorMessages[errorCode] || 'An error occurred. Please try again.';
+}
+
+function redirectToDashboard() {
+    // Store authentication state
+    localStorage.setItem('homeops_authenticated', 'true');
+    
+    // Redirect to dashboard
+    window.location.href = '/dashboard';
+}
+
+// Check if user is already signed in
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        console.log('User is already signed in:', user.email);
+        redirectToDashboard();
+    }
+});
+
+// Add some nice animations
+document.addEventListener('DOMContentLoaded', () => {
+    const authCard = document.querySelector('.auth-card');
+    authCard.style.opacity = '0';
+    authCard.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        authCard.style.transition = 'all 0.6s ease-out';
+        authCard.style.opacity = '1';
+        authCard.style.transform = 'translateY(0)';
+    }, 100);
 }); 
