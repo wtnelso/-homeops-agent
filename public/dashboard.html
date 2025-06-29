@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>HomeOps</title>
 
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2024-06-29" />
     <!-- ✅ Add Tippy.js tooltip support -->
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
   <script src="https://unpkg.com/@popperjs/core@2"></script>
@@ -596,326 +596,297 @@
   <section id="dashboard-view" class="view">
     <!-- Email Decoder Onboarding Flow -->
     <div id="decoder-onboarding" class="decoder-onboarding" style="display: none;">
-      <!-- Step 1: Gmail Connection -->
+      
+      <!-- Step 1: Welcome Screen + Gmail Connect CTA -->
       <div id="onboarding-step-1" class="onboarding-step">
-        <div class="onboarding-header">
-          <h1 class="onboarding-title">Connect Your Gmail</h1>
-          <p class="onboarding-subtitle">Let's start by connecting your Gmail account to begin decoding your emails</p>
-        </div>
-        
-        <div class="onboarding-content">
-          <div class="gmail-connect-card">
-            <div class="gmail-icon">
-              <i data-lucide="mail" style="width: 3rem; height: 3rem; color: #ea4335;"></i>
+        <div class="onboarding-container">
+          <div class="welcome-content">
+            <!-- HomeOps Logo -->
+            <div class="homeops-logo">
+              <img src="img/logo.svg" alt="HomeOps" class="logo-glow">
             </div>
-            <h3>Connect Gmail Account</h3>
-            <p>Securely connect your Gmail to start processing and categorizing your emails</p>
-            <button id="connect-gmail-btn" class="connect-btn">
-              <i data-lucide="link" style="width: 1.2rem; height: 1.2rem; margin-right: 0.5rem;"></i>
-              Connect Gmail
+            
+            <!-- Headline -->
+            <h1 class="welcome-headline">Welcome to HomeOps</h1>
+            
+            <!-- Subhead -->
+            <p class="welcome-subhead">Your inbox, decoded. Your life, clarified.</p>
+            
+            <!-- Feature bullets -->
+            <div class="feature-bullets">
+              <div class="feature-item">
+                <i data-lucide="target" class="feature-icon"></i>
+                <span>Surface what matters</span>
+              </div>
+              <div class="feature-item">
+                <i data-lucide="filter" class="feature-icon"></i>
+                <span>Ignore what doesn't</span>
+              </div>
+              <div class="feature-item">
+                <i data-lucide="user" class="feature-icon"></i>
+                <span>Personalize your world</span>
+              </div>
+            </div>
+            
+            <!-- Gmail Connect CTA -->
+            <button id="onboarding-connect-gmail-btn" class="gmail-connect-btn">
+              <i data-lucide="mail" class="gmail-icon"></i>
+              <span>Connect Gmail to Start</span>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Step 2: Learning Engine -->
+      <!-- Step 2: Processing Phase ("The Engine Is Thinking") -->
       <div id="onboarding-step-2" class="onboarding-step" style="display: none;">
-        <div class="onboarding-header">
-          <h1 class="onboarding-title">Teach the AI</h1>
-          <p class="onboarding-subtitle">Help the AI understand your email patterns by providing feedback on sample emails</p>
-        </div>
-        
-        <div class="onboarding-content">
-          <div class="sample-emails-container">
-            <div class="sample-email-card" data-email-id="1">
-              <div class="email-header">
-                <span class="sender">Amazon Prime</span>
-                <span class="subject">Your order has shipped</span>
+        <div class="onboarding-container">
+          <div class="processing-content">
+            <!-- Processing Animation -->
+            <div class="processing-animation">
+              <div class="processing-spinner"></div>
+            </div>
+            
+            <!-- Processing Messages -->
+            <div class="processing-messages">
+              <div class="processing-message active" id="message-1">
+                <h3>Scanning your last 1,000 emails...</h3>
               </div>
-              <div class="email-preview">
-                Your order #123-4567890-1234567 containing "Organic Baby Formula" will arrive tomorrow between 2-6 PM.
+              <div class="processing-message" id="message-2">
+                <h3>Detecting calendar invites, receipts, school messages...</h3>
               </div>
-              <div class="email-categories">
-                <button class="category-btn" data-category="urgent">Handle Now</button>
-                <button class="category-btn" data-category="schedule">On the Schedule</button>
-                <button class="category-btn" data-category="commerce">Commerce Inbox</button>
-                <button class="category-btn" data-category="archive">Archive</button>
+              <div class="processing-message" id="message-3">
+                <h3>Learning your communication patterns...</h3>
               </div>
             </div>
-
-            <div class="sample-email-card" data-email-id="2">
-              <div class="email-header">
-                <span class="sender">Dr. Sarah Chen</span>
-                <span class="subject">Appointment Confirmation</span>
-              </div>
-              <div class="email-preview">
-                Your child's annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early.
-              </div>
-              <div class="email-categories">
-                <button class="category-btn" data-category="urgent">Handle Now</button>
-                <button class="category-btn" data-category="schedule">On the Schedule</button>
-                <button class="category-btn" data-category="commerce">Commerce Inbox</button>
-                <button class="category-btn" data-category="archive">Archive</button>
+            
+            <!-- Counter Animation -->
+            <div class="email-counter">
+              <span id="email-count">0</span> emails processed
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="processing-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" id="processing-progress-fill"></div>
               </div>
             </div>
-
-            <div class="sample-email-card" data-email-id="3">
-              <div class="email-header">
-                <span class="sender">Netflix</span>
-                <span class="subject">New shows added to your list</span>
-              </div>
-              <div class="email-preview">
-                Check out the latest shows and movies we've added based on your viewing history.
-              </div>
-              <div class="email-categories">
-                <button class="category-btn" data-category="urgent">Handle Now</button>
-                <button class="category-btn" data-category="schedule">On the Schedule</button>
-                <button class="category-btn" data-category="commerce">Commerce Inbox</button>
-                <button class="category-btn" data-category="archive">Archive</button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="onboarding-progress">
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 0%"></div>
-            </div>
-            <span class="progress-text">0 of 3 emails categorized</span>
           </div>
         </div>
       </div>
 
-      <!-- Step 3: Ready to Decode -->
+      <!-- Step 3: Learning Engine / Signal Training -->
       <div id="onboarding-step-3" class="onboarding-step" style="display: none;">
-        <div class="onboarding-header">
-          <h1 class="onboarding-title">You're All Set!</h1>
-          <p class="onboarding-subtitle">The AI has learned your preferences. Let's start decoding your emails</p>
-        </div>
-        
-        <div class="onboarding-content">
-          <div class="ready-card">
-            <div class="success-icon">
-              <i data-lucide="check-circle" style="width: 4rem; height: 4rem; color: #10b981;"></i>
+        <div class="onboarding-container">
+          <div class="learning-content">
+            <!-- Header -->
+            <div class="learning-header">
+              <h2>Help me learn what matters to you</h2>
+              <p>Tap 👍 or 👎 below each card</p>
             </div>
-            <h3>Ready to Decode</h3>
-            <p>Your Gmail is connected and the AI is trained. Click below to start processing your emails.</p>
-            <button id="start-decoding-btn" class="start-btn">
-              <i data-lucide="play" style="width: 1.2rem; height: 1.2rem; margin-right: 0.5rem;"></i>
-              Start Decoding
-            </button>
+            
+            <!-- Sample Decoder Cards -->
+            <div class="sample-cards-container">
+              <!-- Card 1: Handle Now -->
+              <div class="sample-card" data-card-id="1">
+                <div class="card-header">
+                  <div class="card-icon urgent-icon">
+                    <i data-lucide="zap"></i>
+                  </div>
+                  <div class="card-info">
+                    <h3>Handle Now</h3>
+                    <p>Critical emails that need your attention now</p>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <div class="email-preview">
+                    <strong>Dr. Sarah Chen</strong><br>
+                    <span class="email-subject">Appointment Confirmation: Tomorrow 2:30 PM</span><br>
+                    <span class="email-body">Your child's annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early.</span>
+                  </div>
+                </div>
+                <div class="card-feedback">
+                  <button class="feedback-btn thumbs-down" data-feedback="negative">
+                    <i data-lucide="thumbs-down"></i>
+                  </button>
+                  <button class="feedback-btn thumbs-up" data-feedback="positive">
+                    <i data-lucide="thumbs-up"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Card 2: On the Calendar -->
+              <div class="sample-card" data-card-id="2">
+                <div class="card-header">
+                  <div class="card-icon schedule-icon">
+                    <i data-lucide="calendar-days"></i>
+                  </div>
+                  <div class="card-info">
+                    <h3>On the Calendar</h3>
+                    <p>Events, appointments, and time-sensitive plans</p>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <div class="email-preview">
+                    <strong>Jessica Martinez - School Principal</strong><br>
+                    <span class="email-subject">Parent-Teacher Conference: This Friday</span><br>
+                    <span class="email-body">Reminder: Your parent-teacher conference is scheduled for this Friday at 3:00 PM.</span>
+                  </div>
+                </div>
+                <div class="card-feedback">
+                  <button class="feedback-btn thumbs-down" data-feedback="negative">
+                    <i data-lucide="thumbs-down"></i>
+                  </button>
+                  <button class="feedback-btn thumbs-up" data-feedback="positive">
+                    <i data-lucide="thumbs-up"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Card 3: Household Signals -->
+              <div class="sample-card" data-card-id="3">
+                <div class="card-header">
+                  <div class="card-icon family-icon">
+                    <i data-lucide="users"></i>
+                  </div>
+                  <div class="card-info">
+                    <h3>Household Signals</h3>
+                    <p>Family, school, and personal context</p>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <div class="email-preview">
+                    <strong>PTO Newsletter</strong><br>
+                    <span class="email-subject">This Week's School Events</span><br>
+                    <span class="email-body">Check out this week's events including the bake sale on Friday and early dismissal on Wednesday.</span>
+                  </div>
+                </div>
+                <div class="card-feedback">
+                  <button class="feedback-btn thumbs-down" data-feedback="negative">
+                    <i data-lucide="thumbs-down"></i>
+                  </button>
+                  <button class="feedback-btn thumbs-up" data-feedback="positive">
+                    <i data-lucide="thumbs-up"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Card 4: Commerce Inbox -->
+              <div class="sample-card" data-card-id="4">
+                <div class="card-header">
+                  <div class="card-icon commerce-icon">
+                    <i data-lucide="shopping-bag"></i>
+                  </div>
+                  <div class="card-info">
+                    <h3>Commerce Inbox</h3>
+                    <p>Receipts, orders, shipping, and purchases</p>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <div class="email-preview">
+                    <strong>Amazon Prime</strong><br>
+                    <span class="email-subject">Your order has shipped</span><br>
+                    <span class="email-body">Your order #123-4567890-1234567 containing "Organic Baby Formula" will arrive tomorrow between 2-6 PM.</span>
+                  </div>
+                </div>
+                <div class="card-feedback">
+                  <button class="feedback-btn thumbs-down" data-feedback="negative">
+                    <i data-lucide="thumbs-down"></i>
+                  </button>
+                  <button class="feedback-btn thumbs-up" data-feedback="positive">
+                    <i data-lucide="thumbs-up"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Progress Tracking -->
+            <div class="learning-progress">
+              <div class="progress-text">
+                <span id="completed-count">0</span> of 4 completed
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="learning-progress-fill"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Existing Decoder Content (shown when Gmail is connected) -->
-    <div id="decoder-main-content" class="demo-container">
-      <div class="header fade-in">
-        <img src="img/logo.svg" alt="HomeOps Logo" class="logo">
-        <h1 class="title">HomeOps</h1>
-        <p class="subtitle">Your inbox, decoded. Signal vs. noise, sorted.</p>
-      </div>
-
-      <div class="stats-bar fade-in">
-        <div class="stat-card">
-          <span class="stat-number">47</span>
-          <span class="stat-label">Emails Processed</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-number">12</span>
-          <span class="stat-label">Action Items Found</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-number">3.2hr</span>
-          <span class="stat-label">Time Saved Today</span>
-        </div>
-        <div class="stat-card">
-          <button id="process-emails-btn" class="process-btn" onclick="processEmails()">
-            <span class="process-icon">🔄</span>
-            <span class="process-text">Process Emails</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="main-grid">
-        <!-- URGENT & ACTIONABLE -->
-        <div class="card fade-in">
-          <div class="card-header">
-            <div class="card-icon" style="background: #fef2f2; color: #dc2626;">
-              ⚡
+    <div id="decoder-main-content" class="decoder-dashboard" style="display: none;">
+      <div class="decoder-main-content">
+        <div class="decoder-columns">
+          <!-- URGENT & ACTIONABLE -->
+          <div class="decoder-col decoder-col-urgent">
+            <div class="decoder-col-header">
+              <svg class="lucide lucide-zap" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"></polygon>
+              </svg>
+              <div>
+                <div class="decoder-col-title">Urgent & Actionable</div>
+                <div class="decoder-col-subtitle">Requires immediate attention</div>
+              </div>
+              <div class="decoder-col-count" id="urgent-count">0</div>
             </div>
-            <div>
-              <div class="card-title">Urgent & Actionable</div>
-              <div class="card-subtitle">Requires immediate attention</div>
+            <div class="decoder-col-content" id="urgent-emails">
+              <!-- Email cards will be rendered here -->
             </div>
           </div>
 
-          <div class="email-item urgent">
-            <div class="priority-badge priority-high">High Priority</div>
-            <div class="email-sender">Dr. Sarah Chen - Pediatrician</div>
-            <div class="email-subject">Appointment Confirmation: Tomorrow 2:30 PM</div>
-            <div class="email-preview">Your child's annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early to complete paperwork.</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">Confirm</button>
-              <button class="action-btn secondary">Reschedule</button>
+          <!-- APPOINTMENTS & SCHEDULE -->
+          <div class="decoder-col decoder-col-scheduled">
+            <div class="decoder-col-header">
+              <svg class="lucide lucide-calendar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <div>
+                <div class="decoder-col-title">On the Calendar</div>
+                <div class="decoder-col-subtitle">Events & Reminders</div>
+              </div>
+              <div class="decoder-col-count" id="scheduled-count">0</div>
+            </div>
+            <div class="decoder-col-content" id="scheduled-emails">
+              <!-- Email cards will be rendered here -->
             </div>
           </div>
 
-          <div class="email-item urgent">
-            <div class="priority-badge priority-high">High Priority</div>
-            <div class="email-sender">Amazon Prime</div>
-            <div class="email-subject">Your order #123-4567890-1234567 has shipped</div>
-            <div class="email-preview">Your order containing "Organic Baby Formula" will arrive tomorrow between 2-6 PM. Track your package here.</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">Track Package</button>
-              <button class="action-btn secondary">View Order</button>
+          <!-- FAMILY & CONTEXT -->
+          <div class="decoder-col decoder-col-family">
+            <div class="decoder-col-header">
+              <svg class="lucide lucide-heart" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+              <div>
+                <div class="decoder-col-title">Family & Context</div>
+                <div class="decoder-col-subtitle">Personal & family matters</div>
+              </div>
+              <div class="decoder-col-count" id="family-count">0</div>
+            </div>
+            <div class="decoder-col-content" id="family-emails">
+              <!-- Email cards will be rendered here -->
             </div>
           </div>
 
-          <div class="email-item urgent">
-            <div class="priority-badge priority-high">High Priority</div>
-            <div class="email-sender">Jessica Martinez - School Principal</div>
-            <div class="email-subject">Parent-Teacher Conference: This Friday</div>
-            <div class="email-preview">Reminder: Your parent-teacher conference is scheduled for this Friday at 3:00 PM. Please confirm your attendance.</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">RSVP Yes</button>
-              <button class="action-btn secondary">Reschedule</button>
+          <!-- COMMERCE INBOX -->
+          <div class="decoder-col decoder-col-commerce">
+            <div class="decoder-col-header">
+              <svg class="lucide lucide-shopping-bag" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+              <div>
+                <div class="decoder-col-title">Commerce Inbox</div>
+                <div class="decoder-col-subtitle">Receipts, orders & purchases</div>
+              </div>
+              <div class="decoder-col-count" id="commerce-count">0</div>
             </div>
-          </div>
-        </div>
-
-        <!-- APPOINTMENTS & SCHEDULE -->
-        <div class="card fade-in">
-          <div class="card-header">
-            <div class="card-icon" style="background: #eff6ff; color: #2563eb;">
-              📅
-            </div>
-            <div>
-              <div class="card-title">Appointments & Schedule</div>
-              <div class="card-subtitle">Calendar items & reminders</div>
-            </div>
-          </div>
-
-          <div class="email-item action">
-            <div class="priority-badge priority-medium">Medium Priority</div>
-            <div class="email-sender">Golf Club Pro Shop</div>
-            <div class="email-subject">Tee Time Confirmation: Saturday 9:00 AM</div>
-            <div class="email-preview">Your tee time for Saturday morning is confirmed. Please arrive 30 minutes early. Weather looks perfect!</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">Add to Calendar</button>
-              <button class="action-btn secondary">Cancel</button>
-            </div>
-          </div>
-
-          <div class="email-item action">
-            <div class="priority-badge priority-medium">Medium Priority</div>
-            <div class="email-sender">Dental Associates</div>
-            <div class="email-subject">Appointment Reminder: Next Tuesday 10:00 AM</div>
-            <div class="email-preview">This is a friendly reminder of your dental cleaning appointment next Tuesday. Please call if you need to reschedule.</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">Confirm</button>
-              <button class="action-btn secondary">Reschedule</button>
-            </div>
-          </div>
-
-          <div class="email-item action">
-            <div class="priority-badge priority-low">Low Priority</div>
-            <div class="email-sender">Local Library</div>
-            <div class="email-subject">Book Club Meeting: Next Thursday 7:00 PM</div>
-            <div class="email-preview">Join us for our monthly book club discussion of "The Midnight Library" by Matt Haig. Light refreshments provided.</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">RSVP</button>
-              <button class="action-btn secondary">More Info</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- FAMILY & CONTEXT -->
-        <div class="card fade-in">
-          <div class="card-header">
-            <div class="card-icon" style="background: #f0fdf4; color: #16a34a;">
-              👨‍👩‍👧‍👦
-            </div>
-            <div>
-              <div class="card-title">Family & Context</div>
-              <div class="card-subtitle">Personal & family matters</div>
-            </div>
-          </div>
-
-          <div class="email-item info">
-            <div class="priority-badge priority-medium">Medium Priority</div>
-            <div class="email-sender">Mom & Dad</div>
-            <div class="email-subject">Weekend Visit - This Saturday</div>
-            <div class="email-preview">Hi honey! We're planning to visit this Saturday around 2 PM. Can't wait to see the kids! Should we bring anything?</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">Reply</button>
-              <button class="action-btn secondary">Call</button>
-            </div>
-          </div>
-
-          <div class="email-item info">
-            <div class="priority-badge priority-low">Low Priority</div>
-            <div class="email-sender">Soccer League</div>
-            <div class="email-subject">Season Schedule Posted</div>
-            <div class="email-preview">The fall soccer season schedule is now available. Games start September 15th. Practice times remain the same.</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">View Schedule</button>
-              <button class="action-btn secondary">Download</button>
-            </div>
-          </div>
-
-          <div class="email-item info">
-            <div class="priority-badge priority-low">Low Priority</div>
-            <div class="email-sender">Neighborhood Watch</div>
-            <div class="email-subject">Block Party Planning - Save the Date</div>
-            <div class="email-preview">Mark your calendars! Our annual block party is scheduled for September 28th. More details coming soon.</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">Save Date</button>
-              <button class="action-btn secondary">Volunteer</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Commerce Inbox -->
-        <div class="card fade-in">
-          <div class="card-header">
-            <div class="card-icon" style="background: #f59e42;">
-              🛒
-            </div>
-            <div>
-              <div class="card-title">Commerce Inbox</div>
-              <div class="card-subtitle">Receipts, orders, shipping, and purchases</div>
-            </div>
-          </div>
-
-          <div class="email-item info">
-            <div class="priority-badge priority-low">Low Priority</div>
-            <div class="email-sender">Amazon</div>
-            <div class="email-subject">Order #1234567890</div>
-            <div class="email-preview">Your order from Amazon is on its way. Tracking details sent to your email.</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">Track Order</button>
-              <button class="action-btn secondary">View Details</button>
-            </div>
-          </div>
-
-          <div class="email-item info">
-            <div class="priority-badge priority-low">Low Priority</div>
-            <div class="email-sender">eBay</div>
-            <div class="email-subject">Your purchase from eBay</div>
-            <div class="email-preview">Thank you for your purchase! Your item is on its way. Tracking details sent to your email.</div>
-            <div class="action-buttons">
-              <button class="action-btn primary">Track Package</button>
-              <button class="action-btn secondary">View Receipt</button>
-            </div>
-          </div>
-
-          <div class="email-item info">
-            <div class="priority-badge priority-low">Low Priority</div>
-            <div class="connect-section fade-in">
-              <h2 class="connect-title">Ready to decode your inbox?</h2>
-              <p class="connect-desc">Connect your Gmail and let HomeOps organize what matters. No setup, no forms—just instant clarity.</p>
-              <button class="connect-btn pulse">Get Started with HomeOps</button>
+            <div class="decoder-col-content" id="commerce-emails">
+              <!-- Email cards will be rendered here -->
             </div>
           </div>
         </div>
@@ -950,10 +921,10 @@
 <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
 
 <!-- ✅ Your app scripts -->
-<script src="layout.js" defer></script>
-<script src="chat.js" defer></script>
-<script src="/relief.js" defer></script>
-<script src="dashboard.js" defer></script>
+<script src="layout.js?v=2024-06-29" defer></script>
+<script src="chat.js?v=2024-06-29" defer></script>
+<script src="/relief.js?v=2024-06-29" defer></script>
+<script src="dashboard.js?v=2024-06-29" defer></script>
 
 <!-- ✅ Bottom nav for mobile view -->
 <div class="bottom-nav">
@@ -963,7 +934,7 @@
   <button data-view="calendar" onclick="activateView('calendar')">📅</button>
 </div>
 
-<script src="/homebase.js" defer></script>
+<script src="/homebase.js?v=2024-06-29" defer></script>
 </body>
 </html>
 

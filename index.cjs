@@ -906,8 +906,8 @@ app.get('/auth/google/callback', async (req, res) => {
 
     console.log('✅ Tokens stored successfully for user:', userId);
 
-    // Redirect to Dashboard (Email Decoder) after successful Gmail connection
-    res.redirect('/dashboard?gmail_connected=true');
+    // Redirect to Dashboard with processing step after successful Gmail connection
+    res.redirect('/dashboard?gmail_connected=true&step=processing');
   } catch (error) {
     console.error('❌ Gmail OAuth error:', error);
     console.error('❌ Error details:', error.message);
@@ -924,6 +924,46 @@ app.get('/api/gmail/status', async (req, res) => {
     res.json({ connected: tokenDoc.exists });
   } catch (err) {
     res.json({ connected: false });
+  }
+});
+
+// Endpoint to get Gmail OAuth URL for frontend
+app.post('/api/gmail/auth', async (req, res) => {
+  const { user_id } = req.body;
+  
+  try {
+    console.log('🔍 Gmail OAuth requested for user:', user_id);
+    
+    // Generate OAuth URL
+    const oauth2Client = new google.auth.OAuth2(
+      GMAIL_OAUTH_CONFIG.clientId,
+      GMAIL_OAUTH_CONFIG.clientSecret,
+      GMAIL_OAUTH_CONFIG.redirectUri
+    );
+
+    const scopes = [
+      'https://www.googleapis.com/auth/gmail.readonly'
+    ];
+
+    const state = `force_reauth_${Date.now()}_${user_id}`;
+
+    const authUrl = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: scopes,
+      prompt: 'consent',
+      include_granted_scopes: true,
+      state: state
+    });
+
+    console.log('✅ Generated OAuth URL for frontend');
+    
+    res.json({ 
+      success: true, 
+      authUrl: authUrl
+    });
+  } catch (error) {
+    console.error('❌ Error generating OAuth URL:', error);
+    res.status(500).json({ error: 'Failed to generate OAuth URL' });
   }
 });
 
