@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>HomeOps - Test</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="nav">
+        <button class="nav-item logo-nav-item active" data-view="home">
+          <svg class="sidebar-logo" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+        </button>
+        <button class="nav-item" data-view="chat"><i data-lucide="message-circle"></i></button>
+        <button class="nav-item" data-view="calendar"><i data-lucide="calendar"></i></button>
+        <button class="nav-item" data-view="decoder"><i data-lucide="brain"></i></button>
+      </nav>
+    </aside>
+    <!-- Main Panel -->
+    <main class="main-panel">
+      <div id="home-tool" class="tool-panel">
+        <div class="home-welcome">
+          <h1>Welcome to HomeOps</h1>
+          <p>Your operating system for modern family life</p>
+          <div class="tool-grid">
+            <div class="tool-card" onclick="activateTool('chat')">
+              <i data-lucide="message-circle"></i>
+              <h3>Chat</h3>
+              <p>Ask HomeOps anything</p>
+            </div>
+            <div class="tool-card" onclick="activateTool('calendar')">
+              <i data-lucide="calendar"></i>
+              <h3>Calendar</h3>
+              <p>Manage your schedule</p>
+            </div>
+            <div class="tool-card" onclick="activateTool('decoder')">
+              <i data-lucide="brain"></i>
+              <h3>Email Decoder</h3>
+              <p>Decode your inbox</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="chat-tool" class="tool-panel" style="display:none">
+        <div class="chat-container">
+          <h2>Chat with HomeOps</h2>
+          <p>Coming soon...</p>
+        </div>
+      </div>
+      <div id="calendar-tool" class="tool-panel" style="display:none">
+        <div class="calendar-container">
+          <h2>Calendar</h2>
+          <p>Coming soon...</p>
+        </div>
+      </div>
+      <div id="decoder-tool" class="tool-panel" style="display:none"></div>
+    </main>
+  </div>
+  
+  <script>
+    console.log("🧠 Test page loading");
+    
+    // Initialize Lucide icons
+    lucide.createIcons();
+    
+    // Tool switching function
+    function activateTool(toolId) {
+      console.log(`🔄 Activating tool: ${toolId}`);
+      
+      // Hide all tool panels
+      document.querySelectorAll('.tool-panel').forEach(panel => {
+        panel.style.display = 'none';
+      });
+      
+      // Show the selected tool panel
+      const activePanel = document.getElementById(`${toolId}-tool`);
+      if (activePanel) {
+        activePanel.style.display = 'block';
+        console.log(`✅ Tool panel ${toolId}-tool activated`);
+        
+        // Initialize decoder if needed
+        if (toolId === 'decoder') {
+          setTimeout(() => {
+            console.log("🧠 Initializing Email Decoder...");
+            if (window.initializeDecoder) {
+              window.initializeDecoder();
+            }
+          }, 100);
+        }
+      } else {
+        console.error(`❌ Tool panel ${toolId}-tool not found`);
+      }
+      
+      // Update nav active state
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-view') === toolId);
+      });
+    }
+    
+    // Make activateTool available globally
+    window.activateTool = activateTool;
+    
+    // Handle nav clicks
+    document.querySelectorAll('.nav-item').forEach(button => {
+      button.addEventListener("click", () => {
+        const toolId = button.getAttribute("data-view");
+        if (toolId) {
+          activateTool(toolId);
+        }
+      });
+    });
+    
+    // Initialize with home tool
+    activateTool('home');
+  </script>
+  
+  <script src="dashboard.js"></script>
+</body>
+</html> 
