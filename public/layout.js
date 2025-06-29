@@ -88,6 +88,17 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }, 100);
       }
+      
+      // Handle Email Decoder initialization when dashboard view is activated
+      if (viewId === 'dashboard') {
+        setTimeout(() => {
+          console.log('🧠 Dashboard view activated, initializing Email Decoder');
+          if (window.initializeEmailDecoder) {
+            window.initializeEmailDecoder();
+          }
+        }, 100);
+      }
+      
       // Update nav active state
       document.querySelectorAll('.nav-item').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);

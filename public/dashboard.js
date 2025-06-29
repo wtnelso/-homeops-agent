@@ -320,7 +320,31 @@ function showDecoderReadyUI() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Email Decoder Engine Initialized');
     try {
-        initializeDecoderView();
+        // Check if we're on the dashboard view
+        const dashboardView = document.getElementById('dashboard-view');
+        if (dashboardView && dashboardView.classList.contains('active')) {
+            console.log('🎯 Dashboard view is active, initializing decoder');
+            initializeDecoderView();
+        } else {
+            console.log('⏳ Dashboard view not active yet, waiting for activation');
+            // Set up a listener for when the dashboard view becomes active
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        if (dashboardView.classList.contains('active')) {
+                            console.log('🎯 Dashboard view now active, initializing decoder');
+                            observer.disconnect();
+                            initializeDecoderView();
+                        }
+                    }
+                });
+            });
+            
+            if (dashboardView) {
+                observer.observe(dashboardView, { attributes: true });
+            }
+        }
+        
         setupEventListeners();
     } catch (err) {
         console.error('❌ DOMContentLoaded error:', err);
@@ -1320,4 +1344,10 @@ function categorizeEmail(email) {
     }
     // ... existing code ...
     return categories;
-} 
+}
+
+// Global function that can be called from layout.js
+window.initializeEmailDecoder = function() {
+    console.log('🎯 initializeEmailDecoder called from layout.js');
+    initializeDecoderView();
+}; 
