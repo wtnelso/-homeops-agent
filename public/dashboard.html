@@ -2,376 +2,858 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>HomeOps Agent</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>HomeOps Decoder - Transform Your Inbox</title>
+
   <link rel="stylesheet" href="style.css?v=2024-06-29" />
-  <link rel="stylesheet" href="dashboard.css?v=2024-06-29" />
+    <!-- ✅ Add Tippy.js tooltip support -->
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
   <script src="https://unpkg.com/@popperjs/core@2"></script>
   <script src="https://unpkg.com/tippy.js@6"></script>
+  <!-- API Configuration -->
   <script src="config.js"></script>
+  <link rel="stylesheet" href="dashboard.css?v=2024-06-29" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #23234a 100%);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      min-height: 100vh;
-      overflow: hidden;
-    }
-    
-    .app-container {
-      display: flex;
-      height: 100vh;
-    }
-    
-    /* Sidebar Styles */
-    .sidebar {
-      width: 80px;
-      background: #18182f;
+    .reframe-list {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 24px 0;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-      z-index: 100;
+      gap: 1rem;
+      padding-top: 0.5rem;
     }
-    
-    .logo {
-      margin-bottom: 32px;
-    }
-    
-    .sidebar-logo {
-      width: 40px;
-      height: 40px;
-    }
-    
-    .nav {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      flex: 1;
-    }
-    
-    .nav-item {
-      width: 48px;
-      height: 48px;
-      border: none;
-      background: none;
-      color: #8b8b9f;
+
+    .reframe {
+      background: #f9f9fb;
+      border: 1px solid #ddd;
       border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .reframe h4 {
+      margin: 0 0 0.25rem;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .reframe p {
+      margin: 0.25rem 0;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: #555;
+    }
+
+    .reframe p em {
+      color: #777;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-email {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .logout-btn {
+      background: #ff4757;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      position: relative;
+      font-size: 0.9rem;
+      transition: background-color 0.3s;
     }
-    
-    .nav-item:hover {
-      background: rgba(160, 102, 232, 0.1);
-      color: #a066e8;
+
+    .logout-btn:hover {
+      background: #ff3742;
     }
-    
-    .nav-item.active {
-      background: linear-gradient(135deg, #a066e8 0%, #d16be5 100%);
-      color: #fff;
-    }
-    
-    .nav-item svg {
-      width: 20px;
-      height: 20px;
-    }
-    
-    /* Main Content */
-    .main-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0;
-    }
-    
-    .view {
-      display: none;
-      height: 100%;
-      width: 100%;
-    }
-    
-    .view.active {
-      display: block;
-    }
-    
-    /* Chat Header */
-    .chat-header {
-      background: #18182f;
-      padding: 24px 32px;
-      border-bottom: 1px solid #2a2a3a;
-    }
-    
-    .chat-header-content {
-      max-width: 1200px;
+
+    /* ===== EMAIL DECODER ENGINE STYLES ===== */
+    .demo-container {
+      max-width: 1400px;
       margin: 0 auto;
+      padding: 2rem;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
-    
-    .chat-brand-section {
-      display: flex;
-      align-items: center;
-      gap: 16px;
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
     }
-    
-    .chat-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+
+    .header .logo {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 1rem;
     }
-    
-    .chat-logo h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%);
+
+    .header .title {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin: 0;
+      margin-bottom: 0.5rem;
     }
-    
-    .chat-tagline {
-      color: #8b8b9f;
-      font-size: 1rem;
-      margin-left: 16px;
+
+    .header .subtitle {
+      font-size: 1.2rem;
+      color: #64748b;
+      font-weight: 400;
     }
-    
-    /* Chat Wrapper */
-    .chat-wrapper {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 32px;
-      height: calc(100vh - 120px);
+
+    .stats-bar {
       display: flex;
-      flex-direction: column;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 3rem;
     }
-    
-    .chat-box {
-      flex: 1;
-      overflow-y: auto;
-      margin-bottom: 24px;
-      padding: 16px;
-      background: #1a1a2e;
+
+    .stat-card {
+      background: white;
+      padding: 1.5rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      border: 1px solid #e2e8f0;
+    }
+
+    .stat-number {
+      display: block;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
       border-radius: 12px;
-      border: 1px solid #2a2a3a;
-    }
-    
-    .chat-form {
       display: flex;
-      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
     }
-    
-    .chat-form input {
-      flex: 1;
-      padding: 12px 16px;
-      border: 1px solid #2a2a3a;
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-subtitle {
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+
+    .email-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .email-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .email-item.urgent {
+      border-left: 4px solid #dc2626;
+    }
+
+    .email-item.action {
+      border-left: 4px solid #2563eb;
+    }
+
+    .email-item.info {
+      border-left: 4px solid #16a34a;
+    }
+
+    .priority-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .priority-high {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    .priority-medium {
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    .priority-low {
+      background: #f0fdf4;
+      color: #16a34a;
+    }
+
+    .email-sender {
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    .email-subject {
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.75rem;
+    }
+
+    .email-preview {
+      color: #6b7280;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .action-btn {
+      padding: 0.5rem 1rem;
       border-radius: 8px;
-      background: #1a1a2e;
-      color: #fff;
-      font-size: 1rem;
-    }
-    
-    .chat-form button {
-      padding: 12px 24px;
-      background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%);
-      color: #fff;
       border: none;
-      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn.primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .action-btn.primary:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .action-btn.secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .action-btn.secondary:hover {
+      background: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .connect-section {
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 3rem;
+      border-radius: 20px;
+      margin-top: 2rem;
+    }
+
+    .connect-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .connect-desc {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+
+    .connect-btn {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
       font-weight: 600;
       cursor: pointer;
+      transition: all 0.3s ease;
     }
-    
-    /* Dashboard Grid */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-      padding: 32px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    .dashboard-card {
-      background: #1a1a2e;
-      border: 1px solid #2a2a3a;
-      border-radius: 12px;
-      padding: 24px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .dashboard-card:hover {
-      border-color: #a066e8;
+
+    .connect-btn:hover {
       transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
     }
-    
-    .dashboard-card h3 {
-      color: #fff;
-      margin: 0 0 8px 0;
-      font-size: 1.2rem;
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.8s ease-out;
     }
-    
-    .dashboard-card p {
-      color: #8b8b9f;
-      margin: 0;
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-    
-    /* Decoder View */
-    #decoder-app {
-      height: 100%;
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .demo-container {
+        padding: 1rem;
+      }
+      
+      .header .title {
+        font-size: 2rem;
+      }
+      
+      .stats-bar {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+
+    /* Process Emails Button */
+    .process-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       width: 100%;
+      justify-content: center;
     }
-    
-    /* Calendar View */
-    #calendar-app {
-      height: 100%;
-      width: 100%;
-      padding: 32px;
+
+    .process-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .process-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .process-icon {
+      font-size: 1rem;
+    }
+
+    .process-text {
+      font-weight: 600;
+    }
+
+    .process-btn.processing .process-icon {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 1100px) {
+      .onboarding-modules { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      .onboarding-modules { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <div class="app-container">
-    <!-- Sidebar Navigation -->
+
+    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-      <div class="logo">
-        <img src="img/homeops-logo.svg" alt="HomeOps Logo" class="sidebar-logo" />
-      </div>
       <nav class="nav">
-        <button class="nav-item" data-view="home" title="Home"><i data-lucide="home"></i></button>
-        <button class="nav-item" data-view="chat" title="Chat"><i data-lucide="message-circle"></i></button>
-        <button class="nav-item" data-view="calendar" title="Calendar"><i data-lucide="calendar"></i></button>
-        <button class="nav-item" data-view="decoder" title="Email Decoder"><i data-lucide="brain"></i></button>
+        <button class="nav-item" data-view="chat" title="Ask HomeOps"><i data-lucide="message-square"></i></button>
+        <button class="nav-item" data-view="dashboard" title="Email Decoder"><i data-lucide="brain"></i></button>
+        <button class="nav-item" data-view="calendar" title="Calendar View"><i data-lucide="calendar-days"></i></button>
+        <button class="nav-item" data-view="command-center" title="Command Center"><i data-lucide="layout-dashboard"></i></button>
       </nav>
     </aside>
-    
-    <!-- Main Content -->
+
     <main class="main-content">
-      <section id="home-view" class="view active">
-        <div class="chat-header">
-          <div class="chat-header-content">
-            <div class="chat-brand-section">
-              <div class="chat-logo">
-                <span class="chat-logo-icon"><img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width:32px;height:32px;"></span>
-                <h1>HomeOps</h1>
+
+  <!-- Top Bar with logo + brand and hamburger -->
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      </button>
+      <a href="#" onclick="activateView('home'); return false;" class="top-bar-logo-link">
+        <div class="homeops-brand">
+          <img src="img/homeops-logo.svg" alt="HomeOps" class="homeops-logo-icon">
+          <span class="homeops-brand-text">HomeOps</span>
+        </div>
+      </a>
+    </div>
+    <div class="top-bar-right">
+      <button id="logoutBtn" class="premium-logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <!-- Home View -->
+  <section id="home-view" class="view">
+    <div class="home-grid">
+      <!-- Email Decoder Engine Card -->
+      <div id="email-decoder-engine-card" class="home-module modern-placeholder">
+        <div class="module-header">
+          <h2 style="font-size:2rem;display:flex;align-items:center;gap:0.5rem;">
+            <i data-lucide="brain" style="width:2.2rem;height:2.2rem;"></i> Email Decoder Engine
+          </h2>
+          <p style="font-size:1.1rem;color:#555;max-width:600px;">A new way to interact with email for high-performing modern families. Connect your Gmail to surface only what matters—school alerts, doctor updates, smart deals, and more.</p>
+          
+          <!-- Gmail Connection Status -->
+          <div id="gmail-status" class="gmail-status">
+            <div id="gmail-not-connected" class="gmail-not-connected">
+              <button id="connect-gmail-btn" class="gmail-connect-btn">
+                <i data-lucide="mail" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
+                Connect Gmail
+              </button>
+              <p class="gmail-status-text">Connect your Gmail to start decoding emails</p>
+            </div>
+            <div id="gmail-connected" class="gmail-connected" style="display:none;">
+              <div class="gmail-status-success">
+                <i data-lucide="check-circle" style="width:1.2rem;height:1.2rem;color:#10b981;margin-right:0.5rem;"></i>
+                <span>Gmail Connected</span>
               </div>
-              <div class="chat-tagline">Your operating system for modern family life.</div>
+              <button id="process-emails-btn" class="process-emails-btn">
+                <i data-lucide="refresh-cw" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
+                Process Emails
+              </button>
+            </div>
+          </div>
+
+          <!-- Email Processing Status -->
+          <div id="email-processing-status" class="email-processing-status" style="display:none;">
+            <div class="processing-indicator">
+              <i data-lucide="loader-2" class="spinning" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
+              <span>Processing your emails...</span>
+            </div>
+          </div>
+
+          <!-- Email Summary -->
+          <div id="email-summary" class="email-summary" style="display:none;">
+            <div class="summary-stats">
+              <div class="stat-item">
+                <span class="stat-number" id="total-emails">0</span>
+                <span class="stat-label">Processed</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="family-signals">0</span>
+                <span class="stat-label">Family Signals</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="smart-deals">0</span>
+                <span class="stat-label">Smart Deals</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="action-items">0</span>
+                <span class="stat-label">Action Items</span>
+              </div>
             </div>
           </div>
         </div>
-        <div class="dashboard-grid">
-          <div class="dashboard-card" onclick="activateView('chat')">
-            <h3>Chat</h3>
-            <p>Ask HomeOps anything</p>
-          </div>
-          <div class="dashboard-card" onclick="activateView('calendar')">
-            <h3>Calendar</h3>
-            <p>Manage your schedule</p>
-          </div>
-          <div class="dashboard-card" onclick="activateView('decoder')">
-            <h3>Email Decoder</h3>
-            <p>Decode your inbox</p>
+
+        <!-- Decoded Email Cards -->
+        <div id="decoded-emails-container" class="decoded-emails-container" style="display:none;">
+          <h3 style="margin:1.5rem 0 1rem;font-size:1.3rem;color:#1e293b;">Recent Decoded Emails</h3>
+          <div id="decoded-emails-list" class="decoded-emails-list">
+            <!-- Dynamic email cards will be inserted here -->
           </div>
         </div>
-      </section>
-      
-      <section id="chat-view" class="view">
-        <div class="chat-header">
-          <div class="chat-header-content">
-            <div class="chat-brand-section">
-              <div class="chat-logo">
-                <span class="chat-logo-icon"><img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width:32px;height:32px;"></span>
-                <h1>HomeOps</h1>
+
+        <!-- Example Cards (shown when no emails processed) -->
+        <div id="email-decoder-examples" class="email-decoder-examples">
+          <div class="example-header">
+            <h3 style="margin:1.5rem 0 1rem;font-size:1.3rem;color:#1e293b;">How it works</h3>
+          </div>
+          <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+            <!-- Example Family Signal Card -->
+            <div class="family-signal-card example-card">
+              <i data-lucide="school" class="signal-icon" style="width:2rem;height:2rem;color:#1e88e5;vertical-align:middle;"></i>
+              <div>
+                <strong>Family Signal</strong><br>
+                Picture Day – Oct 15 at 9 AM<br>
+                <span style="color:#1565c0;">Location: Woods Academy | Action: Send in photo form</span><br>
+                <button class="form-btn">Form attached</button>
               </div>
-              <div class="chat-tagline">Your AI-powered assistant for managing your mental load.</div>
+            </div>
+            <!-- Example Smart Deal Card -->
+            <div class="smart-deal-card example-card">
+              <i data-lucide="shopping-cart" class="deal-icon" style="width:2rem;height:2rem;color:#b26a00;vertical-align:middle;"></i>
+              <div>
+                <strong>Smart Deal</strong><br>
+                You've bought Honest Co. 4x this year<br>
+                <span style="color:#b26a00;">Today: 15% off sitewide + free shipping</span><br>
+                <button class="deal-btn">Reorder Diapers</button>
+              </div>
             </div>
           </div>
         </div>
-        <div class="chat-wrapper">
-          <div id="chat" class="chat-box"></div>
-          <form id="chatForm" class="chat-form" autocomplete="off">
-            <input id="input" type="text" placeholder="What can I help you with today?" autocomplete="off" />
-            <button type="submit">Send</button>
-          </form>
+      </div>
+      <!-- This Week Summary -->
+      <div id="this-week-module" class="home-module">
+        <div class="module-header">
+          <h2>🗓️ This Week</h2>
+          <p>A summary of your calendar and key tasks.</p>
         </div>
-      </section>
-      
-      <section id="calendar-view" class="view">
-        <div class="chat-header">
-          <div class="chat-header-content">
-            <div class="chat-brand-section">
-              <div class="chat-logo">
-                <span class="chat-logo-icon"><img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width:32px;height:32px;"></span>
-                <h1>HomeOps</h1>
-              </div>
-              <div class="chat-tagline">Your family calendar, decoded.</div>
-            </div>
+        <div class="module-content">
+          <div class="week-summary-placeholder">
+            <p>Your weekly summary will appear here...</p>
           </div>
         </div>
-        <div id="calendar-app"></div>
-      </section>
-      
-      <section id="decoder-view" class="view">
-        <div id="decoder-app"></div>
-      </section>
-    </main>
-  </div>
-  
-  <script>
-    // Initialize Lucide icons
-    lucide.createIcons();
-    
-    // Navigation logic
-    function activateView(viewId) {
-      // Hide all views
-      document.querySelectorAll('.view').forEach(view => {
-        view.classList.remove('active');
-      });
-      
-      // Show selected view
-      const activeView = document.getElementById(`${viewId}-view`);
-      if (activeView) {
-        activeView.classList.add('active');
-      }
-      
-      // Update nav buttons
-      document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
-      });
-      
-      // Initialize specific modules
-      if (viewId === 'decoder' && window.initializeDecoder) {
-        setTimeout(() => window.initializeDecoder(), 100);
-      }
-      if (viewId === 'calendar' && window.initializeCalendar) {
-        setTimeout(() => window.initializeCalendar(), 100);
-      }
-      if (viewId === 'chat' && window.initializeChat) {
-        setTimeout(() => window.initializeChat(), 100);
-      }
-    }
-    
-    // Add click handlers to nav items
-    document.querySelectorAll('.nav-item').forEach(button => {
-      button.addEventListener('click', () => {
-        const viewId = button.getAttribute('data-view');
-        if (viewId) activateView(viewId);
-      });
-    });
-    
-    // Default to home view
-    activateView('home');
-  </script>
-  
-  <script src="dashboard.js"></script>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chat View -->
+  <section id="chat-view" class="view">
+    <div class="chat-wrapper" style="height:100%;display:flex;flex-direction:column;justify-content:flex-end;">
+      <div id="chat" class="chat-box" style="flex:1 1 auto;"></div>
+      <form id="chatForm" class="chat-form">
+        <input id="input" type="text" placeholder="Ask HomeOps anything..." autocomplete="off" />
+        <button type="submit">
+          <i data-lucide="send"></i>
+          <span>Send</span>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Dashboard View -->
+  <section id="dashboard-view" class="view">
+    <!-- 🔥 NEW DECODER COMMAND CENTER -->
+    <div id="decoder-app" class="decoder-app">
+        
+        <!-- 🎯 HEADER - Premium Branding -->
+        <header class="decoder-header">
+            <div class="header-content" style="justify-content: center; align-items: center; flex-direction: column;">
+                <div class="brand-section" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                    <h1 style="font-size:2rem;font-weight:800;text-align:center;margin:0;padding:0;letter-spacing:-1px;background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);-webkit-background-clip: text;-webkit-text-fill-color: transparent;background-clip: text;">Signal over noise. Your inbox, decoded.</h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- 🎛️ COMMAND BAR - Superhuman Style -->
+        <div class="command-bar">
+            <!-- Action Buttons -->
+            <div class="decoder-actions">
+                <button id="process-btn" class="btn-primary" style="
+                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                    color: white;
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+                    transition: all 0.2s;
+                ">
+                    <i data-lucide="play" style="width:1rem;height:1rem;"></i>
+                    Process Emails
+                </button>
+                <button id="refresh-btn" class="btn-secondary" style="
+                    background: white;
+                    color: #64748b;
+                    border: 1px solid #e2e8f0;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    transition: all 0.2s;
+                ">
+                    <i data-lucide="refresh-cw" style="width:1rem;height:1rem;"></i>
+                    Refresh
+                </button>
+            </div>
+            
+            <!-- Search Bar Area -->
+            <div class="decoder-search-row">
+              <input type="text" id="decoder-search" class="decoder-search-input" placeholder="Search decoded emails...">
+              <button id="decoder-search-clear" class="decoder-search-clear" style="display:none;" aria-label="Clear search">&times;</button>
+            </div>
+        </div>
+
+        <!-- 📊 CATEGORY TABS - Clean Navigation -->
+        <nav class="category-tabs">
+            <button class="tab-btn active" data-category="all">
+                <i data-lucide="inbox"></i>
+                <span>All</span>
+                <span class="count" id="count-all">0</span>
+            </button>
+            <button class="tab-btn" data-category="urgent">
+                <i data-lucide="zap"></i>
+                <span>Urgent</span>
+                <span class="count" id="count-urgent">0</span>
+            </button>
+            <button class="tab-btn" data-category="schedule">
+                <i data-lucide="calendar-days"></i>
+                <span>Schedule</span>
+                <span class="count" id="count-schedule">0</span>
+            </button>
+            <button class="tab-btn" data-category="family">
+                <i data-lucide="users"></i>
+                <span>Family</span>
+                <span class="count" id="count-family">0</span>
+            </button>
+            <button class="tab-btn" data-category="commerce">
+                <i data-lucide="shopping-bag"></i>
+                <span>Commerce</span>
+                <span class="count" id="count-commerce">0</span>
+            </button>
+        </nav>
+
+        <!-- 🎯 MAIN CONTENT AREA -->
+        <main class="decoder-main">
+            
+            <!-- 🎯 EMAIL DECODER STATES -->
+            <div id="loading-state" class="state-container" style="display: none;">
+              <div class="loading-content">
+                <div class="spinner"></div>
+                <h3>Processing your emails...</h3>
+                <p>This may take a few moments</p>
+              </div>
+            </div>
+
+            <div id="error-state" class="state-container" style="display: none;">
+              <div class="error-content">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+                <h3 style="color: #dc2626; margin-bottom: 1rem;">Something went wrong</h3>
+                <p id="error-message" style="color: #64748b; margin-bottom: 2rem; line-height: 1.6;"></p>
+                <button onclick="retryFromError()" class="btn-primary" style="
+                  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                  color: white;
+                  border: none;
+                  padding: 1rem 2rem;
+                  border-radius: 12px;
+                  font-size: 1.1rem;
+                  font-weight: 600;
+                  cursor: pointer;
+                  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                  transition: all 0.2s;
+                ">
+                  <i data-lucide="refresh-cw" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
+                  Try Again
+                </button>
+              </div>
+            </div>
+
+            <!-- 🚀 ONBOARDING STEP 1: GMAIL CONNECTION -->
+            <div id="onboarding-state" class="state-container" style="display: none;">
+              <div class="onboarding-content" style="text-align: center; padding: 5rem 2rem 4rem 2rem; max-width: 480px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 8px 32px rgba(102, 123, 234, 0.08);">
+                <img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width: 168px; margin-bottom: 2.5rem; opacity: 0.97;" />
+                <h2 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 1.2rem; background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Connect your Gmail</h2>
+                <p style="font-size: 1.15rem; color: #64748b; margin-bottom: 2.2rem; line-height: 1.6;">To get started, securely connect your Gmail. HomeOps will never send or modify your emails—only help you organize and surface what matters most.</p>
+                <button onclick="connectGmail()" class="gmail-connect-btn" style="margin-bottom: 2.2rem; font-size: 1.25rem; font-weight: 700; width: 100%; max-width: 340px; display: flex; align-items: center; justify-content: center;">
+                  <svg style="margin-right: 0.7rem; width: 1.5em; height: 1.5em; vertical-align: middle;" viewBox="0 0 24 24" fill="none"><path d="M20.16 4.61A2.75 2.75 0 0 0 18.25 4H5.75a2.75 2.75 0 0 0-2.75 2.75v10.5A2.75 2.75 0 0 0 5.75 20h12.5a2.75 2.75 0 0 0 2.75-2.75V6.75a2.75 2.75 0 0 0-.84-2.14ZM5.75 5.5h12.5c.69 0 1.25.56 1.25 1.25v.46l-7 4.67-7-4.67v-.46c0-.69.56-1.25 1.25-1.25Zm13.25 3.13v8.62c0 .69-.56 1.25-1.25 1.25H5.75c-.69 0-1.25-.56-1.25-1.25V8.63l7.36 4.91a.75.75 0 0 0 .78 0l7.36-4.91Z" fill="#fff"/></svg>
+                  Connect Gmail
+                </button>
+                <div style="margin-top: 1.2rem; color: #64748b; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+                  <svg style="width: 1.2em; height: 1.2em; margin-right: 0.4em;" viewBox="0 0 24 24" fill="none"><path d="M12 17a2 2 0 0 0 2-2v-2a2 2 0 0 0-4 0v2a2 2 0 0 0 2 2Zm6-6V9a6 6 0 1 0-12 0v2a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2Zm-8-2a4 4 0 1 1 8 0v2H6V9Zm10 9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v5Z" fill="#64748b"/></svg>
+                  Secure & Private. Disconnect anytime.
+                </div>
+              </div>
+            </div>
+
+            <div id="zero-state" class="state-container" style="display: none;">
+                <div class="zero-content">
+                    <div class="zero-icon">
+                        <i data-lucide="inbox"></i>
+                    </div>
+                    <h3>Your inbox is clear! 🎉</h3>
+                    <p>All your emails have been decoded and organized. Ready to process more?</p>
+                    <button class="btn-primary" id="process-again-btn">
+                        <i data-lucide="play"></i>
+                        <span>Process Emails Again</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 📧 EMAIL CARDS CONTAINER -->
+            <div id="email-cards-container" class="email-cards-container">
+                <!-- Email cards will be dynamically inserted here -->
+            </div>
+
+            <!-- 🎓 TRAINING MODE -->
+            <div id="training-mode" class="training-mode">
+                <div class="training-header">
+                    <h3>🎓 Training the Decoder</h3>
+                    <p>Help us understand your preferences with these sample emails</p>
+                </div>
+                <div id="training-cards" class="training-cards">
+                    <!-- Training cards will be inserted here -->
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 🎛️ BOTTOM ACTION BAR -->
+        <div class="bottom-actions" id="bottom-actions">
+            <div class="selection-info">
+                <span id="selected-count">0 selected</span>
+            </div>
+            <div class="bulk-actions">
+                <button class="btn-secondary" id="bulk-archive">
+                    <i data-lucide="archive"></i>
+                    <span>Archive</span>
+                </button>
+                <button class="btn-secondary" id="bulk-snooze">
+                    <i data-lucide="clock"></i>
+                    <span>Snooze</span>
+                </button>
+                <button class="btn-primary" id="bulk-mark-important">
+                    <i data-lucide="star"></i>
+                    <span>Mark Important</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+  </section>
+
+  <!-- Calendar View -->
+  <section id="calendar-view" class="view">
+    <div class="view-header" style="justify-content: flex-end;">
+      <button id="clear-events-btn" class="calendar-clear-btn">Clear All Events</button>
+    </div>
+    <div class="calendar-outer">
+      <div id="calendar"></div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<!-- ✅ FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" rel="stylesheet" />
+
+<!-- ✅ FullCalendar Global Build — works without import or modules -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
+
+<!-- ✅ Your app scripts -->
+<script src="layout.js?v=2024-06-29" defer></script>
+<script src="chat.js?v=2024-06-29" defer></script>
+<script src="/relief.js?v=2024-06-29" defer></script>
+<script src="dashboard.js?v=2024-06-29" defer></script>
+
+<!-- ✅ Bottom nav for mobile view -->
+<div class="bottom-nav">
+  <button data-view="home" onclick="activateView('home')">🏠</button>
+  <button data-view="chat" onclick="activateView('chat')">💬</button>
+  <button data-view="dashboard" onclick="activateView('dashboard')">📊</button>
+  <button data-view="calendar" onclick="activateView('calendar')">📅</button>
+</div>
+
+<script src="/homebase.js?v=2024-06-29" defer></script>
+<script>
+function showDashboardControls() {
+  document.getElementById('dashboard-controls').style.display = 'block';
+}
+function hideDashboardControls() {
+  document.getElementById('dashboard-controls').style.display = 'none';
+}
+function showOnboardingOnly() {
+  document.getElementById('onboarding-state').style.display = 'block';
+  var controls = document.getElementById('dashboard-controls');
+  if (controls) controls.style.display = 'none';
+  // Hide any nav, header, or other elements that could distract
+  var navs = document.querySelectorAll('.top-nav, .header, .main-nav, .dashboard-header');
+  navs.forEach(function(el) { el.style.display = 'none'; });
+}
+// Call showOnboardingOnly() on page load if not authenticated
+// ... existing code ...
+</script>
 </body>
 </html>
 

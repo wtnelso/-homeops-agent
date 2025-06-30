@@ -93,8 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (viewId === 'dashboard') {
         setTimeout(() => {
           console.log('🧠 Dashboard view activated, initializing Email Decoder');
-          if (window.onDashboardViewActivated) {
-            window.onDashboardViewActivated();
+          if (window.initializeDashboardDecoder) {
+            window.initializeDashboardDecoder();
           } else if (window.initializeDecoder) {
             window.initializeDecoder();
           }
@@ -184,10 +184,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
-      // On load, do not force redirect to dashboard or decoder onboarding
-      // Only activate decoder onboarding when user clicks the brain icon
-      // Remove any code that auto-redirects to dashboard.html or decoder onboarding on page load
-      // Existing navigation logic for icons remains unchanged
+      // On load, check for Gmail connection parameter and set appropriate view
+      const urlParams = new URLSearchParams(window.location.search);
+      const gmailConnected = urlParams.get('gmail_connected');
+      
+      if (gmailConnected === 'true') {
+        // Gmail was just connected, show the Email Decoder dashboard
+        activateView('dashboard');
+        // Clean up the URL parameter
+        const newUrl = window.location.pathname + window.location.search.replace(/[?&]gmail_connected=true/, '');
+        window.history.replaceState({}, document.title, newUrl);
+      } else {
+        // Default to chat view
+        activateView('chat');
+      }
 
     }).catch(error => {
       console.error('Firebase initialization failed:', error);

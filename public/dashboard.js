@@ -1,8 +1,7 @@
 // 🔥 HOMEOPS DECODER - Premium Email Intelligence Engine
-// Three-Step UX Flow: Gmail Connect → Training → Full Decoder
 // Apple/Superhuman aesthetic with purple gradient branding
 
-console.log('🚀 HomeOps Decoder loaded - Premium UX Flow v3.0');
+console.log('🚀 HomeOps Decoder loaded - Premium UI v2.0');
 
 // Global state
 let decodedEmails = [];
@@ -11,9 +10,6 @@ let selectedEmails = new Set();
 let currentCategory = 'all';
 let isProcessing = false;
 let searchQuery = '';
-let currentStep = 1; // 1: Gmail Connect, 2: Training, 3: Full Decoder
-let trainingEmails = [];
-let trainingProgress = 0;
 
 // Category configuration
 const CATEGORIES = {
@@ -43,46 +39,6 @@ const CATEGORIES = {
   }
 };
 
-// Sample training emails
-const SAMPLE_TRAINING_EMAILS = [
-  {
-    id: 'training-1',
-    sender: 'Woods Academy',
-    subject: 'Picture Day - October 15th at 9 AM',
-    body: 'Dear Parents, Picture day is scheduled for October 15th at 9 AM. Please ensure your child brings the photo form. Location: Main Hall. Please arrive 10 minutes early.',
-    category: 'family',
-    priority: 'medium',
-    suggestedAction: 'Add to calendar and prepare photo form'
-  },
-  {
-    id: 'training-2',
-    sender: 'Honest Company',
-    subject: '15% off sitewide + free shipping today only!',
-    body: 'You\'ve purchased from us 4 times this year. Today only: 15% off everything + free shipping on orders over $35. Your favorite diapers are back in stock!',
-    category: 'commerce',
-    priority: 'low',
-    suggestedAction: 'Reorder diapers if needed'
-  },
-  {
-    id: 'training-3',
-    sender: 'Dr. Sarah Johnson',
-    subject: 'Appointment Reminder - Tomorrow at 2 PM',
-    body: 'This is a reminder for your annual checkup tomorrow at 2 PM. Please arrive 15 minutes early to complete paperwork. Location: 123 Medical Center Dr.',
-    category: 'schedule',
-    priority: 'high',
-    suggestedAction: 'Confirm appointment and set reminder'
-  },
-  {
-    id: 'training-4',
-    sender: 'Amazon',
-    subject: 'Your order #12345 has shipped',
-    body: 'Your recent order containing "Wireless Headphones" has shipped and will arrive tomorrow. Track your package here.',
-    category: 'commerce',
-    priority: 'low',
-    suggestedAction: 'Track package delivery'
-  }
-];
-
 // 🎯 INITIALIZATION
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🎯 Initializing HomeOps Decoder...');
@@ -92,6 +48,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (dashboardView && dashboardView.classList.contains('active')) {
     console.log('🎯 Dashboard view already active, initializing immediately');
     initializeDecoder();
+    setupEventListeners();
+    checkInitialState();
   } else {
     console.log('🎯 Dashboard view not active, waiting for activation');
     // The initialization will happen when the dashboard view is activated
@@ -114,23 +72,17 @@ function initializeDecoder() {
     lucide.createIcons();
   }
   
-  // Setup event listeners
-  setupEventListeners();
+  // Show loading state initially
+  showLoadingState();
   
-  // Determine current step and show appropriate state
-  determineCurrentStep();
+  // Check if user has Gmail connected
+  checkGmailConnection();
 }
 
 function setupEventListeners() {
   console.log('🎛️ Setting up event listeners...');
   
-  // Gmail connection
-  document.querySelector('.gmail-connect-btn')?.addEventListener('click', connectGmail);
-  
-  // Training mode
-  document.getElementById('complete-training-btn')?.addEventListener('click', completeTraining);
-  
-  // Full decoder actions
+  // Header actions
   document.getElementById('refresh-btn')?.addEventListener('click', refreshEmails);
   document.getElementById('process-btn')?.addEventListener('click', processEmails);
   document.getElementById('process-again-btn')?.addEventListener('click', processEmails);
@@ -140,8 +92,16 @@ function setupEventListeners() {
   const searchClear = document.getElementById('decoder-search-clear');
   
   if (searchInput && searchClear) {
-    searchInput.addEventListener('input', handleSearch);
-    searchClear.addEventListener('click', clearSearch);
+    searchInput.addEventListener('input', () => {
+      searchClear.style.display = searchInput.value ? 'flex' : 'none';
+      // Optionally, trigger search/filter here
+    });
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      searchClear.style.display = 'none';
+      searchInput.focus();
+      // Optionally, reset search/filter here
+    });
   }
   
   // Category tabs
@@ -149,279 +109,21 @@ function setupEventListeners() {
     btn.addEventListener('click', () => switchCategory(btn.dataset.category));
   });
   
+  // Command bar actions
+  document.getElementById('select-all-btn')?.addEventListener('click', toggleSelectAll);
+  document.getElementById('bulk-archive-btn')?.addEventListener('click', bulkArchive);
+  document.getElementById('bulk-snooze-btn')?.addEventListener('click', bulkSnooze);
+  
   // Bottom action bar
   document.getElementById('bulk-archive')?.addEventListener('click', bulkArchive);
   document.getElementById('bulk-snooze')?.addEventListener('click', bulkSnooze);
   document.getElementById('bulk-mark-important')?.addEventListener('click', bulkMarkImportant);
 }
 
-// 🎯 STEP MANAGEMENT
-function determineCurrentStep() {
-  console.log('🔍 Determining current step...');
+function checkInitialState() {
+  console.log('🔍 Checking initial state...');
   
-  const userId = getCurrentUserId();
-  const hasGmailConnected = localStorage.getItem(`gmail_connected_${userId}`);
-  const hasCompletedTraining = localStorage.getItem(`training_completed_${userId}`);
-  
-  if (!hasGmailConnected) {
-    console.log('📧 Step 1: Gmail not connected');
-    showGmailConnectScreen();
-  } else if (!hasCompletedTraining) {
-    console.log('🎓 Step 2: Gmail connected but training not completed');
-    showStep2Training();
-  } else {
-    console.log('🚀 Step 3: Full decoder ready');
-    showStep3FullDecoder();
-  }
-}
-
-function showStep1GmailConnect() {
-  console.log('📧 Showing Step 1: Gmail Connect');
-  currentStep = 1;
-  hideAllSteps();
-  
-  const step1Container = document.getElementById('step1-gmail-connect');
-  if (step1Container) {
-    step1Container.style.display = 'flex';
-  }
-  
-  // Hide navigation elements
-  hideDecoderControls();
-}
-
-function showStep2Training() {
-  console.log('🎓 Showing Step 2: Training Mode');
-  currentStep = 2;
-  hideAllSteps();
-  
-  const step2Container = document.getElementById('step2-training');
-  if (step2Container) {
-    step2Container.style.display = 'block';
-  }
-  
-  // Initialize training
-  initializeTraining();
-  
-  // Hide navigation elements
-  hideDecoderControls();
-}
-
-function showStep3FullDecoder() {
-  console.log('🚀 Showing Step 3: Full Decoder');
-  currentStep = 3;
-  hideAllSteps();
-  
-  const step3Container = document.getElementById('step3-full-decoder');
-  if (step3Container) {
-    step3Container.style.display = 'block';
-  }
-  
-  // Show navigation elements
-  showDecoderControls();
-  
-  // Check for existing emails
-  checkExistingEmails();
-}
-
-function hideAllSteps() {
-  const steps = ['step1-gmail-connect', 'step2-training', 'step3-full-decoder'];
-  steps.forEach(id => {
-    const element = document.getElementById(id);
-    if (element) element.style.display = 'none';
-  });
-}
-
-function hideDecoderControls() {
-  const controls = ['command-bar', 'category-tabs', 'bottom-actions'];
-  controls.forEach(id => {
-    const element = document.getElementById(id);
-    if (element) element.style.display = 'none';
-  });
-}
-
-function showDecoderControls() {
-  const controls = ['command-bar', 'category-tabs'];
-  controls.forEach(id => {
-    const element = document.getElementById(id);
-    if (element) element.style.display = 'flex';
-  });
-}
-
-// 📧 STEP 1: GMAIL CONNECTION
-function connectGmail() {
-  window.location.href = '/auth/google';
-}
-
-// 🎓 STEP 2: TRAINING MODE
-function initializeTraining() {
-  console.log('🎓 Initializing training mode...');
-  
-  trainingEmails = [...SAMPLE_TRAINING_EMAILS];
-  trainingProgress = 0;
-  
-  renderTrainingCards();
-  updateTrainingProgress();
-}
-
-function renderTrainingCards() {
-  console.log('🎨 Rendering training cards...');
-  
-  const container = document.getElementById('training-cards');
-  if (!container) return;
-  
-  container.innerHTML = '';
-  
-  trainingEmails.forEach((email, index) => {
-    const card = createTrainingCard(email, index);
-    container.appendChild(card);
-  });
-}
-
-function createTrainingCard(email, index) {
-  const card = document.createElement('div');
-  card.className = 'training-card';
-  card.dataset.emailId = email.id;
-  
-  const category = CATEGORIES[email.category];
-  
-  card.innerHTML = `
-    <div class="training-card-header">
-      <div class="training-card-icon">
-        <i data-lucide="${category.icon}"></i>
-      </div>
-      <div>
-        <div class="training-card-title">${category.label}</div>
-        <div class="training-card-subtitle">${category.description}</div>
-      </div>
-    </div>
-    
-    <div class="training-card-content">
-      <div class="training-email-preview">
-        <div class="training-email-sender">${email.sender}</div>
-        <div class="training-email-subject">${email.subject}</div>
-        <div class="training-email-body">${email.body}</div>
-      </div>
-      
-      <div class="training-feedback-options">
-        <button class="feedback-option" data-feedback="accurate">Accurate</button>
-        <button class="feedback-option" data-feedback="inaccurate">Inaccurate</button>
-        <button class="feedback-option" data-feedback="unsure">Unsure</button>
-      </div>
-    </div>
-    
-    <div class="training-card-actions">
-      <button class="training-action-btn secondary" onclick="skipTrainingEmail('${email.id}')">Skip</button>
-      <button class="training-action-btn primary" onclick="submitTrainingFeedback('${email.id}')" disabled>Submit</button>
-    </div>
-  `;
-  
-  // Add event listeners for feedback options
-  const feedbackOptions = card.querySelectorAll('.feedback-option');
-  const submitBtn = card.querySelector('.training-action-btn.primary');
-  
-  feedbackOptions.forEach(option => {
-    option.addEventListener('click', () => {
-      // Remove selected class from all options
-      feedbackOptions.forEach(opt => opt.classList.remove('selected'));
-      // Add selected class to clicked option
-      option.classList.add('selected');
-      // Enable submit button
-      submitBtn.disabled = false;
-    });
-  });
-  
-  // Initialize Lucide icons for this card
-  if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
-  }
-  
-  return card;
-}
-
-function submitTrainingFeedback(emailId) {
-  console.log('📝 Submitting training feedback for:', emailId);
-  
-  const card = document.querySelector(`[data-email-id="${emailId}"]`);
-  const selectedFeedback = card.querySelector('.feedback-option.selected');
-  
-  if (!selectedFeedback) {
-    showError('Please select a feedback option');
-    return;
-  }
-  
-  const feedback = selectedFeedback.dataset.feedback;
-  
-  // Mark card as completed
-  card.classList.add('completed');
-  
-  // Store feedback
-  const userId = getCurrentUserId();
-  const feedbackKey = `training_feedback_${userId}_${emailId}`;
-  localStorage.setItem(feedbackKey, feedback);
-  
-  // Update progress
-  trainingProgress++;
-  updateTrainingProgress();
-  
-  // Check if training is complete
-  if (trainingProgress >= trainingEmails.length) {
-    showCompleteTrainingButton();
-  }
-}
-
-function skipTrainingEmail(emailId) {
-  console.log('⏭️ Skipping training email:', emailId);
-  
-  const card = document.querySelector(`[data-email-id="${emailId}"]`);
-  card.classList.add('completed');
-  
-  // Store skip feedback
-  const userId = getCurrentUserId();
-  const feedbackKey = `training_feedback_${userId}_${emailId}`;
-  localStorage.setItem(feedbackKey, 'skipped');
-  
-  // Update progress
-  trainingProgress++;
-  updateTrainingProgress();
-  
-  // Check if training is complete
-  if (trainingProgress >= trainingEmails.length) {
-    showCompleteTrainingButton();
-  }
-}
-
-function updateTrainingProgress() {
-  const progressFill = document.getElementById('training-progress-fill');
-  const progressText = document.getElementById('training-progress-text');
-  
-  if (progressFill && progressText) {
-    const percentage = (trainingProgress / trainingEmails.length) * 100;
-    progressFill.style.width = `${percentage}%`;
-    progressText.textContent = `${trainingProgress} of ${trainingEmails.length}`;
-  }
-}
-
-function showCompleteTrainingButton() {
-  const completeBtn = document.getElementById('complete-training-btn');
-  if (completeBtn) {
-    completeBtn.style.display = 'inline-flex';
-  }
-}
-
-function completeTraining() {
-  console.log('✅ Completing training...');
-  
-  const userId = getCurrentUserId();
-  localStorage.setItem(`training_completed_${userId}`, 'true');
-  
-  // Move to Step 3
-  showStep3FullDecoder();
-}
-
-// 🚀 STEP 3: FULL DECODER ENGINE
-function checkExistingEmails() {
-  console.log('🔍 Checking for existing emails...');
-  
+  // Check if we have existing decoded emails
   const userId = getCurrentUserId();
   if (userId) {
     loadExistingEmails(userId);
@@ -430,50 +132,59 @@ function checkExistingEmails() {
   }
 }
 
-async function loadExistingEmails(userId) {
-  try {
-    const response = await fetch(`/api/emails/${userId}`);
-    if (response.ok) {
-      const emails = await response.json();
-      if (emails.length > 0) {
-        decodedEmails = emails;
-        showEmailCards();
-      } else {
-        showZeroState();
-      }
-    } else {
-      showZeroState();
-    }
-  } catch (error) {
-    console.error('❌ Error loading emails:', error);
-    showZeroState();
+// 🎛️ STATE MANAGEMENT
+function showLoadingState() {
+  hideAllStates();
+  const loadingState = document.getElementById('loading-state');
+  if (loadingState) {
+    loadingState.style.display = 'flex';
+  }
+}
+
+function showOnboardingState() {
+  hideAllStates();
+  const onboardingState = document.getElementById('onboarding-state');
+  if (onboardingState) {
+    onboardingState.style.display = 'flex';
   }
 }
 
 function showZeroState() {
-  console.log('📭 Showing zero state...');
-  
+  hideAllStates();
   const zeroState = document.getElementById('zero-state');
-  const emailCardsContainer = document.getElementById('email-cards-container');
-  
-  if (zeroState) zeroState.style.display = 'flex';
-  if (emailCardsContainer) emailCardsContainer.style.display = 'none';
-  
+  if (zeroState) {
+    zeroState.style.display = 'flex';
+  }
   updateCategoryCounts();
 }
 
 function showEmailCards() {
-  console.log('📧 Showing email cards...');
-  
-  const zeroState = document.getElementById('zero-state');
+  hideAllStates();
   const emailCardsContainer = document.getElementById('email-cards-container');
-  
-  if (zeroState) zeroState.style.display = 'none';
-  if (emailCardsContainer) emailCardsContainer.style.display = 'grid';
-  
+  if (emailCardsContainer) {
+    emailCardsContainer.style.display = 'grid';
+  }
   renderEmailCards();
 }
 
+function showTrainingMode() {
+  hideAllStates();
+  const trainingMode = document.getElementById('training-mode');
+  if (trainingMode) {
+    trainingMode.style.display = 'block';
+  }
+  renderTrainingCards();
+}
+
+function hideAllStates() {
+  const states = ['loading-state', 'onboarding-state', 'zero-state', 'email-cards-container', 'training-mode', 'error-state'];
+  states.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) element.style.display = 'none';
+  });
+}
+
+// 📧 EMAIL CARD RENDERING
 function renderEmailCards() {
   console.log('🎨 Rendering email cards...');
   
@@ -487,179 +198,321 @@ function renderEmailCards() {
     return;
   }
   
-  container.innerHTML = '';
+  container.innerHTML = emailsToRender.map(email => createEmailCard(email)).join('');
   
-  emailsToRender.forEach(email => {
-    const card = createEmailCard(email);
-    container.appendChild(card);
-  });
+  // Re-initialize Lucide icons for new cards
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
   
   updateCategoryCounts();
 }
 
 function createEmailCard(email) {
-  const card = document.createElement('div');
-  card.className = 'email-card';
-  card.dataset.emailId = email.id;
-  
   const category = CATEGORIES[email.category] || CATEGORIES.urgent;
+  const isSelected = selectedEmails.has(email.id);
   
-  card.innerHTML = `
-    <div class="email-card-header">
-      <div class="email-card-icon" style="background: ${category.color}20; color: ${category.color};">
-        <i data-lucide="${category.icon}"></i>
+  return `
+    <div class="email-card ${isSelected ? 'selected' : ''}" data-email-id="${email.id}" data-category="${email.category}">
+      <div class="card-header">
+        <div class="card-category">
+          <i data-lucide="${category.icon}"></i>
+          <span>${category.label}</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn-icon" onclick="toggleEmailSelection('${email.id}')" title="Select">
+            <i data-lucide="${isSelected ? 'check-square' : 'square'}"></i>
+          </button>
+          <button class="btn-icon" onclick="archiveEmail('${email.id}')" title="Archive">
+            <i data-lucide="archive"></i>
+          </button>
+        </div>
       </div>
-      <div class="email-card-meta">
-        <div class="email-sender">${email.sender}</div>
-        <div class="email-time">${formatTime(email.timestamp)}</div>
+      
+      <div class="card-content">
+        <div class="email-sender">
+          <strong>${email.sender}</strong>
+          <span class="email-time">${formatTime(email.timestamp)}</span>
+        </div>
+        
+        <div class="email-subject">
+          ${email.subject}
+        </div>
+        
+        <div class="email-summary">
+          ${email.summary || email.snippet}
+        </div>
       </div>
-      <div class="email-priority ${email.priority}">${email.priority}</div>
-    </div>
-    
-    <div class="email-card-content">
-      <div class="email-subject">${email.subject}</div>
-      <div class="email-preview">${email.preview}</div>
-    </div>
-    
-    <div class="email-card-actions">
-      <button class="action-btn secondary" onclick="archiveEmail('${email.id}')">
-        <i data-lucide="archive"></i>
-        Archive
-      </button>
-      <button class="action-btn primary" onclick="replyToEmail('${email.id}')">
-        <i data-lucide="reply"></i>
-        Reply
-      </button>
+      
+      <div class="card-footer">
+        <div class="email-actions">
+          <button class="btn-action" onclick="snoozeEmail('${email.id}')">
+            <i data-lucide="clock"></i>
+            <span>Snooze</span>
+          </button>
+          <button class="btn-action" onclick="markImportant('${email.id}')">
+            <i data-lucide="star"></i>
+            <span>Important</span>
+          </button>
+          <button class="btn-action" onclick="replyToEmail('${email.id}')">
+            <i data-lucide="reply"></i>
+            <span>Reply</span>
+          </button>
+        </div>
+        
+        <div class="email-feedback">
+          <button class="btn-feedback" onclick="giveFeedback('${email.id}', 'positive')" title="Good categorization">
+            <i data-lucide="thumbs-up"></i>
+          </button>
+          <button class="btn-feedback" onclick="giveFeedback('${email.id}', 'negative')" title="Wrong categorization">
+            <i data-lucide="thumbs-down"></i>
+          </button>
+        </div>
+      </div>
     </div>
   `;
+}
+
+// 🎓 TRAINING MODE
+function renderTrainingCards() {
+  console.log('🎓 Rendering training cards...');
   
-  // Initialize Lucide icons for this card
+  const container = document.getElementById('training-cards');
+  if (!container) return;
+  
+  const trainingEmails = [
+    {
+      id: 'training-1',
+      sender: 'Dr. Sarah Chen',
+      subject: 'Appointment Confirmation: Tomorrow 2:30 PM',
+      summary: 'Your child\'s annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early.',
+      category: 'urgent'
+    },
+    {
+      id: 'training-2', 
+      sender: 'Jessica Martinez - School Principal',
+      subject: 'Parent-Teacher Conference: This Friday',
+      summary: 'Reminder: Your parent-teacher conference is scheduled for this Friday at 3:00 PM.',
+      category: 'schedule'
+    },
+    {
+      id: 'training-3',
+      sender: 'PTO Newsletter',
+      subject: 'This Week\'s School Events',
+      summary: 'Check out this week\'s events including the bake sale on Friday and early dismissal on Wednesday.',
+      category: 'family'
+    },
+    {
+      id: 'training-4',
+      sender: 'Amazon Prime',
+      subject: 'Your order has shipped',
+      summary: 'Your order #123-4567890-1234567 containing "Organic Baby Formula" will arrive tomorrow between 2-6 PM.',
+      category: 'commerce'
+    }
+  ];
+  
+  container.innerHTML = trainingEmails.map(email => createTrainingCard(email)).join('');
+  
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }
-  
-  return card;
 }
 
-// 🔍 SEARCH AND FILTERING
-function handleSearch() {
-  const searchInput = document.getElementById('decoder-search');
-  const searchClear = document.getElementById('decoder-search-clear');
+function createTrainingCard(email) {
+  const category = CATEGORIES[email.category];
   
-  if (searchInput && searchClear) {
-    searchQuery = searchInput.value.toLowerCase();
-    searchClear.style.display = searchQuery ? 'flex' : 'none';
-    
-    // Filter emails
-    if (searchQuery) {
-      filteredEmails = decodedEmails.filter(email => 
-        email.sender.toLowerCase().includes(searchQuery) ||
-        email.subject.toLowerCase().includes(searchQuery) ||
-        email.preview.toLowerCase().includes(searchQuery)
-      );
-    } else {
-      filteredEmails = [];
-    }
-    
-    renderEmailCards();
-  }
+  return `
+    <div class="training-card" data-training-id="${email.id}">
+      <div class="training-header">
+        <div class="training-category">
+          <i data-lucide="${category.icon}"></i>
+          <span>${category.label}</span>
+        </div>
+        <p class="training-description">${category.description}</p>
+      </div>
+      
+      <div class="training-content">
+        <div class="training-email">
+          <strong>${email.sender}</strong><br>
+          <span class="email-subject">${email.subject}</span><br>
+          <span class="email-body">${email.summary}</span>
+        </div>
+      </div>
+      
+      <div class="training-feedback">
+        <button class="btn-feedback" onclick="giveTrainingFeedback('${email.id}', 'negative')" title="Wrong categorization">
+          <i data-lucide="thumbs-down"></i>
+        </button>
+        <button class="btn-feedback" onclick="giveTrainingFeedback('${email.id}', 'positive')" title="Good categorization">
+          <i data-lucide="thumbs-up"></i>
+        </button>
+      </div>
+    </div>
+  `;
 }
 
-function clearSearch() {
-  const searchInput = document.getElementById('decoder-search');
-  const searchClear = document.getElementById('decoder-search-clear');
-  
-  if (searchInput && searchClear) {
-    searchInput.value = '';
-    searchClear.style.display = 'none';
-    searchQuery = '';
-    filteredEmails = [];
-    renderEmailCards();
-    searchInput.focus();
-  }
-}
-
+// 📊 CATEGORY MANAGEMENT
 function switchCategory(category) {
-  console.log('🔄 Switching to category:', category);
+  console.log(`📊 Switching to category: ${category}`);
   
-  // Update active tab
+  // Update tab states
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('active');
+    btn.classList.toggle('active', btn.dataset.category === category);
   });
-  document.querySelector(`[data-category="${category}"]`)?.classList.add('active');
   
   currentCategory = category;
-  
-  // Filter emails by category
-  if (category === 'all') {
-    filteredEmails = [];
-  } else {
-    filteredEmails = decodedEmails.filter(email => email.category === category);
-  }
-  
-  renderEmailCards();
+  filterEmails();
 }
 
 function updateCategoryCounts() {
-  const emails = filteredEmails.length > 0 ? filteredEmails : decodedEmails;
-  
   const counts = {
-    all: emails.length,
-    urgent: emails.filter(e => e.category === 'urgent').length,
-    schedule: emails.filter(e => e.category === 'schedule').length,
-    family: emails.filter(e => e.category === 'family').length,
-    commerce: emails.filter(e => e.category === 'commerce').length
+    all: decodedEmails.length,
+    urgent: decodedEmails.filter(e => e.category === 'urgent').length,
+    schedule: decodedEmails.filter(e => e.category === 'schedule').length,
+    family: decodedEmails.filter(e => e.category === 'family').length,
+    commerce: decodedEmails.filter(e => e.category === 'commerce').length
   };
   
   Object.entries(counts).forEach(([category, count]) => {
-    const countElement = document.getElementById(`count-${category}`);
-    if (countElement) {
-      countElement.textContent = count;
-    }
+    const element = document.getElementById(`count-${category}`);
+    if (element) element.textContent = count;
   });
 }
 
-// 📧 EMAIL PROCESSING
+// 🎛️ EMAIL ACTIONS
+function toggleEmailSelection(emailId) {
+  if (selectedEmails.has(emailId)) {
+    selectedEmails.delete(emailId);
+  } else {
+    selectedEmails.add(emailId);
+  }
+  
+  updateSelectionUI();
+  renderEmailCards(); // Re-render to update selection state
+}
+
+function toggleSelectAll() {
+  const emailsToSelect = filteredEmails.length > 0 ? filteredEmails : decodedEmails;
+  
+  if (selectedEmails.size === emailsToSelect.length) {
+    selectedEmails.clear();
+  } else {
+    emailsToSelect.forEach(email => selectedEmails.add(email.id));
+  }
+  
+  updateSelectionUI();
+  renderEmailCards();
+}
+
+function updateSelectionUI() {
+  const selectedCount = selectedEmails.size;
+  const bottomActions = document.getElementById('bottom-actions');
+  const selectedCountElement = document.getElementById('selected-count');
+  
+  if (selectedCount > 0) {
+    bottomActions.classList.add('visible');
+    selectedCountElement.textContent = `${selectedCount} selected`;
+  } else {
+    bottomActions.classList.remove('visible');
+  }
+}
+
+// 🚀 EMAIL PROCESSING
 async function processEmails() {
+  console.log('🚀 Processing emails...');
+  
   if (isProcessing) return;
   
-  console.log('🔄 Processing emails...');
   isProcessing = true;
-  
-  const processBtn = document.getElementById('process-btn');
-  if (processBtn) {
-    processBtn.classList.add('processing');
-    processBtn.innerHTML = '<i data-lucide="loader-2" class="spinning"></i> Processing...';
-  }
+  showLoadingState();
   
   try {
     const userId = getCurrentUserId();
-    const response = await fetch('/api/process-emails', {
+    if (!userId) {
+      throw new Error('No user ID found');
+    }
+    
+    // Show processing animation
+    const loadingContent = document.querySelector('.loading-content h3');
+    const messages = [
+      'Scanning your inbox...',
+      'Detecting calendar invites, receipts, school messages...',
+      'Learning your communication patterns...',
+      'Organizing by priority...'
+    ];
+    
+    let messageIndex = 0;
+    const messageInterval = setInterval(() => {
+      if (loadingContent && messageIndex < messages.length) {
+        loadingContent.textContent = messages[messageIndex];
+        messageIndex++;
+      }
+    }, 2000);
+    
+    // Call the correct email processing endpoint
+    const response = await fetch('/api/email-decoder/process', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ userId })
+      body: JSON.stringify({ user_id: userId })
     });
     
-    if (response.ok) {
-      const result = await response.json();
-      decodedEmails = result.emails || [];
-      showEmailCards();
-      showSuccess(`Processed ${decodedEmails.length} emails successfully!`);
-    } else {
-      throw new Error('Failed to process emails');
+    clearInterval(messageInterval);
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      if (result.needsReauth) {
+        // Show reauthorization message with button to reconnect
+        showError(`
+          <div style="text-align: center;">
+            <h3 style="color: #dc2626; margin-bottom: 1rem;">Gmail Connection Expired</h3>
+            <p style="color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
+              Your Gmail connection has expired. Please reconnect to continue using the email decoder.
+            </p>
+            <button onclick="connectGmail()" class="btn-primary" style="
+              background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+              color: white;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 8px;
+              font-weight: 600;
+              cursor: pointer;
+              margin-right: 12px;
+            ">Reconnect Gmail</button>
+            <button onclick="hideAllStates()" class="btn-secondary" style="
+              background: #f1f5f9;
+              color: #64748b;
+              border: 1px solid #e2e8f0;
+              padding: 12px 24px;
+              border-radius: 8px;
+              font-weight: 600;
+              cursor: pointer;
+            ">Cancel</button>
+          </div>
+        `);
+      } else {
+        throw new Error(result.error || 'Failed to process emails');
+      }
+      return;
     }
+    
+    decodedEmails = result.emails || [];
+    
+    console.log(`✅ Processed ${decodedEmails.length} emails`);
+    
+    if (decodedEmails.length === 0) {
+      showZeroState();
+    } else {
+      showEmailCards();
+    }
+    
   } catch (error) {
-    console.error('❌ Email processing error:', error);
-    showError('Failed to process emails. Please try again.');
+    console.error('❌ Error processing emails:', error);
+    showError(`Failed to process emails: ${error.message}`);
   } finally {
     isProcessing = false;
-    
-    if (processBtn) {
-      processBtn.classList.remove('processing');
-      processBtn.innerHTML = '<i data-lucide="play"></i> Process Emails';
-    }
   }
 }
 
@@ -668,144 +521,301 @@ async function refreshEmails() {
   await processEmails();
 }
 
-// 🎛️ EMAIL ACTIONS
+// 📧 EMAIL ACTIONS
 async function archiveEmail(emailId) {
-  console.log('📦 Archiving email:', emailId);
-  
-  try {
-    const response = await fetch(`/api/emails/${emailId}/archive`, { method: 'POST' });
-    if (response.ok) {
-      decodedEmails = decodedEmails.filter(e => e.id !== emailId);
-      renderEmailCards();
-      showSuccess('Email archived successfully');
-    }
-  } catch (error) {
-    console.error('❌ Archive error:', error);
-    showError('Failed to archive email');
-  }
+  console.log(`📧 Archiving email: ${emailId}`);
+  // TODO: Implement archive functionality
+  showSuccess('Email archived');
+}
+
+async function snoozeEmail(emailId) {
+  console.log(`📧 Snoozing email: ${emailId}`);
+  // TODO: Implement snooze functionality
+  showSuccess('Email snoozed');
+}
+
+async function markImportant(emailId) {
+  console.log(`📧 Marking email as important: ${emailId}`);
+  // TODO: Implement mark important functionality
+  showSuccess('Email marked as important');
 }
 
 async function replyToEmail(emailId) {
-  console.log('💬 Replying to email:', emailId);
-  
-  const email = decodedEmails.find(e => e.id === emailId);
-  if (email) {
-    // Open compose window or redirect to Gmail
-    window.open(`https://mail.google.com/mail/u/0/#compose?to=${encodeURIComponent(email.sender)}&subject=${encodeURIComponent('Re: ' + email.subject)}`);
-  }
+  console.log(`📧 Replying to email: ${emailId}`);
+  // TODO: Implement reply functionality
+  showSuccess('Opening reply composer');
 }
 
-async function bulkArchive() {
-  console.log('📦 Bulk archiving emails...');
-  
-  if (selectedEmails.size === 0) {
-    showError('No emails selected');
-    return;
-  }
+// 🎓 FEEDBACK SYSTEM
+async function giveFeedback(emailId, feedback) {
+  console.log(`🎓 Giving feedback: ${feedback} for email: ${emailId}`);
   
   try {
-    const response = await fetch('/api/emails/bulk-archive', {
+    const response = await fetch('/api/feedback', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emailIds: Array.from(selectedEmails) })
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        emailId,
+        feedback,
+        userId: getCurrentUserId()
+      })
     });
     
     if (response.ok) {
-      decodedEmails = decodedEmails.filter(e => !selectedEmails.has(e.id));
-      selectedEmails.clear();
-      renderEmailCards();
-      updateSelectionUI();
-      showSuccess(`Archived ${selectedEmails.size} emails`);
+      showSuccess('Thank you for your feedback!');
     }
   } catch (error) {
-    console.error('❌ Bulk archive error:', error);
-    showError('Failed to archive emails');
+    console.error('❌ Error submitting feedback:', error);
   }
 }
 
+async function giveTrainingFeedback(emailId, feedback) {
+  console.log(`🎓 Training feedback: ${emailId} - ${feedback}`);
+  
+  // Mark the training card as completed
+  const trainingCard = document.querySelector(`[data-training-id="${emailId}"]`);
+  if (trainingCard) {
+    trainingCard.style.opacity = '0.5';
+    trainingCard.style.pointerEvents = 'none';
+  }
+  
+  // Check if all training cards are completed
+  const allTrainingCards = document.querySelectorAll('.training-card');
+  const completedCards = document.querySelectorAll('.training-card[style*="opacity: 0.5"]');
+  
+  if (completedCards.length === allTrainingCards.length) {
+    // All training completed - transition to full decoder
+    setTimeout(() => {
+      completeTraining();
+    }, 1000);
+  }
+}
+
+// Function to transition from training to full decoder
+function completeTraining() {
+  console.log('🎓 Training completed, transitioning to full decoder...');
+  
+  // Hide training mode
+  const trainingMode = document.getElementById('training-mode');
+  if (trainingMode) {
+    trainingMode.style.display = 'none';
+  }
+  
+  // Show the full decoder with the 4 categories
+  showEmailCards();
+  
+  // Process real emails
+  processEmails();
+}
+
+// 🎛️ BULK ACTIONS
+async function bulkArchive() {
+  if (selectedEmails.size === 0) return;
+  
+  console.log(`📧 Bulk archiving ${selectedEmails.size} emails`);
+  // TODO: Implement bulk archive
+  showSuccess(`${selectedEmails.size} emails archived`);
+  selectedEmails.clear();
+  updateSelectionUI();
+  renderEmailCards();
+}
+
 async function bulkSnooze() {
-  console.log('⏰ Bulk snoozing emails...');
-  showError('Snooze functionality coming soon');
+  if (selectedEmails.size === 0) return;
+  
+  console.log(`📧 Bulk snoozing ${selectedEmails.size} emails`);
+  // TODO: Implement bulk snooze
+  showSuccess(`${selectedEmails.size} emails snoozed`);
+  selectedEmails.clear();
+  updateSelectionUI();
+  renderEmailCards();
 }
 
 async function bulkMarkImportant() {
-  console.log('⭐ Bulk marking emails as important...');
-  showError('Mark important functionality coming soon');
+  if (selectedEmails.size === 0) return;
+  
+  console.log(`📧 Bulk marking ${selectedEmails.size} emails as important`);
+  // TODO: Implement bulk mark important
+  showSuccess(`${selectedEmails.size} emails marked as important`);
+  selectedEmails.clear();
+  updateSelectionUI();
+  renderEmailCards();
 }
 
-// 🛠️ UTILITY FUNCTIONS
+// 🔧 UTILITY FUNCTIONS
 function getCurrentUserId() {
-  // Get user ID from localStorage or generate a test one
-  return localStorage.getItem('homeops_user_id') || 'test_user';
+  // TODO: Get from Firebase Auth or session
+  return 'test_user';
 }
 
 function formatTime(timestamp) {
-  if (!timestamp) return '';
-  
   const date = new Date(timestamp);
   const now = new Date();
-  const diffMs = now - date;
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diff = now - date;
   
-  if (diffHours < 1) return 'Just now';
-  if (diffHours < 24) return `${diffHours}h ago`;
-  
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
-  
+  if (diff < 60000) return 'Just now';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
   return date.toLocaleDateString();
 }
 
 function showSuccess(message) {
-  console.log('✅ Success:', message);
-  // You can implement a toast notification here
+  // TODO: Implement toast notification
+  console.log(`✅ ${message}`);
 }
 
 function showError(message) {
-  console.error('❌ Error:', message);
-  // You can implement a toast notification here
+  console.error(`❌ ${message}`);
+  
+  // Hide all other states
+  hideAllStates();
+  
+  // Show error state
+  const errorState = document.getElementById('error-state');
+  const errorMessage = document.getElementById('error-message');
+  
+  if (errorState && errorMessage) {
+    errorMessage.textContent = message;
+    errorState.style.display = 'flex';
+  } else {
+    // Fallback if error state doesn't exist
+    console.error('Error state container not found');
+  }
 }
 
+// Function to retry from error state
 function retryFromError() {
-  console.log('🔄 Retrying from error...');
-  determineCurrentStep();
+  console.log('🔄 Retrying from error state...');
+  
+  // Hide error state
+  const errorState = document.getElementById('error-state');
+  if (errorState) {
+    errorState.style.display = 'none';
+  }
+  
+  // Try to process emails again
+  processEmails();
 }
 
-// 🎯 VIEW ACTIVATION HANDLER
-function onDashboardViewActivated() {
-  console.log('🎯 Dashboard view activated, initializing decoder...');
-  initializeDecoder();
+// 🔍 GMAIL CONNECTION
+async function checkGmailConnection() {
+  try {
+    const userId = getCurrentUserId();
+    
+    // Show loading state while checking
+    showLoadingState();
+    
+    const response = await fetch(`/api/gmail/status?userId=${userId}`);
+    
+    if (response.ok) {
+      const { connected } = await response.json();
+      
+      if (!connected) {
+        // Show onboarding step 1: Gmail connection
+        showOnboardingState();
+      } else {
+        // Gmail is connected, check if we have processed emails
+        loadExistingEmails(userId);
+      }
+    } else {
+      // If we can't check status, show onboarding
+      showOnboardingState();
+    }
+  } catch (error) {
+    console.error('❌ Error checking Gmail connection:', error);
+    // If there's an error, show onboarding
+    showOnboardingState();
+  }
 }
 
-// Export for global access
-window.onDashboardViewActivated = onDashboardViewActivated;
-window.connectGmail = connectGmail;
-window.completeTraining = completeTraining;
-window.processEmails = processEmails;
-window.refreshEmails = refreshEmails;
+async function loadExistingEmails(userId) {
+  try {
+    const response = await fetch(`/api/emails?userId=${userId}`);
+    
+    if (response.ok) {
+      const result = await response.json();
+      decodedEmails = result.emails || [];
+      
+      if (decodedEmails.length === 0) {
+        // No processed emails yet - show training mode first
+        showTrainingMode();
+      } else {
+        // We have processed emails - show the full decoder
+        showEmailCards();
+      }
+    } else {
+      // If we can't load emails, show training mode
+      showTrainingMode();
+    }
+  } catch (error) {
+    console.error('❌ Error loading existing emails:', error);
+    // If there's an error, show training mode
+    showTrainingMode();
+  }
+}
+
+// Gmail connection function
+async function connectGmail() {
+  console.log('🔗 Connecting Gmail...');
+  
+  const userId = getCurrentUserId();
+  if (!userId) {
+    showError('No user ID found. Please log in again.');
+    return;
+  }
+  
+  try {
+    // Show connecting state
+    showLoadingState();
+    const loadingContent = document.querySelector('.loading-content h3');
+    if (loadingContent) {
+      loadingContent.textContent = 'Connecting to Gmail...';
+    }
+    
+    // Get OAuth URL from backend
+    const response = await fetch('/api/gmail/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user_id: userId })
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to get Gmail OAuth URL');
+    }
+    
+    // Redirect to Gmail OAuth
+    window.location.href = result.authUrl;
+    
+  } catch (error) {
+    console.error('❌ Gmail connection error:', error);
+    showError(`Failed to connect Gmail: ${error.message}`);
+  }
+}
+
+// 🌐 GLOBAL FUNCTIONS (for onclick handlers)
+window.toggleEmailSelection = toggleEmailSelection;
 window.archiveEmail = archiveEmail;
+window.snoozeEmail = snoozeEmail;
+window.markImportant = markImportant;
 window.replyToEmail = replyToEmail;
-window.bulkArchive = bulkArchive;
-window.bulkSnooze = bulkSnooze;
-window.bulkMarkImportant = bulkMarkImportant;
+window.giveFeedback = giveFeedback;
+window.giveTrainingFeedback = giveTrainingFeedback;
+window.connectGmail = connectGmail;
+window.initializeDecoder = initializeDecoder;
 window.retryFromError = retryFromError;
-window.submitTrainingFeedback = submitTrainingFeedback;
-window.skipTrainingEmail = skipTrainingEmail;
 
-// Lock down onboarding page if not connected
-function showGmailConnectScreen() {
-  document.body.style.overflow = 'hidden';
-  document.documentElement.style.overflow = 'hidden';
-  // Hide all other dashboard UI
-  document.getElementById('decoder-app').innerHTML = `
-    <div class="superhuman-onboarding-bg">
-      <div class="superhuman-onboarding-center">
-        <img src="img/homeops-logo.svg" alt="HomeOps Logo" class="superhuman-logo" />
-        <h1 class="superhuman-title">Save 4 hours per person<br>every single week</h1>
-        <button class="superhuman-gmail-btn" onclick="connectGmail()">
-          <span class="superhuman-gmail-icon">📧</span> Connect Gmail
-        </button>
-      </div>
-    </div>
-  `;
-} 
+// Global function to initialize decoder when dashboard view is activated
+window.initializeDashboardDecoder = function() {
+  console.log('🎯 Dashboard view activated, initializing decoder...');
+  setTimeout(() => {
+    initializeDecoder();
+    setupEventListeners();
+    checkInitialState();
+  }, 100); // Small delay to ensure DOM is ready
+}; 

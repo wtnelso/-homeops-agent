@@ -9,13 +9,11 @@ html, body {
 }
 
 body {
-  background: #f5f6fa;
-  color: #222;
-  font-family: system-ui, sans-serif;
+  background: linear-gradient(135deg, #181c2a 0%, #2a1a3c 100%) !important;
   min-height: 100vh;
-  height: 100vh;
-  width: 100vw;
-  display: flex;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'San Francisco', 'SF Pro Display', Arial, sans-serif;
 }
 
 body.dark {
@@ -6216,51 +6214,58 @@ body > i,
 
 #onboarding-state {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  background: none;
+}
+
+.onboarding-content {
   background: #fff;
-  box-shadow: none;
-  border-radius: 0;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(102, 123, 234, 0.08);
+  padding: 5rem 2rem 4rem 2rem;
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
 }
 
-#onboarding-state img {
-  width: 168px !important;
-  margin-bottom: 2.5rem;
-  opacity: 0.95;
-}
-
-#onboarding-state h2 {
-  font-size: 2.4rem;
-  font-weight: 800;
-  margin-bottom: 1.2rem;
-  background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-#onboarding-state p {
-  color: #64748b;
-  font-size: 1.15rem;
-  margin-bottom: 2.2rem;
-  max-width: 420px;
-}
-
-#onboarding-state .gmail-connect-btn {
-  margin-bottom: 2.2rem;
-}
-
-#onboarding-state .secure-note {
-  font-size: 1rem;
-  color: #64748b;
-  margin-top: 0.5rem;
+.gmail-connect-btn {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%) !important;
+  color: #fff !important;
+  font-size: 1.25rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 16px;
+  padding: 1.2rem 2.8rem;
+  margin: 0 auto 2.2rem auto;
+  box-shadow: 0 4px 24px rgba(160, 102, 232, 0.10);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, border 0.2s;
+  width: 100%;
+  max-width: 340px;
 }
 
-/* Remove any top nav/button styles from onboarding */
-#onboarding-state .top-nav, #onboarding-state .top-buttons {
+.gmail-connect-btn:hover, .gmail-connect-btn:focus {
+  background: linear-gradient(90deg, #b57be9 0%, #e48fff 100%) !important;
+  box-shadow: 0 6px 32px rgba(209, 107, 229, 0.18);
+  border: none;
+}
+
+/* Hide all nav/header/dashboard controls when onboarding is active */
+.top-nav, .header, .main-nav, .dashboard-header, #dashboard-controls {
   display: none !important;
+}
+
+/* Make sure the logo is large and centered */
+.onboarding-content img[alt="HomeOps Logo"] {
+  width: 168px !important;
+  margin-bottom: 2.5rem;
+  opacity: 0.97;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
