@@ -131,6 +131,7 @@ function showOnboardingState() {
   const onboardingState = document.getElementById('onboarding-state');
   if (onboardingState) {
     onboardingState.style.display = 'flex';
+    initializeWizard();
   }
 }
 
@@ -830,4 +831,105 @@ window.debugTokens = async function() {
     console.error('❌ Debug error:', error);
     alert('❌ Debug error: ' + error.message);
   }
-}; 
+};
+
+// 🎯 WIZARD NAVIGATION FUNCTIONS
+function showWizardStep(stepNumber) {
+  // Hide all steps
+  document.querySelectorAll('.wizard-step').forEach(step => {
+    step.style.display = 'none';
+    step.classList.remove('active');
+  });
+  
+  // Show current step
+  const currentStep = document.getElementById(`step-${stepNumber}`);
+  if (currentStep) {
+    currentStep.style.display = 'block';
+    setTimeout(() => currentStep.classList.add('active'), 50);
+  }
+  
+  // Update progress indicators
+  updateProgressIndicator(stepNumber);
+}
+
+function updateProgressIndicator(currentStep) {
+  const progressSteps = document.querySelectorAll('.progress-step');
+  const progressLines = document.querySelectorAll('.progress-line');
+  
+  progressSteps.forEach((step, index) => {
+    const stepNumber = index + 1;
+    step.classList.remove('active', 'completed');
+    
+    if (stepNumber < currentStep) {
+      step.classList.add('completed');
+    } else if (stepNumber === currentStep) {
+      step.classList.add('active');
+    }
+  });
+  
+  progressLines.forEach((line, index) => {
+    const lineNumber = index + 1;
+    line.classList.remove('completed');
+    
+    if (lineNumber < currentStep) {
+      line.classList.add('completed');
+    }
+  });
+}
+
+// 🚀 ONBOARDING FLOW FUNCTIONS
+function completeOnboarding() {
+  console.log('✅ Onboarding completed');
+  showWizardStep(4);
+}
+
+function finishOnboarding() {
+  console.log('🎉 Onboarding finished - showing main decoder');
+  hideAllStates();
+  showEmailCards();
+}
+
+// Override the existing connectGmail function to advance to step 2
+const originalConnectGmail = window.connectGmail;
+window.connectGmail = function() {
+  console.log('🔗 Gmail connection initiated');
+  // Call the original function
+  if (originalConnectGmail) {
+    originalConnectGmail();
+  }
+  
+  // Simulate successful connection and advance to step 2
+  setTimeout(() => {
+    console.log('✅ Gmail connected successfully');
+    showWizardStep(2);
+  }, 1000);
+};
+
+// Override the existing processEmails function to advance to step 3
+const originalProcessEmails = window.processEmails;
+window.processEmails = function() {
+  console.log('⚡ Email processing initiated');
+  
+  // Show loading state
+  showLoadingState();
+  
+  // Call the original function
+  if (originalProcessEmails) {
+    originalProcessEmails();
+  }
+  
+  // Simulate processing completion and advance to step 3
+  setTimeout(() => {
+    console.log('✅ Email processing completed');
+    hideAllStates();
+    showWizardStep(3);
+  }, 2000);
+};
+
+// Initialize wizard when onboarding state is shown
+function initializeWizard() {
+  console.log('🎯 Initializing onboarding wizard');
+  showWizardStep(1);
+}
+
+// 🎯 STATE CONTAINERS */ 

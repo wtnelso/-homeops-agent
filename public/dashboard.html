@@ -745,20 +745,222 @@
               </div>
             </div>
 
-            <!-- 🚀 ONBOARDING STEP 1: GMAIL CONNECTION -->
+            <!-- 🚀 STEP-BY-STEP ONBOARDING WIZARD -->
             <div id="onboarding-state" class="state-container" style="display: none;">
-              <div class="onboarding-content" style="text-align: center; padding: 5rem 2rem 4rem 2rem; max-width: 480px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 8px 32px rgba(102, 123, 234, 0.08);">
-                <img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width: 168px; margin-bottom: 2.5rem; opacity: 0.97;" />
-                <h2 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 1.2rem; background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Connect your Gmail</h2>
-                <p style="font-size: 1.15rem; color: #64748b; margin-bottom: 2.2rem; line-height: 1.6;">To get started, securely connect your Gmail. HomeOps will never send or modify your emails—only help you organize and surface what matters most.</p>
-                <button onclick="connectGmail()" class="gmail-connect-btn" style="margin-bottom: 2.2rem; font-size: 1.25rem; font-weight: 700; width: 100%; max-width: 340px; display: flex; align-items: center; justify-content: center;">
-                  <svg style="margin-right: 0.7rem; width: 1.5em; height: 1.5em; vertical-align: middle;" viewBox="0 0 24 24" fill="none"><path d="M20.16 4.61A2.75 2.75 0 0 0 18.25 4H5.75a2.75 2.75 0 0 0-2.75 2.75v10.5A2.75 2.75 0 0 0 5.75 20h12.5a2.75 2.75 0 0 0 2.75-2.75V6.75a2.75 2.75 0 0 0-.84-2.14ZM5.75 5.5h12.5c.69 0 1.25.56 1.25 1.25v.46l-7 4.67-7-4.67v-.46c0-.69.56-1.25 1.25-1.25Zm13.25 3.13v8.62c0 .69-.56 1.25-1.25 1.25H5.75c-.69 0-1.25-.56-1.25-1.25V8.63l7.36 4.91a.75.75 0 0 0 .78 0l7.36-4.91Z" fill="#fff"/></svg>
-                  Connect Gmail
-                </button>
-                <div style="margin-top: 1.2rem; color: #64748b; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
-                  <svg style="width: 1.2em; height: 1.2em; margin-right: 0.4em;" viewBox="0 0 24 24" fill="none"><path d="M12 17a2 2 0 0 0 2-2v-2a2 2 0 0 0-4 0v2a2 2 0 0 0 2 2Zm6-6V9a6 6 0 1 0-12 0v2a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2Zm-8-2a4 4 0 1 1 8 0v2H6V9Zm10 9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v5Z" fill="#64748b"/></svg>
-                  Secure & Private. Disconnect anytime.
+              <div class="onboarding-wizard" style="text-align: center; padding: 3rem 2rem; max-width: 600px; margin: 0 auto;">
+                
+                <!-- Step 1: Connect Gmail -->
+                <div id="step-1" class="wizard-step active">
+                  <div class="step-number">1</div>
+                  <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Connect Your Gmail</h2>
+                  <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
+                    First, securely connect your Gmail account. HomeOps will only read your emails to help organize them—we never send or modify anything.
+                  </p>
+                  <button onclick="connectGmail()" class="wizard-btn primary" style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    padding: 1rem 2rem;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    margin: 0 auto;
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+                    transition: all 0.2s;
+                  ">
+                    <svg style="width: 1.2em; height: 1.2em;" viewBox="0 0 24 24" fill="none">
+                      <path d="M20.16 4.61A2.75 2.75 0 0 0 18.25 4H5.75a2.75 2.75 0 0 0-2.75 2.75v10.5A2.75 2.75 0 0 0 5.75 20h12.5a2.75 2.75 0 0 0 2.75-2.75V6.75a2.75 2.75 0 0 0-.84-2.14ZM5.75 5.5h12.5c.69 0 1.25.56 1.25 1.25v.46l-7 4.67-7-4.67v-.46c0-.69.56-1.25 1.25-1.25Zm13.25 3.13v8.62c0 .69-.56 1.25-1.25 1.25H5.75c-.69 0-1.25-.56-1.25-1.25V8.63l7.36 4.91a.75.75 0 0 0 .78 0l7.36-4.91Z" fill="#fff"/>
+                    </svg>
+                    Connect Gmail
+                  </button>
+                  <div style="margin-top: 1.5rem; color: #64748b; font-size: 0.9rem;">
+                    🔒 Secure & Private • Disconnect anytime
+                  </div>
                 </div>
+
+                <!-- Step 2: Process Emails -->
+                <div id="step-2" class="wizard-step" style="display: none;">
+                  <div class="step-number">2</div>
+                  <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Process Your Emails</h2>
+                  <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
+                    Now let's analyze your inbox and organize your emails into categories. This will take a few moments.
+                  </p>
+                  <button onclick="processEmails()" class="wizard-btn primary" style="
+                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                    color: white;
+                    border: none;
+                    padding: 1rem 2rem;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    margin: 0 auto;
+                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                    transition: all 0.2s;
+                  ">
+                    <svg style="width: 1.2em; height: 1.2em;" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9zM7 10h5v5H7z" fill="#fff"/>
+                    </svg>
+                    Start Processing
+                  </button>
+                  <div style="margin-top: 1.5rem; color: #64748b; font-size: 0.9rem;">
+                    ⚡ AI-powered analysis • Categorizes automatically
+                  </div>
+                </div>
+
+                <!-- Step 3: Review & Train -->
+                <div id="step-3" class="wizard-step" style="display: none;">
+                  <div class="step-number">3</div>
+                  <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Review & Train</h2>
+                  <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
+                    Help us learn your preferences by giving thumbs up/down to email categorizations. This makes the decoder smarter for you.
+                  </p>
+                  <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+                      <button class="wizard-btn secondary" style="
+                        background: #f1f5f9;
+                        color: #64748b;
+                        border: 1px solid #e2e8f0;
+                        padding: 0.75rem 1.5rem;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                      ">
+                        <svg style="width: 1em; height: 1em;" viewBox="0 0 24 24" fill="none">
+                          <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" fill="#64748b"/>
+                        </svg>
+                        Thumbs Up
+                      </button>
+                      <button class="wizard-btn secondary" style="
+                        background: #f1f5f9;
+                        color: #64748b;
+                        border: 1px solid #e2e8f0;
+                        padding: 0.75rem 1.5rem;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                      ">
+                        <svg style="width: 1em; height: 1em;" viewBox="0 0 24 24" fill="none">
+                          <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" fill="#64748b"/>
+                        </svg>
+                        Thumbs Down
+                      </button>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #64748b; margin: 0;">
+                      Click the buttons above to rate email categorizations
+                    </p>
+                  </div>
+                  <button onclick="completeOnboarding()" class="wizard-btn primary" style="
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    color: white;
+                    border: none;
+                    padding: 1rem 2rem;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    margin: 0 auto;
+                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+                    transition: all 0.2s;
+                  ">
+                    <svg style="width: 1.2em; height: 1.2em;" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="#fff"/>
+                    </svg>
+                    Complete Setup
+                  </button>
+                </div>
+
+                <!-- Step 4: Add to Calendar -->
+                <div id="step-4" class="wizard-step" style="display: none;">
+                  <div class="step-number">4</div>
+                  <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Add Events to Calendar</h2>
+                  <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
+                    Found events in your emails? Add them directly to your calendar with one click.
+                  </p>
+                  <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+                      <button class="wizard-btn secondary" style="
+                        background: #f1f5f9;
+                        color: #64748b;
+                        border: 1px solid #e2e8f0;
+                        padding: 0.75rem 1.5rem;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                      ">
+                        <svg style="width: 1em; height: 1em;" viewBox="0 0 24 24" fill="none">
+                          <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" fill="#64748b"/>
+                        </svg>
+                        Add to Calendar
+                      </button>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #64748b; margin: 0;">
+                      Click to add detected events to your calendar
+                    </p>
+                  </div>
+                  <button onclick="finishOnboarding()" class="wizard-btn primary" style="
+                    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+                    color: white;
+                    border: none;
+                    padding: 1rem 2rem;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    margin: 0 auto;
+                    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+                    transition: all 0.2s;
+                  ">
+                    <svg style="width: 1.2em; height: 1.2em;" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="#fff"/>
+                    </svg>
+                    You're All Set!
+                  </button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="wizard-progress" style="
+                  margin-top: 3rem;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  gap: 1rem;
+                ">
+                  <div class="progress-step active" data-step="1">1</div>
+                  <div class="progress-line"></div>
+                  <div class="progress-step" data-step="2">2</div>
+                  <div class="progress-line"></div>
+                  <div class="progress-step" data-step="3">3</div>
+                  <div class="progress-line"></div>
+                  <div class="progress-step" data-step="4">4</div>
+                </div>
+
               </div>
             </div>
 
