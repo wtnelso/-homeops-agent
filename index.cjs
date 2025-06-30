@@ -35,51 +35,6 @@ process.on('unhandledRejection', (reason, promise) => {
 // Add lightweight development mode for local testing
 const isDevelopment = process.env.NODE_ENV === 'development' || process.env.DEV_MODE === 'true';
 
-// Add more aggressive memory monitoring and process protection
-setInterval(() => {
-  const memUsage = process.memoryUsage();
-  const rssMB = Math.round(memUsage.rss / 1024 / 1024);
-  const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
-  
-  // Only log memory usage in development mode to reduce noise
-  if (isDevelopment) {
-    console.log('🔍 Memory Usage:', {
-      rss: rssMB + 'MB',
-      heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
-      heapUsed: heapUsedMB + 'MB',
-      external: Math.round(memUsage.external / 1024 / 1024) + 'MB'
-    });
-  }
-  
-  // More aggressive garbage collection for memory-constrained systems
-  const gcThreshold = 30; // Very low threshold to prevent kills
-  if (heapUsedMB > gcThreshold) {
-    console.log(`🧹 High memory usage detected (${heapUsedMB}MB), forcing garbage collection...`);
-    if (global.gc) {
-      global.gc();
-    }
-  }
-  
-  // Log warning if memory usage is very high
-  const warningThreshold = 100; // Lower warning threshold
-  if (rssMB > warningThreshold) {
-    console.warn(`⚠️ Very high memory usage detected: ${rssMB}MB`);
-  }
-}, 15000); // Check every 15 seconds for aggressive monitoring
-
-// Add process monitoring to prevent kills
-let lastActivity = Date.now();
-setInterval(() => {
-  const now = Date.now();
-  const timeSinceLastActivity = now - lastActivity;
-  
-  // If no activity for 2 minutes, log to show the process is alive
-  if (timeSinceLastActivity > 120000) {
-    console.log('💓 Process heartbeat - server is alive and monitoring');
-    lastActivity = now;
-  }
-}, 120000); // Every 2 minutes
-
 // Knowledge chunks cache to prevent memory leaks
 let knowledgeChunksCache = null;
 let cacheTimestamp = null;
