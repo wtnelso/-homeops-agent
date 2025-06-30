@@ -5,7 +5,7 @@ console.log('🚀 HomeOps Decoder loaded - Premium UI v2.0');
 
 // Global state
 let decodedEmails = [];
-let filteredEmails = [];
+
 let selectedEmails = new Set();
 let currentCategory = 'all';
 let isProcessing = false;
@@ -87,22 +87,7 @@ function setupEventListeners() {
   document.getElementById('process-btn')?.addEventListener('click', processEmails);
   document.getElementById('process-again-btn')?.addEventListener('click', processEmails);
   
-  // Search functionality
-  const searchInput = document.getElementById('decoder-search');
-  const searchClear = document.getElementById('decoder-search-clear');
-  
-  if (searchInput && searchClear) {
-    searchInput.addEventListener('input', () => {
-      searchClear.style.display = searchInput.value ? 'flex' : 'none';
-      // Optionally, trigger search/filter here
-    });
-    searchClear.addEventListener('click', () => {
-      searchInput.value = '';
-      searchClear.style.display = 'none';
-      searchInput.focus();
-      // Optionally, reset search/filter here
-    });
-  }
+
   
   // Category tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -191,7 +176,7 @@ function renderEmailCards() {
   const container = document.getElementById('email-cards-container');
   if (!container) return;
   
-  const emailsToRender = filteredEmails.length > 0 ? filteredEmails : decodedEmails;
+  const emailsToRender = decodedEmails;
   
   if (emailsToRender.length === 0) {
     showZeroState();
@@ -392,7 +377,7 @@ function toggleEmailSelection(emailId) {
 }
 
 function toggleSelectAll() {
-  const emailsToSelect = filteredEmails.length > 0 ? filteredEmails : decodedEmails;
+      const emailsToSelect = decodedEmails;
   
   if (selectedEmails.size === emailsToSelect.length) {
     selectedEmails.clear();
@@ -450,6 +435,7 @@ async function processEmails() {
     }, 2000);
     
     // Call the correct email processing endpoint
+    console.log('🔍 Calling email processing endpoint with user_id:', userId);
     const response = await fetch('/api/email-decoder/process', {
       method: 'POST',
       headers: {
@@ -458,9 +444,13 @@ async function processEmails() {
       body: JSON.stringify({ user_id: userId })
     });
     
+    console.log('🔍 Response status:', response.status);
+    console.log('🔍 Response headers:', response.headers);
+    
     clearInterval(messageInterval);
     
     const result = await response.json();
+    console.log('🔍 Response result:', result);
     
     if (!response.ok) {
       if (result.needsReauth) {
