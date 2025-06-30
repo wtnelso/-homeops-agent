@@ -417,19 +417,51 @@ async function processEmails() {
     const response = await fetch('/api/email-decoder/process', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ user_id: userId })
     });
     
     clearInterval(messageInterval);
     
+    const result = await response.json();
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      if (result.needsReauth) {
+        // Show reauthorization message with button to reconnect
+        showError(`
+          <div style="text-align: center;">
+            <h3 style="color: #dc2626; margin-bottom: 1rem;">Gmail Connection Expired</h3>
+            <p style="color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
+              Your Gmail connection has expired. Please reconnect to continue using the email decoder.
+            </p>
+            <button onclick="connectGmail()" class="btn-primary" style="
+              background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+              color: white;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 8px;
+              font-weight: 600;
+              cursor: pointer;
+              margin-right: 12px;
+            ">Reconnect Gmail</button>
+            <button onclick="hideAllStates()" class="btn-secondary" style="
+              background: #f1f5f9;
+              color: #64748b;
+              border: 1px solid #e2e8f0;
+              padding: 12px 24px;
+              border-radius: 8px;
+              font-weight: 600;
+              cursor: pointer;
+            ">Cancel</button>
+          </div>
+        `);
+      } else {
+        throw new Error(result.error || 'Failed to process emails');
+      }
+      return;
     }
     
-    const result = await response.json();
     decodedEmails = result.emails || [];
     
     console.log(`✅ Processed ${decodedEmails.length} emails`);
@@ -652,6 +684,48 @@ async function loadExistingEmails(userId) {
   } catch (error) {
     console.error('❌ Error loading existing emails:', error);
     showZeroState();
+  }
+}
+
+// Gmail connection function
+async function connectGmail() {
+  console.log('🔗 Connecting Gmail...');
+  
+  const userId = getCurrentUserId();
+  if (!userId) {
+    showError('No user ID found. Please log in again.');
+    return;
+  }
+  
+  try {
+    // Show connecting state
+    showLoadingState();
+    const loadingContent = document.querySelector('.loading-content h3');
+    if (loadingContent) {
+      loadingContent.textContent = 'Connecting to Gmail...';
+    }
+    
+    // Get OAuth URL from backend
+    const response = await fetch('/api/gmail/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user_id: userId })
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to get Gmail OAuth URL');
+    }
+    
+    // Redirect to Gmail OAuth
+    window.location.href = result.authUrl;
+    
+  } catch (error) {
+    console.error('❌ Gmail connection error:', error);
+    showError(`Failed to connect Gmail: ${error.message}`);
   }
 }
 

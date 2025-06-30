@@ -1282,11 +1282,15 @@ app.post('/api/email-decoder/process', async (req, res) => {
     const tokenDoc = await db.collection('gmail_tokens').doc(user_id).get();
     if (!tokenDoc.exists) {
       console.log('❌ No Gmail tokens found for user:', user_id);
-      return res.status(401).json({ error: 'Gmail not connected. Please connect your Gmail account first.' });
+      return res.status(401).json({ 
+        error: 'Gmail not connected. Please connect your Gmail account first.',
+        needsReauth: true 
+      });
     }
 
     const tokens = tokenDoc.data();
     console.log('🔍 Retrieved tokens for user:', user_id);
+    console.log('🔍 Token expiry:', tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : 'No expiry');
     
     const oauth2Client = new google.auth.OAuth2(
       GMAIL_OAUTH_CONFIG.clientId,
@@ -1300,20 +1304,74 @@ app.post('/api/email-decoder/process', async (req, res) => {
     if (tokens.expiry_date && Date.now() > tokens.expiry_date) {
       console.log('🔍 Tokens expired, attempting to refresh...');
       try {
+        if (!tokens.refresh_token) {
+          console.log('❌ No refresh token available');
+          return res.status(401).json({ 
+            error: 'Gmail tokens expired and no refresh token available. Please reconnect your Gmail account.',
+            needsReauth: true 
+          });
+        }
+
         const { credentials } = await oauth2Client.refreshAccessToken();
+        console.log('🔍 Refresh response:', {
+          hasAccessToken: !!credentials.access_token,
+          hasRefreshToken: !!credentials.refresh_token,
+          newExpiry: credentials.expiry_date ? new Date(credentials.expiry_date).toISOString() : 'No expiry'
+        });
+        
         oauth2Client.setCredentials(credentials);
         
         // Update tokens in database
-        await db.collection('gmail_tokens').doc(user_id).update({
+        const updateData = {
           access_token: credentials.access_token,
           expiry_date: credentials.expiry_date
-        });
+        };
+        
+        if (credentials.refresh_token) {
+          updateData.refresh_token = credentials.refresh_token;
+        }
+        
+        await db.collection('gmail_tokens').doc(user_id).update(updateData);
         
         console.log('✅ Tokens refreshed successfully');
       } catch (refreshError) {
         console.error('❌ Failed to refresh tokens:', refreshError);
-        return res.status(401).json({ error: 'Gmail tokens expired. Please reconnect your Gmail account.' });
+        console.error('❌ Refresh error details:', refreshError.message);
+        
+        // If refresh fails, clear the tokens and ask user to reconnect
+        try {
+          await db.collection('gmail_tokens').doc(user_id).delete();
+          console.log('✅ Cleared expired tokens');
+        } catch (clearError) {
+          console.error('❌ Error clearing tokens:', clearError);
+        }
+        
+        return res.status(401).json({ 
+          error: 'Gmail tokens expired. Please reconnect your Gmail account.',
+          needsReauth: true 
+        });
       }
+    }
+
+    // Test the connection before proceeding
+    try {
+      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+      console.log('🔍 Testing Gmail connection...');
+      
+      const testResponse = await Promise.race([
+        gmail.users.getProfile({ userId: 'me' }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Gmail connection test timeout')), 10000)
+        )
+      ]);
+      
+      console.log('✅ Gmail connection test successful:', testResponse.data.emailAddress);
+    } catch (connectionError) {
+      console.error('❌ Gmail connection test failed:', connectionError);
+      return res.status(401).json({ 
+        error: 'Unable to connect to Gmail. Please reconnect your Gmail account.',
+        needsReauth: true 
+      });
     }
 
     // Fetch recent emails with timeout and error handling
@@ -1383,6 +1441,22 @@ app.post('/api/email-decoder/process', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Email processing error:', error);
+    
+    // Check if it's an authentication error
+    if (error.message && error.message.includes('invalid_grant')) {
+      console.log('🔍 Detected invalid_grant error, clearing tokens');
+      try {
+        await db.collection('gmail_tokens').doc(user_id).delete();
+      } catch (clearError) {
+        console.error('❌ Error clearing tokens:', clearError);
+      }
+      
+      return res.status(401).json({ 
+        error: 'Gmail tokens expired. Please reconnect your Gmail account.',
+        needsReauth: true 
+      });
+    }
+    
     res.status(500).json({ 
       error: 'Failed to process emails. Please try again.',
       details: error.message 
