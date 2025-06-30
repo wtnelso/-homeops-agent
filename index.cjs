@@ -22,32 +22,40 @@ process.on('unhandledRejection', (reason, promise) => {
   });
 });
 
+// Add lightweight development mode for local testing
+const isDevelopment = process.env.NODE_ENV === 'development' || process.env.DEV_MODE === 'true';
+
 // Add more aggressive memory monitoring and process protection
 setInterval(() => {
   const memUsage = process.memoryUsage();
   const rssMB = Math.round(memUsage.rss / 1024 / 1024);
   const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
   
-  console.log('🔍 Memory Usage:', {
-    rss: rssMB + 'MB',
-    heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
-    heapUsed: heapUsedMB + 'MB',
-    external: Math.round(memUsage.external / 1024 / 1024) + 'MB'
-  });
+  // Only log memory usage in development mode to reduce noise
+  if (isDevelopment) {
+    console.log('🔍 Memory Usage:', {
+      rss: rssMB + 'MB',
+      heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
+      heapUsed: heapUsedMB + 'MB',
+      external: Math.round(memUsage.external / 1024 / 1024) + 'MB'
+    });
+  }
   
-  // Force garbage collection if memory usage is high
-  if (heapUsedMB > 80) { // Lowered threshold to 80MB
-    console.log('🧹 High memory usage detected, forcing garbage collection...');
+  // More aggressive garbage collection in development
+  const gcThreshold = isDevelopment ? 50 : 80; // Lower threshold in dev
+  if (heapUsedMB > gcThreshold) {
+    console.log(`🧹 High memory usage detected (${heapUsedMB}MB), forcing garbage collection...`);
     if (global.gc) {
       global.gc();
     }
   }
   
   // Log warning if memory usage is very high
-  if (rssMB > 200) {
-    console.warn('⚠️ Very high memory usage detected:', rssMB + 'MB');
+  const warningThreshold = isDevelopment ? 150 : 200; // Lower warning threshold in dev
+  if (rssMB > warningThreshold) {
+    console.warn(`⚠️ Very high memory usage detected: ${rssMB}MB`);
   }
-}, 60000); // Check every minute instead of 5 minutes
+}, isDevelopment ? 30000 : 60000); // Check every 30 seconds in dev, 1 minute in prod
 
 // Add process monitoring to prevent kills
 let lastActivity = Date.now();
@@ -62,24 +70,10 @@ setInterval(() => {
   }
 }, 300000); // Every 5 minutes
 
-// Update activity timestamp on requests
-const originalUse = app.use;
-app.use = function(...args) {
-  const middleware = args[args.length - 1];
-  if (typeof middleware === 'function') {
-    const wrappedMiddleware = (req, res, next) => {
-      lastActivity = Date.now();
-      return middleware(req, res, next);
-    };
-    args[args.length - 1] = wrappedMiddleware;
-  }
-  return originalUse.apply(this, args);
-};
-
 // Knowledge chunks cache to prevent memory leaks
 let knowledgeChunksCache = null;
 let cacheTimestamp = null;
-const CACHE_DURATION = 60 * 60 * 1000; // 1 hour instead of 30 minutes
+const CACHE_DURATION = isDevelopment ? 30 * 60 * 1000 : 60 * 60 * 1000; // 30 min in dev, 1 hour in prod
 
 async function getCachedKnowledgeChunks() {
   const now = Date.now();
@@ -99,10 +93,11 @@ async function getCachedKnowledgeChunks() {
     }
   }
   
-  // Fetch fresh chunks with smaller limit
-  console.log('🔄 Fetching fresh knowledge chunks...');
+  // Fetch fresh chunks with smaller limit in development
+  const chunkLimit = isDevelopment ? 20 : 50; // Much smaller in dev mode
+  console.log(`🔄 Fetching fresh knowledge chunks (limit: ${chunkLimit})...`);
   const snapshot = await db.collection('knowledge_chunks')
-    .limit(50) // Reduced from 100 to 50 to save memory
+    .limit(chunkLimit)
     .get();
   
   knowledgeChunksCache = snapshot.docs.map(doc => doc.data());
@@ -205,6 +200,12 @@ const db = admin.firestore();
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Add activity tracking middleware
+app.use((req, res, next) => {
+  lastActivity = Date.now();
+  next();
+});
+
 // Enable CORS for all routes at the very top
 app.use(cors({
   origin: [
@@ -253,6 +254,16 @@ app.get("/api/firebase-config", (req, res) => {
   };
   
   res.json(firebaseConfig);
+});
+
+// Health check endpoint for Render
+app.get("/health", (req, res) => {
+  res.json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage()
+  });
 });
 
 // Test endpoint to check environment variables
