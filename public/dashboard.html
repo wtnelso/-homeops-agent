@@ -849,17 +849,17 @@
       font-size: 2rem;
       font-weight: 800;
       letter-spacing: -1px;
-      background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%);
+      background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-fill-color: transparent;
     }
     .superhuman-onboarding-center {
-      background: linear-gradient(135deg, #7f53ac 0%, #647dee 100%);
+      background: linear-gradient(135deg, #a066e8 0%, #764ba2 100%);
       border-radius: 24px;
-      box-shadow: 0 8px 40px rgba(100, 125, 222, 0.18);
-      padding: 3.5rem 3.5rem 2.5rem 3.5rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      padding: 3.5rem 3rem;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -868,15 +868,13 @@
     }
     .superhuman-onboarding-title {
       color: #fff;
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: 700;
       text-align: center;
-      margin-bottom: 2.5rem;
-      margin-top: 0;
-      letter-spacing: -0.5px;
+      margin-bottom: 2.2rem;
     }
     .superhuman-gmail-btn {
-      background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%);
+      background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%);
       color: #fff;
       font-weight: 700;
       font-size: 1.1rem;
@@ -884,7 +882,7 @@
       border-radius: 12px;
       padding: 0.9rem 2.2rem;
       cursor: pointer;
-      box-shadow: 0 2px 12px rgba(100, 125, 222, 0.12);
+      box-shadow: 0 2px 8px rgba(160,102,232,0.18);
       transition: all 0.2s;
     }
     .superhuman-gmail-btn:hover {
@@ -893,444 +891,16 @@
     }
   </style>
 </head>
-<body>
-  <div class="app-container">
-
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <nav class="nav">
-        <button class="nav-item" data-view="chat" title="Ask HomeOps"><i data-lucide="message-square"></i></button>
-        <button class="nav-item" data-view="dashboard" title="Email Decoder"><i data-lucide="brain"></i></button>
-        <button class="nav-item" data-view="calendar" title="Calendar View"><i data-lucide="calendar-days"></i></button>
-        <button class="nav-item" data-view="command-center" title="Command Center"><i data-lucide="layout-dashboard"></i></button>
-      </nav>
-    </aside>
-
-    <main class="main-content">
-
-  <!-- Top Bar with logo + brand and hamburger -->
-  <header class="top-bar">
-    <div class="top-bar-left">
-      <button class="hamburger" id="hamburgerBtn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-      </button>
-      <a href="#" onclick="activateView('home'); return false;" class="top-bar-logo-link">
-        <div class="homeops-brand">
-          <img src="img/homeops-logo.svg" alt="HomeOps" class="homeops-logo-icon">
-          <span class="homeops-brand-text">HomeOps</span>
-        </div>
-      </a>
+<body style="margin:0;padding:0;overflow:hidden;background:radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #23234a 100%);height:100vh;width:100vw;">
+  <div class="superhuman-header" style="position:absolute;top:32px;left:48px;z-index:10001;">
+    <span class="homeops-gradient-text" style="font-size:2rem;font-weight:800;letter-spacing:-1px;background:linear-gradient(90deg,#a066e8 0%,#d16be5 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">HomeOps</span>
+  </div>
+  <div class="superhuman-onboarding-bg" style="position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;min-height:100vh;min-width:100vw;background:radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #23234a 100%);z-index:10000;">
+    <div class="superhuman-onboarding-center" style="background:linear-gradient(135deg,#a066e8 0%,#764ba2 100%);border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:3.5rem 3rem;display:flex;flex-direction:column;align-items:center;min-width:380px;max-width:90vw;">
+      <div class="superhuman-onboarding-title" style="color:#fff;font-size:1.6rem;font-weight:700;text-align:center;margin-bottom:2.2rem;">Your inbox decoded, your mental load reduced.</div>
+      <button class="superhuman-gmail-btn" onclick="connectGmail()" style="background:linear-gradient(90deg,#a066e8 0%,#d16be5 100%);color:#fff;font-weight:700;font-size:1.1rem;padding:0.9rem 2.2rem;border:none;border-radius:12px;box-shadow:0 2px 8px rgba(160,102,232,0.18);cursor:pointer;transition:all 0.2s;">Connect Gmail</button>
     </div>
-    <div class="top-bar-right">
-      <button id="logoutBtn" class="premium-logout-btn">Logout</button>
-    </div>
-  </header>
-
-  <!-- Home View -->
-  <section id="home-view" class="view">
-    <div class="home-grid">
-      <!-- Email Decoder Engine Card -->
-      <div id="email-decoder-engine-card" class="home-module modern-placeholder">
-        <div class="module-header">
-          <h2 style="font-size:2rem;display:flex;align-items:center;gap:0.5rem;">
-            <i data-lucide="brain" style="width:2.2rem;height:2.2rem;"></i> Email Decoder Engine
-          </h2>
-          <p style="font-size:1.1rem;color:#555;max-width:600px;">A new way to interact with email for high-performing modern families. Connect your Gmail to surface only what matters—school alerts, doctor updates, smart deals, and more.</p>
-          
-          <!-- Gmail Connection Status -->
-          <div id="gmail-status" class="gmail-status">
-            <div id="gmail-not-connected" class="gmail-not-connected">
-              <button id="connect-gmail-btn" class="gmail-connect-btn">
-                <i data-lucide="mail" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
-                Connect Gmail
-              </button>
-              <p class="gmail-status-text">Connect your Gmail to start decoding emails</p>
-            </div>
-            <div id="gmail-connected" class="gmail-connected" style="display:none;">
-              <div class="gmail-status-success">
-                <i data-lucide="check-circle" style="width:1.2rem;height:1.2rem;color:#10b981;margin-right:0.5rem;"></i>
-                <span>Gmail Connected</span>
-              </div>
-              <button id="process-emails-btn" class="process-emails-btn">
-                <i data-lucide="refresh-cw" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
-                Process Emails
-              </button>
-            </div>
-          </div>
-
-          <!-- Email Processing Status -->
-          <div id="email-processing-status" class="email-processing-status" style="display:none;">
-            <div class="processing-indicator">
-              <i data-lucide="loader-2" class="spinning" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
-              <span>Processing your emails...</span>
-            </div>
-          </div>
-
-          <!-- Email Summary -->
-          <div id="email-summary" class="email-summary" style="display:none;">
-            <div class="summary-stats">
-              <div class="stat-item">
-                <span class="stat-number" id="total-emails">0</span>
-                <span class="stat-label">Processed</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number" id="family-signals">0</span>
-                <span class="stat-label">Family Signals</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number" id="smart-deals">0</span>
-                <span class="stat-label">Smart Deals</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number" id="action-items">0</span>
-                <span class="stat-label">Action Items</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Decoded Email Cards -->
-        <div id="decoded-emails-container" class="decoded-emails-container" style="display:none;">
-          <h3 style="margin:1.5rem 0 1rem;font-size:1.3rem;color:#1e293b;">Recent Decoded Emails</h3>
-          <div id="decoded-emails-list" class="decoded-emails-list">
-            <!-- Dynamic email cards will be inserted here -->
-          </div>
-        </div>
-
-        <!-- Example Cards (shown when no emails processed) -->
-        <div id="email-decoder-examples" class="email-decoder-examples">
-          <div class="example-header">
-            <h3 style="margin:1.5rem 0 1rem;font-size:1.3rem;color:#1e293b;">How it works</h3>
-          </div>
-          <div style="display:flex;gap:2rem;flex-wrap:wrap;">
-            <!-- Example Family Signal Card -->
-            <div class="family-signal-card example-card">
-              <i data-lucide="school" class="signal-icon" style="width:2rem;height:2rem;color:#1e88e5;vertical-align:middle;"></i>
-              <div>
-                <strong>Family Signal</strong><br>
-                Picture Day – Oct 15 at 9 AM<br>
-                <span style="color:#1565c0;">Location: Woods Academy | Action: Send in photo form</span><br>
-                <button class="form-btn">Form attached</button>
-              </div>
-            </div>
-            <!-- Example Smart Deal Card -->
-            <div class="smart-deal-card example-card">
-              <i data-lucide="shopping-cart" class="deal-icon" style="width:2rem;height:2rem;color:#b26a00;vertical-align:middle;"></i>
-              <div>
-                <strong>Smart Deal</strong><br>
-                You've bought Honest Co. 4x this year<br>
-                <span style="color:#b26a00;">Today: 15% off sitewide + free shipping</span><br>
-                <button class="deal-btn">Reorder Diapers</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- This Week Summary -->
-      <div id="this-week-module" class="home-module">
-        <div class="module-header">
-          <h2>🗓️ This Week</h2>
-          <p>A summary of your calendar and key tasks.</p>
-        </div>
-        <div class="module-content">
-          <div class="week-summary-placeholder">
-            <p>Your weekly summary will appear here...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Chat View -->
-  <section id="chat-view" class="view">
-    <div class="chat-wrapper" style="height:100%;display:flex;flex-direction:column;justify-content:flex-end;">
-      <div id="chat" class="chat-box" style="flex:1 1 auto;"></div>
-      <form id="chatForm" class="chat-form">
-        <input id="input" type="text" placeholder="Ask HomeOps anything..." autocomplete="off" />
-        <button type="submit">
-          <i data-lucide="send"></i>
-          <span>Send</span>
-        </button>
-      </form>
-    </div>
-  </section>
-
-  <!-- Dashboard View -->
-  <section id="dashboard-view" class="view">
-    <!-- 🔥 NEW DECODER COMMAND CENTER -->
-    <div id="decoder-app" class="decoder-app">
-        
-        <!-- 🎯 HEADER - Premium Branding -->
-        <header class="decoder-header">
-            <div class="header-content" style="justify-content: center; align-items: center; flex-direction: column;">
-                <div class="brand-section" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                    <h1 style="font-size:2rem;font-weight:800;text-align:center;margin:0;padding:0;letter-spacing:-1px;background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);-webkit-background-clip: text;-webkit-text-fill-color: transparent;background-clip: text;">Signal over noise. Your inbox, decoded.</h1>
-                </div>
-            </div>
-        </header>
-
-        <!-- 🎛️ COMMAND BAR - Superhuman Style -->
-        <div class="command-bar" id="command-bar" style="display: none;">
-            <!-- Action Buttons -->
-            <div class="decoder-actions">
-                <button id="process-btn" class="btn-primary" style="
-                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-                    color: white;
-                    border: none;
-                    padding: 0.75rem 1.5rem;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-                    transition: all 0.2s;
-                ">
-                    <i data-lucide="play" style="width:1rem;height:1rem;"></i>
-                    Process Emails
-                </button>
-                <button id="refresh-btn" class="btn-secondary" style="
-                    background: white;
-                    color: #64748b;
-                    border: 1px solid #e2e8f0;
-                    padding: 0.75rem 1.5rem;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    transition: all 0.2s;
-                ">
-                    <i data-lucide="refresh-cw" style="width:1rem;height:1rem;"></i>
-                    Refresh
-                </button>
-            </div>
-            
-            <!-- Search Bar Area -->
-            <div class="decoder-search-row">
-              <input type="text" id="decoder-search" class="decoder-search-input" placeholder="Search decoded emails...">
-              <button id="decoder-search-clear" class="decoder-search-clear" style="display:none;" aria-label="Clear search">&times;</button>
-            </div>
-        </div>
-
-        <!-- 📊 CATEGORY TABS - Clean Navigation -->
-        <nav class="category-tabs" id="category-tabs" style="display: none;">
-            <button class="tab-btn active" data-category="all">
-                <i data-lucide="inbox"></i>
-                <span>All</span>
-                <span class="count" id="count-all">0</span>
-            </button>
-            <button class="tab-btn" data-category="urgent">
-                <i data-lucide="zap"></i>
-                <span>Urgent</span>
-                <span class="count" id="count-urgent">0</span>
-            </button>
-            <button class="tab-btn" data-category="schedule">
-                <i data-lucide="calendar-days"></i>
-                <span>Schedule</span>
-                <span class="count" id="count-schedule">0</span>
-            </button>
-            <button class="tab-btn" data-category="family">
-                <i data-lucide="users"></i>
-                <span>Family</span>
-                <span class="count" id="count-family">0</span>
-            </button>
-            <button class="tab-btn" data-category="commerce">
-                <i data-lucide="shopping-bag"></i>
-                <span>Commerce</span>
-                <span class="count" id="count-commerce">0</span>
-            </button>
-        </nav>
-
-        <!-- 🎯 MAIN CONTENT AREA -->
-        <main class="decoder-main">
-            
-            <!-- 🎯 EMAIL DECODER STATES -->
-            <div id="loading-state" class="state-container" style="display: none;">
-              <div class="loading-content">
-                <div class="spinner"></div>
-                <h3>Processing your emails...</h3>
-                <p>This may take a few moments</p>
-              </div>
-            </div>
-
-            <div id="error-state" class="state-container" style="display: none;">
-              <div class="error-content">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
-                <h3 style="color: #dc2626; margin-bottom: 1rem;">Something went wrong</h3>
-                <p id="error-message" style="color: #64748b; margin-bottom: 2rem; line-height: 1.6;"></p>
-                <button onclick="retryFromError()" class="btn-primary" style="
-                  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-                  color: white;
-                  border: none;
-                  padding: 1rem 2rem;
-                  border-radius: 12px;
-                  font-size: 1.1rem;
-                  font-weight: 600;
-                  cursor: pointer;
-                  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-                  transition: all 0.2s;
-                ">
-                  <i data-lucide="refresh-cw" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
-                  Try Again
-                </button>
-              </div>
-            </div>
-
-            <!-- 🚀 STEP 1: GMAIL CONNECTION - Full Screen Onboarding -->
-            <div id="step1-gmail-connect" class="state-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; background: #fff;">
-              <img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width: 168px; margin-bottom: 2.5rem; opacity: 0.95;" />
-              <h2 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 1.2rem; background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Connect your Gmail</h2>
-              <p style="color: #64748b; font-size: 1.15rem; margin-bottom: 2.2rem; max-width: 420px; text-align: center; line-height: 1.6;">To get started, securely connect your Gmail. HomeOps will never send or modify your emails—only help you organize and surface what matters most.</p>
-              <button class="gmail-connect-btn" onclick="connectGmail()" style="margin-bottom: 2.2rem;"> 
-                <span style="font-size: 1.3rem; margin-right: 0.7rem;">✉️</span> 
-                Connect Gmail 
-              </button>
-              <div style="font-size: 1rem; color: #64748b; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 1.2rem; margin-right: 0.5rem;">🔒</span> 
-                Secure & Private. Disconnect anytime.
-              </div>
-            </div>
-
-            <!-- 🎓 STEP 2: TRAINING MODE - DecoderCards for User Feedback -->
-            <div id="step2-training" class="state-container" style="display: none;">
-              <div class="training-container" style="max-width: 800px; margin: 0 auto; padding: 2rem;">
-                <div class="training-header" style="text-align: center; margin-bottom: 3rem;">
-                  <img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width: 80px; margin-bottom: 1.5rem; opacity: 0.9;" />
-                  <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Training the Decoder</h2>
-                  <p style="color: #64748b; font-size: 1.1rem; line-height: 1.6;">Help us understand your preferences by reviewing these sample emails. This will make your decoder more accurate.</p>
-                </div>
-                
-                <div class="training-progress" style="margin-bottom: 2rem;">
-                  <div class="progress-bar" style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden;">
-                    <div id="training-progress-fill" style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
-                  </div>
-                  <p style="text-align: center; margin-top: 0.5rem; color: #64748b; font-size: 0.9rem;">
-                    <span id="training-progress-text">0 of 4</span> emails reviewed
-                  </p>
-                </div>
-
-                <div id="training-cards" class="training-cards" style="display: grid; gap: 1.5rem;">
-                  <!-- Training cards will be dynamically inserted here -->
-                </div>
-
-                <div class="training-actions" style="text-align: center; margin-top: 2rem;">
-                  <button id="complete-training-btn" class="btn-primary" style="
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    border: none;
-                    padding: 1rem 2rem;
-                    border-radius: 12px;
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-                    transition: all 0.2s;
-                    display: none;
-                  ">
-                    <i data-lucide="check" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
-                    Complete Training
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- 🚀 STEP 3: FULL DECODER ENGINE -->
-            <div id="step3-full-decoder" class="state-container" style="display: none;">
-              <div id="zero-state" class="zero-content" style="display: none;">
-                  <div class="zero-icon">
-                      <i data-lucide="inbox"></i>
-                  </div>
-                  <h3>Your inbox is clear! 🎉</h3>
-                  <p>All your emails have been decoded and organized. Ready to process more?</p>
-                  <button class="btn-primary" id="process-again-btn">
-                      <i data-lucide="play"></i>
-                      <span>Process Emails Again</span>
-                  </button>
-              </div>
-
-              <!-- 📧 EMAIL CARDS CONTAINER -->
-              <div id="email-cards-container" class="email-cards-container">
-                  <!-- Email cards will be dynamically inserted here -->
-              </div>
-            </div>
-
-        </main>
-
-        <!-- 🎛️ BOTTOM ACTION BAR -->
-        <div class="bottom-actions" id="bottom-actions" style="display: none;">
-            <div class="selection-info">
-                <span id="selected-count">0 selected</span>
-            </div>
-            <div class="bulk-actions">
-                <button class="btn-secondary" id="bulk-archive">
-                    <i data-lucide="archive"></i>
-                    <span>Archive</span>
-                </button>
-                <button class="btn-secondary" id="bulk-snooze">
-                    <i data-lucide="clock"></i>
-                    <span>Snooze</span>
-                </button>
-                <button class="btn-primary" id="bulk-mark-important">
-                    <i data-lucide="star"></i>
-                    <span>Mark Important</span>
-                </button>
-            </div>
-        </div>
-
-    </div>
-  </section>
-
-  <!-- Calendar View -->
-  <section id="calendar-view" class="view">
-    <div class="view-header" style="justify-content: flex-end;">
-      <button id="clear-events-btn" class="calendar-clear-btn">Clear All Events</button>
-    </div>
-    <div class="calendar-outer">
-      <div id="calendar"></div>
-    </div>
-  </section>
-
-</main>
-</div>
-
-<!-- ✅ FullCalendar CSS -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" rel="stylesheet" />
-
-<!-- ✅ FullCalendar Global Build — works without import or modules -->
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
-
-<!-- ✅ Your app scripts -->
-<script src="layout.js?v=2024-06-29" defer></script>
-<script src="chat.js?v=2024-06-29" defer></script>
-<script src="/relief.js?v=2024-06-29" defer></script>
-<script src="dashboard.js?v=2024-06-29" defer></script>
-
-<!-- ✅ Bottom nav for mobile view -->
-<div class="bottom-nav">
-  <button data-view="home" onclick="activateView('home')">🏠</button>
-  <button data-view="chat" onclick="activateView('chat')">💬</button>
-  <button data-view="dashboard" onclick="activateView('dashboard')">📊</button>
-  <button data-view="calendar" onclick="activateView('calendar')">📅</button>
-</div>
-
-<script src="/homebase.js?v=2024-06-29" defer></script>
-<script>
-function showDashboardControls() {
-  document.getElementById('dashboard-controls').style.display = 'block';
-}
-function hideDashboardControls() {
-  document.getElementById('dashboard-controls').style.display = 'none';
-}
-</script>
+  </div>
 </body>
 </html>
 

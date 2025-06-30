@@ -249,7 +249,6 @@ function showDecoderControls() {
 
 // 📧 STEP 1: GMAIL CONNECTION
 function connectGmail() {
-  // Redirect to backend OAuth endpoint
   window.location.href = '/auth/google';
 }
 
