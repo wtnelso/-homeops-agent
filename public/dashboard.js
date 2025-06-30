@@ -413,19 +413,20 @@ async function processEmails() {
       }
     }, 2000);
     
-    // Call the email processing endpoint
-    const response = await fetch('/api/process-emails', {
+    // Call the correct email processing endpoint
+    const response = await fetch('/api/email-decoder/process', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ userId })
+      body: JSON.stringify({ user_id: userId })
     });
     
     clearInterval(messageInterval);
     
     if (!response.ok) {
-      throw new Error('Failed to process emails');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
     }
     
     const result = await response.json();
@@ -441,7 +442,7 @@ async function processEmails() {
     
   } catch (error) {
     console.error('❌ Error processing emails:', error);
-    showError('Failed to process emails. Please try again.');
+    showError(`Failed to process emails: ${error.message}`);
   } finally {
     isProcessing = false;
   }
@@ -460,7 +461,7 @@ async function archiveEmail(emailId) {
 }
 
 async function snoozeEmail(emailId) {
-  console.log(`�� Snoozing email: ${emailId}`);
+  console.log(`📧 Snoozing email: ${emailId}`);
   // TODO: Implement snooze functionality
   showSuccess('Email snoozed');
 }
@@ -573,8 +574,42 @@ function showSuccess(message) {
 }
 
 function showError(message) {
-  // TODO: Implement error notification
   console.error(`❌ ${message}`);
+  
+  // Hide loading state
+  hideAllStates();
+  
+  // Show error state
+  const dashboardView = document.getElementById('dashboard-view');
+  if (dashboardView) {
+    dashboardView.innerHTML = `
+      <div class="error-state" style="
+        text-align: center;
+        padding: 4rem 2rem;
+        max-width: 600px;
+        margin: 0 auto;
+      ">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+        <h3 style="color: #dc2626; margin-bottom: 1rem;">Something went wrong</h3>
+        <p style="color: #64748b; margin-bottom: 2rem; line-height: 1.6;">${message}</p>
+        <button onclick="processEmails()" class="btn-primary" style="
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+          color: white;
+          border: none;
+          padding: 1rem 2rem;
+          border-radius: 12px;
+          font-size: 1.1rem;
+          font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+          transition: all 0.2s;
+        ">
+          <i data-lucide="refresh-cw" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
+          Try Again
+        </button>
+      </div>
+    `;
+  }
 }
 
 // 🔍 GMAIL CONNECTION

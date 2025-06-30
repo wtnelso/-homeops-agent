@@ -1000,6 +1000,9 @@ const { google } = require('googleapis');
 // Helper function to call OpenAI API
 async function callOpenAI(prompt, model = 'gpt-4o-mini') {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -1019,8 +1022,11 @@ async function callOpenAI(prompt, model = 'gpt-4o-mini') {
             content: prompt
           }
         ]
-      })
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     const data = await response.json();
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
@@ -1030,6 +1036,9 @@ async function callOpenAI(prompt, model = 'gpt-4o-mini') {
     return data.choices[0].message.content;
   } catch (error) {
     console.error('❌ OpenAI API call failed:', error);
+    if (error.name === 'AbortError') {
+      throw new Error('OpenAI API request timed out');
+    }
     throw error;
   }
 }
@@ -1264,18 +1273,20 @@ app.post('/api/email-decoder/process', async (req, res) => {
   
   console.log('🔍 Starting email processing for user:', user_id);
   
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+  
   try {
     // Get Gmail tokens
     const tokenDoc = await db.collection('gmail_tokens').doc(user_id).get();
     if (!tokenDoc.exists) {
       console.log('❌ No Gmail tokens found for user:', user_id);
-      return res.status(401).json({ error: 'Gmail not connected' });
+      return res.status(401).json({ error: 'Gmail not connected. Please connect your Gmail account first.' });
     }
 
     const tokens = tokenDoc.data();
     console.log('🔍 Retrieved tokens for user:', user_id);
-    console.log('🔍 Token scopes:', tokens.scopes);
-    console.log('🔍 Token expiry:', tokens.expiry_date);
     
     const oauth2Client = new google.auth.OAuth2(
       GMAIL_OAUTH_CONFIG.clientId,
@@ -1301,18 +1312,23 @@ app.post('/api/email-decoder/process', async (req, res) => {
         console.log('✅ Tokens refreshed successfully');
       } catch (refreshError) {
         console.error('❌ Failed to refresh tokens:', refreshError);
-        return res.status(401).json({ error: 'Gmail tokens expired. Please reconnect.' });
+        return res.status(401).json({ error: 'Gmail tokens expired. Please reconnect your Gmail account.' });
       }
     }
 
-    // Fetch recent emails
+    // Fetch recent emails with timeout and error handling
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
     console.log('🔍 Attempting to fetch emails...');
     
-    const response = await gmail.users.messages.list({
-      userId: 'me',
-      maxResults: 10
-    });
+    const response = await Promise.race([
+      gmail.users.messages.list({
+        userId: 'me',
+        maxResults: 10
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Gmail API timeout')), 30000)
+      )
+    ]);
 
     console.log('✅ Successfully fetched email list');
     const messages = response.data.messages || [];
@@ -1329,16 +1345,21 @@ app.post('/api/email-decoder/process', async (req, res) => {
 
     const decodedEmails = [];
 
-    // Process each email through the decoder
-    for (const message of messages.slice(0, 10)) { // Process first 10 for now
+    // Process each email through the decoder with timeout
+    for (const message of messages.slice(0, 5)) { // Reduced to 5 emails to prevent memory issues
       console.log('🔍 Processing message:', message.id);
       
       try {
-        const emailData = await gmail.users.messages.get({
-          userId: 'me',
-          id: message.id,
-          format: 'full'
-        });
+        const emailData = await Promise.race([
+          gmail.users.messages.get({
+            userId: 'me',
+            id: message.id,
+            format: 'full'
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Email fetch timeout')), 15000)
+          )
+        ]);
 
         const decoded = await processEmailThroughDecoder(emailData.data, user_id);
         if (decoded) {
@@ -1347,7 +1368,8 @@ app.post('/api/email-decoder/process', async (req, res) => {
         }
       } catch (emailError) {
         console.error('❌ Error processing individual email:', emailError.message);
-        console.error('❌ Email error details:', emailError);
+        // Continue with next email instead of failing completely
+        continue;
       }
     }
 
@@ -1360,18 +1382,11 @@ app.post('/api/email-decoder/process', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Email decoder error:', error);
-    console.error('❌ Error message:', error.message);
-    console.error('❌ Error code:', error.code);
-    console.error('❌ Error status:', error.status);
-    
-    // Check if it's a scope error
-    if (error.message && error.message.includes('Metadata scope')) {
-      console.error('❌ DETECTED SCOPE ERROR - Tokens have wrong scope!');
-      console.error('❌ Need to clear tokens and re-authorize with correct scope');
-    }
-    
-    res.status(500).json({ error: 'Failed to process emails: ' + error.message });
+    console.error('❌ Email processing error:', error);
+    res.status(500).json({ 
+      error: 'Failed to process emails. Please try again.',
+      details: error.message 
+    });
   }
 });
 
