@@ -726,20 +726,13 @@
             </div>
 
             <!-- 🚀 ONBOARDING STEP 1: GMAIL CONNECTION -->
-            <div id="onboarding-state" class="state-container" style="display: none;">
-              <div class="onboarding-content" style="text-align: center; padding: 4rem 2rem 3rem 2rem; max-width: 480px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 8px 32px rgba(102, 123, 234, 0.08);">
-                <img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width: 56px; margin-bottom: 2.5rem; opacity: 0.95;" />
-                <h2 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 1.2rem; background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Connect your Gmail</h2>
-                <p style="font-size: 1.15rem; color: #64748b; margin-bottom: 2.5rem; line-height: 1.7; max-width: 400px; margin-left: auto; margin-right: auto;">
-                  To get started, securely connect your Gmail. HomeOps will never send or modify your emails—only help you organize and surface what matters most.
-                </p>
-                <button onclick="connectGmail()" class="gmail-connect-btn">
-                  <i data-lucide="mail" style="width:1.5rem;height:1.5rem;margin-right:0.7rem;"></i>
-                  Connect Gmail
-                </button>
-                <div style="margin-top: 2.5rem; color: #94a3b8; font-size: 0.98rem;">
-                  <span style="font-size: 1.2rem;">🔒</span> Secure & Private. Disconnect anytime.
-                </div>
+            <div id="onboarding-state" class="state-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #fff;">
+              <img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width: 168px; margin-bottom: 2.5rem; opacity: 0.95;" />
+              <h2 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 1.2rem; background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Connect your Gmail</h2>
+              <p style="color: #64748b; font-size: 1.15rem; margin-bottom: 2.2rem; max-width: 420px;">To get started, securely connect your Gmail. HomeOps will never send or modify your emails—only help you organize and surface what matters most.</p>
+              <button class="gmail-connect-btn" onclick="connectGmail()" style="margin-bottom: 2.2rem;"> <span style="font-size: 1.3rem; margin-right: 0.7rem;">✉️</span> Connect Gmail </button>
+              <div style="font-size: 1rem; color: #64748b; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 1.2rem; margin-right: 0.5rem;">🔒</span> Secure & Private. Disconnect anytime.
               </div>
             </div>
 
