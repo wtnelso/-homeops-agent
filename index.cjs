@@ -205,15 +205,6 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 app.use("/mock", express.static("mock"));
 
-// Explicit route for the main dashboard
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
-});
-
-app.get("/dashboard", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
-});
-
 // All API routes should be defined above the SPA catch-all
 app.get("/api/firebase-config", (req, res) => {
   // Provide a basic Firebase config for the homeops-web project
@@ -1097,8 +1088,8 @@ app.get('/auth/google/callback', async (req, res) => {
 
     console.log('✅ Tokens stored successfully for user:', userId);
 
-    // Redirect to Dashboard with processing step after successful Gmail connection
-    res.redirect('/dashboard?gmail_connected=true&step=processing');
+    // Redirect to Email Decoder UI after successful Gmail connection
+    res.redirect('/dashboard?gmail_connected=true&step=decoder');
   } catch (error) {
     console.error('❌ Gmail OAuth error:', error);
     console.error('❌ Error details:', error.message);
