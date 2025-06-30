@@ -429,6 +429,391 @@
       to { transform: rotate(360deg); }
     }
 
+    /* 🎓 TRAINING CARD STYLES */
+    .training-card {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .training-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      border-color: #667eea;
+    }
+
+    .training-card.completed {
+      border-color: #10b981;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    }
+
+    .training-card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .training-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .training-card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.25rem;
+    }
+
+    .training-card-subtitle {
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+
+    .training-card-content {
+      margin-bottom: 2rem;
+    }
+
+    .training-email-preview {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .training-email-sender {
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    .training-email-subject {
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.75rem;
+    }
+
+    .training-email-body {
+      color: #6b7280;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .training-feedback-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .feedback-option {
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      color: #64748b;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .feedback-option:hover {
+      border-color: #667eea;
+      color: #667eea;
+      transform: translateY(-1px);
+    }
+
+    .feedback-option.selected {
+      border-color: #667eea;
+      background: #667eea;
+      color: white;
+    }
+
+    .training-card-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    .training-action-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .training-action-btn.primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .training-action-btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .training-action-btn.secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .training-action-btn.secondary:hover {
+      background: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    /* Progress indicator for completed cards */
+    .training-card.completed::before {
+      content: '✓';
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 24px;
+      height: 24px;
+      background: #10b981;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    /* Gmail Connect Button Styles */
+    .gmail-connect-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .gmail-connect-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    /* State container styles */
+    .state-container {
+      width: 100%;
+      min-height: 60vh;
+    }
+
+    /* Loading state styles */
+    .loading-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    /* Zero state styles */
+    .zero-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    .zero-icon {
+      font-size: 4rem;
+      color: #64748b;
+      margin-bottom: 1rem;
+    }
+
+    /* Error state styles */
+    .error-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* 📧 EMAIL CARD STYLES FOR FULL DECODER */
+    .email-cards-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+
+    .email-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .email-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      border-color: #667eea;
+    }
+
+    .email-card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .email-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .email-card-meta {
+      flex: 1;
+    }
+
+    .email-sender {
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.25rem;
+      font-size: 0.95rem;
+    }
+
+    .email-time {
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    .email-priority {
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .email-priority.high {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    .email-priority.medium {
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    .email-priority.low {
+      background: #f0fdf4;
+      color: #16a34a;
+    }
+
+    .email-card-content {
+      margin-bottom: 1.5rem;
+    }
+
+    .email-subject {
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    .email-preview {
+      color: #64748b;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .email-card-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    .action-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .action-btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .action-btn.secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .action-btn.secondary:hover {
+      background: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
     @media (max-width: 1100px) {
       .onboarding-modules { grid-template-columns: 1fr 1fr; }
     }
@@ -616,7 +1001,7 @@
         </header>
 
         <!-- 🎛️ COMMAND BAR - Superhuman Style -->
-        <div class="command-bar">
+        <div class="command-bar" id="command-bar" style="display: none;">
             <!-- Action Buttons -->
             <div class="decoder-actions">
                 <button id="process-btn" class="btn-primary" style="
@@ -662,7 +1047,7 @@
         </div>
 
         <!-- 📊 CATEGORY TABS - Clean Navigation -->
-        <nav class="category-tabs">
+        <nav class="category-tabs" id="category-tabs" style="display: none;">
             <button class="tab-btn active" data-category="all">
                 <i data-lucide="inbox"></i>
                 <span>All</span>
@@ -725,51 +1110,88 @@
               </div>
             </div>
 
-            <!-- 🚀 ONBOARDING STEP 1: GMAIL CONNECTION -->
-            <div id="onboarding-state" class="state-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #fff;">
+            <!-- 🚀 STEP 1: GMAIL CONNECTION - Full Screen Onboarding -->
+            <div id="step1-gmail-connect" class="state-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; background: #fff;">
               <img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width: 168px; margin-bottom: 2.5rem; opacity: 0.95;" />
               <h2 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 1.2rem; background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Connect your Gmail</h2>
-              <p style="color: #64748b; font-size: 1.15rem; margin-bottom: 2.2rem; max-width: 420px;">To get started, securely connect your Gmail. HomeOps will never send or modify your emails—only help you organize and surface what matters most.</p>
-              <button class="gmail-connect-btn" onclick="connectGmail()" style="margin-bottom: 2.2rem;"> <span style="font-size: 1.3rem; margin-right: 0.7rem;">✉️</span> Connect Gmail </button>
+              <p style="color: #64748b; font-size: 1.15rem; margin-bottom: 2.2rem; max-width: 420px; text-align: center; line-height: 1.6;">To get started, securely connect your Gmail. HomeOps will never send or modify your emails—only help you organize and surface what matters most.</p>
+              <button class="gmail-connect-btn" onclick="connectGmail()" style="margin-bottom: 2.2rem;"> 
+                <span style="font-size: 1.3rem; margin-right: 0.7rem;">✉️</span> 
+                Connect Gmail 
+              </button>
               <div style="font-size: 1rem; color: #64748b; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 1.2rem; margin-right: 0.5rem;">🔒</span> Secure & Private. Disconnect anytime.
+                <span style="font-size: 1.2rem; margin-right: 0.5rem;">🔒</span> 
+                Secure & Private. Disconnect anytime.
               </div>
             </div>
 
-            <div id="zero-state" class="state-container" style="display: none;">
-                <div class="zero-content">
-                    <div class="zero-icon">
-                        <i data-lucide="inbox"></i>
-                    </div>
-                    <h3>Your inbox is clear! 🎉</h3>
-                    <p>All your emails have been decoded and organized. Ready to process more?</p>
-                    <button class="btn-primary" id="process-again-btn">
-                        <i data-lucide="play"></i>
-                        <span>Process Emails Again</span>
-                    </button>
+            <!-- 🎓 STEP 2: TRAINING MODE - DecoderCards for User Feedback -->
+            <div id="step2-training" class="state-container" style="display: none;">
+              <div class="training-container" style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+                <div class="training-header" style="text-align: center; margin-bottom: 3rem;">
+                  <img src="img/homeops-logo.svg" alt="HomeOps Logo" style="width: 80px; margin-bottom: 1.5rem; opacity: 0.9;" />
+                  <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Training the Decoder</h2>
+                  <p style="color: #64748b; font-size: 1.1rem; line-height: 1.6;">Help us understand your preferences by reviewing these sample emails. This will make your decoder more accurate.</p>
                 </div>
+                
+                <div class="training-progress" style="margin-bottom: 2rem;">
+                  <div class="progress-bar" style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div id="training-progress-fill" style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                  </div>
+                  <p style="text-align: center; margin-top: 0.5rem; color: #64748b; font-size: 0.9rem;">
+                    <span id="training-progress-text">0 of 4</span> emails reviewed
+                  </p>
+                </div>
+
+                <div id="training-cards" class="training-cards" style="display: grid; gap: 1.5rem;">
+                  <!-- Training cards will be dynamically inserted here -->
+                </div>
+
+                <div class="training-actions" style="text-align: center; margin-top: 2rem;">
+                  <button id="complete-training-btn" class="btn-primary" style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    padding: 1rem 2rem;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+                    transition: all 0.2s;
+                    display: none;
+                  ">
+                    <i data-lucide="check" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
+                    Complete Training
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <!-- 📧 EMAIL CARDS CONTAINER -->
-            <div id="email-cards-container" class="email-cards-container">
-                <!-- Email cards will be dynamically inserted here -->
-            </div>
+            <!-- 🚀 STEP 3: FULL DECODER ENGINE -->
+            <div id="step3-full-decoder" class="state-container" style="display: none;">
+              <div id="zero-state" class="zero-content" style="display: none;">
+                  <div class="zero-icon">
+                      <i data-lucide="inbox"></i>
+                  </div>
+                  <h3>Your inbox is clear! 🎉</h3>
+                  <p>All your emails have been decoded and organized. Ready to process more?</p>
+                  <button class="btn-primary" id="process-again-btn">
+                      <i data-lucide="play"></i>
+                      <span>Process Emails Again</span>
+                  </button>
+              </div>
 
-            <!-- 🎓 TRAINING MODE -->
-            <div id="training-mode" class="training-mode">
-                <div class="training-header">
-                    <h3>🎓 Training the Decoder</h3>
-                    <p>Help us understand your preferences with these sample emails</p>
-                </div>
-                <div id="training-cards" class="training-cards">
-                    <!-- Training cards will be inserted here -->
-                </div>
+              <!-- 📧 EMAIL CARDS CONTAINER -->
+              <div id="email-cards-container" class="email-cards-container">
+                  <!-- Email cards will be dynamically inserted here -->
+              </div>
             </div>
 
         </main>
 
         <!-- 🎛️ BOTTOM ACTION BAR -->
-        <div class="bottom-actions" id="bottom-actions">
+        <div class="bottom-actions" id="bottom-actions" style="display: none;">
             <div class="selection-info">
                 <span id="selected-count">0 selected</span>
             </div>
