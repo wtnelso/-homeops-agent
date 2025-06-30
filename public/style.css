@@ -5354,31 +5354,31 @@ body > i,
   justify-content: center;
   background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%) !important;
   color: #fff !important;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  border: 2px solid #e48fff;
-  border-radius: 18px;
-  padding: 1.1rem 2.5rem;
-  margin: 2.5rem auto 0 auto;
+  border: none;
+  border-radius: 16px;
+  padding: 1.2rem 2.8rem;
+  margin: 0 auto;
   box-shadow: 0 4px 24px rgba(160, 102, 232, 0.10);
   cursor: pointer;
   transition: background 0.2s, box-shadow 0.2s, border 0.2s;
   width: 100%;
-  max-width: 700px;
+  max-width: 340px;
 }
 
 .gmail-connect-btn:hover, .gmail-connect-btn:focus {
   background: linear-gradient(90deg, #b57be9 0%, #e48fff 100%) !important;
   box-shadow: 0 6px 32px rgba(209, 107, 229, 0.18);
-  border-color: #fff;
+  border: none;
 }
 
 .gmail-connect-btn .lucide, .gmail-connect-btn svg {
   color: #fff !important;
   stroke: #fff !important;
   fill: none !important;
-  width: 2em;
-  height: 2em;
+  width: 1.5em;
+  height: 1.5em;
   margin-right: 1em;
   vertical-align: middle;
 }

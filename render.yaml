@@ -35,6 +35,6 @@ services:
       - key: GMAIL_CLIENT_SECRET
         sync: false
       - key: GMAIL_REDIRECT_URI
-        value: https://homeops-backend.onrender.com/auth/google/callback
+        value: https://homeops-agent.onrender.com/auth/google/callback
     healthCheckPath: /
     autoDeploy: true 

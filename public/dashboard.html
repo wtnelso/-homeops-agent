@@ -727,40 +727,19 @@
 
             <!-- 🚀 ONBOARDING STEP 1: GMAIL CONNECTION -->
             <div id="onboarding-state" class="state-container" style="display: none;">
-              <div class="onboarding-content" style="text-align: center; padding: 3rem 2rem;">
-                <div style="font-size: 4rem; margin-bottom: 2rem;">📧</div>
-                <h3 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Connect Your Gmail</h3>
-                <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6; max-width: 500px; margin-left: auto; margin-right: auto;">
-                  The first step to decoding your inbox is connecting your Gmail account. 
-                  We'll securely access your emails to help organize them into meaningful categories.
+              <div class="onboarding-content" style="text-align: center; padding: 4rem 2rem 3rem 2rem; max-width: 480px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 8px 32px rgba(102, 123, 234, 0.08);">
+                <img src="/public/img/homeops-logo.svg" alt="HomeOps Logo" style="width: 56px; margin-bottom: 2.5rem; opacity: 0.95;" />
+                <h2 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 1.2rem; background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Connect your Gmail</h2>
+                <p style="font-size: 1.15rem; color: #64748b; margin-bottom: 2.5rem; line-height: 1.7; max-width: 400px; margin-left: auto; margin-right: auto;">
+                  To get started, securely connect your Gmail. HomeOps will never send or modify your emails—only help you organize and surface what matters most.
                 </p>
-                <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 2rem; border-radius: 16px; margin-bottom: 2rem; border: 1px solid #e2e8f0;">
-                  <h4 style="font-weight: 600; margin-bottom: 1rem; color: #1e293b;">🔒 Secure & Private</h4>
-                  <ul style="text-align: left; color: #64748b; line-height: 1.8;">
-                    <li>• We only read your emails, never send or modify them</li>
-                    <li>• Your data stays private and is never shared</li>
-                    <li>• You can disconnect anytime from your Google settings</li>
-                  </ul>
-                </div>
-                <button onclick="connectGmail()" class="btn-primary" style="
-                  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-                  color: white;
-                  border: none;
-                  padding: 1.2rem 3rem;
-                  border-radius: 12px;
-                  font-size: 1.2rem;
-                  font-weight: 600;
-                  cursor: pointer;
-                  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-                  transition: all 0.2s;
-                  display: flex;
-                  align-items: center;
-                  gap: 0.5rem;
-                  margin: 0 auto;
-                ">
-                  <i data-lucide="mail" style="width:1.2rem;height:1.2rem;"></i>
+                <button onclick="connectGmail()" class="gmail-connect-btn">
+                  <i data-lucide="mail" style="width:1.5rem;height:1.5rem;margin-right:0.7rem;"></i>
                   Connect Gmail
                 </button>
+                <div style="margin-top: 2.5rem; color: #94a3b8; font-size: 0.98rem;">
+                  <span style="font-size: 1.2rem;">🔒</span> Secure & Private. Disconnect anytime.
+                </div>
               </div>
             </div>
 
