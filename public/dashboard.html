@@ -820,6 +820,72 @@
     @media (max-width: 700px) {
       .onboarding-modules { grid-template-columns: 1fr; }
     }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden !important;
+      background: radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #23234a 100%);
+    }
+    .superhuman-onboarding-bg {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-width: 100vw;
+      background: radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #23234a 100%);
+      z-index: 10000;
+    }
+    .superhuman-onboarding-center {
+      background: rgba(30, 30, 50, 0.92);
+      border-radius: 24px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+      padding: 3rem 2.5rem 2.5rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 350px;
+      max-width: 90vw;
+    }
+    .superhuman-logo {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 2rem;
+    }
+    .superhuman-title {
+      color: #fff;
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 2.5rem;
+      letter-spacing: -1px;
+    }
+    .superhuman-gmail-btn {
+      background: linear-gradient(90deg, #7f53ac 0%, #647dee 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      padding: 1rem 2.5rem;
+      cursor: pointer;
+      box-shadow: 0 2px 12px rgba(100, 125, 222, 0.15);
+      transition: background 0.2s, transform 0.2s;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .superhuman-gmail-btn:hover {
+      background: linear-gradient(90deg, #647dee 0%, #7f53ac 100%);
+      transform: translateY(-2px) scale(1.03);
+    }
+    .superhuman-gmail-icon {
+      font-size: 1.3rem;
+    }
   </style>
 </head>
 <body>

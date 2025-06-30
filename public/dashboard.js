@@ -165,7 +165,7 @@ function determineCurrentStep() {
   
   if (!hasGmailConnected) {
     console.log('📧 Step 1: Gmail not connected');
-    showStep1GmailConnect();
+    showGmailConnectScreen();
   } else if (!hasCompletedTraining) {
     console.log('🎓 Step 2: Gmail connected but training not completed');
     showStep2Training();
@@ -248,35 +248,9 @@ function showDecoderControls() {
 }
 
 // 📧 STEP 1: GMAIL CONNECTION
-async function connectGmail() {
-  console.log('📧 Connecting Gmail...');
-  
-  try {
-    const userId = getCurrentUserId();
-    const response = await fetch('/auth/google', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ userId })
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data.authUrl) {
-        // Store connection status
-        localStorage.setItem(`gmail_connected_${userId}`, 'true');
-        
-        // Redirect to Gmail OAuth
-        window.location.href = data.authUrl;
-      }
-    } else {
-      throw new Error('Failed to get auth URL');
-    }
-  } catch (error) {
-    console.error('❌ Gmail connection error:', error);
-    showError('Failed to connect Gmail. Please try again.');
-  }
+function connectGmail() {
+  // Redirect to backend OAuth endpoint
+  window.location.href = '/auth/google';
 }
 
 // 🎓 STEP 2: TRAINING MODE
@@ -817,4 +791,22 @@ window.bulkSnooze = bulkSnooze;
 window.bulkMarkImportant = bulkMarkImportant;
 window.retryFromError = retryFromError;
 window.submitTrainingFeedback = submitTrainingFeedback;
-window.skipTrainingEmail = skipTrainingEmail; 
+window.skipTrainingEmail = skipTrainingEmail;
+
+// Lock down onboarding page if not connected
+function showGmailConnectScreen() {
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
+  // Hide all other dashboard UI
+  document.getElementById('decoder-app').innerHTML = `
+    <div class="superhuman-onboarding-bg">
+      <div class="superhuman-onboarding-center">
+        <img src="img/homeops-logo.svg" alt="HomeOps Logo" class="superhuman-logo" />
+        <h1 class="superhuman-title">Save 4 hours per person<br>every single week</h1>
+        <button class="superhuman-gmail-btn" onclick="connectGmail()">
+          <span class="superhuman-gmail-icon">📧</span> Connect Gmail
+        </button>
+      </div>
+    </div>
+  `;
+} 
