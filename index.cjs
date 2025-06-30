@@ -1,9 +1,122 @@
 process.on('uncaughtException', err => {
   console.error('Uncaught Exception:', err);
+  // Log memory usage before potential crash
+  const memUsage = process.memoryUsage();
+  console.error('Memory usage before crash:', {
+    rss: Math.round(memUsage.rss / 1024 / 1024) + 'MB',
+    heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
+    heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + 'MB',
+    external: Math.round(memUsage.external / 1024 / 1024) + 'MB'
+  });
 });
-process.on('unhandledRejection', err => {
-  console.error('Unhandled Rejection:', err);
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Log memory usage before potential crash
+  const memUsage = process.memoryUsage();
+  console.error('Memory usage before rejection:', {
+    rss: Math.round(memUsage.rss / 1024 / 1024) + 'MB',
+    heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
+    heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + 'MB',
+    external: Math.round(memUsage.external / 1024 / 1024) + 'MB'
+  });
 });
+
+// Add more aggressive memory monitoring and process protection
+setInterval(() => {
+  const memUsage = process.memoryUsage();
+  const rssMB = Math.round(memUsage.rss / 1024 / 1024);
+  const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
+  
+  console.log('🔍 Memory Usage:', {
+    rss: rssMB + 'MB',
+    heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
+    heapUsed: heapUsedMB + 'MB',
+    external: Math.round(memUsage.external / 1024 / 1024) + 'MB'
+  });
+  
+  // Force garbage collection if memory usage is high
+  if (heapUsedMB > 80) { // Lowered threshold to 80MB
+    console.log('🧹 High memory usage detected, forcing garbage collection...');
+    if (global.gc) {
+      global.gc();
+    }
+  }
+  
+  // Log warning if memory usage is very high
+  if (rssMB > 200) {
+    console.warn('⚠️ Very high memory usage detected:', rssMB + 'MB');
+  }
+}, 60000); // Check every minute instead of 5 minutes
+
+// Add process monitoring to prevent kills
+let lastActivity = Date.now();
+setInterval(() => {
+  const now = Date.now();
+  const timeSinceLastActivity = now - lastActivity;
+  
+  // If no activity for 5 minutes, log to show the process is alive
+  if (timeSinceLastActivity > 300000) {
+    console.log('💓 Process heartbeat - server is alive and monitoring');
+    lastActivity = now;
+  }
+}, 300000); // Every 5 minutes
+
+// Update activity timestamp on requests
+const originalUse = app.use;
+app.use = function(...args) {
+  const middleware = args[args.length - 1];
+  if (typeof middleware === 'function') {
+    const wrappedMiddleware = (req, res, next) => {
+      lastActivity = Date.now();
+      return middleware(req, res, next);
+    };
+    args[args.length - 1] = wrappedMiddleware;
+  }
+  return originalUse.apply(this, args);
+};
+
+// Knowledge chunks cache to prevent memory leaks
+let knowledgeChunksCache = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour instead of 30 minutes
+
+async function getCachedKnowledgeChunks() {
+  const now = Date.now();
+  
+  // Return cached chunks if they're still valid
+  if (knowledgeChunksCache && cacheTimestamp && (now - cacheTimestamp) < CACHE_DURATION) {
+    console.log('📦 Using cached knowledge chunks');
+    return knowledgeChunksCache;
+  }
+  
+  // Clear old cache to free memory
+  if (knowledgeChunksCache) {
+    console.log('🧹 Clearing old knowledge chunks cache');
+    knowledgeChunksCache = null;
+    if (global.gc) {
+      global.gc();
+    }
+  }
+  
+  // Fetch fresh chunks with smaller limit
+  console.log('🔄 Fetching fresh knowledge chunks...');
+  const snapshot = await db.collection('knowledge_chunks')
+    .limit(50) // Reduced from 100 to 50 to save memory
+    .get();
+  
+  knowledgeChunksCache = snapshot.docs.map(doc => doc.data());
+  cacheTimestamp = now;
+  
+  console.log(`✅ Cached ${knowledgeChunksCache.length} knowledge chunks`);
+  
+  // Force garbage collection after loading
+  if (global.gc) {
+    global.gc();
+  }
+  
+  return knowledgeChunksCache;
+}
 
 console.log("🚀 DEPLOYMENT VERSION 8 - LUXON REMOVED - " + new Date().toISOString());
 require("dotenv").config();
@@ -235,12 +348,8 @@ function cosineSimilarity(a, b) {
 }
 
 async function getTopKRelevantChunks(userEmbedding, k = 5) {
-  // Fetch knowledge chunks with pagination to prevent memory issues
-  const snapshot = await db.collection('knowledge_chunks')
-    .limit(100) // Limit to prevent memory overload
-    .get();
-  
-  const chunks = snapshot.docs.map(doc => doc.data());
+  // Use cached knowledge chunks to prevent memory issues
+  const chunks = await getCachedKnowledgeChunks();
   
   // Compute similarity
   for (const chunk of chunks) {
@@ -264,10 +373,52 @@ function anonymizeText(text) {
 }
 // --- END RAG Helper Functions ---
 
+// Add rate limiting to prevent memory spikes
+const requestCounts = new Map();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 30; // Max 30 requests per minute per user
+
+function checkRateLimit(userId) {
+  const now = Date.now();
+  const userRequests = requestCounts.get(userId) || [];
+  
+  // Remove old requests outside the window
+  const recentRequests = userRequests.filter(time => now - time < RATE_LIMIT_WINDOW);
+  
+  if (recentRequests.length >= MAX_REQUESTS_PER_WINDOW) {
+    return false; // Rate limited
+  }
+  
+  // Add current request
+  recentRequests.push(now);
+  requestCounts.set(userId, recentRequests);
+  return true; // Allowed
+}
+
+// Clean up old rate limit data periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [userId, requests] of requestCounts.entries()) {
+    const recentRequests = requests.filter(time => now - time < RATE_LIMIT_WINDOW);
+    if (recentRequests.length === 0) {
+      requestCounts.delete(userId);
+    } else {
+      requestCounts.set(userId, recentRequests);
+    }
+  }
+}, 300000); // Clean up every 5 minutes
+
 app.post("/chat", async (req, res) => {
   const { user_id, message } = req.body;
   if (!user_id || !message) {
     return res.status(400).json({ error: "User ID and message are required" });
+  }
+
+  // Check rate limit
+  if (!checkRateLimit(user_id)) {
+    return res.status(429).json({ 
+      error: "Rate limit exceeded. Please wait a moment before sending another message." 
+    });
   }
 
   try {
@@ -1437,27 +1588,13 @@ app.get('*', (req, res) => {
   }
 });
 
-// Memory monitoring function
-function logMemoryUsage() {
-  const memUsage = process.memoryUsage();
-  console.log('🔍 Memory Usage:', {
-    rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
-    heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
-    heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
-    external: `${Math.round(memUsage.external / 1024 / 1024)}MB`
-  });
-}
-
-// Periodic memory cleanup
-setInterval(() => {
-  if (global.gc) {
-    global.gc();
-    logMemoryUsage();
-  }
-}, 300000); // Every 5 minutes
-
-// Log initial memory usage
-logMemoryUsage();
+// Cache clearing endpoint for debugging
+app.post('/api/clear-cache', (req, res) => {
+  knowledgeChunksCache = null;
+  cacheTimestamp = null;
+  console.log('🧹 Knowledge chunks cache cleared');
+  res.json({ success: true, message: 'Cache cleared' });
+});
 
 async function startServer() {
   try {
@@ -1467,8 +1604,22 @@ async function startServer() {
       global.gc();
     }
     
+    // Log initial memory usage
+    const memUsage = process.memoryUsage();
+    console.log('🔍 Initial Memory Usage:', {
+      rss: Math.round(memUsage.rss / 1024 / 1024) + 'MB',
+      heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
+      heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + 'MB',
+      external: Math.round(memUsage.external / 1024 / 1024) + 'MB'
+    });
+    
+    // Add process protection
+    process.setMaxListeners(20);
+    
+    // Set up server with better error handling
     const server = app.listen(port, () => {
       console.log(`✅ Server listening on port ${port}`);
+      console.log('🛡️ Process protection enabled');
     });
     
     // Add error handling for the server
@@ -1476,24 +1627,69 @@ async function startServer() {
       console.error('❌ Server error:', err);
       if (err.code === 'EADDRINUSE') {
         console.error('❌ Port 3000 is already in use. Please kill the existing process.');
+        process.exit(1);
       }
     });
     
-    // Graceful shutdown
-    process.on('SIGTERM', () => {
-      console.log('🔄 SIGTERM received, shutting down gracefully...');
-      server.close(() => {
-        console.log('✅ Server closed');
-        process.exit(0);
+    // Add connection handling
+    server.on('connection', (socket) => {
+      lastActivity = Date.now();
+      socket.on('close', () => {
+        lastActivity = Date.now();
       });
     });
     
-    process.on('SIGINT', () => {
-      console.log('🔄 SIGINT received, shutting down gracefully...');
+    // Graceful shutdown with timeout
+    const gracefulShutdown = (signal) => {
+      console.log(`🔄 ${signal} received, shutting down gracefully...`);
       server.close(() => {
         console.log('✅ Server closed');
         process.exit(0);
       });
+      
+      // Force exit after 10 seconds if graceful shutdown fails
+      setTimeout(() => {
+        console.error('❌ Forced shutdown after timeout');
+        process.exit(1);
+      }, 10000);
+    };
+    
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    
+    // Handle uncaught exceptions more gracefully
+    process.on('uncaughtException', (err) => {
+      console.error('❌ Uncaught Exception:', err);
+      console.error('❌ Stack trace:', err.stack);
+      
+      // Log memory usage before potential crash
+      const memUsage = process.memoryUsage();
+      console.error('❌ Memory usage before crash:', {
+        rss: Math.round(memUsage.rss / 1024 / 1024) + 'MB',
+        heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
+        heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + 'MB',
+        external: Math.round(memUsage.external / 1024 / 1024) + 'MB'
+      });
+      
+      // Don't exit immediately, try to continue
+      console.log('🔄 Attempting to continue despite error...');
+    });
+    
+    // Handle unhandled rejections
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+      
+      // Log memory usage before potential crash
+      const memUsage = process.memoryUsage();
+      console.error('❌ Memory usage before rejection:', {
+        rss: Math.round(memUsage.rss / 1024 / 1024) + 'MB',
+        heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
+        heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + 'MB',
+        external: Math.round(memUsage.external / 1024 / 1024) + 'MB'
+      });
+      
+      // Don't exit immediately, try to continue
+      console.log('🔄 Attempting to continue despite rejection...');
     });
     
   } catch (err) {

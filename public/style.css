@@ -262,14 +262,11 @@ body > i,
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 2rem;
-  background-color: #fff;
-  border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  min-height: 64px;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .top-bar-left {
@@ -278,84 +275,159 @@ body > i,
   gap: 1rem;
 }
 
-.top-bar-logo-link {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  margin-right: 0.5rem;
-}
-
-.top-bar-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  transition: box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(59,130,246,0.08);
-}
-
-.top-bar-logo-link:hover .top-bar-logo {
-  box-shadow: 0 4px 16px rgba(59,130,246,0.15);
-}
-
-.brand-name {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #1e293b;
-  letter-spacing: -1px;
-}
-
-.user-menu {
+.top-bar-right {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.user-email {
-  font-size: 0.9rem;
-  color: #6b7280;
-  font-weight: 500;
+.top-bar-logo-link {
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease;
 }
 
-.logout-btn {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+.top-bar-logo-link:hover {
+  transform: scale(1.02);
 }
 
-.logout-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+.homeops-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.homeops-logo-icon {
+  width: 80px;
+  height: 80px;
+  filter: none;
+  transition: filter 0.2s ease;
+}
+
+.homeops-brand:hover .homeops-logo-icon {
+  filter: drop-shadow(0 4px 16px rgba(102, 126, 234, 0.25));
+}
+
+.homeops-brand-text {
+  font-size: 2.5rem !important;
+  font-weight: 800;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  margin-left: 1.1rem;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  display: inline-block;
 }
 
 @media (max-width: 768px) {
+  .homeops-brand-text {
+    font-size: 1.8rem !important;
+  }
+}
+
+/* Enhanced Hamburger Button */
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.hamburger:hover {
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+.hamburger-bar {
+  width: 20px;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+.hamburger:hover .hamburger-bar {
+  background: linear-gradient(90deg, #5a67d8 0%, #6b21a8 100%);
+}
+
+/* Premium Logout Button */
+.premium-logout-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+  transition: all 0.2s ease;
+  outline: none;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  position: relative;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.premium-logout-btn:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b21a8 100%);
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.25);
+  transform: translateY(-1px);
+}
+
+.premium-logout-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+}
+
+.premium-logout-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.premium-logout-btn:hover svg {
+  transform: translateX(2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .top-bar {
     padding: 0.5rem 1rem;
-    min-height: 56px;
   }
   
-  .brand-name {
-    font-size: 1.3rem;
+  .homeops-brand-text {
+    font-size: 1.25rem;
   }
   
-  .user-menu {
-    gap: 0.5rem;
+  .homeops-logo-icon {
+    width: 64px;
+    height: 64px;
   }
   
-  .user-email {
+  .premium-logout-btn {
+    padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
+}
+
+@media (max-width: 480px) {
+  .homeops-brand-text {
+    display: none;
+  }
   
-  .logout-btn {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
+  .top-bar-left {
+    gap: 0.75rem;
   }
 }
 
@@ -6118,4 +6190,26 @@ body > i,
     max-width: 90%;
     padding: 14px 20px;
   }
+}
+
+.premium-logout-btn {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.12);
+  transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+  outline: none;
+  letter-spacing: 0.01em;
+}
+.premium-logout-btn:hover, .premium-logout-btn:focus {
+  background: linear-gradient(90deg, #5a67d8 0%, #6b21a8 100%) !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.18);
+  transform: translateY(-2px) scale(1.04);
 }

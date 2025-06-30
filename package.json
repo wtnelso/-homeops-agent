@@ -4,8 +4,8 @@
   "description": "Personal AI assistant for home operations",
   "main": "index.cjs",
   "scripts": {
-    "start": "node index.cjs",
-    "dev": "node index.cjs"
+    "start": "node --expose-gc --max-old-space-size=512 index.cjs",
+    "dev": "node --expose-gc --max-old-space-size=512 index.cjs"
   },
   "dependencies": {
     "chrono-node": "^2.7.5",
