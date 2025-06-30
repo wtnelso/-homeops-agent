@@ -707,7 +707,7 @@ async function checkGmailConnection() {
     // Show loading state while checking
     showLoadingState();
     
-    const response = await fetch(`/api/gmail/status?userId=${userId}`);
+    const response = await fetch(`/api/gmail/status?user_id=${userId}`);
     
     if (response.ok) {
       const { connected } = await response.json();
@@ -732,7 +732,7 @@ async function checkGmailConnection() {
 
 async function loadExistingEmails(userId) {
   try {
-    const response = await fetch(`/api/emails?userId=${userId}`);
+    const response = await fetch(`/api/email-decoder/emails?user_id=${userId}`);
     
     if (response.ok) {
       const result = await response.json();
@@ -818,4 +818,26 @@ window.initializeDashboardDecoder = function() {
     setupEventListeners();
     checkInitialState();
   }, 100); // Small delay to ensure DOM is ready
+};
+
+// Debug function to check token status
+window.debugTokens = async function() {
+  try {
+    const userId = getCurrentUserId();
+    console.log('🔍 Debug: Checking tokens for user:', userId);
+    
+    const response = await fetch(`/api/gmail/debug-tokens?user_id=${userId}`);
+    const result = await response.json();
+    
+    console.log('🔍 Debug result:', result);
+    
+    if (result.exists) {
+      alert(`✅ Tokens found!\nAccess Token: ${result.tokenData.hasAccessToken}\nRefresh Token: ${result.tokenData.hasRefreshToken}\nExpiry: ${new Date(result.tokenData.expiryDate).toLocaleString()}`);
+    } else {
+      alert('❌ No tokens found');
+    }
+  } catch (error) {
+    console.error('❌ Debug error:', error);
+    alert('❌ Debug error: ' + error.message);
+  }
 }; 

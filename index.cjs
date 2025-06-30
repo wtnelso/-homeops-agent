@@ -338,6 +338,54 @@ app.get("/api/gmail/test-tokens", async (req, res) => {
   }
 });
 
+// Debug endpoint to check Gmail tokens
+app.get('/api/gmail/debug-tokens', async (req, res) => {
+  const userId = req.query.user_id || 'test_user';
+  
+  try {
+    console.log('🔍 Debug: Checking tokens for user:', userId);
+    
+    const tokenDoc = await db.collection('gmail_tokens').doc(userId).get();
+    
+    if (tokenDoc.exists) {
+      const tokenData = tokenDoc.data();
+      console.log('✅ Debug: Tokens found for user:', userId);
+      console.log('🔍 Debug: Token data:', {
+        hasAccessToken: !!tokenData.access_token,
+        hasRefreshToken: !!tokenData.refresh_token,
+        expiryDate: tokenData.expiry_date,
+        createdAt: tokenData.created_at,
+        scopes: tokenData.scopes
+      });
+      
+      res.json({
+        success: true,
+        exists: true,
+        tokenData: {
+          hasAccessToken: !!tokenData.access_token,
+          hasRefreshToken: !!tokenData.refresh_token,
+          expiryDate: tokenData.expiry_date,
+          createdAt: tokenData.created_at,
+          scopes: tokenData.scopes
+        }
+      });
+    } else {
+      console.log('❌ Debug: No tokens found for user:', userId);
+      res.json({
+        success: true,
+        exists: false,
+        message: 'No tokens found'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Debug: Error checking tokens:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // --- RAG Helper Functions ---
 async function createEmbedding(text) {
   const response = await fetch("https://api.openai.com/v1/embeddings", {
@@ -1292,6 +1340,15 @@ app.post('/api/email-decoder/process', async (req, res) => {
     const tokenDoc = await db.collection('gmail_tokens').doc(user_id).get();
     if (!tokenDoc.exists) {
       console.log('❌ No Gmail tokens found for user:', user_id);
+      console.log('🔍 Debug: Checking if tokens exist in database...');
+      
+      // List all documents in gmail_tokens collection for debugging
+      const allTokens = await db.collection('gmail_tokens').get();
+      console.log('🔍 Debug: Total tokens in database:', allTokens.size);
+      allTokens.forEach(doc => {
+        console.log('🔍 Debug: Token doc ID:', doc.id);
+      });
+      
       return res.status(401).json({ 
         error: 'Gmail not connected. Please connect your Gmail account first.',
         needsReauth: true 
