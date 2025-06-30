@@ -1,3 +1,13 @@
+// Memory optimization settings
+process.env.NODE_OPTIONS = '--max-old-space-size=512 --expose-gc';
+process.setMaxListeners(20);
+
+// Increase memory limits for better performance
+if (global.gc) {
+  // Force initial garbage collection
+  global.gc();
+}
+
 process.on('uncaughtException', err => {
   console.error('Uncaught Exception:', err);
   // Log memory usage before potential crash
@@ -41,8 +51,8 @@ setInterval(() => {
     });
   }
   
-  // More aggressive garbage collection in development
-  const gcThreshold = isDevelopment ? 50 : 80; // Lower threshold in dev
+  // More aggressive garbage collection for memory-constrained systems
+  const gcThreshold = 30; // Very low threshold to prevent kills
   if (heapUsedMB > gcThreshold) {
     console.log(`🧹 High memory usage detected (${heapUsedMB}MB), forcing garbage collection...`);
     if (global.gc) {
@@ -51,11 +61,11 @@ setInterval(() => {
   }
   
   // Log warning if memory usage is very high
-  const warningThreshold = isDevelopment ? 150 : 200; // Lower warning threshold in dev
+  const warningThreshold = 100; // Lower warning threshold
   if (rssMB > warningThreshold) {
     console.warn(`⚠️ Very high memory usage detected: ${rssMB}MB`);
   }
-}, isDevelopment ? 30000 : 60000); // Check every 30 seconds in dev, 1 minute in prod
+}, 15000); // Check every 15 seconds for aggressive monitoring
 
 // Add process monitoring to prevent kills
 let lastActivity = Date.now();
@@ -63,17 +73,17 @@ setInterval(() => {
   const now = Date.now();
   const timeSinceLastActivity = now - lastActivity;
   
-  // If no activity for 5 minutes, log to show the process is alive
-  if (timeSinceLastActivity > 300000) {
+  // If no activity for 2 minutes, log to show the process is alive
+  if (timeSinceLastActivity > 120000) {
     console.log('💓 Process heartbeat - server is alive and monitoring');
     lastActivity = now;
   }
-}, 300000); // Every 5 minutes
+}, 120000); // Every 2 minutes
 
 // Knowledge chunks cache to prevent memory leaks
 let knowledgeChunksCache = null;
 let cacheTimestamp = null;
-const CACHE_DURATION = isDevelopment ? 30 * 60 * 1000 : 60 * 60 * 1000; // 30 min in dev, 1 hour in prod
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes for memory-constrained systems
 
 async function getCachedKnowledgeChunks() {
   const now = Date.now();
@@ -93,8 +103,8 @@ async function getCachedKnowledgeChunks() {
     }
   }
   
-  // Fetch fresh chunks with smaller limit in development
-  const chunkLimit = isDevelopment ? 20 : 50; // Much smaller in dev mode
+  // Fetch fresh chunks with much smaller limit for memory-constrained systems
+  const chunkLimit = 10; // Very small limit
   console.log(`🔄 Fetching fresh knowledge chunks (limit: ${chunkLimit})...`);
   const snapshot = await db.collection('knowledge_chunks')
     .limit(chunkLimit)

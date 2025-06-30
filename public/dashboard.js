@@ -141,6 +141,14 @@ function showLoadingState() {
   }
 }
 
+function showOnboardingState() {
+  hideAllStates();
+  const onboardingState = document.getElementById('onboarding-state');
+  if (onboardingState) {
+    onboardingState.style.display = 'flex';
+  }
+}
+
 function showZeroState() {
   hideAllStates();
   const zeroState = document.getElementById('zero-state');
@@ -169,7 +177,7 @@ function showTrainingMode() {
 }
 
 function hideAllStates() {
-  const states = ['loading-state', 'zero-state', 'email-cards-container', 'training-mode', 'error-state'];
+  const states = ['loading-state', 'onboarding-state', 'zero-state', 'email-cards-container', 'training-mode', 'error-state'];
   states.forEach(id => {
     const element = document.getElementById(id);
     if (element) element.style.display = 'none';
@@ -564,17 +572,42 @@ async function giveFeedback(emailId, feedback) {
 }
 
 async function giveTrainingFeedback(emailId, feedback) {
-  console.log(`🎓 Training feedback: ${feedback} for email: ${emailId}`);
+  console.log(`🎓 Training feedback: ${emailId} - ${feedback}`);
   
-  // TODO: Implement training feedback
-  showSuccess('Thank you for helping us learn!');
-  
-  // Move to next training card or complete training
+  // Mark the training card as completed
   const trainingCard = document.querySelector(`[data-training-id="${emailId}"]`);
   if (trainingCard) {
     trainingCard.style.opacity = '0.5';
     trainingCard.style.pointerEvents = 'none';
   }
+  
+  // Check if all training cards are completed
+  const allTrainingCards = document.querySelectorAll('.training-card');
+  const completedCards = document.querySelectorAll('.training-card[style*="opacity: 0.5"]');
+  
+  if (completedCards.length === allTrainingCards.length) {
+    // All training completed - transition to full decoder
+    setTimeout(() => {
+      completeTraining();
+    }, 1000);
+  }
+}
+
+// Function to transition from training to full decoder
+function completeTraining() {
+  console.log('🎓 Training completed, transitioning to full decoder...');
+  
+  // Hide training mode
+  const trainingMode = document.getElementById('training-mode');
+  if (trainingMode) {
+    trainingMode.style.display = 'none';
+  }
+  
+  // Show the full decoder with the 4 categories
+  showEmailCards();
+  
+  // Process real emails
+  processEmails();
 }
 
 // 🎛️ BULK ACTIONS
@@ -670,22 +703,30 @@ function retryFromError() {
 async function checkGmailConnection() {
   try {
     const userId = getCurrentUserId();
+    
+    // Show loading state while checking
+    showLoadingState();
+    
     const response = await fetch(`/api/gmail/status?userId=${userId}`);
     
     if (response.ok) {
       const { connected } = await response.json();
       
       if (!connected) {
-        // Show onboarding/training mode
-        showTrainingMode();
+        // Show onboarding step 1: Gmail connection
+        showOnboardingState();
       } else {
-        // Load existing emails
+        // Gmail is connected, check if we have processed emails
         loadExistingEmails(userId);
       }
+    } else {
+      // If we can't check status, show onboarding
+      showOnboardingState();
     }
   } catch (error) {
     console.error('❌ Error checking Gmail connection:', error);
-    showTrainingMode();
+    // If there's an error, show onboarding
+    showOnboardingState();
   }
 }
 
@@ -698,14 +739,20 @@ async function loadExistingEmails(userId) {
       decodedEmails = result.emails || [];
       
       if (decodedEmails.length === 0) {
-        showZeroState();
+        // No processed emails yet - show training mode first
+        showTrainingMode();
       } else {
+        // We have processed emails - show the full decoder
         showEmailCards();
       }
+    } else {
+      // If we can't load emails, show training mode
+      showTrainingMode();
     }
   } catch (error) {
     console.error('❌ Error loading existing emails:', error);
-    showZeroState();
+    // If there's an error, show training mode
+    showTrainingMode();
   }
 }
 
