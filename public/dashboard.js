@@ -42,14 +42,30 @@ const CATEGORIES = {
 // 🎯 INITIALIZATION
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🎯 Initializing HomeOps Decoder...');
-  initializeDecoder();
-  setupEventListeners();
-  checkInitialState();
+  
+  // Check if dashboard view is already active
+  const dashboardView = document.getElementById('dashboard-view');
+  if (dashboardView && dashboardView.classList.contains('active')) {
+    console.log('🎯 Dashboard view already active, initializing immediately');
+    initializeDecoder();
+    setupEventListeners();
+    checkInitialState();
+  } else {
+    console.log('🎯 Dashboard view not active, waiting for activation');
+    // The initialization will happen when the dashboard view is activated
+  }
 });
 
 // 🔧 INITIALIZATION FUNCTIONS
 function initializeDecoder() {
   console.log('🔧 Setting up decoder components...');
+  
+  // Check if dashboard view is active
+  const dashboardView = document.getElementById('dashboard-view');
+  if (!dashboardView || dashboardView.style.display === 'none') {
+    console.log('⚠️ Dashboard view not active, skipping initialization');
+    return;
+  }
   
   // Initialize Lucide icons
   if (typeof lucide !== 'undefined') {
@@ -119,29 +135,41 @@ function checkInitialState() {
 // 🎛️ STATE MANAGEMENT
 function showLoadingState() {
   hideAllStates();
-  document.getElementById('loading-state').style.display = 'flex';
+  const loadingState = document.getElementById('loading-state');
+  if (loadingState) {
+    loadingState.style.display = 'flex';
+  }
 }
 
 function showZeroState() {
   hideAllStates();
-  document.getElementById('zero-state').style.display = 'flex';
+  const zeroState = document.getElementById('zero-state');
+  if (zeroState) {
+    zeroState.style.display = 'flex';
+  }
   updateCategoryCounts();
 }
 
 function showEmailCards() {
   hideAllStates();
-  document.getElementById('email-cards-container').style.display = 'grid';
+  const emailCardsContainer = document.getElementById('email-cards-container');
+  if (emailCardsContainer) {
+    emailCardsContainer.style.display = 'grid';
+  }
   renderEmailCards();
 }
 
 function showTrainingMode() {
   hideAllStates();
-  document.getElementById('training-mode').style.display = 'block';
+  const trainingMode = document.getElementById('training-mode');
+  if (trainingMode) {
+    trainingMode.style.display = 'block';
+  }
   renderTrainingCards();
 }
 
 function hideAllStates() {
-  const states = ['loading-state', 'zero-state', 'email-cards-container', 'training-mode'];
+  const states = ['loading-state', 'zero-state', 'email-cards-container', 'training-mode', 'error-state'];
   states.forEach(id => {
     const element = document.getElementById(id);
     if (element) element.style.display = 'none';
@@ -608,40 +636,34 @@ function showSuccess(message) {
 function showError(message) {
   console.error(`❌ ${message}`);
   
-  // Hide loading state
+  // Hide all other states
   hideAllStates();
   
   // Show error state
-  const dashboardView = document.getElementById('dashboard-view');
-  if (dashboardView) {
-    dashboardView.innerHTML = `
-      <div class="error-state" style="
-        text-align: center;
-        padding: 4rem 2rem;
-        max-width: 600px;
-        margin: 0 auto;
-      ">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
-        <h3 style="color: #dc2626; margin-bottom: 1rem;">Something went wrong</h3>
-        <p style="color: #64748b; margin-bottom: 2rem; line-height: 1.6;">${message}</p>
-        <button onclick="processEmails()" class="btn-primary" style="
-          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-          color: white;
-          border: none;
-          padding: 1rem 2rem;
-          border-radius: 12px;
-          font-size: 1.1rem;
-          font-weight: 600;
-          cursor: pointer;
-          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-          transition: all 0.2s;
-        ">
-          <i data-lucide="refresh-cw" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;"></i>
-          Try Again
-        </button>
-      </div>
-    `;
+  const errorState = document.getElementById('error-state');
+  const errorMessage = document.getElementById('error-message');
+  
+  if (errorState && errorMessage) {
+    errorMessage.textContent = message;
+    errorState.style.display = 'flex';
+  } else {
+    // Fallback if error state doesn't exist
+    console.error('Error state container not found');
   }
+}
+
+// Function to retry from error state
+function retryFromError() {
+  console.log('🔄 Retrying from error state...');
+  
+  // Hide error state
+  const errorState = document.getElementById('error-state');
+  if (errorState) {
+    errorState.style.display = 'none';
+  }
+  
+  // Try to process emails again
+  processEmails();
 }
 
 // 🔍 GMAIL CONNECTION
@@ -736,4 +758,17 @@ window.snoozeEmail = snoozeEmail;
 window.markImportant = markImportant;
 window.replyToEmail = replyToEmail;
 window.giveFeedback = giveFeedback;
-window.giveTrainingFeedback = giveTrainingFeedback; 
+window.giveTrainingFeedback = giveTrainingFeedback;
+window.connectGmail = connectGmail;
+window.initializeDecoder = initializeDecoder;
+window.retryFromError = retryFromError;
+
+// Global function to initialize decoder when dashboard view is activated
+window.initializeDashboardDecoder = function() {
+  console.log('🎯 Dashboard view activated, initializing decoder...');
+  setTimeout(() => {
+    initializeDecoder();
+    setupEventListeners();
+    checkInitialState();
+  }, 100); // Small delay to ensure DOM is ready
+}; 

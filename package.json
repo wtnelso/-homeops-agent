@@ -4,8 +4,8 @@
   "description": "Personal AI assistant for home operations",
   "main": "index.cjs",
   "scripts": {
-    "start": "node index.cjs",
-    "dev": "DEV_MODE=true NODE_ENV=development node --max-old-space-size=256 --expose-gc index.cjs",
+    "start": "node --expose-gc --max-old-space-size=512 index.cjs",
+    "dev": "node --expose-gc --max-old-space-size=512 --watch index.cjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

@@ -1267,7 +1267,7 @@ app.post('/api/gmail/reauth', async (req, res) => {
   }
 });
 
-// Email Decoder Engine - Process emails
+// Email Decoder Engine - Process emails (Memory Optimized)
 app.post('/api/email-decoder/process', async (req, res) => {
   const { user_id } = req.body;
   
@@ -1290,7 +1290,6 @@ app.post('/api/email-decoder/process', async (req, res) => {
 
     const tokens = tokenDoc.data();
     console.log('🔍 Retrieved tokens for user:', user_id);
-    console.log('🔍 Token expiry:', tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : 'No expiry');
     
     const oauth2Client = new google.auth.OAuth2(
       GMAIL_OAUTH_CONFIG.clientId,
@@ -1306,7 +1305,6 @@ app.post('/api/email-decoder/process', async (req, res) => {
       try {
         if (!tokens.refresh_token) {
           console.log('❌ No refresh token available');
-          // Clear expired tokens
           await db.collection('gmail_tokens').doc(user_id).delete();
           return res.status(401).json({ 
             error: 'Gmail tokens expired and no refresh token available. Please reconnect your Gmail account.',
@@ -1315,12 +1313,6 @@ app.post('/api/email-decoder/process', async (req, res) => {
         }
 
         const { credentials } = await oauth2Client.refreshAccessToken();
-        console.log('🔍 Refresh response:', {
-          hasAccessToken: !!credentials.access_token,
-          hasRefreshToken: !!credentials.refresh_token,
-          newExpiry: credentials.expiry_date ? new Date(credentials.expiry_date).toISOString() : 'No expiry'
-        });
-        
         oauth2Client.setCredentials(credentials);
         
         // Update tokens in database
@@ -1334,15 +1326,11 @@ app.post('/api/email-decoder/process', async (req, res) => {
         }
         
         await db.collection('gmail_tokens').doc(user_id).update(updateData);
-        
         console.log('✅ Tokens refreshed successfully');
       } catch (refreshError) {
         console.error('❌ Failed to refresh tokens:', refreshError);
-        console.error('❌ Refresh error details:', refreshError.message);
         
-        // Check if it's an invalid_grant error (most common for expired refresh tokens)
         if (refreshError.message && refreshError.message.includes('invalid_grant')) {
-          console.log('🔍 Invalid grant error detected, clearing tokens');
           await db.collection('gmail_tokens').doc(user_id).delete();
           return res.status(401).json({ 
             error: 'Gmail tokens expired. Please reconnect your Gmail account.',
@@ -1350,10 +1338,8 @@ app.post('/api/email-decoder/process', async (req, res) => {
           });
         }
         
-        // For other errors, try to clear tokens and ask for reauth
         try {
           await db.collection('gmail_tokens').doc(user_id).delete();
-          console.log('✅ Cleared expired tokens');
         } catch (clearError) {
           console.error('❌ Error clearing tokens:', clearError);
         }
@@ -1365,23 +1351,22 @@ app.post('/api/email-decoder/process', async (req, res) => {
       }
     }
 
-    // Test the connection before proceeding with a shorter timeout
+    // Test the connection with shorter timeout
     try {
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
       console.log('🔍 Testing Gmail connection...');
       
-      const testResponse = await Promise.race([
+      await Promise.race([
         gmail.users.getProfile({ userId: 'me' }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Gmail connection test timeout')), 5000)
+          setTimeout(() => reject(new Error('Gmail connection test timeout')), 3000)
         )
       ]);
       
-      console.log('✅ Gmail connection test successful:', testResponse.data.emailAddress);
+      console.log('✅ Gmail connection test successful');
     } catch (connectionError) {
       console.error('❌ Gmail connection test failed:', connectionError);
       
-      // If connection test fails, it might be due to expired tokens
       if (connectionError.message && connectionError.message.includes('invalid_grant')) {
         await db.collection('gmail_tokens').doc(user_id).delete();
         return res.status(401).json({ 
@@ -1396,17 +1381,17 @@ app.post('/api/email-decoder/process', async (req, res) => {
       });
     }
 
-    // Fetch recent emails with shorter timeout and reduced results
+    // Fetch recent emails with very limited results
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
     console.log('🔍 Attempting to fetch emails...');
     
     const response = await Promise.race([
       gmail.users.messages.list({
         userId: 'me',
-        maxResults: 5  // Reduced from 10 to 5
+        maxResults: 2  // Reduced to just 2 emails for memory efficiency
       }),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Gmail API timeout')), 15000)  // Reduced from 30s to 15s
+        setTimeout(() => reject(new Error('Gmail API timeout')), 10000)
       )
     ]);
 
@@ -1423,13 +1408,12 @@ app.post('/api/email-decoder/process', async (req, res) => {
       });
     }
 
-    // Process emails with reduced batch size and better error handling
+    // Process emails one at a time to reduce memory pressure
     const processedEmails = [];
-    const emailDetails = [];
     
-    for (let i = 0; i < Math.min(messages.length, 3); i++) {  // Process max 3 emails
+    for (let i = 0; i < Math.min(messages.length, 2); i++) {  // Process max 2 emails
       try {
-        console.log(`🔍 Processing email ${i + 1}/${Math.min(messages.length, 3)}`);
+        console.log(`🔍 Processing email ${i + 1}/${Math.min(messages.length, 2)}`);
         
         const emailResponse = await Promise.race([
           gmail.users.messages.get({
@@ -1439,7 +1423,7 @@ app.post('/api/email-decoder/process', async (req, res) => {
             metadataHeaders: ['From', 'Subject', 'Date', 'To']
           }),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Email fetch timeout')), 10000)  // 10s timeout per email
+            setTimeout(() => reject(new Error('Email fetch timeout')), 5000)
           )
         ]);
 
@@ -1454,31 +1438,8 @@ app.post('/api/email-decoder/process', async (req, res) => {
           to: headers.find(h => h.name === 'To')?.value || 'Unknown'
         };
 
-        emailDetails.push(emailData);
-        
-        // Analyze email with OpenAI
-        const analysisPrompt = `
-Analyze this email and categorize it:
-
-From: ${emailData.from}
-Subject: ${emailData.subject}
-Date: ${emailData.date}
-To: ${emailData.to}
-
-Please categorize this email and provide a JSON response with:
-1. Type (receipt, calendar_invite, school_message, work_email, personal, newsletter, other)
-2. Category (urgent, important, routine, low_priority)
-3. Priority (high, medium, low)
-4. Brief summary (1-2 sentences)
-
-Respond with valid JSON only:
-{
-  "type": "string",
-  "category": "string", 
-  "priority": "string",
-  "summary": "string"
-}
-        `;
+        // Analyze email with OpenAI (simplified prompt)
+        const analysisPrompt = `Analyze this email: From: ${emailData.from}, Subject: ${emailData.subject}. Respond with JSON: {"type": "work_email|personal|newsletter|other", "category": "urgent|important|routine|low_priority", "priority": "high|medium|low", "summary": "brief description"}`;
 
         const analysis = await callOpenAI(analysisPrompt);
         let parsedAnalysis;
@@ -1512,9 +1473,13 @@ Respond with valid JSON only:
 
         console.log(`✅ Processed email ${i + 1}: ${parsedAnalysis.type} - ${parsedAnalysis.priority} priority`);
         
+        // Force garbage collection after each email
+        if (global.gc) {
+          global.gc();
+        }
+        
       } catch (emailError) {
         console.error(`❌ Error processing email ${i + 1}:`, emailError);
-        // Continue with next email instead of failing completely
         continue;
       }
     }
@@ -1538,6 +1503,11 @@ Respond with valid JSON only:
     console.log('✅ Email processing completed successfully');
     console.log('📊 Summary:', summary);
 
+    // Force garbage collection before sending response
+    if (global.gc) {
+      global.gc();
+    }
+
     res.json({
       success: true,
       emails: processedEmails,
@@ -1547,13 +1517,11 @@ Respond with valid JSON only:
   } catch (error) {
     console.error('❌ Email processing failed:', error);
     
-    // Check if it's a token-related error
     if (error.message && (
       error.message.includes('invalid_grant') || 
       error.message.includes('unauthorized') ||
       error.message.includes('401')
     )) {
-      // Clear tokens and ask for reauth
       try {
         await db.collection('gmail_tokens').doc(user_id).delete();
         console.log('✅ Cleared invalid tokens');
@@ -1689,6 +1657,24 @@ app.post('/api/clear-cache', (req, res) => {
   cacheTimestamp = null;
   console.log('🧹 Knowledge chunks cache cleared');
   res.json({ success: true, message: 'Cache cleared' });
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  const memUsage = process.memoryUsage();
+  const uptime = process.uptime();
+  
+  res.json({
+    status: 'healthy',
+    uptime: Math.round(uptime),
+    memory: {
+      rss: Math.round(memUsage.rss / 1024 / 1024) + 'MB',
+      heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
+      heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + 'MB',
+      external: Math.round(memUsage.external / 1024 / 1024) + 'MB'
+    },
+    timestamp: new Date().toISOString()
+  });
 });
 
 async function startServer() {

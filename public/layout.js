@@ -93,8 +93,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (viewId === 'dashboard') {
         setTimeout(() => {
           console.log('🧠 Dashboard view activated, initializing Email Decoder');
-          if (window.initializeEmailDecoder) {
-            window.initializeEmailDecoder();
+          if (window.initializeDashboardDecoder) {
+            window.initializeDashboardDecoder();
+          } else if (window.initializeDecoder) {
+            window.initializeDecoder();
           }
         }, 100);
       }
