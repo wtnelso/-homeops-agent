@@ -1,14 +1,21 @@
-body {
+/* 🚫 FIXED VIEWPORT - NO SCROLLING */
+html, body {
+  height: 100vh;
+  overflow: hidden;
   margin: 0;
+  padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background-color: #f9fafa;
   color: #1c1c1e;
 }
 
 .dashboard-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
 }
 
 .dashboard-header {
@@ -118,12 +125,13 @@ ul {
 
 /* 🔥 DECODER APP CONTAINER */
 .decoder-app {
-  min-height: 100vh;
+  height: 100vh;
   background: var(--gray-50);
   font-family: var(--font-family);
   color: var(--gray-900);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* 🎯 HEADER - Premium Branding */
@@ -329,8 +337,11 @@ ul {
   flex: 1;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem;
   width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 🎯 STATE CONTAINERS */
@@ -338,7 +349,7 @@ ul {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  flex: 1;
   padding: 2rem;
   text-align: center;
 }
@@ -347,7 +358,7 @@ ul {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  flex: 1;
   padding: 2rem;
 }
 
@@ -408,7 +419,7 @@ ul {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  flex: 1;
   padding: 2rem;
 }
 
@@ -454,15 +465,47 @@ ul {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 0.5rem;
+}
+
+/* 🎨 CUSTOM SCROLLBARS */
+.email-cards-container::-webkit-scrollbar,
+.training-mode::-webkit-scrollbar,
+.training-cards::-webkit-scrollbar {
+  width: 6px;
+}
+
+.email-cards-container::-webkit-scrollbar-track,
+.training-mode::-webkit-scrollbar-track,
+.training-cards::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: 3px;
+}
+
+.email-cards-container::-webkit-scrollbar-thumb,
+.training-mode::-webkit-scrollbar-thumb,
+.training-cards::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 3px;
+}
+
+.email-cards-container::-webkit-scrollbar-thumb:hover,
+.training-mode::-webkit-scrollbar-thumb:hover,
+.training-cards::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
 }
 
 /* 🎓 TRAINING MODE */
 .training-mode {
   background: var(--white);
   border-radius: var(--border-radius-lg);
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: var(--shadow-lg);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .training-header {
@@ -486,6 +529,8 @@ ul {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  overflow-y: auto;
+  flex: 1;
 }
 
 /* 🎛️ BOTTOM ACTION BAR */
@@ -619,6 +664,7 @@ ul {
   
   .decoder-main {
     padding: 1rem;
+    height: 100%;
   }
   
   .email-cards-container {
