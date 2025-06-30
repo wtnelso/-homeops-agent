@@ -317,7 +317,7 @@ document.addEventListener("DOMContentLoaded", () => {
           right: "dayGridMonth,timeGridWeek,timeGridDay"
         },
         events: function(fetchInfo, successCallback, failureCallback) {
-          const userId = window.userId || "ER4LFJqyUidTfc4a53DaPjeZYKE3";
+          const userId = window.userId || "test_user";
           const url = `/api/get-events?user_id=${userId}`;
           console.log("🟢 FullCalendar fetching events from:", url);
           console.log("🟢 Current window.userId:", window.userId);
@@ -355,7 +355,7 @@ document.addEventListener("DOMContentLoaded", () => {
         dateClick: function(info) {
           const title = prompt("Add an event:");
           if (title) {
-            const userId = window.userId || "ER4LFJqyUidTfc4a53DaPjeZYKE3";
+            const userId = window.userId || "test_user";
             fetch("/api/add-event", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -380,6 +380,18 @@ document.addEventListener("DOMContentLoaded", () => {
       window.calendar.render();
       window.calendarRendered = true;
       console.log("✅ Calendar initialized and rendered");
+      
+      // Handle any pending events from chat
+      if (window.pendingCalendarEvents && window.pendingCalendarEvents.length > 0) {
+        console.log("📅 Processing pending calendar events:", window.pendingCalendarEvents);
+        window.pendingCalendarEvents.forEach((event) => {
+          if (window.calendar) {
+            window.calendar.addEvent(event);
+          }
+        });
+        window.pendingCalendarEvents = [];
+        console.log("📅 Pending events processed and cleared");
+      }
       
       // Force calendar to update its size after a short delay
       setTimeout(() => {
@@ -559,7 +571,7 @@ document.addEventListener("DOMContentLoaded", () => {
     async function deleteEvent(eventId) {
       if (confirm('Are you sure you want to delete this event?')) {
         try {
-          const userId = window.userId || "ER4LFJqyUidTfc4a53DaPjeZYKE3";
+          const userId = window.userId || "test_user";
           const response = await fetch('/api/delete-event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -594,7 +606,7 @@ document.addEventListener("DOMContentLoaded", () => {
       clearEventsBtn.addEventListener('click', async () => {
         if (confirm('Are you sure you want to clear all calendar events? This cannot be undone.')) {
           try {
-            const userId = window.userId || "ER4LFJqyUidTfc4a53DaPjeZYKE3";
+            const userId = window.userId || "test_user";
             const response = await fetch('/api/events/clear', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

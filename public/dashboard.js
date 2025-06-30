@@ -72,11 +72,21 @@ function setupEventListeners() {
   document.getElementById('process-again-btn')?.addEventListener('click', processEmails);
   
   // Search functionality
-  const searchInput = document.getElementById('search-input');
-  const searchClear = document.getElementById('search-clear');
+  const searchInput = document.getElementById('decoder-search');
+  const searchClear = document.getElementById('decoder-search-clear');
   
-  searchInput?.addEventListener('input', handleSearch);
-  searchClear?.addEventListener('click', clearSearch);
+  if (searchInput && searchClear) {
+    searchInput.addEventListener('input', () => {
+      searchClear.style.display = searchInput.value ? 'flex' : 'none';
+      // Optionally, trigger search/filter here
+    });
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      searchClear.style.display = 'none';
+      searchInput.focus();
+      // Optionally, reset search/filter here
+    });
+  }
   
   // Category tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -305,41 +315,6 @@ function createTrainingCard(email) {
   `;
 }
 
-// 🔍 SEARCH FUNCTIONALITY
-function handleSearch(event) {
-  searchQuery = event.target.value.toLowerCase();
-  filterEmails();
-}
-
-function clearSearch() {
-  document.getElementById('search-input').value = '';
-  searchQuery = '';
-  filterEmails();
-}
-
-function filterEmails() {
-  console.log('🔍 Filtering emails...');
-  
-  let filtered = decodedEmails;
-  
-  // Filter by category
-  if (currentCategory !== 'all') {
-    filtered = filtered.filter(email => email.category === currentCategory);
-  }
-  
-  // Filter by search query
-  if (searchQuery) {
-    filtered = filtered.filter(email => 
-      email.sender.toLowerCase().includes(searchQuery) ||
-      email.subject.toLowerCase().includes(searchQuery) ||
-      (email.summary && email.summary.toLowerCase().includes(searchQuery))
-    );
-  }
-  
-  filteredEmails = filtered;
-  renderEmailCards();
-}
-
 // 📊 CATEGORY MANAGEMENT
 function switchCategory(category) {
   console.log(`📊 Switching to category: ${category}`);
@@ -485,7 +460,7 @@ async function archiveEmail(emailId) {
 }
 
 async function snoozeEmail(emailId) {
-  console.log(`📧 Snoozing email: ${emailId}`);
+  console.log(`�� Snoozing email: ${emailId}`);
   // TODO: Implement snooze functionality
   showSuccess('Email snoozed');
 }

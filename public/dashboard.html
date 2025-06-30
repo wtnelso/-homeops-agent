@@ -588,11 +588,29 @@
 
   <!-- Chat View -->
   <section id="chat-view" class="view">
+    <!-- 🎯 CHAT HEADER - Premium Branding -->
+    <header class="chat-header">
+      <div class="chat-header-content">
+        <div class="chat-brand-section">
+          <div class="chat-logo">
+            <div class="chat-logo-icon">
+              <i data-lucide="message-square"></i>
+            </div>
+            <h1>HomeOps Chat</h1>
+          </div>
+          <p class="chat-tagline">Your personal chief of staff, ready to help</p>
+        </div>
+      </div>
+    </header>
+    
     <div class="chat-wrapper">
       <div id="chat" class="chat-box"></div>
       <form id="chatForm" class="chat-form">
-        <input id="input" type="text" placeholder="Type something..." autocomplete="off" />
-        <button type="submit">Send</button>
+        <input id="input" type="text" placeholder="Ask HomeOps anything..." autocomplete="off" />
+        <button type="submit">
+          <i data-lucide="send"></i>
+          <span>Send</span>
+        </button>
       </form>
     </div>
   </section>
@@ -630,24 +648,10 @@
 
         <!-- 🎛️ COMMAND BAR - Superhuman Style -->
         <div class="command-bar">
-            <div class="search-container">
-                <i data-lucide="search" class="search-icon"></i>
-                <input type="text" id="search-input" placeholder="Search decoded emails..." class="search-input">
-                <button class="search-clear" id="search-clear">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
-            
-            <div class="command-actions">
-                <button class="btn-icon" id="select-all-btn" title="Select All">
-                    <i data-lucide="check-square"></i>
-                </button>
-                <button class="btn-icon" id="bulk-archive-btn" title="Archive Selected">
-                    <i data-lucide="archive"></i>
-                </button>
-                <button class="btn-icon" id="bulk-snooze-btn" title="Snooze Selected">
-                    <i data-lucide="clock"></i>
-                </button>
+            <!-- Search Bar Area -->
+            <div class="decoder-search-row">
+              <input type="text" id="decoder-search" class="decoder-search-input" placeholder="Search decoded emails...">
+              <button id="decoder-search-clear" class="decoder-search-clear" style="display:none;" aria-label="Clear search">&times;</button>
             </div>
         </div>
 

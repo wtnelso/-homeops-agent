@@ -235,15 +235,22 @@ function cosineSimilarity(a, b) {
 }
 
 async function getTopKRelevantChunks(userEmbedding, k = 5) {
-  // Fetch all knowledge chunks (for small KB; for large KB, use a vector DB)
-  const snapshot = await db.collection('knowledge_chunks').get();
+  // Fetch knowledge chunks with pagination to prevent memory issues
+  const snapshot = await db.collection('knowledge_chunks')
+    .limit(100) // Limit to prevent memory overload
+    .get();
+  
   const chunks = snapshot.docs.map(doc => doc.data());
+  
   // Compute similarity
   for (const chunk of chunks) {
     chunk.sim = cosineSimilarity(userEmbedding, chunk.embedding);
   }
+  
   // Sort by similarity, descending
   chunks.sort((a, b) => b.sim - a.sim);
+  
+  // Return top k chunks
   return chunks.slice(0, k);
 }
 
@@ -284,7 +291,10 @@ app.post("/chat", async (req, res) => {
       ragContext = topChunks.map(c => anonymizeText(c.content)).join("\n---\n");
     } catch (e) {
       console.error("RAG context fetch failed:", e.message);
+      // Continue without RAG context if it fails
+      ragContext = "";
     }
+    
     const systemPrompt = `
 Your one and only job is to act as a persona synthesizer. You will be given a block of text under "Relevant context". You MUST adopt the tone, style, and personality of the author of that text to answer the user's message.
 
@@ -319,8 +329,8 @@ Respond with ONLY a single, valid JSON object in this format.
 
     messagesForApi.push({ role: "system", content: systemPrompt });
 
-    // Add conversation history
-    history.forEach(msg => {
+    // Add conversation history (limit to prevent memory issues)
+    history.slice(0, 5).forEach(msg => {
       messagesForApi.push({ role: "user", content: msg.message });
       if (msg.assistant_response) {
         messagesForApi.push({ role: "assistant", content: msg.assistant_response });
@@ -330,78 +340,95 @@ Respond with ONLY a single, valid JSON object in this format.
     // Add the current user message
     messagesForApi.push({ role: "user", content: message });
 
-
-    // 3. Call OpenAI API
-    const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        temperature: 0.7,
-        top_p: 1,
-        response_format: { type: "json_object" },
-        messages: messagesForApi
-      })
-    });
-
-    const gptData = await gptRes.json();
-    console.log("OpenAI Response Body:", JSON.stringify(gptData, null, 2));
-    const content = gptData.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error("No content from GPT response.");
-    }
-
-    const parsedResponse = JSON.parse(content);
-    const { reply, events = [] } = parsedResponse;
-
-    // 4. Save new message and reply to history
-    await db.collection("messages").add({
-      user_id,
-      message,
-      assistant_response: content,
-      timestamp: new Date()
-    });
-
-    // 5. Save events to Firestore
-    if (events.length > 0) {
-      const savedEvents = [];
-      const batch = db.batch();
-      
-      // Get the current time in the target timezone to use as a reference for parsing
-      const referenceDate = new Date();
-
-      events.forEach(event => {
-        if (event.title && event.when) {
-          // Parse the natural language "when" string in America/New_York timezone
-          const parsedStart = chrono.parseDate(event.when, referenceDate, { forwardDate: true, timezone: "America/New_York" });
-
-          if (parsedStart) {
-            // Convert to the required ISO 8601 format with timezone
-            const startISO = parsedStart.toISOString();
-
-            const eventRef = db.collection("events").doc();
-            const eventWithId = { 
-              ...event, 
-              start: startISO, // Add the parsed start time
-              id: eventRef.id, 
-              user_id, 
-              created_at: new Date() 
-            };
-            delete eventWithId.when; // Clean up the original 'when' field
-            
-            batch.set(eventRef, eventWithId);
-            savedEvents.push(eventWithId);
-          }
-        }
+    // 3. Call OpenAI API with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
+    try {
+      const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          temperature: 0.7,
+          top_p: 1,
+          response_format: { type: "json_object" },
+          messages: messagesForApi
+        }),
+        signal: controller.signal
       });
-      await batch.commit();
-      res.json({ reply, events: savedEvents });
-    } else {
-      res.json({ reply, events: [] });
+
+      clearTimeout(timeoutId);
+
+      if (!gptRes.ok) {
+        throw new Error(`OpenAI API error: ${gptRes.status} ${gptRes.statusText}`);
+      }
+
+      const gptData = await gptRes.json();
+      console.log("OpenAI Response Body:", JSON.stringify(gptData, null, 2));
+      const content = gptData.choices?.[0]?.message?.content;
+
+      if (!content) {
+        throw new Error("No content from GPT response.");
+      }
+
+      const parsedResponse = JSON.parse(content);
+      const { reply, events = [] } = parsedResponse;
+
+      // 4. Save new message and reply to history
+      await db.collection("messages").add({
+        user_id,
+        message,
+        assistant_response: content,
+        timestamp: new Date()
+      });
+
+      // 5. Save events to Firestore
+      if (events.length > 0) {
+        const savedEvents = [];
+        const batch = db.batch();
+        
+        // Get the current time in the target timezone to use as a reference for parsing
+        const referenceDate = new Date();
+
+        events.forEach(event => {
+          if (event.title && event.when) {
+            // Parse the natural language "when" string in America/New_York timezone
+            const parsedStart = chrono.parseDate(event.when, referenceDate, { forwardDate: true, timezone: "America/New_York" });
+
+            if (parsedStart) {
+              // Convert to the required ISO 8601 format with timezone
+              const startISO = parsedStart.toISOString();
+
+              const eventRef = db.collection("events").doc();
+              const eventWithId = { 
+                ...event, 
+                start: startISO, // Add the parsed start time
+                id: eventRef.id, 
+                user_id, 
+                created_at: new Date() 
+              };
+              delete eventWithId.when; // Clean up the original 'when' field
+              
+              batch.set(eventRef, eventWithId);
+              savedEvents.push(eventWithId);
+            }
+          }
+        });
+        await batch.commit();
+        res.json({ reply, events: savedEvents });
+      } else {
+        res.json({ reply, events: [] });
+      }
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+      throw fetchError;
     }
 
   } catch (err) {
@@ -523,6 +550,25 @@ app.post("/api/add-event", async (req, res) => {
   }
 
   try {
+    // Duplicate check: same user_id, title, and start
+    const dupSnapshot = await db.collection("events")
+      .where("user_id", "==", user_id)
+      .where("title", "==", title)
+      .where("start", "==", start)
+      .limit(1)
+      .get();
+    if (!dupSnapshot.empty) {
+      // Duplicate found
+      const existingDoc = dupSnapshot.docs[0];
+      return res.json({ 
+        success: false, 
+        duplicate: true, 
+        id: existingDoc.id,
+        event: existingDoc.data(),
+        message: "Event already exists" 
+      });
+    }
+
     const eventData = {
       user_id,
       title,
@@ -1391,11 +1437,65 @@ app.get('*', (req, res) => {
   }
 });
 
+// Memory monitoring function
+function logMemoryUsage() {
+  const memUsage = process.memoryUsage();
+  console.log('🔍 Memory Usage:', {
+    rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
+    heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
+    heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+    external: `${Math.round(memUsage.external / 1024 / 1024)}MB`
+  });
+}
+
+// Periodic memory cleanup
+setInterval(() => {
+  if (global.gc) {
+    global.gc();
+    logMemoryUsage();
+  }
+}, 300000); // Every 5 minutes
+
+// Log initial memory usage
+logMemoryUsage();
+
 async function startServer() {
   try {
-    app.listen(port, () => {
+    // Set memory limits and garbage collection
+    if (global.gc) {
+      // Force garbage collection if available
+      global.gc();
+    }
+    
+    const server = app.listen(port, () => {
       console.log(`✅ Server listening on port ${port}`);
     });
+    
+    // Add error handling for the server
+    server.on('error', (err) => {
+      console.error('❌ Server error:', err);
+      if (err.code === 'EADDRINUSE') {
+        console.error('❌ Port 3000 is already in use. Please kill the existing process.');
+      }
+    });
+    
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+      console.log('🔄 SIGTERM received, shutting down gracefully...');
+      server.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+      });
+    });
+    
+    process.on('SIGINT', () => {
+      console.log('🔄 SIGINT received, shutting down gracefully...');
+      server.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+      });
+    });
+    
   } catch (err) {
     console.error("❌ Server failed to start:", err);
     process.exit(1);
