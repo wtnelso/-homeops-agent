@@ -1210,12 +1210,12 @@ app.post('/api/gmail/clear-tokens', async (req, res) => {
   }
 });
 
-// Force re-authorization endpoint with scope fix
-app.post('/api/gmail/force-reauth', async (req, res) => {
+// Simple endpoint to clear tokens and force reauthorization
+app.post('/api/gmail/reauth', async (req, res) => {
   const { user_id } = req.body;
   
   try {
-    console.log('🔍 Force re-authorization requested for user:', user_id);
+    console.log('🔍 Force reauthorization requested for user:', user_id);
     
     // Delete existing tokens
     await db.collection('gmail_tokens').doc(user_id).delete();
@@ -1233,7 +1233,7 @@ app.post('/api/gmail/force-reauth', async (req, res) => {
     await batch.commit();
     console.log('✅ Cleared decoded emails');
     
-    // Generate OAuth URL with correct scope
+    // Generate OAuth URL
     const oauth2Client = new google.auth.OAuth2(
       GMAIL_OAUTH_CONFIG.clientId,
       GMAIL_OAUTH_CONFIG.clientSecret,
@@ -1254,16 +1254,16 @@ app.post('/api/gmail/force-reauth', async (req, res) => {
       state: state
     });
 
-    console.log('✅ Generated re-authorization URL with correct scope');
+    console.log('✅ Generated re-authorization URL');
     
     res.json({ 
       success: true, 
-      message: 'Tokens cleared. Redirecting to OAuth with correct scope.',
+      message: 'Tokens cleared. Please reconnect your Gmail account.',
       authUrl: authUrl
     });
   } catch (error) {
-    console.error('❌ Error in force re-authorization:', error);
-    res.status(500).json({ error: 'Failed to force re-authorization' });
+    console.error('❌ Error in force reauthorization:', error);
+    res.status(500).json({ error: 'Failed to force reauthorization' });
   }
 });
 
@@ -1306,6 +1306,8 @@ app.post('/api/email-decoder/process', async (req, res) => {
       try {
         if (!tokens.refresh_token) {
           console.log('❌ No refresh token available');
+          // Clear expired tokens
+          await db.collection('gmail_tokens').doc(user_id).delete();
           return res.status(401).json({ 
             error: 'Gmail tokens expired and no refresh token available. Please reconnect your Gmail account.',
             needsReauth: true 
@@ -1338,7 +1340,17 @@ app.post('/api/email-decoder/process', async (req, res) => {
         console.error('❌ Failed to refresh tokens:', refreshError);
         console.error('❌ Refresh error details:', refreshError.message);
         
-        // If refresh fails, clear the tokens and ask user to reconnect
+        // Check if it's an invalid_grant error (most common for expired refresh tokens)
+        if (refreshError.message && refreshError.message.includes('invalid_grant')) {
+          console.log('🔍 Invalid grant error detected, clearing tokens');
+          await db.collection('gmail_tokens').doc(user_id).delete();
+          return res.status(401).json({ 
+            error: 'Gmail tokens expired. Please reconnect your Gmail account.',
+            needsReauth: true 
+          });
+        }
+        
+        // For other errors, try to clear tokens and ask for reauth
         try {
           await db.collection('gmail_tokens').doc(user_id).delete();
           console.log('✅ Cleared expired tokens');
@@ -1353,7 +1365,7 @@ app.post('/api/email-decoder/process', async (req, res) => {
       }
     }
 
-    // Test the connection before proceeding
+    // Test the connection before proceeding with a shorter timeout
     try {
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
       console.log('🔍 Testing Gmail connection...');
@@ -1361,30 +1373,40 @@ app.post('/api/email-decoder/process', async (req, res) => {
       const testResponse = await Promise.race([
         gmail.users.getProfile({ userId: 'me' }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Gmail connection test timeout')), 10000)
+          setTimeout(() => reject(new Error('Gmail connection test timeout')), 5000)
         )
       ]);
       
       console.log('✅ Gmail connection test successful:', testResponse.data.emailAddress);
     } catch (connectionError) {
       console.error('❌ Gmail connection test failed:', connectionError);
+      
+      // If connection test fails, it might be due to expired tokens
+      if (connectionError.message && connectionError.message.includes('invalid_grant')) {
+        await db.collection('gmail_tokens').doc(user_id).delete();
+        return res.status(401).json({ 
+          error: 'Gmail tokens expired. Please reconnect your Gmail account.',
+          needsReauth: true 
+        });
+      }
+      
       return res.status(401).json({ 
         error: 'Unable to connect to Gmail. Please reconnect your Gmail account.',
         needsReauth: true 
       });
     }
 
-    // Fetch recent emails with timeout and error handling
+    // Fetch recent emails with shorter timeout and reduced results
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
     console.log('🔍 Attempting to fetch emails...');
     
     const response = await Promise.race([
       gmail.users.messages.list({
         userId: 'me',
-        maxResults: 10
+        maxResults: 5  // Reduced from 10 to 5
       }),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Gmail API timeout')), 30000)
+        setTimeout(() => reject(new Error('Gmail API timeout')), 15000)  // Reduced from 30s to 15s
       )
     ]);
 
@@ -1401,52 +1423,140 @@ app.post('/api/email-decoder/process', async (req, res) => {
       });
     }
 
-    const decodedEmails = [];
-
-    // Process each email through the decoder with timeout
-    for (const message of messages.slice(0, 5)) { // Reduced to 5 emails to prevent memory issues
-      console.log('🔍 Processing message:', message.id);
-      
+    // Process emails with reduced batch size and better error handling
+    const processedEmails = [];
+    const emailDetails = [];
+    
+    for (let i = 0; i < Math.min(messages.length, 3); i++) {  // Process max 3 emails
       try {
-        const emailData = await Promise.race([
+        console.log(`🔍 Processing email ${i + 1}/${Math.min(messages.length, 3)}`);
+        
+        const emailResponse = await Promise.race([
           gmail.users.messages.get({
             userId: 'me',
-            id: message.id,
-            format: 'full'
+            id: messages[i].id,
+            format: 'metadata',
+            metadataHeaders: ['From', 'Subject', 'Date', 'To']
           }),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Email fetch timeout')), 15000)
+            setTimeout(() => reject(new Error('Email fetch timeout')), 10000)  // 10s timeout per email
           )
         ]);
 
-        const decoded = await processEmailThroughDecoder(emailData.data, user_id);
-        if (decoded) {
-          decodedEmails.push(decoded);
-          console.log('✅ Successfully decoded email:', message.id);
+        const email = emailResponse.data;
+        const headers = email.payload.headers;
+        
+        const emailData = {
+          id: email.id,
+          from: headers.find(h => h.name === 'From')?.value || 'Unknown',
+          subject: headers.find(h => h.name === 'Subject')?.value || 'No Subject',
+          date: headers.find(h => h.name === 'Date')?.value || new Date().toISOString(),
+          to: headers.find(h => h.name === 'To')?.value || 'Unknown'
+        };
+
+        emailDetails.push(emailData);
+        
+        // Analyze email with OpenAI
+        const analysisPrompt = `
+Analyze this email and categorize it:
+
+From: ${emailData.from}
+Subject: ${emailData.subject}
+Date: ${emailData.date}
+To: ${emailData.to}
+
+Please categorize this email and provide a JSON response with:
+1. Type (receipt, calendar_invite, school_message, work_email, personal, newsletter, other)
+2. Category (urgent, important, routine, low_priority)
+3. Priority (high, medium, low)
+4. Brief summary (1-2 sentences)
+
+Respond with valid JSON only:
+{
+  "type": "string",
+  "category": "string", 
+  "priority": "string",
+  "summary": "string"
+}
+        `;
+
+        const analysis = await callOpenAI(analysisPrompt);
+        let parsedAnalysis;
+        
+        try {
+          parsedAnalysis = JSON.parse(analysis);
+        } catch (parseError) {
+          console.error('❌ Failed to parse OpenAI response:', parseError);
+          parsedAnalysis = {
+            type: 'other',
+            category: 'routine',
+            priority: 'low',
+            summary: 'Unable to analyze email content'
+          };
         }
+
+        const processedEmail = {
+          ...emailData,
+          ...parsedAnalysis,
+          processed_at: new Date().toISOString()
+        };
+
+        processedEmails.push(processedEmail);
+        
+        // Store in Firestore
+        await db.collection('decoded_emails').add({
+          user_id: user_id,
+          email_id: email.id,
+          ...processedEmail
+        });
+
+        console.log(`✅ Processed email ${i + 1}: ${parsedAnalysis.type} - ${parsedAnalysis.priority} priority`);
+        
       } catch (emailError) {
-        console.error('❌ Error processing individual email:', emailError.message);
+        console.error(`❌ Error processing email ${i + 1}:`, emailError);
         // Continue with next email instead of failing completely
         continue;
       }
     }
 
-    console.log('✅ Email processing complete. Processed', decodedEmails.length, 'emails');
+    // Generate summary
+    const summary = {
+      total: processedEmails.length,
+      byType: {},
+      byCategory: {},
+      byPriority: {},
+      highPriority: 0
+    };
 
-    res.json({ 
-      success: true, 
-      emails: decodedEmails,
-      summary: generateEmailSummary(decodedEmails)
+    processedEmails.forEach(email => {
+      summary.byType[email.type] = (summary.byType[email.type] || 0) + 1;
+      summary.byCategory[email.category] = (summary.byCategory[email.category] || 0) + 1;
+      summary.byPriority[email.priority] = (summary.byPriority[email.priority] || 0) + 1;
+      if (email.priority === 'high') summary.highPriority++;
+    });
+
+    console.log('✅ Email processing completed successfully');
+    console.log('📊 Summary:', summary);
+
+    res.json({
+      success: true,
+      emails: processedEmails,
+      summary: summary
     });
 
   } catch (error) {
-    console.error('❌ Email processing error:', error);
+    console.error('❌ Email processing failed:', error);
     
-    // Check if it's an authentication error
-    if (error.message && error.message.includes('invalid_grant')) {
-      console.log('🔍 Detected invalid_grant error, clearing tokens');
+    // Check if it's a token-related error
+    if (error.message && (
+      error.message.includes('invalid_grant') || 
+      error.message.includes('unauthorized') ||
+      error.message.includes('401')
+    )) {
+      // Clear tokens and ask for reauth
       try {
         await db.collection('gmail_tokens').doc(user_id).delete();
+        console.log('✅ Cleared invalid tokens');
       } catch (clearError) {
         console.error('❌ Error clearing tokens:', clearError);
       }
@@ -1463,131 +1573,6 @@ app.post('/api/email-decoder/process', async (req, res) => {
     });
   }
 });
-
-// Process individual email through AI decoder
-async function processEmailThroughDecoder(emailData, userId) {
-  try {
-    console.log('🔍 Processing email:', emailData.id);
-    
-    const headers = emailData.payload?.headers || [];
-    const subject = headers.find(h => h.name === 'Subject')?.value || '';
-    const from = headers.find(h => h.name === 'From')?.value || '';
-    const date = headers.find(h => h.name === 'Date')?.value || '';
-
-    console.log('🔍 Email headers - Subject:', subject.substring(0, 50) + '...');
-    console.log('🔍 Email headers - From:', from);
-
-    // Extract email body
-    let body = '';
-    if (emailData.payload?.body?.data) {
-      body = Buffer.from(emailData.payload.body.data, 'base64').toString();
-    } else if (emailData.payload?.parts) {
-      // Try to find text/plain first, then text/html
-      const textPart = emailData.payload.parts.find(part => 
-        part.mimeType === 'text/plain'
-      ) || emailData.payload.parts.find(part => 
-        part.mimeType === 'text/html'
-      );
-      
-      if (textPart?.body?.data) {
-        body = Buffer.from(textPart.body.data, 'base64').toString();
-      }
-    }
-
-    console.log('🔍 Email body length:', body.length);
-
-    // Use AI to decode the email
-    const prompt = `
-    Analyze this email and extract structured information:
-
-    SUBJECT: ${subject}
-    FROM: ${from}
-    DATE: ${date}
-    BODY: ${body.substring(0, 1000)}...
-
-    Return JSON with:
-    {
-      "type": "family_signal|smart_deal|other",
-      "category": "school|healthcare|logistics|rsvp|deadline|purchase|promotion|brand_opportunity|reorder_nudge",
-      "priority": "high|medium|low",
-      "summary": "1-2 sentence summary",
-      "action_required": "What action is needed",
-      "extracted_data": {
-        "date": "extracted date if any",
-        "time": "extracted time if any", 
-        "location": "extracted location if any",
-        "amount": "extracted amount if any",
-        "deadline": "extracted deadline if any"
-      },
-      "brand_loyalty_score": 0-10 if applicable
-    }
-    `;
-
-    console.log('🔍 Calling OpenAI for email analysis...');
-    const aiResponse = await callOpenAI(prompt, 'gpt-4o-mini');
-    console.log('🔍 OpenAI response received');
-    
-    const decoded = JSON.parse(aiResponse);
-    console.log('🔍 Decoded email data:', decoded.type, decoded.category, decoded.priority);
-
-    // Store decoded email
-    await db.collection('decoded_emails').add({
-      user_id: userId,
-      gmail_id: emailData.id,
-      subject,
-      from,
-      date,
-      decoded_data: decoded,
-      created_at: new Date()
-    });
-
-    console.log('✅ Email stored in database');
-
-    return {
-      id: emailData.id,
-      subject,
-      from,
-      date,
-      decoded: decoded
-    };
-
-  } catch (error) {
-    console.error('❌ Email processing error:', error);
-    console.error('❌ Error details:', error.message);
-    return null;
-  }
-}
-
-// Generate summary of decoded emails
-function generateEmailSummary(decodedEmails) {
-  const summary = {
-    total: decodedEmails.length,
-    byType: {},
-    byCategory: {},
-    byPriority: {},
-    highPriority: 0
-  };
-
-  decodedEmails.forEach(email => {
-    const decoded = email.decoded;
-    
-    // Count by type
-    summary.byType[decoded.type] = (summary.byType[decoded.type] || 0) + 1;
-    
-    // Count by category
-    summary.byCategory[decoded.category] = (summary.byCategory[decoded.category] || 0) + 1;
-    
-    // Count by priority
-    summary.byPriority[decoded.priority] = (summary.byPriority[decoded.priority] || 0) + 1;
-    
-    // Count high priority
-    if (decoded.priority === 'high') {
-      summary.highPriority++;
-    }
-  });
-
-  return summary;
-}
 
 // Email Decoder Engine - Get decoded emails for a user
 app.get('/api/email-decoder/emails', async (req, res) => {
