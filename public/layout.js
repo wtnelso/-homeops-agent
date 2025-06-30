@@ -166,12 +166,18 @@ document.addEventListener("DOMContentLoaded", () => {
       // Handle logout
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
+        logoutBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
           try {
-            await auth.signOut();
+            if (typeof auth !== 'undefined' && auth.signOut) {
+              await auth.signOut();
+            }
+            localStorage.clear();
+            sessionStorage.clear();
             window.location.href = '/auth';
           } catch (error) {
             console.error('Logout error:', error);
+            window.location.href = '/auth';
           }
         });
       }
@@ -658,16 +664,6 @@ document.addEventListener("DOMContentLoaded", () => {
           accountMenu.classList.remove('open');
           accountBtn.setAttribute('aria-expanded', 'false');
         }
-      });
-    }
-
-    // Logout logic
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        // Add your logout logic here
-        window.location.href = '/';
       });
     }
 
