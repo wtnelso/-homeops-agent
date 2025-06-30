@@ -494,20 +494,20 @@ Respond with ONLY a single, valid JSON object in this format.
     // 3. Call OpenAI API with timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-    
+
     try {
-      const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          temperature: 0.7,
-          top_p: 1,
-          response_format: { type: "json_object" },
-          messages: messagesForApi
+    const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0.7,
+        top_p: 1,
+        response_format: { type: "json_object" },
+        messages: messagesForApi
         }),
         signal: controller.signal
       });
@@ -518,61 +518,61 @@ Respond with ONLY a single, valid JSON object in this format.
         throw new Error(`OpenAI API error: ${gptRes.status} ${gptRes.statusText}`);
       }
 
-      const gptData = await gptRes.json();
-      console.log("OpenAI Response Body:", JSON.stringify(gptData, null, 2));
-      const content = gptData.choices?.[0]?.message?.content;
+    const gptData = await gptRes.json();
+    console.log("OpenAI Response Body:", JSON.stringify(gptData, null, 2));
+    const content = gptData.choices?.[0]?.message?.content;
 
-      if (!content) {
-        throw new Error("No content from GPT response.");
-      }
+    if (!content) {
+      throw new Error("No content from GPT response.");
+    }
 
-      const parsedResponse = JSON.parse(content);
-      const { reply, events = [] } = parsedResponse;
+    const parsedResponse = JSON.parse(content);
+    const { reply, events = [] } = parsedResponse;
 
-      // 4. Save new message and reply to history
-      await db.collection("messages").add({
-        user_id,
-        message,
-        assistant_response: content,
-        timestamp: new Date()
-      });
+    // 4. Save new message and reply to history
+    await db.collection("messages").add({
+      user_id,
+      message,
+      assistant_response: content,
+      timestamp: new Date()
+    });
 
-      // 5. Save events to Firestore
-      if (events.length > 0) {
-        const savedEvents = [];
-        const batch = db.batch();
-        
-        // Get the current time in the target timezone to use as a reference for parsing
-        const referenceDate = new Date();
+    // 5. Save events to Firestore
+    if (events.length > 0) {
+      const savedEvents = [];
+      const batch = db.batch();
+      
+      // Get the current time in the target timezone to use as a reference for parsing
+      const referenceDate = new Date();
 
-        events.forEach(event => {
-          if (event.title && event.when) {
+      events.forEach(event => {
+        if (event.title && event.when) {
             // Parse the natural language "when" string in America/New_York timezone
             const parsedStart = chrono.parseDate(event.when, referenceDate, { forwardDate: true, timezone: "America/New_York" });
 
-            if (parsedStart) {
-              // Convert to the required ISO 8601 format with timezone
-              const startISO = parsedStart.toISOString();
+          if (parsedStart) {
+            // Convert to the required ISO 8601 format with timezone
+            const startISO = parsedStart.toISOString();
 
-              const eventRef = db.collection("events").doc();
-              const eventWithId = { 
-                ...event, 
-                start: startISO, // Add the parsed start time
-                id: eventRef.id, 
-                user_id, 
-                created_at: new Date() 
-              };
-              delete eventWithId.when; // Clean up the original 'when' field
-              
-              batch.set(eventRef, eventWithId);
-              savedEvents.push(eventWithId);
-            }
+            const eventRef = db.collection("events").doc();
+            const eventWithId = { 
+              ...event, 
+              start: startISO, // Add the parsed start time
+              id: eventRef.id, 
+              user_id, 
+              created_at: new Date() 
+            };
+            delete eventWithId.when; // Clean up the original 'when' field
+            
+            batch.set(eventRef, eventWithId);
+            savedEvents.push(eventWithId);
           }
-        });
-        await batch.commit();
-        res.json({ reply, events: savedEvents });
-      } else {
-        res.json({ reply, events: [] });
+        }
+      });
+      await batch.commit();
+      res.json({ reply, events: savedEvents });
+    } else {
+      res.json({ reply, events: [] });
       }
     } catch (fetchError) {
       clearTimeout(timeoutId);
