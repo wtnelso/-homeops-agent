@@ -2,850 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>HomeOps Decoder - Transform Your Inbox</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>HomeOps Agent</title>
   <link rel="stylesheet" href="style.css?v=2024-06-29" />
-    <!-- ✅ Add Tippy.js tooltip support -->
+  <link rel="stylesheet" href="dashboard.css?v=2024-06-29" />
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
   <script src="https://unpkg.com/@popperjs/core@2"></script>
   <script src="https://unpkg.com/tippy.js@6"></script>
-  <!-- API Configuration -->
   <script src="config.js"></script>
-  <link rel="stylesheet" href="dashboard.css?v=2024-06-29" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    .reframe-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding-top: 0.5rem;
-    }
-
-    .reframe {
-      background: #f9f9fb;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .reframe h4 {
-      margin: 0 0 0.25rem;
-      font-size: 1.1rem;
-      color: #333;
-    }
-
-    .reframe p {
-      margin: 0.25rem 0;
-      font-size: 0.95rem;
-      line-height: 1.4;
-      color: #555;
-    }
-
-    .reframe p em {
-      color: #777;
-    }
-
-    .user-menu {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .user-email {
-      font-size: 0.9rem;
-      color: #666;
-    }
-
-    .logout-btn {
-      background: #ff4757;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background-color 0.3s;
-    }
-
-    .logout-btn:hover {
-      background: #ff3742;
-    }
-
-    /* ===== EMAIL DECODER ENGINE STYLES ===== */
-    .demo-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-
-    .header .logo {
-      width: 60px;
-      height: 60px;
-      margin-bottom: 1rem;
-    }
-
-    .header .title {
-      font-size: 3rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-    }
-
-    .header .subtitle {
-      font-size: 1.2rem;
-      color: #64748b;
-      font-weight: 400;
-    }
-
-    .stats-bar {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      margin-bottom: 3rem;
-    }
-
-    .stat-card {
-      background: white;
-      padding: 1.5rem 2rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      text-align: center;
-      border: 1px solid #e2e8f0;
-    }
-
-    .stat-number {
-      display: block;
-      font-size: 2rem;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-label {
-      font-size: 0.9rem;
-      color: #64748b;
-      font-weight: 500;
-    }
-
-    .main-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3rem;
-    }
-
-    .card {
-      background: white;
-      border-radius: 20px;
-      padding: 2rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-      border: 1px solid #e2e8f0;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .card-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-    }
-
-    .card-title {
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 0.25rem;
-    }
-
-    .card-subtitle {
-      font-size: 0.9rem;
-      color: #64748b;
-    }
-
-    .email-item {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1rem;
-      transition: all 0.2s ease;
-    }
-
-    .email-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .email-item.urgent {
-      border-left: 4px solid #dc2626;
-    }
-
-    .email-item.action {
-      border-left: 4px solid #2563eb;
-    }
-
-    .email-item.info {
-      border-left: 4px solid #16a34a;
-    }
-
-    .priority-badge {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-bottom: 0.75rem;
-    }
-
-    .priority-high {
-      background: #fef2f2;
-      color: #dc2626;
-    }
-
-    .priority-medium {
-      background: #eff6ff;
-      color: #2563eb;
-    }
-
-    .priority-low {
-      background: #f0fdf4;
-      color: #16a34a;
-    }
-
-    .email-sender {
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 0.5rem;
-    }
-
-    .email-subject {
-      font-weight: 500;
-      color: #374151;
-      margin-bottom: 0.75rem;
-    }
-
-    .email-preview {
-      color: #6b7280;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      margin-bottom: 1rem;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 0.75rem;
-    }
-
-    .action-btn {
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .action-btn.primary {
-      background: #3b82f6;
-      color: white;
-    }
-
-    .action-btn.primary:hover {
-      background: #2563eb;
-      transform: translateY(-1px);
-    }
-
-    .action-btn.secondary {
-      background: #f3f4f6;
-      color: #374151;
-    }
-
-    .action-btn.secondary:hover {
-      background: #e5e7eb;
-      transform: translateY(-1px);
-    }
-
-    .connect-section {
-      text-align: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 3rem;
-      border-radius: 20px;
-      margin-top: 2rem;
-    }
-
-    .connect-title {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-    }
-
-    .connect-desc {
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
-      opacity: 0.9;
-    }
-
-    .connect-btn {
-      background: white;
-      color: #667eea;
-      border: none;
-      padding: 1rem 2rem;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .connect-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Animations */
-    .fade-in {
-      animation: fadeIn 0.8s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .pulse {
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-      }
-      70% {
-        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-      }
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .demo-container {
-        padding: 1rem;
-      }
-      
-      .header .title {
-        font-size: 2rem;
-      }
-      
-      .stats-bar {
-        flex-direction: column;
-        gap: 1rem;
-      }
-      
-      .main-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .action-buttons {
-        flex-direction: column;
-      }
-    }
-
-    /* Process Emails Button */
-    .process-btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      width: 100%;
-      justify-content: center;
-    }
-
-    .process-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    }
-
-    .process-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .process-icon {
-      font-size: 1rem;
-    }
-
-    .process-text {
-      font-weight: 600;
-    }
-
-    .process-btn.processing .process-icon {
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    /* 🎓 TRAINING CARD STYLES */
-    .training-card {
-      background: white;
-      border: 2px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .training-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-      border-color: #667eea;
-    }
-
-    .training-card.completed {
-      border-color: #10b981;
-      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-    }
-
-    .training-card-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .training-card-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .training-card-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 0.25rem;
-    }
-
-    .training-card-subtitle {
-      font-size: 0.9rem;
-      color: #64748b;
-    }
-
-    .training-card-content {
-      margin-bottom: 2rem;
-    }
-
-    .training-email-preview {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .training-email-sender {
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 0.5rem;
-    }
-
-    .training-email-subject {
-      font-weight: 500;
-      color: #374151;
-      margin-bottom: 0.75rem;
-    }
-
-    .training-email-body {
-      color: #6b7280;
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
-
-    .training-feedback-options {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    .feedback-option {
-      padding: 0.75rem 1rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      background: white;
-      color: #64748b;
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: center;
-    }
-
-    .feedback-option:hover {
-      border-color: #667eea;
-      color: #667eea;
-      transform: translateY(-1px);
-    }
-
-    .feedback-option.selected {
-      border-color: #667eea;
-      background: #667eea;
-      color: white;
-    }
-
-    .training-card-actions {
-      display: flex;
-      gap: 0.75rem;
-      justify-content: flex-end;
-    }
-
-    .training-action-btn {
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .training-action-btn.primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .training-action-btn.primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-
-    .training-action-btn.secondary {
-      background: #f3f4f6;
-      color: #374151;
-    }
-
-    .training-action-btn.secondary:hover {
-      background: #e5e7eb;
-      transform: translateY(-1px);
-    }
-
-    /* Progress indicator for completed cards */
-    .training-card.completed::before {
-      content: '✓';
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      width: 24px;
-      height: 24px;
-      background: #10b981;
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      font-weight: bold;
-    }
-
-    /* Gmail Connect Button Styles */
-    .gmail-connect-btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 1rem 2rem;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .gmail-connect-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-    }
-
-    /* State container styles */
-    .state-container {
-      width: 100%;
-      min-height: 60vh;
-    }
-
-    /* Loading state styles */
-    .loading-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 3rem;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e2e8f0;
-      border-top: 4px solid #667eea;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 1rem;
-    }
-
-    /* Zero state styles */
-    .zero-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 3rem;
-    }
-
-    .zero-icon {
-      font-size: 4rem;
-      color: #64748b;
-      margin-bottom: 1rem;
-    }
-
-    /* Error state styles */
-    .error-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 3rem;
-    }
-
-    /* 📧 EMAIL CARD STYLES FOR FULL DECODER */
-    .email-cards-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-      gap: 1.5rem;
-      padding: 2rem;
-    }
-
-    .email-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .email-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-      border-color: #667eea;
-    }
-
-    .email-card-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .email-card-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-    }
-
-    .email-card-meta {
-      flex: 1;
-    }
-
-    .email-sender {
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 0.25rem;
-      font-size: 0.95rem;
-    }
-
-    .email-time {
-      font-size: 0.8rem;
-      color: #64748b;
-    }
-
-    .email-priority {
-      padding: 0.25rem 0.75rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    .email-priority.high {
-      background: #fef2f2;
-      color: #dc2626;
-    }
-
-    .email-priority.medium {
-      background: #eff6ff;
-      color: #2563eb;
-    }
-
-    .email-priority.low {
-      background: #f0fdf4;
-      color: #16a34a;
-    }
-
-    .email-card-content {
-      margin-bottom: 1.5rem;
-    }
-
-    .email-subject {
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 0.75rem;
-      font-size: 1rem;
-      line-height: 1.4;
-    }
-
-    .email-preview {
-      color: #64748b;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .email-card-actions {
-      display: flex;
-      gap: 0.75rem;
-      justify-content: flex-end;
-    }
-
-    .action-btn {
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .action-btn.primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .action-btn.primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-
-    .action-btn.secondary {
-      background: #f3f4f6;
-      color: #374151;
-    }
-
-    .action-btn.secondary:hover {
-      background: #e5e7eb;
-      transform: translateY(-1px);
-    }
-
-    @media (max-width: 1100px) {
-      .onboarding-modules { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 700px) {
-      .onboarding-modules { grid-template-columns: 1fr; }
-    }
-
-    html, body {
-      height: 100%;
+    body {
       margin: 0;
       padding: 0;
-      overflow: hidden !important;
       background: radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #23234a 100%);
-    }
-    .superhuman-onboarding-bg {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       min-height: 100vh;
       min-width: 100vw;
-      background: radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #23234a 100%);
-      z-index: 10000;
+      overflow: hidden;
     }
-    .superhuman-header {
-      position: absolute;
-      top: 32px;
-      left: 48px;
-      z-index: 10001;
+    .nav-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      background: #18182f;
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    .homeops-gradient-text {
+    .nav-logo {
       font-size: 2rem;
       font-weight: 800;
       letter-spacing: -1px;
@@ -854,6 +44,48 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-fill-color: transparent;
+      margin-right: 32px;
+    }
+    .nav-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-right: 24px;
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .nav-btn.active, .nav-btn:hover {
+      background: linear-gradient(90deg, #a066e8 0%, #d16be5 100%);
+      color: #fff;
+    }
+    .main-content {
+      padding-top: 80px;
+      width: 100vw;
+      height: calc(100vh - 80px);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    #agent-view, #decoder-view {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      display: none;
+    }
+    #agent-view.active, #decoder-view.active {
+      display: block;
+    }
+    /* Decoder onboarding styles (reuse previous) */
+    .superhuman-onboarding-bg {
+      min-height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
     }
     .superhuman-onboarding-center {
       background: linear-gradient(135deg, #a066e8 0%, #764ba2 100%);
@@ -891,16 +123,65 @@
     }
   </style>
 </head>
-<body style="margin:0;padding:0;overflow:hidden;background:radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #23234a 100%);height:100vh;width:100vw;">
-  <div class="superhuman-header" style="position:absolute;top:32px;left:48px;z-index:10001;">
-    <span class="homeops-gradient-text" style="font-size:2rem;font-weight:800;letter-spacing:-1px;background:linear-gradient(90deg,#a066e8 0%,#d16be5 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">HomeOps</span>
+<body>
+  <div class="nav-bar">
+    <span class="nav-logo">HomeOps</span>
+    <button class="nav-btn active" id="nav-agent">Agent</button>
+    <button class="nav-btn" id="nav-decoder">Decoder</button>
   </div>
-  <div class="superhuman-onboarding-bg" style="position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;min-height:100vh;min-width:100vw;background:radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #23234a 100%);z-index:10000;">
-    <div class="superhuman-onboarding-center" style="background:linear-gradient(135deg,#a066e8 0%,#764ba2 100%);border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:3.5rem 3rem;display:flex;flex-direction:column;align-items:center;min-width:380px;max-width:90vw;">
-      <div class="superhuman-onboarding-title" style="color:#fff;font-size:1.6rem;font-weight:700;text-align:center;margin-bottom:2.2rem;">Your inbox decoded, your mental load reduced.</div>
-      <button class="superhuman-gmail-btn" onclick="connectGmail()" style="background:linear-gradient(90deg,#a066e8 0%,#d16be5 100%);color:#fff;font-weight:700;font-size:1.1rem;padding:0.9rem 2.2rem;border:none;border-radius:12px;box-shadow:0 2px 8px rgba(160,102,232,0.18);cursor:pointer;transition:all 0.2s;">Connect Gmail</button>
+  <div class="main-content">
+    <div id="agent-view" class="active">
+      <!-- Main Agent/Chat UI goes here -->
+      <div style="color:#fff;text-align:center;margin-top:4rem;">
+        <h1 style="font-size:2.5rem;font-weight:800;margin-bottom:1rem;">Welcome to HomeOps Agent</h1>
+        <p style="font-size:1.2rem;opacity:0.85;">Your AI-powered assistant for managing your mental load.</p>
+        <!-- Chat UI placeholder -->
+        <div style="margin-top:2.5rem;">
+          <div style="background:#23234a;border-radius:16px;padding:2rem;max-width:500px;margin:0 auto;">
+            <p style="color:#a066e8;font-weight:600;">[Chat UI will appear here]</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="decoder-view">
+      <!-- Decoder Onboarding UI (hidden by default) -->
+      <div class="superhuman-onboarding-bg">
+        <div class="superhuman-onboarding-center">
+          <div class="superhuman-onboarding-title">Your inbox decoded, your mental load reduced.</div>
+          <button class="superhuman-gmail-btn" onclick="connectGmail()">Connect Gmail</button>
+        </div>
+      </div>
     </div>
   </div>
+  <script>
+    // Navigation logic
+    const navAgent = document.getElementById('nav-agent');
+    const navDecoder = document.getElementById('nav-decoder');
+    const agentView = document.getElementById('agent-view');
+    const decoderView = document.getElementById('decoder-view');
+    function showView(view) {
+      if (view === 'agent') {
+        agentView.classList.add('active');
+        decoderView.classList.remove('active');
+        navAgent.classList.add('active');
+        navDecoder.classList.remove('active');
+      } else {
+        agentView.classList.remove('active');
+        decoderView.classList.add('active');
+        navAgent.classList.remove('active');
+        navDecoder.classList.add('active');
+      }
+    }
+    navAgent.addEventListener('click', () => showView('agent'));
+    navDecoder.addEventListener('click', () => showView('decoder'));
+    // Default to agent view
+    showView('agent');
+    // Expose connectGmail for decoder onboarding
+    window.connectGmail = function() {
+      // TODO: Implement Gmail OAuth logic
+      alert('Gmail OAuth flow goes here.');
+    }
+  </script>
 </body>
 </html>
 

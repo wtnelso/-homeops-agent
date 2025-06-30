@@ -205,6 +205,15 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 app.use("/mock", express.static("mock"));
 
+// Explicit route for the main dashboard
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
+
+app.get("/dashboard", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
+
 // All API routes should be defined above the SPA catch-all
 app.get("/api/firebase-config", (req, res) => {
   // Provide a basic Firebase config for the homeops-web project
