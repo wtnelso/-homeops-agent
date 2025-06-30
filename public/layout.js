@@ -195,8 +195,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const newUrl = window.location.pathname + window.location.search.replace(/[?&]gmail_connected=true/, '');
         window.history.replaceState({}, document.title, newUrl);
       } else {
-        // Default to chat view
-        activateView('chat');
+        // Default to dashboard view (Email Decoder)
+        activateView('dashboard');
       }
 
     }).catch(error => {
