@@ -184,7 +184,7 @@ function redirectToDashboard() {
     localStorage.setItem('homeops_authenticated', 'true');
     
     // Redirect to dashboard
-    window.location.href = '/dashboard';
+    window.location.href = '/dashboard.html';
 }
 
 // Check if user is already signed in

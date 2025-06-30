@@ -468,14 +468,7 @@
       </a>
     </div>
     <div class="top-bar-right">
-      <button class="premium-logout-btn" onclick="logout()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M16 17L21 12L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Logout
-      </button>
+      <button id="logoutBtn" class="premium-logout-btn">Logout</button>
     </div>
   </header>
 
@@ -784,61 +777,6 @@
 </div>
 
 <script src="/homebase.js?v=2024-06-29" defer></script>
-<script>
-    // Initialize Lucide icons
-    lucide.createIcons();
-    
-    // Logout function
-    function logout() {
-        console.log('🔐 Logout function called');
-        // Clear any stored data
-        localStorage.clear();
-        sessionStorage.clear();
-        console.log('🧹 Storage cleared, redirecting to auth page...');
-        // Try multiple redirect methods for reliability
-        try {
-            window.location.href = '/auth.html';
-            setTimeout(function() {
-                window.location.replace('/auth.html');
-            }, 250);
-            setTimeout(function() {
-                window.open('/auth.html', '_self');
-            }, 500);
-        } catch (e) {
-            console.error('❌ Logout redirect failed:', e);
-        }
-    }
-    
-    // Add event listener for logout button as backup
-    document.addEventListener('DOMContentLoaded', function() {
-        const logoutBtn = document.querySelector('.premium-logout-btn');
-        if (logoutBtn) {
-            console.log('🔍 Logout button found and event listener added');
-            
-            // Add a simple click test
-            logoutBtn.addEventListener('mousedown', function() {
-                console.log('🖱️ Logout button mousedown detected');
-            });
-            
-            logoutBtn.addEventListener('click', function(e) {
-                console.log('🔐 Logout button clicked via event listener');
-                console.log('📍 Button element:', logoutBtn);
-                console.log('📍 Event:', e);
-                e.preventDefault();
-                e.stopPropagation();
-                logout();
-            });
-            
-            // Add onclick attribute as well
-            logoutBtn.onclick = function(e) {
-                console.log('🔐 Logout button clicked via onclick attribute');
-                logout();
-            };
-        } else {
-            console.error('❌ Logout button not found!');
-        }
-    });
-</script>
 </body>
 </html>
 

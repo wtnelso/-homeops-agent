@@ -139,14 +139,14 @@ document.addEventListener("DOMContentLoaded", () => {
       auth.onAuthStateChanged((user) => {
         if (!user) {
           // User is not signed in, redirect to auth page
-          if (window.location.pathname === '/dashboard' || window.location.pathname === '/dashboard.html') {
+          if (window.location.pathname === '/dashboard.html' || window.location.pathname === '/dashboard.html') {
             console.log("❌ User not authenticated, redirecting to auth page");
-            window.location.href = '/auth';
+            window.location.href = '/auth.html';
             return;
           }
           // For other pages, redirect to auth
           if (window.location.pathname !== '/auth' && window.location.pathname !== '/auth.html' && window.location.pathname !== '/') {
-            window.location.href = '/auth';
+            window.location.href = '/auth.html';
           }
         } else {
           // User is signed in, display email
@@ -174,10 +174,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             localStorage.clear();
             sessionStorage.clear();
-            window.location.href = '/auth';
+            window.location.href = '/auth.html';
           } catch (error) {
             console.error('Logout error:', error);
-            window.location.href = '/auth';
+            window.location.href = '/auth.html';
           }
         });
       }

@@ -1587,22 +1587,24 @@ app.post('/api/email-decoder/feedback', async (req, res) => {
 app.get('*', (req, res) => {
   // For the root path, serve auth.html (login page)
   if (req.path === '/' || req.path === '/index.html') {
-    res.sendFile(path.join(__dirname, 'public', 'auth.html'));
+    res.redirect('/auth.html');
     return;
   }
-  
   // Serve auth.html for authentication
   if (req.path === '/auth' || req.path === '/auth.html') {
     res.sendFile(path.join(__dirname, 'public', 'auth.html'));
     return;
   }
-  
+  // Serve dashboard.html for dashboard
+  if (req.path === '/dashboard' || req.path === '/dashboard.html') {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+    return;
+  }
   // Serve dashboard.html for all other non-API routes (authenticated app)
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
     return;
   }
-  
   // Fallback for any other routes
   res.status(404).send('Not Found');
 });
