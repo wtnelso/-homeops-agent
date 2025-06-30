@@ -1,39 +1,40 @@
 #!/bin/bash
 
-echo "🚀 HomeOps Backend Deployment to Render"
-echo "========================================"
+echo "🚀 Deploying HomeOps to Render..."
 
-echo ""
-echo "📋 Prerequisites:"
-echo "1. You need a Render account (https://render.com)"
-echo "2. Your GitHub repository should be connected to Render"
-echo "3. Environment variables should be set in Render"
-echo ""
+# Check if we're on the correct branch
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" != "email-decoder-onboarding" ]; then
+    echo "❌ You're not on the email-decoder-onboarding branch. Please switch to it first."
+    echo "   git checkout email-decoder-onboarding"
+    exit 1
+fi
 
-echo "🔧 Environment Variables needed in Render:"
-echo "- OPENAI_API_KEY: Your OpenAI API key"
-echo "- FIREBASE_CREDENTIALS: Base64 encoded Firebase service account"
-echo ""
+# Check if there are uncommitted changes
+if [ -n "$(git status --porcelain)" ]; then
+    echo "❌ You have uncommitted changes. Please commit them first."
+    echo "   git add . && git commit -m 'Your commit message'"
+    exit 1
+fi
 
-echo "📝 Steps to deploy:"
-echo "1. Go to https://render.com"
-echo "2. Click 'New +' → 'Web Service'"
-echo "3. Connect your GitHub repo: oliverbaron/homeops-agent"
-echo "4. Configure:"
-echo "   - Name: homeops-backend"
-echo "   - Environment: Node"
-echo "   - Build Command: npm install"
-echo "   - Start Command: node index.cjs"
-echo "   - Plan: Free"
-echo "5. Add environment variables"
-echo "6. Click 'Create Web Service'"
-echo ""
+# Push to GitHub (this will trigger Render deployment)
+echo "📤 Pushing to GitHub..."
+git push origin email-decoder-onboarding
 
-echo "🌐 After deployment:"
-echo "1. Copy the Render URL (e.g., https://homeops-backend.onrender.com)"
-echo "2. Update public/config.js with the backend URL"
-echo "3. Run: firebase deploy"
+echo "✅ Deployment triggered!"
+echo "🌐 Your app will be available at: https://homeops-backend.onrender.com"
+echo "📊 Monitor deployment at: https://dashboard.render.com/web/homeops-backend"
 echo ""
-
-echo "✅ Your app will be available at: https://homeops-web.web.app"
-echo "" 
+echo "⚠️  Don't forget to set up your environment variables in Render dashboard:"
+echo "   - FIREBASE_API_KEY"
+echo "   - FIREBASE_AUTH_DOMAIN" 
+echo "   - FIREBASE_PROJECT_ID"
+echo "   - FIREBASE_STORAGE_BUCKET"
+echo "   - FIREBASE_MESSAGING_SENDER_ID"
+echo "   - FIREBASE_APP_ID"
+echo "   - FIREBASE_MEASUREMENT_ID"
+echo "   - FIREBASE_PRIVATE_KEY"
+echo "   - FIREBASE_CLIENT_EMAIL"
+echo "   - OPENAI_API_KEY"
+echo "   - GMAIL_CLIENT_ID"
+echo "   - GMAIL_CLIENT_SECRET" 
