@@ -1585,18 +1585,26 @@ app.post('/api/email-decoder/feedback', async (req, res) => {
 
 // SPA catch-all route should be last
 app.get('*', (req, res) => {
-  // Serve index.html for the root path (landing page)
+  // For the root path, serve auth.html (login page)
   if (req.path === '/' || req.path === '/index.html') {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  }
-  // Serve auth.html for authentication
-  else if (req.path === '/auth' || req.path === '/auth.html') {
     res.sendFile(path.join(__dirname, 'public', 'auth.html'));
+    return;
   }
+  
+  // Serve auth.html for authentication
+  if (req.path === '/auth' || req.path === '/auth.html') {
+    res.sendFile(path.join(__dirname, 'public', 'auth.html'));
+    return;
+  }
+  
   // Serve dashboard.html for all other non-API routes (authenticated app)
-  else if (!req.path.startsWith('/api')) {
+  if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+    return;
   }
+  
+  // Fallback for any other routes
+  res.status(404).send('Not Found');
 });
 
 // Cache clearing endpoint for debugging
