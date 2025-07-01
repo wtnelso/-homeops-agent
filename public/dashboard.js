@@ -688,6 +688,15 @@ async function checkGmailConnection() {
   try {
     const userId = getCurrentUserId();
     
+    // Check if we just connected Gmail (from URL parameters)
+    const gmailStep = sessionStorage.getItem('gmail_step');
+    if (gmailStep === 'processing') {
+      console.log('🎯 Gmail just connected, moving to processing step');
+      sessionStorage.removeItem('gmail_step');
+      showWizardStep(2); // Show processing step
+      return;
+    }
+    
     // Show loading state while checking
     showLoadingState();
     
@@ -721,17 +730,21 @@ async function loadExistingEmails(userId) {
       const result = await response.json();
       decodedEmails = result.emails || [];
       if (decodedEmails.length === 0) {
-        showTrainingMode();
+        // No emails found, show processing step instead of training mode
+        showOnboardingState();
+        showWizardStep(2); // Show processing step
       } else {
         showEmailCards();
       }
     } else {
-      // If we can't load emails, show training mode (no dummy data)
-      showTrainingMode();
+      // If we can't load emails, show processing step
+      showOnboardingState();
+      showWizardStep(2); // Show processing step
     }
   } catch (error) {
     console.error('❌ Error loading existing emails:', error);
-    showTrainingMode();
+    showOnboardingState();
+    showWizardStep(2); // Show processing step
   }
 }
 
@@ -786,6 +799,7 @@ window.replyToEmail = replyToEmail;
 window.giveFeedback = giveFeedback;
 window.giveTrainingFeedback = giveTrainingFeedback;
 window.connectGmail = connectGmail;
+window.processEmailsFromWizard = processEmailsFromWizard;
 window.initializeDecoder = initializeDecoder;
 window.retryFromError = retryFromError;
 
@@ -877,6 +891,18 @@ function finishOnboarding() {
   showEmailCards();
 }
 
+// Handle Process Emails button in wizard
+function processEmailsFromWizard() {
+  console.log('🚀 Processing emails from wizard...');
+  processEmails().then(() => {
+    // After processing, move to step 3 (review & train)
+    showWizardStep(3);
+  }).catch((error) => {
+    console.error('❌ Error processing emails from wizard:', error);
+    showError('Failed to process emails. Please try again.');
+  });
+}
+
 // Override the existing connectGmail function to advance to step 2
 const originalConnectGmail = window.connectGmail;
 window.connectGmail = function() {
@@ -885,33 +911,6 @@ window.connectGmail = function() {
   if (originalConnectGmail) {
     originalConnectGmail();
   }
-  
-  // Simulate successful connection and advance to step 2
-  setTimeout(() => {
-    console.log('✅ Gmail connected successfully');
-    showWizardStep(2);
-  }, 1000);
-};
-
-// Override the existing processEmails function to advance to step 3
-const originalProcessEmails = window.processEmails;
-window.processEmails = function() {
-  console.log('⚡ Email processing initiated');
-  
-  // Show loading state
-  showLoadingState();
-  
-  // Call the original function
-  if (originalProcessEmails) {
-    originalProcessEmails();
-  }
-  
-  // Simulate processing completion and advance to step 3
-  setTimeout(() => {
-    console.log('✅ Email processing completed');
-    hideAllStates();
-    showWizardStep(3);
-  }, 2000);
 };
 
 // Initialize wizard when onboarding state is shown

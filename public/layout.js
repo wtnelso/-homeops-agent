@@ -187,12 +187,24 @@ document.addEventListener("DOMContentLoaded", () => {
       // On load, check for Gmail connection parameter and set appropriate view
       const urlParams = new URLSearchParams(window.location.search);
       const gmailConnected = urlParams.get('gmail_connected');
+      const step = urlParams.get('step');
+      const view = urlParams.get('view');
       
       if (gmailConnected === 'true') {
         // Gmail was just connected, show the Email Decoder dashboard
-        activateView('dashboard');
-        // Clean up the URL parameter
-        const newUrl = window.location.pathname + window.location.search.replace(/[?&]gmail_connected=true/, '');
+        activateView(view || 'dashboard');
+        
+        // If there's a step parameter, pass it to the dashboard
+        if (step) {
+          // Store the step in sessionStorage for dashboard to use
+          sessionStorage.setItem('gmail_step', step);
+        }
+        
+        // Clean up the URL parameters
+        const newUrl = window.location.pathname + window.location.search
+          .replace(/[?&]gmail_connected=true/, '')
+          .replace(/[?&]step=processing/, '')
+          .replace(/[?&]view=dashboard/, '');
         window.history.replaceState({}, document.title, newUrl);
       } else {
         // Default to chat view
