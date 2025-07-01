@@ -407,6 +407,8 @@ async function processEmails() {
   
   try {
     const userId = getCurrentUserId();
+    console.log('🔍 Processing emails for user:', userId);
+    
     if (!userId) {
       throw new Error('No user ID found');
     }
@@ -477,6 +479,7 @@ async function processEmails() {
           </div>
         `);
       } else {
+        console.error('❌ Email processing failed:', result.error);
         showError(result.error || 'Failed to process emails');
       }
       return;
@@ -687,6 +690,7 @@ function retryFromError() {
 async function checkGmailConnection() {
   try {
     const userId = getCurrentUserId();
+    console.log('🔍 Checking Gmail connection for user:', userId);
     
     // Check if we just connected Gmail (from URL parameters)
     const gmailStep = sessionStorage.getItem('gmail_step');
@@ -701,43 +705,61 @@ async function checkGmailConnection() {
     showLoadingState();
     
     const response = await fetch(`/api/gmail/status?user_id=${userId}`);
+    console.log('🔍 Gmail status response:', response.status);
     
     if (response.ok) {
       const { connected } = await response.json();
+      console.log('🔍 Gmail connected status:', connected);
       
       if (!connected) {
         // Show onboarding step 1: Gmail connection
+        console.log('🔍 Gmail not connected, showing onboarding');
         showOnboardingState();
+        showWizardStep(1);
       } else {
         // Gmail is connected, check if we have processed emails
+        console.log('🔍 Gmail connected, checking for existing emails');
         loadExistingEmails(userId);
       }
     } else {
       // If we can't check status, show onboarding
+      console.log('🔍 Could not check Gmail status, showing onboarding');
       showOnboardingState();
+      showWizardStep(1);
     }
   } catch (error) {
     console.error('❌ Error checking Gmail connection:', error);
     // If there's an error, show onboarding
     showOnboardingState();
+    showWizardStep(1);
   }
 }
 
 async function loadExistingEmails(userId) {
   try {
+    console.log('🔍 Loading existing emails for user:', userId);
     const response = await fetch(`/api/email-decoder/emails?user_id=${userId}`);
+    console.log('🔍 Load emails response:', response.status);
+    
     if (response.ok) {
       const result = await response.json();
       decodedEmails = result.emails || [];
+      console.log('🔍 Found existing emails:', decodedEmails.length);
+      
       if (decodedEmails.length === 0) {
-        // No emails found, show processing step instead of training mode
+        // No emails found, show processing step
+        console.log('🔍 No emails found, showing processing step');
         showOnboardingState();
         showWizardStep(2); // Show processing step
       } else {
+        // Emails found, show the main decoder
+        console.log('🔍 Emails found, showing main decoder');
+        hideAllStates();
         showEmailCards();
       }
     } else {
       // If we can't load emails, show processing step
+      console.log('🔍 Could not load emails, showing processing step');
       showOnboardingState();
       showWizardStep(2); // Show processing step
     }

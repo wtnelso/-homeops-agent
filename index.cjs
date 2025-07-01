@@ -1171,8 +1171,16 @@ app.get('/auth/google/callback', async (req, res) => {
     console.log('Refresh token present:', !!tokens.refresh_token);
     console.log('Expiry date:', tokens.expiry_date);
     
-    // Use consistent user ID for development
-    const userId = 'test_user';
+    // Extract user ID from state parameter
+    let userId = 'test_user'; // Default fallback
+    if (state && state.includes('_')) {
+      const stateParts = state.split('_');
+      if (stateParts.length >= 3) {
+        userId = stateParts[2]; // Extract user ID from state
+      }
+    }
+    
+    console.log('🔍 Using user ID:', userId);
     
     // Store tokens in Firestore
     await db.collection('gmail_tokens').doc(userId).set({
@@ -1180,7 +1188,7 @@ app.get('/auth/google/callback', async (req, res) => {
       refresh_token: tokens.refresh_token,
       expiry_date: tokens.expiry_date,
       created_at: new Date(),
-      scopes: tokens.scope || 'https://www.googleapis.com/auth/gmail.readonly' // Store the actual scopes
+      scopes: tokens.scope || 'https://www.googleapis.com/auth/gmail.readonly'
     });
 
     console.log('✅ Tokens stored successfully for user:', userId);
