@@ -1194,7 +1194,7 @@ app.get('/auth/google/callback', async (req, res) => {
     console.log('✅ Tokens stored successfully for user:', userId);
 
     // Redirect to Dashboard with processing step after successful Gmail connection
-    res.redirect('/dashboard?gmail_connected=true&step=processing&view=dashboard');
+    res.redirect('/dashboard.html?gmail_connected=true&step=processing&view=dashboard');
   } catch (error) {
     console.error('❌ Gmail OAuth error:', error);
     console.error('❌ Error details:', error.message);

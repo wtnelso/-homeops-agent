@@ -718,9 +718,24 @@ async function checkGmailConnection() {
     console.log('🔍 Checking Gmail connection for user:', userId);
     
     // Check if we just connected Gmail (from URL parameters)
+    const urlParams = new URLSearchParams(window.location.search);
+    const gmailConnected = urlParams.get('gmail_connected');
+    const step = urlParams.get('step');
+    const view = urlParams.get('view');
+    
+    if (gmailConnected === 'true' && step === 'processing') {
+      console.log('🎯 Gmail just connected, moving to processing step');
+      // Clear URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showOnboardingState();
+      showWizardStep(2); // Show processing step
+      return;
+    }
+    
+    // Check session storage as fallback
     const gmailStep = sessionStorage.getItem('gmail_step');
     if (gmailStep === 'processing') {
-      console.log('🎯 Gmail just connected, moving to processing step');
+      console.log('🎯 Gmail just connected (from session), moving to processing step');
       sessionStorage.removeItem('gmail_step');
       showOnboardingState();
       showWizardStep(2); // Show processing step
