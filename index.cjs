@@ -51,8 +51,8 @@ setInterval(() => {
     });
   }
   
-  // More aggressive garbage collection for memory-constrained systems
-  const gcThreshold = 30; // Very low threshold to prevent kills
+  // Optimized garbage collection for Render environment
+  const gcThreshold = 150; // Higher threshold for Render (512MB limit)
   if (heapUsedMB > gcThreshold) {
     console.log(`🧹 High memory usage detected (${heapUsedMB}MB), forcing garbage collection...`);
     if (global.gc) {
@@ -60,12 +60,21 @@ setInterval(() => {
     }
   }
   
-  // Log warning if memory usage is very high
-  const warningThreshold = 100; // Lower warning threshold
+  // Log warning if memory usage is very high (but Render can handle more)
+  const warningThreshold = 300; // Higher warning threshold for Render
   if (rssMB > warningThreshold) {
     console.warn(`⚠️ Very high memory usage detected: ${rssMB}MB`);
   }
-}, 15000); // Check every 15 seconds for aggressive monitoring
+  
+  // Critical memory warning (approaching Render's limit)
+  const criticalThreshold = 450; // Close to 512MB limit
+  if (rssMB > criticalThreshold) {
+    console.error(`🚨 CRITICAL: Memory usage very high: ${rssMB}MB - approaching Render limit`);
+    if (global.gc) {
+      global.gc();
+    }
+  }
+}, 30000); // Check every 30 seconds to reduce noise
 
 // Add process monitoring to prevent kills
 let lastActivity = Date.now();
@@ -103,8 +112,8 @@ async function getCachedKnowledgeChunks() {
     }
   }
   
-  // Fetch fresh chunks with much smaller limit for memory-constrained systems
-  const chunkLimit = 10; // Very small limit
+  // Fetch fresh chunks with optimized limit for Render
+  const chunkLimit = 5; // Even smaller limit for Render
   console.log(`🔄 Fetching fresh knowledge chunks (limit: ${chunkLimit})...`);
   const snapshot = await db.collection('knowledge_chunks')
     .limit(chunkLimit)
@@ -1360,6 +1369,18 @@ app.post('/api/email-decoder/process', async (req, res) => {
   if (!user_id) {
     return res.status(400).json({ error: 'user_id is required' });
   }
+  
+  // Force garbage collection before processing to free memory
+  if (global.gc) {
+    global.gc();
+  }
+  
+  // Log initial memory usage
+  const initialMemUsage = process.memoryUsage();
+  console.log('🔍 Initial memory usage:', {
+    rss: Math.round(initialMemUsage.rss / 1024 / 1024) + 'MB',
+    heapUsed: Math.round(initialMemUsage.heapUsed / 1024 / 1024) + 'MB'
+  });
   
   try {
     // Get Gmail tokens
