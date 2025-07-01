@@ -1171,8 +1171,14 @@ app.get('/auth/google/callback', async (req, res) => {
     console.log('Refresh token present:', !!tokens.refresh_token);
     console.log('Expiry date:', tokens.expiry_date);
     
-    // Always use test_user as the user ID for consistency
-    const userId = 'test_user';
+    // Extract user ID from state parameter or use fallback
+    let userId = 'test_user'; // Default fallback
+    if (state && state.includes('_')) {
+      const stateParts = state.split('_');
+      if (stateParts.length >= 3) {
+        userId = stateParts[2]; // Extract user ID from state
+      }
+    }
     
     console.log('🔍 Using user ID:', userId);
     
@@ -1235,8 +1241,9 @@ app.post('/api/gmail/auth', async (req, res) => {
       'https://www.googleapis.com/auth/gmail.readonly'
     ];
 
-    // Always use test_user for consistency
-    const state = `force_reauth_${Date.now()}_test_user`;
+    // Use the actual user_id from the request
+    const actualUserId = user_id || 'test_user';
+    const state = `force_reauth_${Date.now()}_${actualUserId}`;
 
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
@@ -1246,7 +1253,7 @@ app.post('/api/gmail/auth', async (req, res) => {
       state: state
     });
 
-    console.log('✅ Generated OAuth URL for frontend');
+    console.log('✅ Generated OAuth URL for frontend with user ID:', actualUserId);
     
     res.json({ 
       success: true, 
@@ -1291,16 +1298,16 @@ app.post('/api/gmail/reauth', async (req, res) => {
   try {
     console.log('🔍 Force reauthorization requested for user:', user_id);
     
-    // Always use test_user for consistency
-    const userId = 'test_user';
+    // Use the actual user_id from the request
+    const actualUserId = user_id || 'test_user';
     
     // Delete existing tokens
-    await db.collection('gmail_tokens').doc(userId).delete();
-    console.log('✅ Cleared existing tokens');
+    await db.collection('gmail_tokens').doc(actualUserId).delete();
+    console.log('✅ Cleared existing tokens for user:', actualUserId);
     
     // Also clear any decoded emails for this user
     const decodedEmailsSnapshot = await db.collection('decoded_emails')
-      .where('user_id', '==', userId)
+      .where('user_id', '==', actualUserId)
       .get();
     
     const batch = db.batch();
@@ -1308,7 +1315,7 @@ app.post('/api/gmail/reauth', async (req, res) => {
       batch.delete(doc.ref);
     });
     await batch.commit();
-    console.log('✅ Cleared decoded emails');
+    console.log('✅ Cleared decoded emails for user:', actualUserId);
     
     // Generate OAuth URL
     const oauth2Client = new google.auth.OAuth2(
@@ -1321,7 +1328,7 @@ app.post('/api/gmail/reauth', async (req, res) => {
       'https://www.googleapis.com/auth/gmail.readonly'
     ];
 
-    const state = `force_reauth_${Date.now()}_${userId}`;
+    const state = `force_reauth_${Date.now()}_${actualUserId}`;
 
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
@@ -1331,7 +1338,7 @@ app.post('/api/gmail/reauth', async (req, res) => {
       state: state
     });
 
-    console.log('✅ Generated re-authorization URL');
+    console.log('✅ Generated re-authorization URL for user:', actualUserId);
     
     res.json({ 
       success: true, 

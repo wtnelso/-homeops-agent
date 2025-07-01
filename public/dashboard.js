@@ -633,7 +633,32 @@ async function bulkMarkImportant() {
 
 // 🔧 UTILITY FUNCTIONS
 function getCurrentUserId() {
-  // TODO: Get from Firebase Auth or session
+  // Get user email from Firebase Auth if available
+  if (typeof firebase !== 'undefined' && firebase.auth().currentUser) {
+    const userEmail = firebase.auth().currentUser.email;
+    if (userEmail) {
+      console.log('🔍 Using authenticated user email:', userEmail);
+      return userEmail;
+    }
+  }
+  
+  // Fallback: try to get from session storage
+  const storedEmail = sessionStorage.getItem('user_email');
+  if (storedEmail) {
+    console.log('🔍 Using stored user email:', storedEmail);
+    return storedEmail;
+  }
+  
+  // Final fallback: prompt user for email
+  const userEmail = prompt('Please enter your email address:');
+  if (userEmail) {
+    sessionStorage.setItem('user_email', userEmail);
+    console.log('🔍 Using prompted user email:', userEmail);
+    return userEmail;
+  }
+  
+  // Last resort fallback
+  console.warn('⚠️ No user email found, using test_user as fallback');
   return 'test_user';
 }
 
