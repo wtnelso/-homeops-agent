@@ -813,6 +813,32 @@ async function connectGmail() {
   }
 }
 
+// Debug function to check Gmail tokens
+async function debugTokens() {
+  try {
+    const userId = getCurrentUserId();
+    console.log('🔍 Debug: Checking tokens for user:', userId);
+    
+    const response = await fetch(`/api/gmail/debug-tokens?user_id=${userId}`);
+    const result = await response.json();
+    
+    console.log('🔍 Debug result:', result);
+    
+    if (result.exists) {
+      console.log('✅ Tokens found:', result.tokenData);
+      alert(`Tokens found!\nAccess Token: ${result.tokenData.hasAccessToken}\nRefresh Token: ${result.tokenData.hasRefreshToken}\nExpired: ${result.tokenData.isExpired}`);
+    } else {
+      console.log('❌ No tokens found');
+      console.log('Total tokens in DB:', result.totalTokensInDB);
+      console.log('Token IDs:', result.tokenIds);
+      alert(`No tokens found for ${userId}\nTotal tokens in DB: ${result.totalTokensInDB}\nToken IDs: ${result.tokenIds.join(', ')}`);
+    }
+  } catch (error) {
+    console.error('❌ Debug error:', error);
+    alert(`Debug error: ${error.message}`);
+  }
+}
+
 // 🌐 GLOBAL FUNCTIONS (for onclick handlers)
 window.toggleEmailSelection = toggleEmailSelection;
 window.archiveEmail = archiveEmail;
@@ -825,6 +851,7 @@ window.connectGmail = connectGmail;
 window.processEmailsFromWizard = processEmailsFromWizard;
 window.initializeDecoder = initializeDecoder;
 window.retryFromError = retryFromError;
+window.debugTokens = debugTokens;
 
 // Global function to initialize decoder when dashboard view is activated
 window.initializeDashboardDecoder = function() {
@@ -834,28 +861,6 @@ window.initializeDashboardDecoder = function() {
     setupEventListeners();
     checkInitialState();
   }, 100); // Small delay to ensure DOM is ready
-};
-
-// Debug function to check token status
-window.debugTokens = async function() {
-  try {
-    const userId = getCurrentUserId();
-    console.log('🔍 Debug: Checking tokens for user:', userId);
-    
-    const response = await fetch(`/api/gmail/debug-tokens?user_id=${userId}`);
-    const result = await response.json();
-    
-    console.log('🔍 Debug result:', result);
-    
-    if (result.exists) {
-      alert(`✅ Tokens found!\nAccess Token: ${result.tokenData.hasAccessToken}\nRefresh Token: ${result.tokenData.hasRefreshToken}\nExpiry: ${new Date(result.tokenData.expiryDate).toLocaleString()}`);
-    } else {
-      alert('❌ No tokens found');
-    }
-  } catch (error) {
-    console.error('❌ Debug error:', error);
-    alert('❌ Debug error: ' + error.message);
-  }
 };
 
 // 🎯 WIZARD NAVIGATION FUNCTIONS

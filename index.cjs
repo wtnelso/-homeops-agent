@@ -340,53 +340,53 @@ app.get("/api/gmail/test-tokens", async (req, res) => {
 
 // Debug endpoint to check Gmail tokens
 app.get('/api/gmail/debug-tokens', async (req, res) => {
-  const { user_id } = req.query;
-  
-  if (!user_id) {
-    return res.status(400).json({ error: 'user_id parameter required' });
-  }
+  const userId = req.query.user_id || 'test_user';
   
   try {
-    console.log('🔍 Debug: Checking tokens for user:', user_id);
+    console.log('🔍 Debug: Checking tokens for user:', userId);
     
-    // Get Gmail tokens
-    const tokenDoc = await db.collection('gmail_tokens').doc(user_id).get();
+    const tokenDoc = await db.collection('gmail_tokens').doc(userId).get();
     
-    if (!tokenDoc.exists) {
-      console.log('❌ Debug: No tokens found for user:', user_id);
+    if (tokenDoc.exists) {
+      const tokenData = tokenDoc.data();
+      console.log('🔍 Debug: Token data found:', {
+        hasAccessToken: !!tokenData.access_token,
+        hasRefreshToken: !!tokenData.refresh_token,
+        expiryDate: tokenData.expiry_date,
+        createdAt: tokenData.created_at
+      });
+      
+      res.json({
+        exists: true,
+        tokenData: {
+          hasAccessToken: !!tokenData.access_token,
+          hasRefreshToken: !!tokenData.refresh_token,
+          expiryDate: tokenData.expiry_date,
+          createdAt: tokenData.created_at,
+          isExpired: tokenData.expiry_date ? Date.now() > tokenData.expiry_date : false
+        }
+      });
+    } else {
+      console.log('🔍 Debug: No tokens found for user:', userId);
       
       // List all documents in gmail_tokens collection for debugging
       const allTokens = await db.collection('gmail_tokens').get();
       console.log('🔍 Debug: Total tokens in database:', allTokens.size);
+      const tokenIds = [];
       allTokens.forEach(doc => {
-        console.log('🔍 Debug: Token doc ID:', doc.id);
+        tokenIds.push(doc.id);
       });
+      console.log('🔍 Debug: Token doc IDs:', tokenIds);
       
-      return res.json({ 
+      res.json({
         exists: false,
-        message: 'No tokens found',
         totalTokensInDB: allTokens.size,
-        allTokenIds: allTokens.docs.map(doc => doc.id)
+        tokenIds: tokenIds
       });
     }
-
-    const tokens = tokenDoc.data();
-    console.log('✅ Debug: Tokens found for user:', user_id);
-    console.log('🔍 Debug: Token data keys:', Object.keys(tokens));
-    
-    return res.json({
-      exists: true,
-      tokenData: {
-        hasAccessToken: !!tokens.access_token,
-        hasRefreshToken: !!tokens.refresh_token,
-        expiryDate: tokens.expiry_date,
-        isExpired: tokens.expiry_date ? Date.now() > tokens.expiry_date : null
-      }
-    });
-    
   } catch (error) {
-    console.error('❌ Debug error:', error);
-    res.status(500).json({ error: 'Debug failed', details: error.message });
+    console.error('❌ Debug: Error checking tokens:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
