@@ -266,36 +266,29 @@ function renderTrainingCards() {
   const container = document.getElementById('training-cards');
   if (!container) return;
   
-  const trainingEmails = [
-    {
-      id: 'training-1',
-      sender: 'Dr. Sarah Chen',
-      subject: 'Appointment Confirmation: Tomorrow 2:30 PM',
-      summary: 'Your child\'s annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early.',
-      category: 'urgent'
-    },
-    {
-      id: 'training-2', 
-      sender: 'Jessica Martinez - School Principal',
-      subject: 'Parent-Teacher Conference: This Friday',
-      summary: 'Reminder: Your parent-teacher conference is scheduled for this Friday at 3:00 PM.',
-      category: 'schedule'
-    },
-    {
-      id: 'training-3',
-      sender: 'PTO Newsletter',
-      subject: 'This Week\'s School Events',
-      summary: 'Check out this week\'s events including the bake sale on Friday and early dismissal on Wednesday.',
-      category: 'family'
-    },
-    {
-      id: 'training-4',
-      sender: 'Amazon Prime',
-      subject: 'Your order has shipped',
-      summary: 'Your order #123-4567890-1234567 containing "Organic Baby Formula" will arrive tomorrow between 2-6 PM.',
-      category: 'commerce'
-    }
-  ];
+  // Only show training cards if we have real emails to train on
+  if (!decodedEmails || decodedEmails.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 2rem; color: #64748b;">
+        <h3>No emails available for training</h3>
+        <p>Please process your emails first to start training the decoder.</p>
+        <button onclick="processEmails()" class="btn-primary" style="
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-top: 1rem;
+        ">Process Emails</button>
+      </div>
+    `;
+    return;
+  }
+  
+  // Use real emails for training (first 4 emails)
+  const trainingEmails = decodedEmails.slice(0, 4);
   
   container.innerHTML = trainingEmails.map(email => createTrainingCard(email)).join('');
   
