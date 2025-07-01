@@ -1609,10 +1609,10 @@ Body: ${body}
 
         const processedEmail = {
           id: email.id,
-          sender: from,
+          sender: from || 'Unknown Sender',
           subject,
-          timestamp: new Date(date).getTime(),
-          date,
+          timestamp: isNaN(new Date(date).getTime()) ? Date.now() : new Date(date).getTime(),
+          date: date || '',
           ...parsedAnalysis
         };
         processedEmails.push(processedEmail);

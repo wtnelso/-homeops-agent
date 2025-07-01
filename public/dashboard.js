@@ -197,6 +197,12 @@ function renderEmailCards() {
 function createEmailCard(email) {
   const category = CATEGORIES[mapCategory(email.category)] || CATEGORIES.urgent;
   const isSelected = selectedEmails.has(email.id);
+  const sender = email.sender || 'Unknown Sender';
+  let dateString = 'Unknown Date';
+  if (email.timestamp && !isNaN(email.timestamp)) {
+    const formatted = formatTime(email.timestamp);
+    if (formatted !== 'Invalid Date') dateString = formatted;
+  }
   
   return `
     <div class="email-card ${isSelected ? 'selected' : ''}" data-email-id="${email.id}" data-category="${email.category}">
@@ -217,8 +223,8 @@ function createEmailCard(email) {
       
       <div class="card-content">
         <div class="email-sender">
-          <strong>${email.sender}</strong>
-          <span class="email-time">${formatTime(email.timestamp)}</span>
+          <strong>${sender}</strong>
+          <span class="email-time">${dateString}</span>
         </div>
         
         <div class="email-subject">
@@ -245,8 +251,7 @@ function createEmailCard(email) {
             <span>Reply</span>
           </button>
         </div>
-        
-        <div class="email-feedback">
+        <div class="email-feedback" style="display: flex; flex-wrap: wrap; gap: 4px; min-width: 0;">
           <button class="btn-feedback" onclick="giveFeedback('${email.id}', 'positive')" title="Good categorization">
             <i data-lucide="thumbs-up"></i>
           </button>
