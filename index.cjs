@@ -1538,19 +1538,28 @@ app.post('/api/email-decoder/process', async (req, res) => {
         const subject = getHeader('Subject');
         const from = getHeader('From');
         const date = getHeader('Date');
-        // Extract plain text body if available
+        // Extract plain text and HTML body if available
         let body = '';
+        let htmlBody = '';
         if (email.payload.parts) {
           for (const part of email.payload.parts) {
             if (part.mimeType === 'text/plain' && part.body && part.body.data) {
               body = Buffer.from(part.body.data, 'base64').toString('utf-8');
-              break;
+            }
+            if (part.mimeType === 'text/html' && part.body && part.body.data) {
+              htmlBody = Buffer.from(part.body.data, 'base64').toString('utf-8');
             }
           }
         } else if (email.payload.body && email.payload.body.data) {
           body = Buffer.from(email.payload.body.data, 'base64').toString('utf-8');
         }
+        // Fallback: if no plain text, use HTML (stripped of tags)
+        if (!body && htmlBody) {
+          body = htmlBody.replace(/<[^>]+>/g, ' ');
+        }
 
+        // --- LOGGING ---
+        console.log('🔍 Sending to GPT:', { subject, from, date, body });
         // --- STRUCTURED GPT PROMPT ---
         const gptPrompt = `
 You are an intelligent assistant for a personal life operating system. Your job is to analyze emails and produce structured, minimal outputs that help the user take action quickly — without needing to read the email.
@@ -1574,6 +1583,8 @@ Body: ${body}
         // --- END STRUCTURED PROMPT ---
 
         const analysis = await callOpenAI(gptPrompt);
+        // --- LOG RAW GPT RESPONSE ---
+        console.log('🔍 Raw GPT response:', analysis);
         let parsedAnalysis;
         try {
           parsedAnalysis = JSON.parse(analysis);
