@@ -1488,14 +1488,14 @@ app.post('/api/email-decoder/process', async (req, res) => {
       });
     }
 
-    // Fetch recent emails with very limited results
+    // Fetch recent emails with increased results and full content
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
     console.log('🔍 Attempting to fetch emails...');
     
     const response = await Promise.race([
       gmail.users.messages.list({
         userId: 'me',
-        maxResults: 2  // Reduced to just 2 emails for memory efficiency
+        maxResults: 10  // Fetch up to 10 emails for better context
       }),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Gmail API timeout')), 10000)
@@ -1517,17 +1517,15 @@ app.post('/api/email-decoder/process', async (req, res) => {
 
     // Process emails one at a time to reduce memory pressure
     const processedEmails = [];
-    
-    for (let i = 0; i < Math.min(messages.length, 2); i++) {  // Process max 2 emails
+    for (let i = 0; i < Math.min(messages.length, 10); i++) {  // Process max 10 emails
       try {
-        console.log(`🔍 Processing email ${i + 1}/${Math.min(messages.length, 2)}`);
+        console.log(`🔍 Processing email ${i + 1}/${Math.min(messages.length, 10)}`);
         
         const emailResponse = await Promise.race([
           gmail.users.messages.get({
             userId: 'me',
             id: messages[i].id,
-            format: 'metadata',
-            metadataHeaders: ['From', 'Subject', 'Date', 'To']
+            format: 'full'
           }),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Email fetch timeout')), 5000)
@@ -1535,59 +1533,71 @@ app.post('/api/email-decoder/process', async (req, res) => {
         ]);
 
         const email = emailResponse.data;
-        const headers = email.payload.headers;
-        
-        const emailData = {
-          id: email.id,
-          from: headers.find(h => h.name === 'From')?.value || 'Unknown',
-          subject: headers.find(h => h.name === 'Subject')?.value || 'No Subject',
-          date: headers.find(h => h.name === 'Date')?.value || new Date().toISOString(),
-          to: headers.find(h => h.name === 'To')?.value || 'Unknown'
-        };
+        const headers = email.payload.headers || [];
+        const getHeader = (name) => headers.find(h => h.name.toLowerCase() === name.toLowerCase())?.value || '';
+        const subject = getHeader('Subject');
+        const from = getHeader('From');
+        const date = getHeader('Date');
+        // Extract plain text body if available
+        let body = '';
+        if (email.payload.parts) {
+          for (const part of email.payload.parts) {
+            if (part.mimeType === 'text/plain' && part.body && part.body.data) {
+              body = Buffer.from(part.body.data, 'base64').toString('utf-8');
+              break;
+            }
+          }
+        } else if (email.payload.body && email.payload.body.data) {
+          body = Buffer.from(email.payload.body.data, 'base64').toString('utf-8');
+        }
 
-        // Analyze email with OpenAI (simplified prompt)
-        const analysisPrompt = `Analyze this email: From: ${emailData.from}, Subject: ${emailData.subject}. Respond with JSON: {"type": "work_email|personal|newsletter|other", "category": "urgent|important|routine|low_priority", "priority": "high|medium|low", "summary": "brief description"}`;
+        // --- STRUCTURED GPT PROMPT ---
+        const gptPrompt = `
+You are an intelligent assistant for a personal life operating system. Your job is to analyze emails and produce structured, minimal outputs that help the user take action quickly — without needing to read the email.
 
-        const analysis = await callOpenAI(analysisPrompt);
+For the email below, return the following fields as a JSON object:
+{
+  "summary": [1–2 sentence human-friendly summary of the email],
+  "category": ["Handle Now", "On the Calendar", "Household Signals", or "Commerce Inbox"],
+  "priority": ["High", "Medium", "Low"],
+  "suggested_actions": [list of actionable options like "Add to Calendar", "Track Package", "Push to Command Center", "Dismiss"],
+  "tone": ["Urgent", "Routine", "Personal", "Transactional"]
+}
+Make the summary clear and non-redundant. Use natural, modern language. Only include JSON in your response.
+---
+Email:
+Subject: ${subject}
+From: ${from}
+Date: ${date}
+Body: ${body}
+`;
+        // --- END STRUCTURED PROMPT ---
+
+        const analysis = await callOpenAI(gptPrompt);
         let parsedAnalysis;
-        
         try {
           parsedAnalysis = JSON.parse(analysis);
         } catch (parseError) {
-          console.error('❌ Failed to parse OpenAI response:', parseError);
+          console.error('❌ Failed to parse OpenAI response:', parseError, analysis);
           parsedAnalysis = {
-            type: 'other',
-            category: 'routine',
-            priority: 'low',
-            summary: 'Unable to analyze email content'
+            summary: 'Unable to analyze email content',
+            category: 'Handle Now',
+            priority: 'Low',
+            suggested_actions: ['Dismiss'],
+            tone: 'Routine'
           };
         }
 
         const processedEmail = {
-          ...emailData,
-          ...parsedAnalysis,
-          processed_at: new Date().toISOString()
+          id: email.id,
+          from,
+          subject,
+          date,
+          ...parsedAnalysis
         };
-
         processedEmails.push(processedEmail);
-        
-        // Store in Firestore
-        await db.collection('decoded_emails').add({
-          user_id: user_id,
-          email_id: email.id,
-          ...processedEmail
-        });
-
-        console.log(`✅ Processed email ${i + 1}: ${parsedAnalysis.type} - ${parsedAnalysis.priority} priority`);
-        
-        // Force garbage collection after each email
-        if (global.gc) {
-          global.gc();
-        }
-        
-      } catch (emailError) {
-        console.error(`❌ Error processing email ${i + 1}:`, emailError);
-        continue;
+      } catch (err) {
+        console.error('❌ Error processing email:', err);
       }
     }
 
