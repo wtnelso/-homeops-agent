@@ -195,7 +195,7 @@ function renderEmailCards() {
 }
 
 function createEmailCard(email) {
-  const category = CATEGORIES[email.category] || CATEGORIES.urgent;
+  const category = CATEGORIES[mapCategory(email.category)] || CATEGORIES.urgent;
   const isSelected = selectedEmails.has(email.id);
   
   return `
@@ -346,10 +346,10 @@ function switchCategory(category) {
 function updateCategoryCounts() {
   const counts = {
     all: decodedEmails.length,
-    urgent: decodedEmails.filter(e => e.category === 'urgent').length,
-    schedule: decodedEmails.filter(e => e.category === 'schedule').length,
-    family: decodedEmails.filter(e => e.category === 'family').length,
-    commerce: decodedEmails.filter(e => e.category === 'commerce').length
+    urgent: decodedEmails.filter(e => mapCategory(e.category) === 'urgent').length,
+    schedule: decodedEmails.filter(e => mapCategory(e.category) === 'schedule').length,
+    family: decodedEmails.filter(e => mapCategory(e.category) === 'family').length,
+    commerce: decodedEmails.filter(e => mapCategory(e.category) === 'commerce').length,
   };
   
   Object.entries(counts).forEach(([category, count]) => {
@@ -988,3 +988,14 @@ function initializeWizard() {
 }
 
 // 🎯 STATE CONTAINERS */ 
+
+// Category mapping from backend/GPT to frontend keys
+function mapCategory(category) {
+  switch (category) {
+    case 'Commerce Inbox': return 'commerce';
+    case 'On the Calendar': return 'schedule';
+    case 'Handle Now': return 'urgent';
+    case 'Household Signals': return 'family';
+    default: return 'urgent';
+  }
+} 
