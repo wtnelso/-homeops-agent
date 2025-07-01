@@ -1174,12 +1174,9 @@ app.get('/auth/google/callback', async (req, res) => {
     );
 
     const { tokens } = await oauth2Client.getToken(code);
-    
-    console.log('🔍 Tokens received:');
-    console.log('Access token present:', !!tokens.access_token);
-    console.log('Refresh token present:', !!tokens.refresh_token);
-    console.log('Expiry date:', tokens.expiry_date);
-    
+    console.log('🔍 Tokens received:', tokens);
+    console.log('🔍 Full token object:', JSON.stringify(tokens, null, 2));
+
     // Extract user ID from state parameter or use fallback
     let userId = 'test_user'; // Default fallback
     if (state && state.includes('_')) {
@@ -1188,9 +1185,9 @@ app.get('/auth/google/callback', async (req, res) => {
         userId = stateParts[2]; // Extract user ID from state
       }
     }
-    
     console.log('🔍 Using user ID:', userId);
-    
+    console.log('🔍 Attempting to save tokens for user:', userId);
+
     // Store tokens in Firestore
     await db.collection('gmail_tokens').doc(userId).set({
       access_token: tokens.access_token,
@@ -1199,15 +1196,14 @@ app.get('/auth/google/callback', async (req, res) => {
       created_at: new Date(),
       scopes: tokens.scope || 'https://www.googleapis.com/auth/gmail.readonly'
     });
-
-    console.log('✅ Tokens stored successfully for user:', userId);
+    console.log('✅ Tokens saved for user:', userId);
 
     // Redirect to Dashboard with processing step after successful Gmail connection
     res.redirect('/dashboard.html?gmail_connected=true&step=processing&view=dashboard');
   } catch (error) {
+    console.error('❌ Error in OAuth callback:', error);
     console.error('❌ Gmail OAuth error:', error);
     console.error('❌ Error details:', error.message);
-    
     // Check if it's an invalid_client error
     if (error.message && error.message.includes('invalid_client')) {
       console.error('❌ OAuth client configuration error - check environment variables');
@@ -1215,7 +1211,6 @@ app.get('/auth/google/callback', async (req, res) => {
       console.error('❌ Client Secret:', GMAIL_OAUTH_CONFIG.clientSecret ? 'SET' : 'NOT SET');
       console.error('❌ Redirect URI:', GMAIL_OAUTH_CONFIG.redirectUri);
     }
-    
     res.redirect('/dashboard?gmail_error=true');
   }
 });
