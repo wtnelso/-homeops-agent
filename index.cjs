@@ -1010,7 +1010,7 @@ Do not include any text outside of this JSON object.
 
     const data = await response.json();
 
-    if (!data.choices || !data.choices[0]?.message?.content) {
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       console.error("🛑 Re-frame GPT response missing content:", data);
       return res.status(500).json({ error: "Invalid GPT response format" });
     }
@@ -1609,8 +1609,9 @@ Body: ${body}
 
         const processedEmail = {
           id: email.id,
-          from,
+          sender: from,
           subject,
+          timestamp: new Date(date).getTime(),
           date,
           ...parsedAnalysis
         };
@@ -1630,10 +1631,12 @@ Body: ${body}
     };
 
     processedEmails.forEach(email => {
-      summary.byType[email.type] = (summary.byType[email.type] || 0) + 1;
+      // Handle type field (might not exist in new format)
+      const emailType = email.type || 'email';
+      summary.byType[emailType] = (summary.byType[emailType] || 0) + 1;
       summary.byCategory[email.category] = (summary.byCategory[email.category] || 0) + 1;
       summary.byPriority[email.priority] = (summary.byPriority[email.priority] || 0) + 1;
-      if (email.priority === 'high') summary.highPriority++;
+      if (email.priority === 'High') summary.highPriority++;  // Note: 'High' not 'high'
     });
 
     console.log('✅ Email processing completed successfully');
