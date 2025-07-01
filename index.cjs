@@ -1564,15 +1564,16 @@ app.post('/api/email-decoder/process', async (req, res) => {
         const gptPrompt = `
 You are an intelligent assistant for a personal life operating system. Your job is to analyze emails and produce structured, minimal outputs that help the user take action quickly — without needing to read the email.
 
-For the email below, return the following fields as a JSON object:
+For the email below, return ONLY a JSON object with the following fields (no markdown formatting, no code blocks, just pure JSON):
 {
-  "summary": [1–2 sentence human-friendly summary of the email],
-  "category": ["Handle Now", "On the Calendar", "Household Signals", or "Commerce Inbox"],
-  "priority": ["High", "Medium", "Low"],
-  "suggested_actions": [list of actionable options like "Add to Calendar", "Track Package", "Push to Command Center", "Dismiss"],
-  "tone": ["Urgent", "Routine", "Personal", "Transactional"]
+  "summary": "1–2 sentence human-friendly summary of the email",
+  "category": "Handle Now|On the Calendar|Household Signals|Commerce Inbox",
+  "priority": "High|Medium|Low",
+  "suggested_actions": ["action1", "action2", "action3"],
+  "tone": "Urgent|Routine|Personal|Transactional"
 }
-Make the summary clear and non-redundant. Use natural, modern language. Only include JSON in your response.
+
+Make the summary clear and non-redundant. Use natural, modern language. Return ONLY the JSON object, no other text.
 ---
 Email:
 Subject: ${subject}
@@ -1587,7 +1588,14 @@ Body: ${body}
         console.log('🔍 Raw GPT response:', analysis);
         let parsedAnalysis;
         try {
-          parsedAnalysis = JSON.parse(analysis);
+          // Clean the response - remove markdown code blocks if present
+          let cleanResponse = analysis.trim();
+          if (cleanResponse.startsWith('```json')) {
+            cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+          } else if (cleanResponse.startsWith('```')) {
+            cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+          }
+          parsedAnalysis = JSON.parse(cleanResponse);
         } catch (parseError) {
           console.error('❌ Failed to parse OpenAI response:', parseError, analysis);
           parsedAnalysis = {
