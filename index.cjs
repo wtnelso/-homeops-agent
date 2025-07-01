@@ -1181,9 +1181,7 @@ app.get('/auth/google/callback', async (req, res) => {
     let userId = 'test_user'; // Default fallback
     if (state && state.includes('_')) {
       const stateParts = state.split('_');
-      if (stateParts.length >= 3) {
-        userId = stateParts[2]; // Extract user ID from state
-      }
+      userId = stateParts[stateParts.length - 1]; // Use the last part (should be the email)
     }
     console.log('🔍 Using user ID:', userId);
     console.log('🔍 Attempting to save tokens for user:', userId);
