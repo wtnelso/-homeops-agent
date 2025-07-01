@@ -200,12 +200,16 @@ document.addEventListener("DOMContentLoaded", () => {
           sessionStorage.setItem('gmail_step', step);
         }
         
-        // Clean up the URL parameters
-        const newUrl = window.location.pathname + window.location.search
-          .replace(/[?&]gmail_connected=true/, '')
-          .replace(/[?&]step=processing/, '')
-          .replace(/[?&]view=dashboard/, '');
+        // Clean up the URL parameters properly
+        const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
+        
+        // Initialize the dashboard decoder after a short delay
+        setTimeout(() => {
+          if (window.initializeDashboardDecoder) {
+            window.initializeDashboardDecoder();
+          }
+        }, 100);
       } else {
         // Default to chat view
         activateView('chat');

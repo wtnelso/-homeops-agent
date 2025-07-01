@@ -697,6 +697,7 @@ async function checkGmailConnection() {
     if (gmailStep === 'processing') {
       console.log('🎯 Gmail just connected, moving to processing step');
       sessionStorage.removeItem('gmail_step');
+      showOnboardingState();
       showWizardStep(2); // Show processing step
       return;
     }
