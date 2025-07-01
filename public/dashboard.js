@@ -484,7 +484,7 @@ async function processEmails() {
           </div>
         `);
       } else {
-        throw new Error(result.error || 'Failed to process emails');
+        showError(result.error || 'Failed to process emails');
       }
       return;
     }
@@ -724,25 +724,20 @@ async function checkGmailConnection() {
 async function loadExistingEmails(userId) {
   try {
     const response = await fetch(`/api/email-decoder/emails?user_id=${userId}`);
-    
     if (response.ok) {
       const result = await response.json();
       decodedEmails = result.emails || [];
-      
       if (decodedEmails.length === 0) {
-        // No processed emails yet - show training mode first
         showTrainingMode();
       } else {
-        // We have processed emails - show the full decoder
         showEmailCards();
       }
     } else {
-      // If we can't load emails, show training mode
+      // If we can't load emails, show training mode (no dummy data)
       showTrainingMode();
     }
   } catch (error) {
     console.error('❌ Error loading existing emails:', error);
-    // If there's an error, show training mode
     showTrainingMode();
   }
 }
