@@ -1505,10 +1505,10 @@ app.post('/api/email-decoder/process', async (req, res) => {
     ]);
 
     console.log('✅ Successfully fetched email list');
-    const messages = response.data.messages || [];
-    console.log('🔍 Found', messages.length, 'messages');
+    const allMessages = [...(Array.isArray(mockEmails) ? mockEmails : []), ...response.data.messages] || [];
+    console.log('🔍 Found', allMessages.length, 'messages');
 
-    if (messages.length === 0) {
+    if (allMessages.length === 0) {
       console.log('🔍 No messages found, returning empty result');
       return res.json({ 
         success: true, 
@@ -1519,14 +1519,14 @@ app.post('/api/email-decoder/process', async (req, res) => {
 
     // Process emails one at a time to reduce memory pressure
     const processedEmails = [];
-    for (let i = 0; i < Math.min(messages.length, 20); i++) {  // Process max 20 emails
+    for (let i = 0; i < Math.min(allMessages.length, 20); i++) {  // Process max 20 emails
       try {
-        console.log(`🔍 Processing email ${i + 1}/${Math.min(messages.length, 20)}`);
+        console.log(`🔍 Processing email ${i + 1}/${Math.min(allMessages.length, 20)}`);
         
         const emailResponse = await Promise.race([
           gmail.users.messages.get({
             userId: 'me',
-            id: messages[i].id,
+            id: allMessages[i].id,
             format: 'full'
           }),
           new Promise((_, reject) => 
@@ -2389,3 +2389,13 @@ app.get('/api/user-recommendations/:userId', async (req, res) => {
     res.status(500).json({ error: 'Failed to generate recommendations' });
   }
 });
+
+// TEMP: Inject mock email for fallback CTA testing
+const fs = require('fs');
+const path = require('path');
+let mockEmails = [];
+try {
+  const mockPath = path.join(__dirname, 'mock', 'emails.json');
+  const raw = fs.readFileSync(mockPath, 'utf8');
+  mockEmails = JSON.parse(raw);
+} catch (e) { mockEmails = []; }
