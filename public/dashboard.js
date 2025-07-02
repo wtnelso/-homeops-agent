@@ -1097,4 +1097,4 @@ window.giveDecoderFeedback = function(emailId, feedback, btn) {
   if (btn && btn.parentElement) {
     btn.parentElement.innerHTML = '<span style="color:#22c55e;font-weight:600;">Thanks for your feedback!</span>';
   }
-}; 
+}; // Force deployment - Tue Jul  1 22:06:28 EDT 2025
