@@ -430,8 +430,6 @@ function createDecoderCard(email) {
     const formatted = formatTime(email.timestamp);
     if (formatted !== 'Invalid Date') dateString = formatted;
   }
-  // Only show up to 2 actions
-  const actions = (email.suggested_actions || []).slice(0, 2);
   // Feedback (grading) UI
   const feedbackHtml = `<div class="decoder-feedback" style="margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center;">
     <button class="btn-feedback" title="This was helpful" onclick="giveDecoderFeedback('${email.id}', 'positive', this)">👍</button>
@@ -449,6 +447,18 @@ function createDecoderCard(email) {
   }
   // Add archive button
   const archiveBtn = `<button class="btn-secondary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); archiveEmail('${email.id}')">Archive</button>`;
+
+  // --- SMART CTA LOGIC ---
+  let actionBtnHtml = '';
+  // Deduplicate actionLinks
+  const uniqueLinks = Array.isArray(email.actionLinks) ? [...new Set(email.actionLinks)] : [];
+  // Use first suggested_action as label, first unique link as href
+  if (email.suggested_actions && email.suggested_actions.length && uniqueLinks.length) {
+    actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">${email.suggested_actions[0]}</a>`;
+  } else if (uniqueLinks.length) {
+    actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">Open Link</a>`;
+  }
+
   return `
     <div class="decoder-card" data-email-id="${email.id}" style="border-radius: 14px; box-shadow: 0 2px 8px #e0e7ff; background: #fff; margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; transition: all 0.3s ease;">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -458,7 +468,7 @@ function createDecoderCard(email) {
       ${previewImageHtml}
       <div class="decoder-summary-text" style="font-size: 1.08rem; color: #22223b; font-weight: 500; line-height: 1.5;">${email.summary}</div>
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        ${(email.actionLinks || []).map(action => createActionButton(action, email)).join('')}
+        ${actionBtnHtml}
         ${archiveBtn}
       </div>
       ${feedbackHtml}
