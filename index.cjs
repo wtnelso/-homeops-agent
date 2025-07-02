@@ -2391,8 +2391,6 @@ app.get('/api/user-recommendations/:userId', async (req, res) => {
 });
 
 // TEMP: Inject mock email for fallback CTA testing
-const fs = require('fs');
-const path = require('path');
 let mockEmails = [];
 try {
   const mockPath = path.join(__dirname, 'mock', 'emails.json');
