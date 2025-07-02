@@ -1766,25 +1766,210 @@ app.post('/api/email-decoder/feedback', async (req, res) => {
   }
 });
 
-// Decoder feedback endpoint
+// Decoder feedback endpoint with intelligent learning
 app.post('/api/decoder-feedback', async (req, res) => {
-  const { emailId, feedback, userId } = req.body;
+  const { emailId, feedback, userId, emailContext } = req.body;
   if (!emailId || !feedback || !userId) {
     return res.status(400).json({ error: 'Missing required feedback fields' });
   }
+  
   try {
+    // Store the basic feedback
     await db.collection('decoder_feedback').add({
       emailId,
       feedback,
       userId,
+      emailContext,
       timestamp: new Date()
     });
+    
+    // 🧠 INTELLIGENT LEARNING LOGIC
+    if (emailContext) {
+      await processIntelligentFeedback(userId, feedback, emailContext);
+    }
+    
     res.json({ success: true });
   } catch (error) {
     console.error('❌ Failed to store decoder feedback:', error);
     res.status(500).json({ error: 'Failed to store feedback' });
   }
 });
+
+// Intelligent feedback processing
+async function processIntelligentFeedback(userId, feedback, emailContext) {
+  try {
+    console.log('🧠 Processing intelligent feedback for user:', userId);
+    
+    const userPreferencesRef = db.collection('user_preferences').doc(userId);
+    const userDoc = await userPreferencesRef.get();
+    
+    let preferences = userDoc.exists ? userDoc.data() : {
+      senderPreferences: {},
+      categoryPreferences: {},
+      actionPreferences: {},
+      domainPreferences: {},
+      lastUpdated: new Date()
+    };
+    
+    // 📧 SENDER DOMAIN LEARNING
+    if (emailContext.senderDomain) {
+      const domain = emailContext.senderDomain.toLowerCase();
+      if (!preferences.domainPreferences[domain]) {
+        preferences.domainPreferences[domain] = { positive: 0, negative: 0, total: 0 };
+      }
+      
+      preferences.domainPreferences[domain].total++;
+      if (feedback === 'positive') {
+        preferences.domainPreferences[domain].positive++;
+      } else {
+        preferences.domainPreferences[domain].negative++;
+      }
+      
+      console.log(`🎯 Domain preference updated for ${domain}:`, preferences.domainPreferences[domain]);
+    }
+    
+    // 🏷️ CATEGORY LEARNING
+    if (emailContext.category) {
+      const category = emailContext.category;
+      if (!preferences.categoryPreferences[category]) {
+        preferences.categoryPreferences[category] = { positive: 0, negative: 0, total: 0 };
+      }
+      
+      preferences.categoryPreferences[category].total++;
+      if (feedback === 'positive') {
+        preferences.categoryPreferences[category].positive++;
+      } else {
+        preferences.categoryPreferences[category].negative++;
+      }
+      
+      console.log(`📂 Category preference updated for ${category}:`, preferences.categoryPreferences[category]);
+    }
+    
+    // 🎯 ACTION LEARNING
+    if (emailContext.suggestedActions && emailContext.suggestedActions.length > 0) {
+      emailContext.suggestedActions.forEach(action => {
+        if (!preferences.actionPreferences[action]) {
+          preferences.actionPreferences[action] = { positive: 0, negative: 0, total: 0 };
+        }
+        
+        preferences.actionPreferences[action].total++;
+        if (feedback === 'positive') {
+          preferences.actionPreferences[action].positive++;
+        } else {
+          preferences.actionPreferences[action].negative++;
+        }
+      });
+      
+      console.log('⚡ Action preferences updated:', emailContext.suggestedActions);
+    }
+    
+    // 🏷️ SENDER LEARNING (for specific senders)
+    if (emailContext.sender) {
+      const sender = emailContext.sender.toLowerCase();
+      if (!preferences.senderPreferences[sender]) {
+        preferences.senderPreferences[sender] = { positive: 0, negative: 0, total: 0 };
+      }
+      
+      preferences.senderPreferences[sender].total++;
+      if (feedback === 'positive') {
+        preferences.senderPreferences[sender].positive++;
+      } else {
+        preferences.senderPreferences[sender].negative++;
+      }
+      
+      console.log(`👤 Sender preference updated for ${sender}:`, preferences.senderPreferences[sender]);
+    }
+    
+    // Update timestamp
+    preferences.lastUpdated = new Date();
+    
+    // Save updated preferences
+    await userPreferencesRef.set(preferences);
+    
+    console.log('✅ User preferences updated successfully');
+    
+    // 🚀 TRIGGER RELEVANT INSIGHTS
+    await generateUserInsights(userId, preferences, emailContext, feedback);
+    
+  } catch (error) {
+    console.error('❌ Error processing intelligent feedback:', error);
+  }
+}
+
+// Generate insights based on user preferences
+async function generateUserInsights(userId, preferences, emailContext, feedback) {
+  try {
+    const insights = [];
+    
+    // Domain-based insights
+    if (emailContext.senderDomain) {
+      const domain = emailContext.senderDomain.toLowerCase();
+      const domainPrefs = preferences.domainPreferences[domain];
+      
+      if (domainPrefs && domainPrefs.total >= 3) {
+        const positiveRate = domainPrefs.positive / domainPrefs.total;
+        
+        if (feedback === 'negative' && positiveRate < 0.3) {
+          insights.push({
+            type: 'domain_preference',
+            message: `You seem to dislike emails from ${domain}. Consider unsubscribing or filtering these emails.`,
+            domain: domain,
+            confidence: Math.round((1 - positiveRate) * 100)
+          });
+        } else if (feedback === 'positive' && positiveRate > 0.7) {
+          insights.push({
+            type: 'domain_preference',
+            message: `You consistently like emails from ${domain}. These are prioritized in your inbox.`,
+            domain: domain,
+            confidence: Math.round(positiveRate * 100)
+          });
+        }
+      }
+    }
+    
+    // Category-based insights
+    if (emailContext.category) {
+      const category = emailContext.category;
+      const categoryPrefs = preferences.categoryPreferences[category];
+      
+      if (categoryPrefs && categoryPrefs.total >= 2) {
+        const positiveRate = categoryPrefs.positive / categoryPrefs.total;
+        
+        if (feedback === 'negative' && positiveRate < 0.4) {
+          insights.push({
+            type: 'category_preference',
+            message: `You tend to dislike ${category} emails. Consider adjusting your email processing settings.`,
+            category: category,
+            confidence: Math.round((1 - positiveRate) * 100)
+          });
+        } else if (feedback === 'positive' && positiveRate > 0.6) {
+          insights.push({
+            type: 'category_preference',
+            message: `You consistently find ${category} emails valuable. These are highlighted in your inbox.`,
+            category: category,
+            confidence: Math.round(positiveRate * 100)
+          });
+        }
+      }
+    }
+    
+    // Save insights if any were generated
+    if (insights.length > 0) {
+      await db.collection('user_insights').add({
+        userId,
+        insights,
+        triggerEmail: emailContext,
+        feedback,
+        timestamp: new Date()
+      });
+      
+      console.log('💡 Generated insights:', insights);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error generating insights:', error);
+  }
+}
 
 // SPA catch-all route should be last
 app.get('*', (req, res) => {
@@ -1943,3 +2128,125 @@ async function startServer() {
 startServer();
 
 console.log('End of index.cjs reached');
+
+// Get user preferences and insights
+app.get('/api/user-preferences/:userId', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const userPreferencesRef = db.collection('user_preferences').doc(userId);
+    const userDoc = await userPreferencesRef.get();
+    
+    if (!userDoc.exists) {
+      return res.json({
+        preferences: {
+          senderPreferences: {},
+          categoryPreferences: {},
+          actionPreferences: {},
+          domainPreferences: {},
+          lastUpdated: null
+        },
+        insights: []
+      });
+    }
+    
+    const preferences = userDoc.data();
+    
+    // Get recent insights
+    const insightsSnapshot = await db.collection('user_insights')
+      .where('userId', '==', userId)
+      .orderBy('timestamp', 'desc')
+      .limit(5)
+      .get();
+    
+    const insights = insightsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    res.json({
+      preferences,
+      insights
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching user preferences:', error);
+    res.status(500).json({ error: 'Failed to fetch preferences' });
+  }
+});
+
+// Get personalized recommendations based on preferences
+app.get('/api/user-recommendations/:userId', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const userPreferencesRef = db.collection('user_preferences').doc(userId);
+    const userDoc = await userPreferencesRef.get();
+    
+    if (!userDoc.exists) {
+      return res.json({ recommendations: [] });
+    }
+    
+    const preferences = userDoc.data();
+    const recommendations = [];
+    
+    // Domain-based recommendations
+    Object.entries(preferences.domainPreferences || {}).forEach(([domain, stats]) => {
+      if (stats.total >= 3) {
+        const positiveRate = stats.positive / stats.total;
+        
+        if (positiveRate < 0.3) {
+          recommendations.push({
+            type: 'unsubscribe_suggestion',
+            domain: domain,
+            message: `Consider unsubscribing from ${domain} - you've disliked ${Math.round((1 - positiveRate) * 100)}% of their emails`,
+            confidence: Math.round((1 - positiveRate) * 100),
+            action: 'unsubscribe'
+          });
+        } else if (positiveRate > 0.7) {
+          recommendations.push({
+            type: 'priority_suggestion',
+            domain: domain,
+            message: `Emails from ${domain} are consistently valuable to you`,
+            confidence: Math.round(positiveRate * 100),
+            action: 'prioritize'
+          });
+        }
+      }
+    });
+    
+    // Category-based recommendations
+    Object.entries(preferences.categoryPreferences || {}).forEach(([category, stats]) => {
+      if (stats.total >= 2) {
+        const positiveRate = stats.positive / stats.total;
+        
+        if (positiveRate < 0.4) {
+          recommendations.push({
+            type: 'category_adjustment',
+            category: category,
+            message: `You tend to dislike ${category} emails. Consider filtering or adjusting settings.`,
+            confidence: Math.round((1 - positiveRate) * 100),
+            action: 'filter'
+          });
+        } else if (positiveRate > 0.6) {
+          recommendations.push({
+            type: 'category_highlight',
+            category: category,
+            message: `${category} emails are valuable to you - they're highlighted in your inbox`,
+            confidence: Math.round(positiveRate * 100),
+            action: 'highlight'
+          });
+        }
+      }
+    });
+    
+    // Sort by confidence
+    recommendations.sort((a, b) => b.confidence - a.confidence);
+    
+    res.json({ recommendations });
+    
+  } catch (error) {
+    console.error('❌ Error generating recommendations:', error);
+    res.status(500).json({ error: 'Failed to generate recommendations' });
+  }
+});

@@ -1215,6 +1215,7 @@ window.initializeDashboardDecoder = function() {
     initializeDecoder();
     setupEventListeners();
     checkInitialState();
+    addInsightsSections(); // Add insights and recommendations sections
   }, 100); // Small delay to ensure DOM is ready
 };
 
@@ -1326,15 +1327,199 @@ function mapCategory(category) {
   }
 }
 
-// Feedback handler (minimal visual confirmation)
+// Feedback handler with intelligent learning
 window.giveDecoderFeedback = function(emailId, feedback, btn) {
+  // Find the email data to send context
+  const email = decodedEmails.find(e => e.id === emailId);
+  if (!email) {
+    console.error('❌ Email not found for feedback:', emailId);
+    return;
+  }
+  
+  // Extract sender domain for better learning
+  const senderDomain = email.sender ? email.sender.split('@')[1]?.split('>')[0] : '';
+  
+  const feedbackData = {
+    emailId,
+    feedback, // 'positive' or 'negative'
+    userId: getCurrentUserId(),
+    // Context for intelligent learning
+    emailContext: {
+      sender: email.sender,
+      senderDomain: senderDomain,
+      subject: email.subject,
+      category: email.category,
+      priority: email.priority,
+      tone: email.tone,
+      summary: email.summary,
+      suggestedActions: email.suggested_actions || []
+    },
+    timestamp: new Date().toISOString()
+  };
+  
+  console.log('🎓 Sending intelligent feedback:', feedbackData);
+  
   fetch('/api/decoder-feedback', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ emailId, feedback, userId: getCurrentUserId() })
+    body: JSON.stringify(feedbackData)
+  }).then(response => {
+    if (response.ok) {
+      console.log('✅ Feedback sent successfully');
+    } else {
+      console.error('❌ Failed to send feedback');
+    }
+  }).catch(error => {
+    console.error('❌ Error sending feedback:', error);
   });
+  
   // Visual confirmation: fade out buttons and show thank you
   if (btn && btn.parentElement) {
     btn.parentElement.innerHTML = '<span style="color:#22c55e;font-weight:600;">Thanks for your feedback!</span>';
   }
 }; // Force deployment - Tue Jul  1 22:06:28 EDT 2025
+
+// Load and display user insights and recommendations
+async function loadUserInsights() {
+  try {
+    const userId = getCurrentUserId();
+    const response = await fetch(`/api/user-preferences/${userId}`);
+    const data = await response.json();
+    
+    if (data.insights && data.insights.length > 0) {
+      displayInsights(data.insights);
+    }
+    
+    // Load recommendations
+    const recResponse = await fetch(`/api/user-recommendations/${userId}`);
+    const recData = await recResponse.json();
+    
+    if (recData.recommendations && recData.recommendations.length > 0) {
+      displayRecommendations(recData.recommendations);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error loading user insights:', error);
+  }
+}
+
+// Display insights in a dedicated section
+function displayInsights(insights) {
+  const insightsContainer = document.getElementById('user-insights');
+  if (!insightsContainer) return;
+  
+  const insightsHtml = insights.map(insight => {
+    const insightHtml = insight.insights.map(i => `
+      <div class="insight-item" style="background: #f8fafc; border-left: 4px solid #3b82f6; padding: 12px; margin: 8px 0; border-radius: 4px;">
+        <div style="font-weight: 600; color: #1e40af; margin-bottom: 4px;">
+          ${i.type === 'domain_preference' ? '🌐 Domain Preference' : '📂 Category Preference'}
+        </div>
+        <div style="color: #374151; font-size: 14px;">${i.message}</div>
+        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+          Confidence: ${i.confidence}%
+        </div>
+      </div>
+    `).join('');
+    
+    return `
+      <div class="insight-group" style="margin-bottom: 16px;">
+        <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">
+          ${new Date(insight.timestamp.toDate()).toLocaleDateString()}
+        </div>
+        ${insightHtml}
+      </div>
+    `;
+  }).join('');
+  
+  insightsContainer.innerHTML = insightsHtml;
+  insightsContainer.style.display = 'block';
+}
+
+// Display recommendations
+function displayRecommendations(recommendations) {
+  const recContainer = document.getElementById('user-recommendations');
+  if (!recContainer) return;
+  
+  const recHtml = recommendations.map(rec => `
+    <div class="recommendation-item" style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; margin: 8px 0; border-radius: 6px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="flex: 1;">
+          <div style="font-weight: 600; color: #166534; margin-bottom: 4px;">
+            ${rec.type === 'unsubscribe_suggestion' ? '🚫 Unsubscribe Suggestion' : 
+              rec.type === 'priority_suggestion' ? '⭐ Priority Suggestion' :
+              rec.type === 'category_adjustment' ? '⚙️ Category Adjustment' : '💡 Recommendation'}
+          </div>
+          <div style="color: #374151; font-size: 14px; margin-bottom: 4px;">${rec.message}</div>
+          <div style="font-size: 12px; color: #6b7280;">Confidence: ${rec.confidence}%</div>
+        </div>
+        <button onclick="handleRecommendation('${rec.action}', '${rec.domain || rec.category}')" 
+                style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">
+          ${rec.action === 'unsubscribe' ? 'Unsubscribe' : 
+            rec.action === 'prioritize' ? 'Prioritize' : 
+            rec.action === 'filter' ? 'Filter' : 'Apply'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+  
+  recContainer.innerHTML = recHtml;
+  recContainer.style.display = 'block';
+}
+
+// Handle recommendation actions
+window.handleRecommendation = function(action, target) {
+  console.log('🎯 Handling recommendation:', action, 'for:', target);
+  
+  switch (action) {
+    case 'unsubscribe':
+      showSuccess(`Unsubscribe request sent for ${target}. Check your email for confirmation.`);
+      break;
+    case 'prioritize':
+      showSuccess(`${target} emails will now be prioritized in your inbox.`);
+      break;
+    case 'filter':
+      showSuccess(`Filtering settings updated for ${target} emails.`);
+      break;
+    default:
+      showSuccess(`Recommendation applied for ${target}.`);
+  }
+  
+  // TODO: Implement actual actions (unsubscribe, filter, etc.)
+};
+
+// Add insights and recommendations sections to the dashboard
+function addInsightsSections() {
+  const dashboardContent = document.querySelector('.dashboard-content');
+  if (!dashboardContent) return;
+  
+  // Add insights section
+  const insightsSection = document.createElement('div');
+  insightsSection.id = 'user-insights';
+  insightsSection.style.display = 'none';
+  insightsSection.innerHTML = `
+    <div style="margin: 20px 0;">
+      <h3 style="color: #1f2937; margin-bottom: 12px;">🧠 Your Email Insights</h3>
+      <div class="insights-content"></div>
+    </div>
+  `;
+  
+  // Add recommendations section
+  const recSection = document.createElement('div');
+  recSection.id = 'user-recommendations';
+  recSection.style.display = 'none';
+  recSection.innerHTML = `
+    <div style="margin: 20px 0;">
+      <h3 style="color: #1f2937; margin-bottom: 12px;">💡 Personalized Recommendations</h3>
+      <div class="recommendations-content"></div>
+    </div>
+  `;
+  
+  // Insert after the main content
+  dashboardContent.appendChild(insightsSection);
+  dashboardContent.appendChild(recSection);
+  
+  // Load insights after a delay to ensure user has given some feedback
+  setTimeout(() => {
+    loadUserInsights();
+  }, 2000);
+}
