@@ -1497,7 +1497,7 @@ app.post('/api/email-decoder/process', async (req, res) => {
     const response = await Promise.race([
       gmail.users.messages.list({
         userId: 'me',
-        maxResults: 10  // Fetch up to 10 emails for better context
+        maxResults: 20  // Fetch up to 20 emails for better context
       }),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Gmail API timeout')), 10000)
@@ -1519,9 +1519,9 @@ app.post('/api/email-decoder/process', async (req, res) => {
 
     // Process emails one at a time to reduce memory pressure
     const processedEmails = [];
-    for (let i = 0; i < Math.min(messages.length, 10); i++) {  // Process max 10 emails
+    for (let i = 0; i < Math.min(messages.length, 20); i++) {  // Process max 20 emails
       try {
-        console.log(`🔍 Processing email ${i + 1}/${Math.min(messages.length, 10)}`);
+        console.log(`🔍 Processing email ${i + 1}/${Math.min(messages.length, 20)}`);
         
         const emailResponse = await Promise.race([
           gmail.users.messages.get({
@@ -1558,6 +1558,55 @@ app.post('/api/email-decoder/process', async (req, res) => {
         // Fallback: if no plain text, use HTML (stripped of tags)
         if (!body && htmlBody) {
           body = htmlBody.replace(/<[^>]+>/g, ' ');
+        }
+
+        // --- LOGGING ---
+        console.log('🔍 Sending to GPT:', { subject, from, date, body });
+        // --- STRUCTURED GPT PROMPT ---
+        const gptPrompt = `
+You are an intelligent assistant for a personal life operating system. Your job is to analyze emails and produce structured, minimal outputs that help the user take action quickly — without needing to read the email.
+
+For the email below, return ONLY a JSON object with the following fields (no markdown formatting, no code blocks, just pure JSON):
+{
+  "summary": "1–2 sentence human-friendly summary of the email",
+  "category": "Handle Now|On the Calendar|Household Signals|Commerce Inbox",
+  "priority": "High|Medium|Low",
+  "suggested_actions": ["action1", "action2", "action3"],
+  "tone": "Urgent|Routine|Personal|Transactional"
+}
+
+Make the summary clear and non-redundant. Use natural, modern language. Return ONLY the JSON object, no other text.
+---
+Email:
+Subject: ${subject}
+From: ${from}
+Date: ${date}
+Body: ${body}
+`;
+        // --- END STRUCTURED PROMPT ---
+
+        const analysis = await callOpenAI(gptPrompt);
+        // --- LOG RAW GPT RESPONSE ---
+        console.log('🔍 Raw GPT response:', analysis);
+        let parsedAnalysis;
+        try {
+          // Clean the response - remove markdown code blocks if present
+          let cleanResponse = analysis.trim();
+          if (cleanResponse.startsWith('```json')) {
+            cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+          } else if (cleanResponse.startsWith('```')) {
+            cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+          }
+          parsedAnalysis = JSON.parse(cleanResponse);
+        } catch (parseError) {
+          console.error('❌ Failed to parse OpenAI response:', parseError, analysis);
+          parsedAnalysis = {
+            summary: 'Unable to analyze email content',
+            category: 'Handle Now',
+            priority: 'Low',
+            suggested_actions: ['Dismiss'],
+            tone: 'Routine'
+          };
         }
 
         // --- Extract images and links for commerce emails ---
