@@ -1631,6 +1631,58 @@ Body: ${body}
         if ((parsedAnalysis.category === 'On the Calendar' || parsedAnalysis.category === 'Schedule' || parsedAnalysis.category === 'Calendar') && !actionLinks.includes('add-to-calendar')) {
           actionLinks.unshift('add-to-calendar');
         }
+
+        const axios = require('axios');
+        const cheerio = require('cheerio');
+
+        function extractUrlsFromText(text) {
+          if (!text) return [];
+          const urlRegex = /https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/gi;
+          return text.match(urlRegex) || [];
+        }
+
+        function extractUrlsFromHtml(html) {
+          if (!html) return [];
+          const $ = cheerio.load(html);
+          const links = [];
+          $('a[href]').each((_, el) => {
+            const href = $(el).attr('href');
+            if (href && href.startsWith('http')) links.push(href);
+          });
+          return links;
+        }
+
+        async function googleSearchFallback(query) {
+          const apiKey = process.env.GOOGLE_CUSTOM_SEARCH_API_KEY;
+          const cx = process.env.GOOGLE_CUSTOM_SEARCH_CX;
+          if (!apiKey || !cx) return null;
+          try {
+            const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(query)}`;
+            const resp = await axios.get(url);
+            if (resp.data.items && resp.data.items.length > 0) {
+              return resp.data.items[0].link;
+            }
+          } catch (err) {
+            console.error('❌ Google Search fallback failed:', err.message);
+          }
+          return null;
+        }
+
+        // Extract links from both plain text and HTML
+        let allLinks = [
+          ...extractUrlsFromText(body),
+          ...extractUrlsFromHtml(htmlBody)
+        ];
+        allLinks = [...new Set(allLinks)];
+
+        // If no links found, use Google Search fallback
+        let fallbackLink = null;
+        if (allLinks.length === 0) {
+          const searchQuery = `${subject} ${from.split('<')[0] || ''}`;
+          fallbackLink = await googleSearchFallback(searchQuery);
+          if (fallbackLink) allLinks.push(fallbackLink);
+        }
+
         const processedEmail = {
           id: email.id,
           sender: from || 'Unknown Sender',
@@ -1639,7 +1691,7 @@ Body: ${body}
           date: date || '',
           ...parsedAnalysis,
           previewImage,
-          actionLinks
+          actionLinks: allLinks
         };
         processedEmails.push(processedEmail);
       } catch (err) {
