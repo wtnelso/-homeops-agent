@@ -1623,6 +1623,32 @@ Body: ${body}
             fallbackLink = await googleSearchFallback(searchQuery);
             if (fallbackLink) allLinks.push('google-fallback:' + fallbackLink);
           }
+          let eventDetails = null;
+          if (["On the Calendar", "Schedule", "Calendar"].includes(parsedAnalysis.category)) {
+            // Try to extract event details from subject/body
+            // Use simple regex/NLP for now
+            const eventTitle = subject || '';
+            let eventDate = '';
+            let eventTime = '';
+            let eventLocation = '';
+            let eventDescription = parsedAnalysis.summary || body || '';
+            // Try to find a date in the summary/body
+            const dateMatch = (eventDescription + ' ' + subject).match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[^\d\w]{0,3}\s*\d{1,2}(?:,?\s*\d{4})?/i);
+            if (dateMatch) eventDate = dateMatch[0];
+            // Try to find a time
+            const timeMatch = (eventDescription + ' ' + subject).match(/\b(\d{1,2}(:\d{2})?\s*(AM|PM|am|pm))\b/);
+            if (timeMatch) eventTime = timeMatch[0];
+            // Try to find a location (look for 'at ...' or 'Location: ...')
+            const locMatch = (eventDescription + ' ' + subject).match(/at ([A-Za-z0-9 ,.'-]+)/i);
+            if (locMatch) eventLocation = locMatch[1];
+            eventDetails = {
+              title: eventTitle,
+              date: eventDate,
+              time: eventTime,
+              location: eventLocation,
+              description: eventDescription
+            };
+          }
           const processedEmail = {
             id: msg.id,
             sender: from || 'Unknown Sender',
@@ -1631,7 +1657,8 @@ Body: ${body}
             date: date || '',
             ...parsedAnalysis,
             previewImage,
-            actionLinks: allLinks
+            actionLinks: allLinks,
+            eventDetails // <-- add this
           };
           processedEmails.push(processedEmail);
           continue; // Skip to next message
@@ -1800,6 +1827,33 @@ Body: ${body}
           if (fallbackLink) allLinks.push('google-fallback:' + fallbackLink);
         }
 
+        let eventDetails = null;
+        if (["On the Calendar", "Schedule", "Calendar"].includes(parsedAnalysis.category)) {
+          // Try to extract event details from subject/body
+          // Use simple regex/NLP for now
+          const eventTitle = subject || '';
+          let eventDate = '';
+          let eventTime = '';
+          let eventLocation = '';
+          let eventDescription = parsedAnalysis.summary || body || '';
+          // Try to find a date in the summary/body
+          const dateMatch = (eventDescription + ' ' + subject).match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[^\d\w]{0,3}\s*\d{1,2}(?:,?\s*\d{4})?/i);
+          if (dateMatch) eventDate = dateMatch[0];
+          // Try to find a time
+          const timeMatch = (eventDescription + ' ' + subject).match(/\b(\d{1,2}(:\d{2})?\s*(AM|PM|am|pm))\b/);
+          if (timeMatch) eventTime = timeMatch[0];
+          // Try to find a location (look for 'at ...' or 'Location: ...')
+          const locMatch = (eventDescription + ' ' + subject).match(/at ([A-Za-z0-9 ,.'-]+)/i);
+          if (locMatch) eventLocation = locMatch[1];
+          eventDetails = {
+            title: eventTitle,
+            date: eventDate,
+            time: eventTime,
+            location: eventLocation,
+            description: eventDescription
+          };
+        }
+
         const processedEmail = {
           id: email.id,
           sender: from || 'Unknown Sender',
@@ -1808,7 +1862,8 @@ Body: ${body}
           date: date || '',
           ...parsedAnalysis,
           previewImage,
-          actionLinks: allLinks
+          actionLinks: allLinks,
+          eventDetails // <-- add this
         };
         processedEmails.push(processedEmail);
       } catch (err) {
@@ -1875,7 +1930,8 @@ Body: ${body}
             suggested_actions: email.suggested_actions,
             tone: email.tone,
             previewImage: email.previewImage,
-            actionLinks: email.actionLinks
+            actionLinks: email.actionLinks,
+            eventDetails: email.eventDetails
           }
         });
       });
