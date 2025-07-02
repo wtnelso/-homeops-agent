@@ -189,9 +189,11 @@ function getPriorityValue(priority) {
 }
 
 function getFilteredSortedEmails() {
-  // Only include emails with a non-empty summary and at least one suggested action
+  // Include emails with either a summary OR suggested actions (not requiring both)
   let filtered = decodedEmails.filter(e => {
-    return e.summary && e.summary.trim() && Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0;
+    const hasSummary = e.summary && e.summary.trim();
+    const hasActions = Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0;
+    return hasSummary || hasActions;
   });
   // Filter by currentCategory (unless 'all')
   if (currentCategory && currentCategory !== 'all') {
@@ -238,11 +240,16 @@ function renderEmailCards() {
   if (summaryText) {
     summaryHtml = `<div class="decoder-summary" style="margin-bottom: 1.5rem; font-size: 1.1rem; font-weight: 600; color: #6366f1;">${summaryText}</div>`;
   }
-  // Show More toggle
+  // Show More toggle - use same filtering logic as getFilteredSortedEmails
+  const filteredEmails = decodedEmails.filter(e => {
+    const hasSummary = e.summary && e.summary.trim();
+    const hasActions = Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0;
+    return hasSummary || hasActions;
+  });
   let showMoreHtml = '';
-  if (!showAllEmails && decodedEmails.filter(e => e.summary && Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0).length > 10) {
+  if (!showAllEmails && filteredEmails.length > 10) {
     showMoreHtml = `<div style="text-align:center; margin: 1rem 0;"><button class="btn-primary" onclick="showAllDecoderEmails()">Show More</button></div>`;
-  } else if (showAllEmails && decodedEmails.filter(e => e.summary && Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0).length > 10) {
+  } else if (showAllEmails && filteredEmails.length > 10) {
     showMoreHtml = `<div style="text-align:center; margin: 1rem 0;"><button class="btn-secondary" onclick="showTopDecoderEmails()">Show Top 10 Only</button></div>`;
   }
   if (emailsToRender.length === 0) {
@@ -416,12 +423,19 @@ function switchCategory(category) {
 }
 
 function updateCategoryCounts() {
+  // Use same filtering logic as getFilteredSortedEmails
+  const filteredEmails = decodedEmails.filter(e => {
+    const hasSummary = e.summary && e.summary.trim();
+    const hasActions = Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0;
+    return hasSummary || hasActions;
+  });
+  
   const counts = {
-    all: decodedEmails.length,
-    urgent: decodedEmails.filter(e => mapCategory(e.category) === 'urgent').length,
-    schedule: decodedEmails.filter(e => mapCategory(e.category) === 'schedule').length,
-    family: decodedEmails.filter(e => mapCategory(e.category) === 'family').length,
-    commerce: decodedEmails.filter(e => mapCategory(e.category) === 'commerce').length,
+    all: filteredEmails.length,
+    urgent: filteredEmails.filter(e => mapCategory(e.category) === 'urgent').length,
+    schedule: filteredEmails.filter(e => mapCategory(e.category) === 'schedule').length,
+    family: filteredEmails.filter(e => mapCategory(e.category) === 'family').length,
+    commerce: filteredEmails.filter(e => mapCategory(e.category) === 'commerce').length,
   };
   
   Object.entries(counts).forEach(([category, count]) => {
@@ -863,10 +877,18 @@ async function loadExistingEmails(userId) {
       console.log('🔍 Found existing emails:', decodedEmails.length);
       
       if (decodedEmails.length === 0) {
-        // No emails found, show processing step
-        console.log('🔍 No emails found, showing processing step');
-        showOnboardingState();
-        showWizardStep(2); // Show processing step
+        // Check if onboarding is already complete
+        const onboardingComplete = localStorage.getItem('decoderOnboardingComplete') === 'true';
+        if (onboardingComplete) {
+          // User has completed onboarding but no emails found, show zero state
+          console.log('🔍 Onboarding complete but no emails, showing zero state');
+          showZeroState();
+        } else {
+          // No emails found and onboarding not complete, show processing step
+          console.log('🔍 No emails found and onboarding not complete, showing processing step');
+          showOnboardingState();
+          showWizardStep(2); // Show processing step
+        }
       } else {
         // Emails found, show the main decoder
         console.log('🔍 Emails found, showing main decoder');
@@ -874,15 +896,26 @@ async function loadExistingEmails(userId) {
         showEmailCards();
       }
     } else {
-      // If we can't load emails, show processing step
-      console.log('🔍 Could not load emails, showing processing step');
-      showOnboardingState();
-      showWizardStep(2); // Show processing step
+      // If we can't load emails, check onboarding status
+      const onboardingComplete = localStorage.getItem('decoderOnboardingComplete') === 'true';
+      if (onboardingComplete) {
+        console.log('🔍 Onboarding complete but can\'t load emails, showing zero state');
+        showZeroState();
+      } else {
+        console.log('🔍 Can\'t load emails and onboarding not complete, showing processing step');
+        showOnboardingState();
+        showWizardStep(2); // Show processing step
+      }
     }
   } catch (error) {
     console.error('❌ Error loading existing emails:', error);
-    showOnboardingState();
-    showWizardStep(2); // Show processing step
+    const onboardingComplete = localStorage.getItem('decoderOnboardingComplete') === 'true';
+    if (onboardingComplete) {
+      showZeroState();
+    } else {
+      showOnboardingState();
+      showWizardStep(2); // Show processing step
+    }
   }
 }
 
