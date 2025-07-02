@@ -307,43 +307,53 @@ function isMailto(str) {
 }
 function createActionButton(action, email) {
   console.log('🔍 Creating action button:', action, 'for email:', email);
-  
+  const actionLower = action.toLowerCase();
+
+  // Smart routing for commerce actions
+  if (Array.isArray(email.actionLinks) && email.actionLinks.length > 0) {
+    if (
+      actionLower.includes('shop') ||
+      actionLower.includes('view offer') ||
+      actionLower.includes('buy') ||
+      actionLower.includes('see deal') ||
+      actionLower.includes('get offer') ||
+      actionLower.includes('subscribe')
+    ) {
+      // Use the first link for these actions
+      return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${email.actionLinks[0]}" target="_blank" rel="noopener">${action}</a>`;
+    }
+  }
+
   // If action is a URL, render as <a>
   if (isUrl(action)) {
     return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${action}" target="_blank" rel="noopener">Open Link</a>`;
   }
-  
   // If action is mailto, render as <a>
   if (isMailto(action)) {
     const mail = action.startsWith('mailto:') ? action : `mailto:${action}`;
     return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${mail}">Reply</a>`;
   }
-  
   // If action is Add to Calendar and this is a schedule item, trigger calendar
-  if (action.toLowerCase().includes('add to calendar') && mapCategory(email.category) === 'schedule') {
-    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="addToCalendar('${email.summary.replace(/'/g, '\\\'')}', ${email.timestamp})">Add to Calendar</button>`;
+  if (actionLower.includes('add to calendar') && mapCategory(email.category) === 'schedule') {
+    // Escape single quotes in summary for JS string
+    const safeSummary = email.summary.replace(/'/g, "\\'");
+    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="addToCalendar('${safeSummary}', ${email.timestamp})">Add to Calendar</button>`;
   }
-  
-  // Handle other common actions
-  const actionLower = action.toLowerCase();
   if (actionLower.includes('archive') || actionLower.includes('dismiss')) {
     return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="archiveEmail('${email.id}')">Archive</button>`;
   }
-  
   if (actionLower.includes('snooze') || actionLower.includes('remind')) {
     return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="snoozeEmail('${email.id}')">Snooze</button>`;
   }
-  
   if (actionLower.includes('important') || actionLower.includes('mark')) {
     return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="markImportant('${email.id}')">Mark Important</button>`;
   }
-  
   if (actionLower.includes('reply') || actionLower.includes('respond')) {
     return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="replyToEmail('${email.id}')">Reply</button>`;
   }
-  
   // Default action button with generic handler
-  return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="handleGenericAction('${action.replace(/'/g, '\\\'')}', '${email.id}')">${action}</button>`;
+  const safeAction = action.replace(/'/g, "\\'");
+  return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="handleGenericAction('${safeAction}', '${email.id}')">${action}</button>`;
 }
 
 window.addToCalendar = function(summary, timestamp) {
@@ -378,12 +388,18 @@ function createDecoderCard(email) {
     <button class="btn-feedback" title="This was helpful" onclick="giveDecoderFeedback('${email.id}', 'positive', this)">👍</button>
     <button class="btn-feedback" title="This was not helpful" onclick="giveDecoderFeedback('${email.id}', 'negative', this)">👎</button>
   </div>`;
+  // Show preview image for commerce emails
+  let previewImageHtml = '';
+  if (categoryKey === 'commerce' && email.previewImage) {
+    previewImageHtml = `<div style="width:100%;text-align:center;margin-bottom:0.75rem;"><img src="${email.previewImage}" alt="Preview" style="max-width:220px;max-height:120px;border-radius:10px;box-shadow:0 2px 8px #e0e7ff;object-fit:contain;" loading="lazy"></div>`;
+  }
   return `
     <div class="decoder-card" data-email-id="${email.id}" style="border-radius: 14px; box-shadow: 0 2px 8px #e0e7ff; background: #fff; margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; transition: all 0.3s ease;">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
         <span class="category-badge" style="background: ${category.color}; color: #fff; border-radius: 8px; padding: 0.25rem 0.75rem; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="${category.icon}"></i> ${category.label}</span>
         <span style="color: #64748b; font-size: 0.95rem; margin-left: auto;">${dateString}</span>
       </div>
+      ${previewImageHtml}
       <div class="decoder-summary-text" style="font-size: 1.08rem; color: #22223b; font-weight: 500; line-height: 1.5;">${email.summary}</div>
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
         ${actions.map(action => createActionButton(action, email)).join('')}
