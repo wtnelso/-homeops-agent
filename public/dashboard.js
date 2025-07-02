@@ -414,13 +414,8 @@ function createTrainingCard(email) {
 // 📊 CATEGORY MANAGEMENT
 function switchCategory(category) {
   console.log(`📊 Switching to category: ${category}`);
-  // Update tab states
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.category === category);
-  });
   currentCategory = category;
-  console.log('🔍 Current category set to:', currentCategory);
-  renderEmailCards(); // Correct function to update UI
+  renderEmailCards();
 }
 
 function updateCategoryCounts() {
@@ -1047,6 +1042,8 @@ function completeOnboarding() {
 
 function finishOnboarding() {
   console.log('🎉 Onboarding finished - showing main decoder');
+  // Mark onboarding as complete in localStorage
+  localStorage.setItem('decoderOnboardingComplete', 'true');
   hideAllStates();
   showEmailCards();
 }
