@@ -1668,12 +1668,28 @@ Body: ${body}
     console.log('✅ Email processing completed successfully');
     console.log('📊 Summary:', summary);
 
+    // After processing emails, before saving and before sending response
+    // Deduplicate processedEmails by id or (subject+sender+date)
+    function dedupeEmails(emails) {
+      const seen = new Set();
+      const deduped = [];
+      for (const e of emails) {
+        const key = e.id || e.gmail_id || (e.subject + '|' + e.sender + '|' + e.date);
+        if (!seen.has(key)) {
+          seen.add(key);
+          deduped.push(e);
+        }
+      }
+      return deduped;
+    }
+    const dedupedProcessedEmails = dedupeEmails(processedEmails);
+
     // Save processed emails to database
-    if (processedEmails.length > 0) {
+    if (dedupedProcessedEmails.length > 0) {
       console.log('💾 Saving processed emails to database...');
       const batch = db.batch();
       
-      processedEmails.forEach(email => {
+      dedupedProcessedEmails.forEach(email => {
         const emailRef = db.collection('decoded_emails').doc();
         batch.set(emailRef, {
           user_id: user_id,
@@ -1696,7 +1712,7 @@ Body: ${body}
       });
       
       await batch.commit();
-      console.log(`💾 Saved ${processedEmails.length} emails to database`);
+      console.log(`💾 Saved ${dedupedProcessedEmails.length} emails to database`);
     }
 
     // Force garbage collection before sending response
@@ -1706,7 +1722,7 @@ Body: ${body}
 
     res.json({
       success: true,
-      emails: processedEmails,
+      emails: dedupedProcessedEmails,
       summary: summary
     });
 
@@ -1769,9 +1785,25 @@ app.get('/api/email-decoder/emails', async (req, res) => {
     
     console.log('✅ Found', emails.length, 'decoded emails');
     
+    // After processing emails, before saving and before sending response
+    // Deduplicate processedEmails by id or (subject+sender+date)
+    function dedupeEmails(emails) {
+      const seen = new Set();
+      const deduped = [];
+      for (const e of emails) {
+        const key = e.id || e.gmail_id || (e.subject + '|' + e.sender + '|' + e.date);
+        if (!seen.has(key)) {
+          seen.add(key);
+          deduped.push(e);
+        }
+      }
+      return deduped;
+    }
+    const dedupedEmails = dedupeEmails(emails);
+    
     res.json({
       success: true,
-      emails: emails
+      emails: dedupedEmails
     });
     
   } catch (error) {

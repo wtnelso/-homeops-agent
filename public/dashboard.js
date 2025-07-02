@@ -203,8 +203,18 @@ function getPriorityValue(priority) {
 }
 
 function getFilteredSortedEmails() {
-  // Include emails with either a summary OR suggested actions (not requiring both)
-  let filtered = decodedEmails.filter(e => {
+  // Deduplicate emails by id, or fallback to subject+sender+date
+  const seen = new Set();
+  let filtered = [];
+  for (const e of decodedEmails) {
+    const key = e.id || (e.subject + '|' + e.sender + '|' + e.date);
+    if (!seen.has(key)) {
+      seen.add(key);
+      filtered.push(e);
+    }
+  }
+  // Only include emails with either a summary OR suggested actions (not requiring both)
+  filtered = filtered.filter(e => {
     const hasSummary = e.summary && e.summary.trim();
     const hasActions = Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0;
     return hasSummary || hasActions;
@@ -225,6 +235,15 @@ function getFilteredSortedEmails() {
     filtered = filtered.slice(0, 10);
   }
   return filtered;
+}
+
+function isValidUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function getDecoderSummary(emails) {
@@ -451,12 +470,12 @@ function createDecoderCard(email) {
   // --- SMART CTA LOGIC ---
   let actionBtnHtml = '';
   const uniqueLinks = Array.isArray(email.actionLinks) ? [...new Set(email.actionLinks)] : [];
-  if (email.suggested_actions && email.suggested_actions.length && uniqueLinks.length) {
+  if (email.suggested_actions && email.suggested_actions.length && uniqueLinks.length && isValidUrl(uniqueLinks[0])) {
     actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative; pointer-events: auto; z-index: 1;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">${email.suggested_actions[0]}</a>`;
-  } else if (uniqueLinks.length) {
+  } else if (uniqueLinks.length && isValidUrl(uniqueLinks[0])) {
     actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative; pointer-events: auto; z-index: 1;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">Open Link</a>`;
   } else if (email.suggested_actions && email.suggested_actions.length) {
-    actionBtnHtml = `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; opacity:0.7; cursor:not-allowed; pointer-events: none;" disabled>${email.suggested_actions[0]}</button>`;
+    actionBtnHtml = `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; opacity:0.7; cursor:not-allowed; pointer-events: none;" disabled title="No link available">${email.suggested_actions[0]}</button>`;
   }
 
   return `
