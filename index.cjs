@@ -1680,7 +1680,7 @@ Body: ${body}
         if (allLinks.length === 0) {
           const searchQuery = `${subject} ${from.split('<')[0] || ''}`;
           fallbackLink = await googleSearchFallback(searchQuery);
-          if (fallbackLink) allLinks.push(fallbackLink);
+          if (fallbackLink) allLinks.push('google-fallback:' + fallbackLink);
         }
 
         const processedEmail = {

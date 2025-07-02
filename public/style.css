@@ -6269,3 +6269,20 @@ body > i,
   margin-left: auto;
   margin-right: auto;
 }
+
+/* Google fallback CTA button */
+.btn-google-fallback {
+  background: linear-gradient(90deg, #4285F4 0%, #34A853 100%);
+  color: #fff !important;
+  border: none;
+  box-shadow: 0 2px 8px rgba(66,133,244,0.10);
+  font-weight: 600;
+  transition: background 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.btn-google-fallback:hover, .btn-google-fallback:focus {
+  background: linear-gradient(90deg, #357ae8 0%, #2c8c47 100%);
+  box-shadow: 0 4px 16px rgba(66,133,244,0.18);
+  color: #fff !important;
+  text-decoration: none;
+}
