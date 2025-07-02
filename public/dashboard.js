@@ -171,98 +171,114 @@ function hideAllStates() {
 }
 
 // 📧 EMAIL CARD RENDERING
+let showAllEmails = false;
+
+function getPriorityValue(priority) {
+  if (!priority) return 3;
+  switch (priority.toLowerCase()) {
+    case 'high': return 0;
+    case 'medium': return 1;
+    case 'low': return 2;
+    default: return 3;
+  }
+}
+
+function getFilteredSortedEmails() {
+  // Only include emails with a non-empty summary and at least one suggested action
+  let filtered = decodedEmails.filter(e => {
+    return e.summary && e.summary.trim() && Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0;
+  });
+  // Sort by priority, then timestamp (desc)
+  filtered.sort((a, b) => {
+    const pa = getPriorityValue(a.priority);
+    const pb = getPriorityValue(b.priority);
+    if (pa !== pb) return pa - pb;
+    return (b.timestamp || 0) - (a.timestamp || 0);
+  });
+  // Limit to top 10 unless showAllEmails is true
+  if (!showAllEmails) {
+    filtered = filtered.slice(0, 10);
+  }
+  return filtered;
+}
+
+function getDecoderSummary(emails) {
+  if (!emails.length) return '';
+  const counts = { urgent: 0, schedule: 0, family: 0, commerce: 0 };
+  emails.forEach(e => {
+    const cat = mapCategory(e.category);
+    if (counts[cat] !== undefined) counts[cat]++;
+  });
+  let parts = [];
+  if (counts.urgent) parts.push(`${counts.urgent} urgent message${counts.urgent > 1 ? 's' : ''}`);
+  if (counts.schedule) parts.push(`${counts.schedule} calendar event${counts.schedule > 1 ? 's' : ''}`);
+  if (counts.family) parts.push(`${counts.family} family update${counts.family > 1 ? 's' : ''}`);
+  if (counts.commerce) parts.push(`${counts.commerce} purchase update${counts.commerce > 1 ? 's' : ''}`);
+  return parts.length ? `You have ${parts.join(', ')}.` : '';
+}
+
 function renderEmailCards() {
   console.log('🎨 Rendering email cards...');
-  
   const container = document.getElementById('email-cards-container');
   if (!container) return;
-  
-  const emailsToRender = decodedEmails;
-  
+  const emailsToRender = getFilteredSortedEmails();
+  // Decoder Summary TL;DR
+  const summaryText = getDecoderSummary(emailsToRender);
+  let summaryHtml = '';
+  if (summaryText) {
+    summaryHtml = `<div class="decoder-summary" style="margin-bottom: 1.5rem; font-size: 1.1rem; font-weight: 600; color: #6366f1;">${summaryText}</div>`;
+  }
+  // Show More toggle
+  let showMoreHtml = '';
+  if (!showAllEmails && decodedEmails.filter(e => e.summary && Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0).length > 10) {
+    showMoreHtml = `<div style="text-align:center; margin: 1rem 0;"><button class="btn-primary" onclick="showAllDecoderEmails()">Show More</button></div>`;
+  } else if (showAllEmails && decodedEmails.filter(e => e.summary && Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0).length > 10) {
+    showMoreHtml = `<div style="text-align:center; margin: 1rem 0;"><button class="btn-secondary" onclick="showTopDecoderEmails()">Show Top 10 Only</button></div>`;
+  }
   if (emailsToRender.length === 0) {
     showZeroState();
+    container.innerHTML = summaryHtml + showMoreHtml;
     return;
   }
-  
-  container.innerHTML = emailsToRender.map(email => createEmailCard(email)).join('');
-  
-  // Re-initialize Lucide icons for new cards
+  container.innerHTML = summaryHtml + emailsToRender.map(email => createDecoderCard(email)).join('') + showMoreHtml;
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }
-  
   updateCategoryCounts();
 }
 
-function createEmailCard(email) {
-  const category = CATEGORIES[mapCategory(email.category)] || CATEGORIES.urgent;
-  const isSelected = selectedEmails.has(email.id);
-  const sender = email.sender || 'Unknown Sender';
+function createDecoderCard(email) {
+  const categoryKey = mapCategory(email.category);
+  const category = CATEGORIES[categoryKey] || CATEGORIES.urgent;
   let dateString = 'Unknown Date';
   if (email.timestamp && !isNaN(email.timestamp)) {
     const formatted = formatTime(email.timestamp);
     if (formatted !== 'Invalid Date') dateString = formatted;
   }
-  
+  // Only show up to 2 actions
+  const actions = (email.suggested_actions || []).slice(0, 2);
   return `
-    <div class="email-card ${isSelected ? 'selected' : ''}" data-email-id="${email.id}" data-category="${email.category}">
-      <div class="card-header">
-        <div class="card-category">
-          <i data-lucide="${category.icon}"></i>
-          <span>${category.label}</span>
-        </div>
-        <div class="card-actions">
-          <button class="btn-icon" onclick="toggleEmailSelection('${email.id}')" title="Select">
-            <i data-lucide="${isSelected ? 'check-square' : 'square'}"></i>
-          </button>
-          <button class="btn-icon" onclick="archiveEmail('${email.id}')" title="Archive">
-            <i data-lucide="archive"></i>
-          </button>
-        </div>
+    <div class="decoder-card" style="border-radius: 14px; box-shadow: 0 2px 8px #e0e7ff; background: #fff; margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span class="category-badge" style="background: ${category.color}; color: #fff; border-radius: 8px; padding: 0.25rem 0.75rem; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="${category.icon}"></i> ${category.label}</span>
+        <span style="color: #64748b; font-size: 0.95rem; margin-left: auto;">${dateString}</span>
       </div>
-      
-      <div class="card-content">
-        <div class="email-sender">
-          <strong>${sender}</strong>
-          <span class="email-time">${dateString}</span>
-        </div>
-        
-        <div class="email-subject">
-          ${email.subject}
-        </div>
-        
-        <div class="email-summary">
-          ${email.summary || email.snippet}
-        </div>
-      </div>
-      
-      <div class="card-footer">
-        <div class="email-actions">
-          <button class="btn-action" onclick="snoozeEmail('${email.id}')">
-            <i data-lucide="clock"></i>
-            <span>Snooze</span>
-          </button>
-          <button class="btn-action" onclick="markImportant('${email.id}')">
-            <i data-lucide="star"></i>
-            <span>Important</span>
-          </button>
-          <button class="btn-action" onclick="replyToEmail('${email.id}')">
-            <i data-lucide="reply"></i>
-            <span>Reply</span>
-          </button>
-        </div>
-        <div class="email-feedback" style="display: flex; flex-wrap: wrap; gap: 4px; min-width: 0;">
-          <button class="btn-feedback" onclick="giveFeedback('${email.id}', 'positive')" title="Good categorization">
-            <i data-lucide="thumbs-up"></i>
-          </button>
-          <button class="btn-feedback" onclick="giveFeedback('${email.id}', 'negative')" title="Wrong categorization">
-            <i data-lucide="thumbs-down"></i>
-          </button>
-        </div>
+      <div class="decoder-summary-text" style="font-size: 1.08rem; color: #22223b; font-weight: 500; line-height: 1.5;">${email.summary}</div>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        ${actions.map(action => `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;">${action}</button>`).join('')}
       </div>
     </div>
   `;
 }
+
+window.showAllDecoderEmails = function() {
+  showAllEmails = true;
+  renderEmailCards();
+};
+window.showTopDecoderEmails = function() {
+  showAllEmails = false;
+  renderEmailCards();
+};
 
 // 🎓 TRAINING MODE
 function renderTrainingCards() {
