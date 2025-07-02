@@ -107,22 +107,19 @@ function setupEventListeners() {
 
 function checkInitialState() {
   console.log('🔍 Checking initial state...');
-  // Check if onboarding is complete in localStorage
   const onboardingFlag = localStorage.getItem('decoderOnboardingComplete');
-  console.log('🔍 Onboarding flag in localStorage:', onboardingFlag);
   if (onboardingFlag === 'true') {
-    console.log('✅ Onboarding complete, showing email cards');
-    showEmailCards();
+    // Always try to load existing emails from backend
+    const userId = getCurrentUserId();
+    if (userId) {
+      loadExistingEmails(userId);
+    } else {
+      showZeroState();
+    }
     return;
   }
-  // Check if we have existing decoded emails
-  const userId = getCurrentUserId();
-  console.log('🔍 User ID:', userId);
-  if (userId) {
-    loadExistingEmails(userId);
-  } else {
-    showZeroState();
-  }
+  // If onboarding not complete, show onboarding
+  showOnboardingState();
 }
 
 // 🎛️ STATE MANAGEMENT
