@@ -1534,26 +1534,7 @@ app.post('/api/email-decoder/process', async (req, res) => {
           // Use the same GPT prompt and fallback logic as for real emails
           // ... (copy the GPT prompt, OpenAI call, and fallback CTA logic here, using the mock fields) ...
           // --- STRUCTURED GPT PROMPT ---
-          const gptPrompt = `
-You are an intelligent assistant for a personal life operating system. Your job is to analyze emails and produce structured, minimal outputs that help the user take action quickly — without needing to read the email.
-
-For the email below, return ONLY a JSON object with the following fields (no markdown formatting, no code blocks, just pure JSON):
-{
-  "summary": "1–2 sentence human-friendly summary of the email",
-  "category": "Handle Now|On the Calendar|Household Signals|Commerce Inbox",
-  "priority": "High|Medium|Low",
-  "suggested_actions": ["action1", "action2", "action3"],
-  "tone": "Urgent|Routine|Personal|Transactional"
-}
-
-Make the summary clear and non-redundant. Use natural, modern language. Return ONLY the JSON object, no other text.
----
-Email:
-Subject: ${subject}
-From: ${from}
-Date: ${date}
-Body: ${body}
-`;
+          const gptPrompt = `${tonePromptContent}\n\n---\n\nEmail:\nSubject: ${subject}\nFrom: ${from}\nDate: ${date}\nBody: ${body}`;
           const analysis = await callOpenAI(gptPrompt);
           let parsedAnalysis;
           try {
@@ -1707,26 +1688,7 @@ Body: ${body}
         // --- LOGGING ---
         console.log('🔍 Sending to GPT:', { subject, from, date, body });
         // --- STRUCTURED GPT PROMPT ---
-        const gptPrompt = `
-You are an intelligent assistant for a personal life operating system. Your job is to analyze emails and produce structured, minimal outputs that help the user take action quickly — without needing to read the email.
-
-For the email below, return ONLY a JSON object with the following fields (no markdown formatting, no code blocks, just pure JSON):
-{
-  "summary": "1–2 sentence human-friendly summary of the email",
-  "category": "Handle Now|On the Calendar|Household Signals|Commerce Inbox",
-  "priority": "High|Medium|Low",
-  "suggested_actions": ["action1", "action2", "action3"],
-  "tone": "Urgent|Routine|Personal|Transactional"
-}
-
-Make the summary clear and non-redundant. Use natural, modern language. Return ONLY the JSON object, no other text.
----
-Email:
-Subject: ${subject}
-From: ${from}
-Date: ${date}
-Body: ${body}
-`;
+        const gptPrompt = `${tonePromptContent}\n\n---\n\nEmail:\nSubject: ${subject}\nFrom: ${from}\nDate: ${date}\nBody: ${body}`;
         // --- END STRUCTURED PROMPT ---
 
         const analysis = await callOpenAI(gptPrompt);
