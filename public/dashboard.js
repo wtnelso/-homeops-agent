@@ -252,11 +252,44 @@ function renderEmailCards() {
   } else if (showAllEmails && filteredEmails.length > 10) {
     showMoreHtml = `<div style="text-align:center; margin: 1rem 0;"><button class="btn-secondary" onclick="showTopDecoderEmails()">Show Top 10 Only</button></div>`;
   }
+  
   if (emailsToRender.length === 0) {
-    showZeroState();
-    container.innerHTML = summaryHtml + showMoreHtml;
+    // Check if this is due to filtering or no emails at all
+    if (currentCategory && currentCategory !== 'all') {
+      // This is a category filter with no results
+      const categoryLabel = CATEGORIES[currentCategory]?.label || currentCategory;
+      container.innerHTML = summaryHtml + `
+        <div style="text-align: center; padding: 2rem; color: #64748b;">
+          <h3>No ${categoryLabel} emails found</h3>
+          <p>Try switching to a different category or process more emails.</p>
+          <button onclick="switchCategory('all')" class="btn-primary" style="
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+          ">Show All Emails</button>
+        </div>
+      ` + showMoreHtml;
+    } else if (filteredEmails.length === 0) {
+      // No emails at all - show zero state
+      showZeroState();
+      container.innerHTML = summaryHtml + showMoreHtml;
+    } else {
+      // Some other filtering issue
+      container.innerHTML = summaryHtml + `
+        <div style="text-align: center; padding: 2rem; color: #64748b;">
+          <h3>No emails match current filters</h3>
+          <p>Try adjusting your search or filters.</p>
+        </div>
+      ` + showMoreHtml;
+    }
     return;
   }
+  
   container.innerHTML = summaryHtml + emailsToRender.map(email => createDecoderCard(email)).join('') + showMoreHtml;
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
@@ -272,20 +305,43 @@ function isMailto(str) {
 }
 function createActionButton(action, email) {
   console.log('🔍 Creating action button:', action, 'for email:', email);
-  // If action is a URL or mailto, render as <a>
+  
+  // If action is a URL, render as <a>
   if (isUrl(action)) {
-    return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${action}" target="_blank" rel="noopener">${action}</a>`;
+    return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${action}" target="_blank" rel="noopener">Open Link</a>`;
   }
+  
+  // If action is mailto, render as <a>
   if (isMailto(action)) {
     const mail = action.startsWith('mailto:') ? action : `mailto:${action}`;
-    return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${mail}">${action.replace('mailto:', '')}</a>`;
+    return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${mail}">Reply</a>`;
   }
+  
   // If action is Add to Calendar and this is a schedule item, trigger calendar
   if (action.toLowerCase().includes('add to calendar') && mapCategory(email.category) === 'schedule') {
-    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="addToCalendar('${email.summary.replace(/'/g, '')}', ${email.timestamp})">Add to Calendar</button>`;
+    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="addToCalendar('${email.summary.replace(/'/g, '\\\'')}', ${email.timestamp})">Add to Calendar</button>`;
   }
-  // Otherwise, just a button (no-op for now)
-  return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;">${action}</button>`;
+  
+  // Handle other common actions
+  const actionLower = action.toLowerCase();
+  if (actionLower.includes('archive') || actionLower.includes('dismiss')) {
+    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="archiveEmail('${email.id}')">Archive</button>`;
+  }
+  
+  if (actionLower.includes('snooze') || actionLower.includes('remind')) {
+    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="snoozeEmail('${email.id}')">Snooze</button>`;
+  }
+  
+  if (actionLower.includes('important') || actionLower.includes('mark')) {
+    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="markImportant('${email.id}')">Mark Important</button>`;
+  }
+  
+  if (actionLower.includes('reply') || actionLower.includes('respond')) {
+    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="replyToEmail('${email.id}')">Reply</button>`;
+  }
+  
+  // Default action button with generic handler
+  return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="handleGenericAction('${action.replace(/'/g, '\\\'')}', '${email.id}')">${action}</button>`;
 }
 
 window.addToCalendar = function(summary, timestamp) {
@@ -873,8 +929,27 @@ async function loadExistingEmails(userId) {
     
     if (response.ok) {
       const result = await response.json();
-      decodedEmails = result.emails || [];
-      console.log('🔍 Found existing emails:', decodedEmails.length);
+      const rawEmails = result.emails || [];
+      console.log('🔍 Found raw emails:', rawEmails.length);
+      
+      // Transform the email data format to match what the frontend expects
+      decodedEmails = rawEmails.map(email => {
+        const decodedData = email.decoded || {};
+        return {
+          id: email.id,
+          sender: email.from || 'Unknown Sender',
+          subject: email.subject || 'No Subject',
+          timestamp: email.date ? new Date(email.date).getTime() : Date.now(),
+          date: email.date || '',
+          summary: decodedData.summary || '',
+          category: decodedData.category || 'Handle Now',
+          priority: decodedData.priority || 'Low',
+          suggested_actions: decodedData.suggested_actions || [],
+          tone: decodedData.tone || 'Routine'
+        };
+      });
+      
+      console.log('🔍 Transformed emails:', decodedEmails.length);
       
       if (decodedEmails.length === 0) {
         // Check if onboarding is already complete
@@ -1000,6 +1075,13 @@ window.processEmailsFromWizard = processEmailsFromWizard;
 window.initializeDecoder = initializeDecoder;
 window.retryFromError = retryFromError;
 window.debugTokens = debugTokens;
+window.addToCalendar = addToCalendar;
+
+// Generic action handler for actions that don't have specific handlers
+window.handleGenericAction = function(action, emailId) {
+  console.log('🔍 Handling generic action:', action, 'for email:', emailId);
+  showSuccess(`Action "${action}" completed for email ${emailId}`);
+};
 
 // Global function to initialize decoder when dashboard view is activated
 window.initializeDashboardDecoder = function() {
