@@ -108,12 +108,16 @@ function setupEventListeners() {
 function checkInitialState() {
   console.log('🔍 Checking initial state...');
   // Check if onboarding is complete in localStorage
-  if (localStorage.getItem('decoderOnboardingComplete') === 'true') {
+  const onboardingFlag = localStorage.getItem('decoderOnboardingComplete');
+  console.log('🔍 Onboarding flag in localStorage:', onboardingFlag);
+  if (onboardingFlag === 'true') {
+    console.log('✅ Onboarding complete, showing email cards');
     showEmailCards();
     return;
   }
   // Check if we have existing decoded emails
   const userId = getCurrentUserId();
+  console.log('🔍 User ID:', userId);
   if (userId) {
     loadExistingEmails(userId);
   } else {
@@ -230,6 +234,7 @@ function renderEmailCards() {
   const container = document.getElementById('email-cards-container');
   if (!container) return;
   const emailsToRender = getFilteredSortedEmails();
+  console.log('🔍 Emails to render:', emailsToRender);
   // Decoder Summary TL;DR
   const summaryText = getDecoderSummary(emailsToRender);
   let summaryHtml = '';
@@ -262,6 +267,7 @@ function isMailto(str) {
   return /^mailto:/i.test(str) || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(str);
 }
 function createActionButton(action, email) {
+  console.log('🔍 Creating action button:', action, 'for email:', email);
   // If action is a URL or mailto, render as <a>
   if (isUrl(action)) {
     return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${action}" target="_blank" rel="noopener">${action}</a>`;
@@ -295,6 +301,7 @@ window.addToCalendar = function(summary, timestamp) {
 };
 
 function createDecoderCard(email) {
+  console.log('🔍 Creating decoder card for email:', email);
   const categoryKey = mapCategory(email.category);
   const category = CATEGORIES[categoryKey] || CATEGORIES.urgent;
   let dateString = 'Unknown Date';
@@ -412,6 +419,7 @@ function switchCategory(category) {
     btn.classList.toggle('active', btn.dataset.category === category);
   });
   currentCategory = category;
+  console.log('🔍 Current category set to:', currentCategory);
   renderEmailCards(); // Correct function to update UI
 }
 
@@ -1032,6 +1040,7 @@ function completeOnboarding() {
   }
   // Mark onboarding as complete in localStorage
   localStorage.setItem('decoderOnboardingComplete', 'true');
+  console.log('✅ Set decoderOnboardingComplete in localStorage');
   // Show the full decoder with the 4 categories
   showEmailCards();
 }
