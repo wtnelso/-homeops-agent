@@ -441,6 +441,15 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 }
 
 function createDecoderCard(email) {
+  // Debug logging for CTA issues
+  const uniqueLinks = Array.isArray(email.actionLinks) ? [...new Set(email.actionLinks)] : [];
+  console.log('[DecoderCard Debug]', {
+    emailId: email.id,
+    firstActionLink: uniqueLinks[0],
+    allActionLinks: uniqueLinks,
+    suggestedActions: email.suggested_actions,
+    emailObj: email
+  });
   console.log('🔍 Creating decoder card for email:', email);
   const categoryKey = mapCategory(email.category);
   const category = CATEGORIES[categoryKey] || CATEGORIES.urgent;
@@ -469,7 +478,6 @@ function createDecoderCard(email) {
 
   // --- SMART CTA LOGIC ---
   let actionBtnHtml = '';
-  const uniqueLinks = Array.isArray(email.actionLinks) ? [...new Set(email.actionLinks)] : [];
   if (email.suggested_actions && email.suggested_actions.length && uniqueLinks.length && isValidUrl(uniqueLinks[0])) {
     actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative; pointer-events: auto; z-index: 1;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">${email.suggested_actions[0]}</a>`;
   } else if (uniqueLinks.length && isValidUrl(uniqueLinks[0])) {
