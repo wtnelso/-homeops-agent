@@ -1192,3 +1192,43 @@ ul {
   transform: scale(1.05) rotate(-2deg);
   box-shadow: 0 4px 16px #fbbf24aa;
 }
+
+.decode-batch-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55em 1.2em;
+  margin-left: 1.2rem;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s, transform 0.13s;
+  height: 2.5em;
+  line-height: 1;
+}
+.decode-batch-btn:hover, .decode-batch-btn:focus {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.18);
+  transform: translateY(-1px) scale(1.03);
+}
+@media (max-width: 768px) {
+  .decode-batch-btn {
+    font-size: 0.95rem;
+    padding: 0.45em 0.9em;
+    margin-left: 0.5rem;
+    height: 2.2em;
+  }
+}
+@media (max-width: 480px) {
+  .decode-batch-btn {
+    font-size: 0.92rem;
+    padding: 0.35em 0.7em;
+    margin-left: 0.2rem;
+    height: 2em;
+  }
+}
