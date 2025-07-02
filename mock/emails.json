@@ -142,5 +142,13 @@
     "priority": 65,
     "actions": ["reply", "snooze", "archive"],
     "feedback": []
+  },
+  {
+    "id": "test-fallback-1",
+    "from": "noreply@random.com",
+    "subject": "Test Google Fallback CTA",
+    "date": "2025-07-02T12:00:00Z",
+    "body": "This is a test email with no links. Please trigger the Google fallback CTA.",
+    "htmlBody": "<p>This is a test email with no links. Please trigger the Google fallback CTA.</p>"
   }
 ] 
