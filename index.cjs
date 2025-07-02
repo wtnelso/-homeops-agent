@@ -1889,6 +1889,29 @@ Body: ${body}
       global.gc();
     }
 
+    // ... before sending the response in the email processing endpoint ...
+    console.log('🟢 Returning processed emails:', processedEmails.map(e => ({id: e.id, subject: e.subject, actionLinks: e.actionLinks})));
+    // Force include the mock email if not present
+    const hasMock = processedEmails.some(e => e.id && e.id.startsWith('test-fallback-1-'));
+    if (!hasMock && mockEmails.length > 0) {
+      const mock = mockEmails.find(e => e.id && e.id.startsWith('test-fallback-1-'));
+      if (mock) processedEmails.unshift({
+        id: mock.id,
+        sender: mock.from,
+        subject: mock.subject,
+        timestamp: isNaN(new Date(mock.date).getTime()) ? Date.now() : new Date(mock.date).getTime(),
+        date: mock.date || '',
+        summary: 'Test fallback summary',
+        category: 'Handle Now',
+        priority: 'Low',
+        suggested_actions: ['Explore'],
+        tone: 'Routine',
+        previewImage: null,
+        actionLinks: ['google-fallback:https://www.google.com/search?q=test']
+      });
+    }
+    // ... existing code ...
+
     res.json({
       success: true,
       emails: dedupedProcessedEmails,
