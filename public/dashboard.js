@@ -407,14 +407,12 @@ function createTrainingCard(email) {
 // 📊 CATEGORY MANAGEMENT
 function switchCategory(category) {
   console.log(`📊 Switching to category: ${category}`);
-  
   // Update tab states
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.category === category);
   });
-  
   currentCategory = category;
-  filterEmails();
+  renderEmailCards(); // Correct function to update UI
 }
 
 function updateCategoryCounts() {
