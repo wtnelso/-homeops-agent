@@ -257,6 +257,11 @@ function createDecoderCard(email) {
   }
   // Only show up to 2 actions
   const actions = (email.suggested_actions || []).slice(0, 2);
+  // Feedback (grading) UI
+  const feedbackHtml = `<div class="decoder-feedback" style="margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center;">
+    <button class="btn-feedback" title="This was helpful" onclick="giveDecoderFeedback('${email.id}', 'positive', this)">👍</button>
+    <button class="btn-feedback" title="This was not helpful" onclick="giveDecoderFeedback('${email.id}', 'negative', this)">👎</button>
+  </div>`;
   return `
     <div class="decoder-card" style="border-radius: 14px; box-shadow: 0 2px 8px #e0e7ff; background: #fff; margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -267,6 +272,7 @@ function createDecoderCard(email) {
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
         ${actions.map(action => `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;">${action}</button>`).join('')}
       </div>
+      ${feedbackHtml}
     </div>
   `;
 }
@@ -1019,4 +1025,17 @@ function mapCategory(category) {
     case 'Household Signals': return 'family';
     default: return 'urgent';
   }
-} 
+}
+
+// Feedback handler (minimal visual confirmation)
+window.giveDecoderFeedback = function(emailId, feedback, btn) {
+  fetch('/api/decoder-feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ emailId, feedback, userId: getCurrentUserId() })
+  });
+  // Visual confirmation: fade out buttons and show thank you
+  if (btn && btn.parentElement) {
+    btn.parentElement.innerHTML = '<span style="color:#22c55e;font-weight:600;">Thanks for your feedback!</span>';
+  }
+}; 

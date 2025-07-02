@@ -1764,6 +1764,26 @@ app.post('/api/email-decoder/feedback', async (req, res) => {
   }
 });
 
+// Decoder feedback endpoint
+app.post('/api/decoder-feedback', async (req, res) => {
+  const { emailId, feedback, userId } = req.body;
+  if (!emailId || !feedback || !userId) {
+    return res.status(400).json({ error: 'Missing required feedback fields' });
+  }
+  try {
+    await db.collection('decoder_feedback').add({
+      emailId,
+      feedback,
+      userId,
+      timestamp: new Date()
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Failed to store decoder feedback:', error);
+    res.status(500).json({ error: 'Failed to store feedback' });
+  }
+});
+
 // SPA catch-all route should be last
 app.get('*', (req, res) => {
   // For the root path, serve auth.html (login page)
