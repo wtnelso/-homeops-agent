@@ -470,8 +470,14 @@ function createDecoderCard(email) {
 
   // --- SMART CTA LOGIC ---
   let actionBtnHtml = '';
-  if (email.suggested_actions && email.suggested_actions.length && isValidUrl(email.suggested_actions[0])) {
-    actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative; pointer-events: auto; z-index: 1;" href="${email.suggested_actions[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">${email.suggested_actions[0]}</a>`;
+  let uniqueLinks = email.suggested_actions || [];
+  if (uniqueLinks.length && typeof uniqueLinks[0] === 'string' && uniqueLinks[0].startsWith('google-fallback:')) {
+    const googleUrl = uniqueLinks[0].replace('google-fallback:', '');
+    actionBtnHtml = `<a class="btn-google-fallback action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative; pointer-events: auto; z-index: 1; display: inline-flex; align-items: center; gap: 0.5rem;" href="${googleUrl}" target="_blank" rel="noopener" onclick="showActionLoading(this)" title="This link was found via Google Search"><i data-lucide='search'></i>Explore</a>`;
+  } else if (email.suggested_actions && email.suggested_actions.length && uniqueLinks.length && isValidUrl(uniqueLinks[0])) {
+    actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative; pointer-events: auto; z-index: 1;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">${email.suggested_actions[0]}</a>`;
+  } else if (uniqueLinks.length && isValidUrl(uniqueLinks[0])) {
+    actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative; pointer-events: auto; z-index: 1;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">Open Link</a>`;
   } else if (email.suggested_actions && email.suggested_actions.length) {
     actionBtnHtml = `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; opacity:0.7; cursor:not-allowed; pointer-events: none;" disabled title="No link available">${email.suggested_actions[0]}</button>`;
   }
