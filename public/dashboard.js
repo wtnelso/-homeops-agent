@@ -985,26 +985,55 @@ async function checkGmailConnection() {
       console.log('🔍 Gmail connected status:', connected);
       
       if (!connected) {
-        // Show onboarding step 1: Gmail connection
-        console.log('🔍 Gmail not connected, showing onboarding');
-        showOnboardingState();
-        showWizardStep(1);
+        // Check if user has already started onboarding (has any onboarding state)
+        const hasOnboardingState = sessionStorage.getItem('gmail_step') || 
+                                  localStorage.getItem('decoderOnboardingComplete') === 'true' ||
+                                  document.querySelector('.wizard-step[style*="display: block"]');
+        
+        if (hasOnboardingState) {
+          // User has some onboarding state, show step 2 (processing) instead of step 1
+          console.log('🔍 User has onboarding state, showing processing step');
+          showOnboardingState();
+          showWizardStep(2);
+        } else {
+          // First time user, show step 1: Gmail connection
+          console.log('🔍 First time user, showing Gmail connection step');
+          showOnboardingState();
+          showWizardStep(1);
+        }
       } else {
         // Gmail is connected, check if we have processed emails
         console.log('🔍 Gmail connected, checking for existing emails');
         loadExistingEmails(userId);
       }
     } else {
-      // If we can't check status, show onboarding
-      console.log('🔍 Could not check Gmail status, showing onboarding');
-      showOnboardingState();
-      showWizardStep(1);
+      // If we can't check status, check if user has onboarding state
+      const hasOnboardingState = sessionStorage.getItem('gmail_step') || 
+                                localStorage.getItem('decoderOnboardingComplete') === 'true';
+      
+      if (hasOnboardingState) {
+        console.log('🔍 User has onboarding state, showing processing step');
+        showOnboardingState();
+        showWizardStep(2);
+      } else {
+        console.log('🔍 First time user, showing Gmail connection step');
+        showOnboardingState();
+        showWizardStep(1);
+      }
     }
   } catch (error) {
     console.error('❌ Error checking Gmail connection:', error);
-    // If there's an error, show onboarding
-    showOnboardingState();
-    showWizardStep(1);
+    // Check if user has onboarding state
+    const hasOnboardingState = sessionStorage.getItem('gmail_step') || 
+                              localStorage.getItem('decoderOnboardingComplete') === 'true';
+    
+    if (hasOnboardingState) {
+      showOnboardingState();
+      showWizardStep(2);
+    } else {
+      showOnboardingState();
+      showWizardStep(1);
+    }
   }
 }
 
@@ -1173,6 +1202,15 @@ window.handleGenericAction = function(action, emailId) {
 // Global function to initialize decoder when dashboard view is activated
 window.initializeDashboardDecoder = function() {
   console.log('🎯 Dashboard view activated, initializing decoder...');
+  
+  // Check if we already have emails loaded and should preserve state
+  if (decodedEmails.length > 0) {
+    console.log('🔍 Emails already loaded, preserving current state');
+    hideAllStates();
+    showEmailCards();
+    return;
+  }
+  
   setTimeout(() => {
     initializeDecoder();
     setupEventListeners();
