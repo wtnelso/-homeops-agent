@@ -230,7 +230,8 @@ app.use(cors({
   origin: [
     'https://homeops-web.web.app',
     'https://homeops-web.firebaseapp.com',
-    'https://homeops-backend.onrender.com'
+    'https://homeops-backend.onrender.com',
+    'https://homeops-agent.onrender.com'
   ],
   credentials: true
 }));
@@ -240,7 +241,8 @@ app.options('*', cors({
   origin: [
     'https://homeops-web.web.app',
     'https://homeops-web.firebaseapp.com',
-    'https://homeops-backend.onrender.com'
+    'https://homeops-backend.onrender.com',
+    'https://homeops-agent.onrender.com'
   ],
   credentials: true
 }));
