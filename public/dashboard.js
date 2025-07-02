@@ -309,68 +309,105 @@ function createActionButton(action, email) {
   console.log('🔍 Creating action button:', action, 'for email:', email);
   const actionLower = action.toLowerCase();
 
+  // Expanded commerce keywords
+  const commerceKeywords = [
+    'shop', 'view offer', 'buy', 'see deal', 'get offer', 'subscribe',
+    'track order', 'view receipt', 'see details', 'order details', 'shipment', 'shipping', 'delivery', 'manage subscription', 'unsubscribe'
+  ];
+
   // Smart routing for commerce actions
   if (Array.isArray(email.actionLinks) && email.actionLinks.length > 0) {
-    if (
-      actionLower.includes('shop') ||
-      actionLower.includes('view offer') ||
-      actionLower.includes('buy') ||
-      actionLower.includes('see deal') ||
-      actionLower.includes('get offer') ||
-      actionLower.includes('subscribe')
-    ) {
-      // Use the first link for these actions
-      return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${email.actionLinks[0]}" target="_blank" rel="noopener">${action}</a>`;
+    if (commerceKeywords.some(keyword => actionLower.includes(keyword))) {
+      // Try to match the most relevant link by keyword
+      let matchedLink = email.actionLinks.find(link => {
+        const linkLower = link.toLowerCase();
+        return commerceKeywords.some(keyword => linkLower.includes(keyword.replace(/ /g, '')));
+      });
+      if (!matchedLink) matchedLink = email.actionLinks[0];
+      return `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" href="${matchedLink}" target="_blank" rel="noopener" onclick="showActionLoading(this)">${action}</a>`;
     }
   }
 
   // If action is a URL, render as <a>
   if (isUrl(action)) {
-    return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${action}" target="_blank" rel="noopener">Open Link</a>`;
+    return `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" href="${action}" target="_blank" rel="noopener" onclick="showActionLoading(this)">Open Link</a>`;
   }
   // If action is mailto, render as <a>
   if (isMailto(action)) {
     const mail = action.startsWith('mailto:') ? action : `mailto:${action}`;
-    return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${mail}">Reply</a>`;
+    return `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" href="${mail}" onclick="showActionLoading(this)">Reply</a>`;
   }
   // If action is Add to Calendar and this is a schedule item, trigger calendar
   if (actionLower.includes('add to calendar') && mapCategory(email.category) === 'schedule') {
     // Escape single quotes in summary for JS string
     const safeSummary = email.summary.replace(/'/g, "\\'");
-    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="addToCalendar('${safeSummary}', ${email.timestamp})">Add to Calendar</button>`;
+    return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); addToCalendar('${safeSummary}', ${email.timestamp})">Add to Calendar</button>`;
   }
   if (actionLower.includes('archive') || actionLower.includes('dismiss')) {
-    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="archiveEmail('${email.id}')">Archive</button>`;
+    return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); archiveEmail('${email.id}')">Archive</button>`;
   }
   if (actionLower.includes('snooze') || actionLower.includes('remind')) {
-    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="snoozeEmail('${email.id}')">Snooze</button>`;
+    return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); snoozeEmail('${email.id}')">Snooze</button>`;
   }
   if (actionLower.includes('important') || actionLower.includes('mark')) {
-    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="markImportant('${email.id}')">Mark Important</button>`;
+    return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); markImportant('${email.id}')">Mark Important</button>`;
   }
   if (actionLower.includes('reply') || actionLower.includes('respond')) {
-    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="replyToEmail('${email.id}')">Reply</button>`;
+    return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); replyToEmail('${email.id}')">Reply</button>`;
   }
   // Default action button with generic handler
   const safeAction = action.replace(/'/g, "\\'");
-  return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="handleGenericAction('${safeAction}', '${email.id}')">${action}</button>`;
+  return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); handleGenericAction('${safeAction}', '${email.id}')">${action}</button>`;
 }
 
+// Replace Add to Calendar logic to inject into FullCalendar
 window.addToCalendar = function(summary, timestamp) {
-  // Create a simple .ics file for the event
+  // Prepare event data
   const dt = new Date(timestamp);
-  const dtStart = dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const dtEnd = new Date(dt.getTime() + 60*60*1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${summary}\nDTSTART:${dtStart}\nDTEND:${dtEnd}\nEND:VEVENT\nEND:VCALENDAR`;
-  const blob = new Blob([ics], { type: 'text/calendar' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'event.ics';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  const endDt = new Date(dt.getTime() + 60*60*1000);
+  const event = {
+    title: summary,
+    start: dt.toISOString(),
+    end: endDt.toISOString(),
+    allDay: false
+  };
+  // If calendar is loaded, add event directly
+  if (window.calendar && typeof window.calendar.addEvent === 'function') {
+    window.calendar.addEvent(event);
+    window.calendar.refetchEvents && window.calendar.refetchEvents();
+    showSuccess('Event added to your calendar!');
+    // Optionally, switch to calendar view
+    if (typeof activateView === 'function') activateView('calendar');
+  } else {
+    // If calendar not loaded, queue event for later
+    window.pendingCalendarEvents = window.pendingCalendarEvents || [];
+    window.pendingCalendarEvents.push(event);
+    showSuccess('Event will be added to your calendar when it loads.');
+  }
 };
+
+// Only show the witty decode button for processing emails
+function renderDecodeButtonOnly() {
+  const controls = document.getElementById('dashboard-controls');
+  if (controls) {
+    controls.innerHTML = `<button id="process-btn" class="btn-primary" style="font-size:1.1rem;padding:1rem 2.5rem;border-radius:12px;font-weight:700;box-shadow:0 4px 16px #6366f1;letter-spacing:-0.01em;display:flex;align-items:center;gap:0.7rem;">
+      <span style="font-size:1.5rem;">🧠</span> Decode your next batch of emails
+    </button>`;
+    document.getElementById('process-btn').addEventListener('click', processEmails);
+  }
+  // Hide refresh and other controls if present
+  const refreshBtn = document.getElementById('refresh-btn');
+  if (refreshBtn) refreshBtn.style.display = 'none';
+  const processAgainBtn = document.getElementById('process-again-btn');
+  if (processAgainBtn) processAgainBtn.style.display = 'none';
+}
+
+// Call this on decoder/dashboard load
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(renderDecodeButtonOnly, 0);
+} else {
+  window.addEventListener('DOMContentLoaded', renderDecodeButtonOnly);
+}
 
 function createDecoderCard(email) {
   console.log('🔍 Creating decoder card for email:', email);
@@ -390,8 +427,13 @@ function createDecoderCard(email) {
   </div>`;
   // Show preview image for commerce emails
   let previewImageHtml = '';
-  if (categoryKey === 'commerce' && email.previewImage) {
-    previewImageHtml = `<div style="width:100%;text-align:center;margin-bottom:0.75rem;"><img src="${email.previewImage}" alt="Preview" style="max-width:220px;max-height:120px;border-radius:10px;box-shadow:0 2px 8px #e0e7ff;object-fit:contain;" loading="lazy"></div>`;
+  if (categoryKey === 'commerce') {
+    if (email.previewImage) {
+      previewImageHtml = `<div class="commerce-preview-img-wrapper" style="width:100%;text-align:center;margin-bottom:0.75rem;"><img src="${email.previewImage}" alt="Preview" class="commerce-preview-img" style="max-width:220px;max-height:120px;border-radius:10px;box-shadow:0 2px 8px #e0e7ff;object-fit:contain;transition:transform 0.2s;" loading="lazy"></div>`;
+    } else {
+      // Fallback icon
+      previewImageHtml = `<div class="commerce-preview-img-wrapper" style="width:100%;text-align:center;margin-bottom:0.75rem;"><i data-lucide="shopping-bag" style="font-size:2.5rem;color:#f59e42;"></i></div>`;
+    }
   }
   return `
     <div class="decoder-card" data-email-id="${email.id}" style="border-radius: 14px; box-shadow: 0 2px 8px #e0e7ff; background: #fff; margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; transition: all 0.3s ease;">
@@ -1539,3 +1581,19 @@ function addInsightsSections() {
     loadUserInsights();
   }, 2000);
 }
+
+// Add loading state to action buttons
+window.showActionLoading = function(btn) {
+  if (!btn) return;
+  btn.disabled = true;
+  btn.classList.add('loading');
+  const spinner = document.createElement('span');
+  spinner.className = 'action-btn-spinner';
+  spinner.style.cssText = 'margin-left:8px;display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top:2px solid #3b82f6;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;';
+  btn.appendChild(spinner);
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    if (spinner.parentNode) spinner.parentNode.removeChild(spinner);
+  }, 1200);
+};

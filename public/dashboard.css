@@ -1165,3 +1165,30 @@ ul {
 .progress-line.completed {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
+
+/* Action button loading spinner */
+.action-btn-spinner {
+  margin-left: 8px;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Commerce preview image hover effect */
+.commerce-preview-img {
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.commerce-preview-img:hover {
+  transform: scale(1.05) rotate(-2deg);
+  box-shadow: 0 4px 16px #fbbf24aa;
+}
