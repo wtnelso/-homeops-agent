@@ -1519,8 +1519,125 @@ app.post('/api/email-decoder/process', async (req, res) => {
 
     // Process emails one at a time to reduce memory pressure
     const processedEmails = [];
-    for (let i = 0; i < Math.min(allMessages.length, 20); i++) {  // Process max 20 emails
+    for (let i = 0; i < Math.min(allMessages.length, 20); i++) {
       try {
+        const msg = allMessages[i];
+        // If mock email (ID starts with 'test-fallback-1-'), process directly
+        if (msg.id && msg.id.startsWith('test-fallback-1-')) {
+          const subject = msg.subject;
+          const from = msg.from;
+          const date = msg.date;
+          const body = msg.body;
+          const htmlBody = msg.htmlBody;
+          // --- LOGGING ---
+          console.log('🔍 Processing MOCK email:', { subject, from, date, body });
+          // Use the same GPT prompt and fallback logic as for real emails
+          // ... (copy the GPT prompt, OpenAI call, and fallback CTA logic here, using the mock fields) ...
+          // --- STRUCTURED GPT PROMPT ---
+          const gptPrompt = `
+You are an intelligent assistant for a personal life operating system. Your job is to analyze emails and produce structured, minimal outputs that help the user take action quickly — without needing to read the email.
+
+For the email below, return ONLY a JSON object with the following fields (no markdown formatting, no code blocks, just pure JSON):
+{
+  "summary": "1–2 sentence human-friendly summary of the email",
+  "category": "Handle Now|On the Calendar|Household Signals|Commerce Inbox",
+  "priority": "High|Medium|Low",
+  "suggested_actions": ["action1", "action2", "action3"],
+  "tone": "Urgent|Routine|Personal|Transactional"
+}
+
+Make the summary clear and non-redundant. Use natural, modern language. Return ONLY the JSON object, no other text.
+---
+Email:
+Subject: ${subject}
+From: ${from}
+Date: ${date}
+Body: ${body}
+`;
+          const analysis = await callOpenAI(gptPrompt);
+          let parsedAnalysis;
+          try {
+            let cleanResponse = analysis.trim();
+            if (cleanResponse.startsWith('```json')) {
+              cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            } else if (cleanResponse.startsWith('```')) {
+              cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+            }
+            parsedAnalysis = JSON.parse(cleanResponse);
+          } catch (parseError) {
+            console.error('❌ Failed to parse OpenAI response:', parseError, analysis);
+            parsedAnalysis = {
+              summary: 'Unable to analyze email content',
+              category: 'Handle Now',
+              priority: 'Low',
+              suggested_actions: ['Dismiss'],
+              tone: 'Routine'
+            };
+          }
+          // --- Extract images and links for all emails ---
+          let previewImage = null;
+          let actionLinks = [];
+          if (htmlBody) {
+            if (parsedAnalysis.category === 'Commerce Inbox') {
+              const imgMatch = htmlBody.match(/<img[^>]+src=["']([^"'>]+)["']/i);
+              if (imgMatch) {
+                previewImage = imgMatch[1];
+              }
+            }
+            const linkRegex = /<a[^>]+href=["']([^"'>]+)["']/gi;
+            let match;
+            while ((match = linkRegex.exec(htmlBody)) !== null) {
+              actionLinks.push(match[1]);
+            }
+          }
+          // For schedule/calendar emails, add a special action
+          if ((parsedAnalysis.category === 'On the Calendar' || parsedAnalysis.category === 'Schedule' || parsedAnalysis.category === 'Calendar') && !actionLinks.includes('add-to-calendar')) {
+            actionLinks.unshift('add-to-calendar');
+          }
+          // Extract links from both plain text and HTML
+          function extractUrlsFromText(text) {
+            if (!text) return [];
+            const urlRegex = /https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/gi;
+            return text.match(urlRegex) || [];
+          }
+          function extractUrlsFromHtml(html) {
+            if (!html) return [];
+            const cheerio = require('cheerio');
+            const $ = cheerio.load(html);
+            const links = [];
+            $('a[href]').each((_, el) => {
+              const href = $(el).attr('href');
+              if (href && href.startsWith('http')) links.push(href);
+            });
+            return links;
+          }
+          let allLinks = [
+            ...extractUrlsFromText(body),
+            ...extractUrlsFromHtml(htmlBody)
+          ];
+          allLinks = [...new Set(allLinks)];
+          // If no links found, use Google Search fallback
+          let fallbackLink = null;
+          if (allLinks.length === 0) {
+            const searchQuery = `${subject} ${from.split('<')[0] || ''}`;
+            fallbackLink = await googleSearchFallback(searchQuery);
+            if (fallbackLink) allLinks.push('google-fallback:' + fallbackLink);
+          }
+          const processedEmail = {
+            id: msg.id,
+            sender: from || 'Unknown Sender',
+            subject,
+            timestamp: isNaN(new Date(date).getTime()) ? Date.now() : new Date(date).getTime(),
+            date: date || '',
+            ...parsedAnalysis,
+            previewImage,
+            actionLinks: allLinks
+          };
+          processedEmails.push(processedEmail);
+          continue; // Skip to next message
+        }
+        // ... existing code for real Gmail messages ...
+
         console.log(`🔍 Processing email ${i + 1}/${Math.min(allMessages.length, 20)}`);
         
         const emailResponse = await Promise.race([
