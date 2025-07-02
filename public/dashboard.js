@@ -390,8 +390,8 @@ window.addToCalendar = function(summary, timestamp) {
 function renderDecodeButtonOnly() {
   const controls = document.getElementById('dashboard-controls');
   if (controls) {
-    controls.innerHTML = `<button id="process-btn" class="btn-primary" style="font-size:1.1rem;padding:1rem 2.5rem;border-radius:12px;font-weight:700;box-shadow:0 4px 16px #6366f1;letter-spacing:-0.01em;display:flex;align-items:center;gap:0.7rem;">
-      <span style="font-size:1.5rem;">🧠</span> Decode your next batch of emails
+    controls.innerHTML = `<button id="process-btn" class="btn-gradient-purple" style="font-size:1.1rem;padding:1rem 2.5rem;border-radius:14px;font-weight:700;background:linear-gradient(90deg,#764ba2 0%,#667eea 100%);color:#fff;box-shadow:0 4px 16px #764ba2aa;letter-spacing:-0.01em;display:flex;align-items:center;gap:0.7rem;">
+      <span style="font-size:1.5rem;">📬</span> Get your next 20 emails (and a dash of magic)
     </button>`;
     document.getElementById('process-btn').addEventListener('click', processEmails);
   }
