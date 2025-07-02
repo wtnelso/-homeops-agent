@@ -107,7 +107,11 @@ function setupEventListeners() {
 
 function checkInitialState() {
   console.log('🔍 Checking initial state...');
-  
+  // Check if onboarding is complete in localStorage
+  if (localStorage.getItem('decoderOnboardingComplete') === 'true') {
+    showEmailCards();
+    return;
+  }
   // Check if we have existing decoded emails
   const userId = getCurrentUserId();
   if (userId) {
@@ -188,6 +192,10 @@ function getFilteredSortedEmails() {
   let filtered = decodedEmails.filter(e => {
     return e.summary && e.summary.trim() && Array.isArray(e.suggested_actions) && e.suggested_actions.length > 0;
   });
+  // Filter by currentCategory (unless 'all')
+  if (currentCategory && currentCategory !== 'all') {
+    filtered = filtered.filter(e => mapCategory(e.category) === currentCategory);
+  }
   // Sort by priority, then timestamp (desc)
   filtered.sort((a, b) => {
     const pa = getPriorityValue(a.priority);
@@ -247,6 +255,45 @@ function renderEmailCards() {
   updateCategoryCounts();
 }
 
+function isUrl(str) {
+  try { new URL(str); return true; } catch { return false; }
+}
+function isMailto(str) {
+  return /^mailto:/i.test(str) || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(str);
+}
+function createActionButton(action, email) {
+  // If action is a URL or mailto, render as <a>
+  if (isUrl(action)) {
+    return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${action}" target="_blank" rel="noopener">${action}</a>`;
+  }
+  if (isMailto(action)) {
+    const mail = action.startsWith('mailto:') ? action : `mailto:${action}`;
+    return `<a class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" href="${mail}">${action.replace('mailto:', '')}</a>`;
+  }
+  // If action is Add to Calendar and this is a schedule item, trigger calendar
+  if (action.toLowerCase().includes('add to calendar') && mapCategory(email.category) === 'schedule') {
+    return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;" onclick="addToCalendar('${email.summary.replace(/'/g, '')}', ${email.timestamp})">Add to Calendar</button>`;
+  }
+  // Otherwise, just a button (no-op for now)
+  return `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;">${action}</button>`;
+}
+
+window.addToCalendar = function(summary, timestamp) {
+  // Create a simple .ics file for the event
+  const dt = new Date(timestamp);
+  const dtStart = dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const dtEnd = new Date(dt.getTime() + 60*60*1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${summary}\nDTSTART:${dtStart}\nDTEND:${dtEnd}\nEND:VEVENT\nEND:VCALENDAR`;
+  const blob = new Blob([ics], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'event.ics';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+};
+
 function createDecoderCard(email) {
   const categoryKey = mapCategory(email.category);
   const category = CATEGORIES[categoryKey] || CATEGORIES.urgent;
@@ -270,7 +317,7 @@ function createDecoderCard(email) {
       </div>
       <div class="decoder-summary-text" style="font-size: 1.08rem; color: #22223b; font-weight: 500; line-height: 1.5;">${email.summary}</div>
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        ${actions.map(action => `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px;">${action}</button>`).join('')}
+        ${actions.map(action => createActionButton(action, email)).join('')}
       </div>
       ${feedbackHtml}
     </div>
@@ -616,6 +663,9 @@ function completeTraining() {
   if (trainingMode) {
     trainingMode.style.display = 'none';
   }
+  
+  // Mark onboarding as complete in localStorage
+  localStorage.setItem('decoderOnboardingComplete', 'true');
   
   // Show the full decoder with the 4 categories
   showEmailCards();
@@ -976,8 +1026,16 @@ function updateProgressIndicator(currentStep) {
 
 // 🚀 ONBOARDING FLOW FUNCTIONS
 function completeOnboarding() {
-  console.log('✅ Onboarding completed');
-  showWizardStep(4);
+  console.log('🎓 Training completed, transitioning to full decoder...');
+  // Hide training mode
+  const trainingMode = document.getElementById('training-mode');
+  if (trainingMode) {
+    trainingMode.style.display = 'none';
+  }
+  // Mark onboarding as complete in localStorage
+  localStorage.setItem('decoderOnboardingComplete', 'true');
+  // Show the full decoder with the 4 categories
+  showEmailCards();
 }
 
 function finishOnboarding() {
