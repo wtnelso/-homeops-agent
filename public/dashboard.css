@@ -1232,3 +1232,27 @@ ul {
     height: 2em;
   }
 }
+
+/* Onboarding state container: higher on desktop, centered on mobile */
+#onboarding-state.state-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  padding-top: 6vh;
+}
+@media (max-width: 700px) {
+  #onboarding-state.state-container {
+    align-items: center;
+    padding-top: 0;
+  }
+}
+
+.onboarding-wizard {
+  margin-top: 0;
+}
+@media (min-width: 701px) {
+  .onboarding-wizard {
+    margin-top: 2.5vh;
+  }
+}

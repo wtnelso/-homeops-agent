@@ -452,11 +452,11 @@ function createDecoderCard(email) {
   let actionBtnHtml = '';
   const uniqueLinks = Array.isArray(email.actionLinks) ? [...new Set(email.actionLinks)] : [];
   if (email.suggested_actions && email.suggested_actions.length && uniqueLinks.length) {
-    actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">${email.suggested_actions[0]}</a>`;
+    actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative; pointer-events: auto; z-index: 1;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">${email.suggested_actions[0]}</a>`;
   } else if (uniqueLinks.length) {
-    actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">Open Link</a>`;
+    actionBtnHtml = `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative; pointer-events: auto; z-index: 1;" href="${uniqueLinks[0]}" target="_blank" rel="noopener" onclick="showActionLoading(this)">Open Link</a>`;
   } else if (email.suggested_actions && email.suggested_actions.length) {
-    actionBtnHtml = `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; opacity:0.7; cursor:not-allowed;" disabled>${email.suggested_actions[0]}</button>`;
+    actionBtnHtml = `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; opacity:0.7; cursor:not-allowed; pointer-events: none;" disabled>${email.suggested_actions[0]}</button>`;
   }
 
   return `
