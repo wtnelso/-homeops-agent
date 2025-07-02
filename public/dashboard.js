@@ -481,6 +481,8 @@ function createDecoderCard(email) {
     actionBtnHtml = `<button class="btn-primary" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; opacity:0.7; cursor:not-allowed; pointer-events: none;" disabled title="No link available">${email.suggested_actions[0]}</button>`;
   }
 
+  console.log('[DecoderCard Email Object]', email);
+
   return `
     <div class="decoder-card" data-email-id="${email.id}" style="border-radius: 14px; box-shadow: 0 2px 8px #e0e7ff; background: #fff; margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; transition: all 0.3s ease;">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
