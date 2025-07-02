@@ -1668,6 +1668,37 @@ Body: ${body}
     console.log('✅ Email processing completed successfully');
     console.log('📊 Summary:', summary);
 
+    // Save processed emails to database
+    if (processedEmails.length > 0) {
+      console.log('💾 Saving processed emails to database...');
+      const batch = db.batch();
+      
+      processedEmails.forEach(email => {
+        const emailRef = db.collection('decoded_emails').doc();
+        batch.set(emailRef, {
+          user_id: user_id,
+          gmail_id: email.id,
+          subject: email.subject,
+          from: email.sender,
+          date: email.date,
+          timestamp: email.timestamp,
+          created_at: new Date(),
+          decoded_data: {
+            summary: email.summary,
+            category: email.category,
+            priority: email.priority,
+            suggested_actions: email.suggested_actions,
+            tone: email.tone,
+            previewImage: email.previewImage,
+            actionLinks: email.actionLinks
+          }
+        });
+      });
+      
+      await batch.commit();
+      console.log(`💾 Saved ${processedEmails.length} emails to database`);
+    }
+
     // Force garbage collection before sending response
     if (global.gc) {
       global.gc();

@@ -147,6 +147,18 @@ function showZeroState() {
   const zeroState = document.getElementById('zero-state');
   if (zeroState) {
     zeroState.style.display = 'flex';
+    // Update the CTA button text to be more witty
+    const processAgainBtn = document.getElementById('process-again-btn');
+    if (processAgainBtn) {
+      processAgainBtn.innerHTML = `
+        <i data-lucide="play"></i>
+        <span>Decode your next batch of emails</span>
+      `;
+      // Re-initialize Lucide icons
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
   }
   updateCategoryCounts();
 }
