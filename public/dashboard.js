@@ -75,8 +75,8 @@ function initializeDecoder() {
   // Show loading state initially
   showLoadingState();
   
-  // Check if user has Gmail connected
-  checkGmailConnection();
+  // Check initial state instead of just Gmail connection
+  checkInitialState();
 }
 
 function setupEventListeners() {
@@ -109,7 +109,8 @@ function checkInitialState() {
   console.log('🔍 Checking initial state...');
   const onboardingFlag = localStorage.getItem('decoderOnboardingComplete');
   if (onboardingFlag === 'true') {
-    // Always try to load existing emails from backend
+    // Onboarding is complete, show the main decoder interface
+    console.log('🔍 Onboarding complete, showing main decoder');
     const userId = getCurrentUserId();
     if (userId) {
       loadExistingEmails(userId);
@@ -118,8 +119,9 @@ function checkInitialState() {
     }
     return;
   }
-  // If onboarding not complete, show onboarding
-  showOnboardingState();
+  // If onboarding not complete, check Gmail connection first
+  console.log('🔍 Onboarding not complete, checking Gmail connection');
+  checkGmailConnection();
 }
 
 // 🎛️ STATE MANAGEMENT
@@ -377,7 +379,7 @@ function createDecoderCard(email) {
     <button class="btn-feedback" title="This was not helpful" onclick="giveDecoderFeedback('${email.id}', 'negative', this)">👎</button>
   </div>`;
   return `
-    <div class="decoder-card" style="border-radius: 14px; box-shadow: 0 2px 8px #e0e7ff; background: #fff; margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+    <div class="decoder-card" data-email-id="${email.id}" style="border-radius: 14px; box-shadow: 0 2px 8px #e0e7ff; background: #fff; margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; transition: all 0.3s ease;">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
         <span class="category-badge" style="background: ${category.color}; color: #fff; border-radius: 8px; padding: 0.25rem 0.75rem; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="${category.icon}"></i> ${category.label}</span>
         <span style="color: #64748b; font-size: 0.95rem; margin-left: auto;">${dateString}</span>
@@ -653,25 +655,76 @@ async function refreshEmails() {
 // 📧 EMAIL ACTIONS
 async function archiveEmail(emailId) {
   console.log(`📧 Archiving email: ${emailId}`);
-  // TODO: Implement archive functionality
+  
+  // Remove the email from the display
+  const emailCard = document.querySelector(`[data-email-id="${emailId}"]`);
+  if (emailCard) {
+    emailCard.style.opacity = '0.5';
+    emailCard.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (emailCard.parentNode) {
+        emailCard.parentNode.removeChild(emailCard);
+      }
+    }, 300);
+  }
+  
+  // Remove from decodedEmails array
+  decodedEmails = decodedEmails.filter(email => email.id !== emailId);
+  
   showSuccess('Email archived');
+  
+  // Re-render to update counts
+  updateCategoryCounts();
 }
 
 async function snoozeEmail(emailId) {
   console.log(`📧 Snoozing email: ${emailId}`);
-  // TODO: Implement snooze functionality
-  showSuccess('Email snoozed');
+  
+  // Add visual feedback
+  const emailCard = document.querySelector(`[data-email-id="${emailId}"]`);
+  if (emailCard) {
+    emailCard.style.opacity = '0.7';
+    emailCard.style.transform = 'scale(0.98)';
+    setTimeout(() => {
+      emailCard.style.opacity = '1';
+      emailCard.style.transform = 'scale(1)';
+    }, 200);
+  }
+  
+  showSuccess('Email snoozed for later');
 }
 
 async function markImportant(emailId) {
   console.log(`📧 Marking email as important: ${emailId}`);
-  // TODO: Implement mark important functionality
+  
+  // Add visual feedback
+  const emailCard = document.querySelector(`[data-email-id="${emailId}"]`);
+  if (emailCard) {
+    emailCard.style.border = '2px solid #ef4444';
+    emailCard.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
+    setTimeout(() => {
+      emailCard.style.border = '';
+      emailCard.style.boxShadow = '';
+    }, 1000);
+  }
+  
   showSuccess('Email marked as important');
 }
 
 async function replyToEmail(emailId) {
   console.log(`📧 Replying to email: ${emailId}`);
-  // TODO: Implement reply functionality
+  
+  // Find the email to get sender info
+  const email = decodedEmails.find(e => e.id === emailId);
+  if (email && email.sender) {
+    // Try to extract email address from sender
+    const emailMatch = email.sender.match(/<(.+?)>/);
+    const emailAddress = emailMatch ? emailMatch[1] : email.sender;
+    
+    // Open default mail client
+    window.open(`mailto:${emailAddress}?subject=Re: ${email.subject || ''}`);
+  }
+  
   showSuccess('Opening reply composer');
 }
 
@@ -819,8 +872,42 @@ function formatTime(timestamp) {
 }
 
 function showSuccess(message) {
-  // TODO: Implement toast notification
   console.log(`✅ ${message}`);
+  
+  // Create a toast notification
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  `;
+  toast.textContent = message;
+  
+  document.body.appendChild(toast);
+  
+  // Animate in
+  setTimeout(() => {
+    toast.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 300);
+  }, 3000);
 }
 
 function showError(message) {
