@@ -1609,23 +1609,28 @@ Body: ${body}
           };
         }
 
-        // --- Extract images and links for commerce emails ---
+        // --- Extract images and links for all emails ---
         let previewImage = null;
         let actionLinks = [];
-        if (parsedAnalysis.category === 'Commerce Inbox' && htmlBody) {
-          // Extract first image URL
-          const imgMatch = htmlBody.match(/<img[^>]+src=["']([^"'>]+)["']/i);
-          if (imgMatch) {
-            previewImage = imgMatch[1];
+        if (htmlBody) {
+          // For commerce emails, extract first image
+          if (parsedAnalysis.category === 'Commerce Inbox') {
+            const imgMatch = htmlBody.match(/<img[^>]+src=["']([^"'>]+)["']/i);
+            if (imgMatch) {
+              previewImage = imgMatch[1];
+            }
           }
-          // Extract all links
+          // Extract all links for all emails
           const linkRegex = /<a[^>]+href=["']([^"'>]+)["']/gi;
           let match;
           while ((match = linkRegex.exec(htmlBody)) !== null) {
             actionLinks.push(match[1]);
           }
         }
-
+        // For schedule/calendar emails, add a special action
+        if ((parsedAnalysis.category === 'On the Calendar' || parsedAnalysis.category === 'Schedule' || parsedAnalysis.category === 'Calendar') && !actionLinks.includes('add-to-calendar')) {
+          actionLinks.unshift('add-to-calendar');
+        }
         const processedEmail = {
           id: email.id,
           sender: from || 'Unknown Sender',

@@ -328,6 +328,12 @@ function createActionButton(action, email) {
     }
   }
 
+  // Special handling for add-to-calendar actionLink
+  if (action === 'add-to-calendar' && (mapCategory(email.category) === 'schedule' || mapCategory(email.category) === 'calendar')) {
+    const safeSummary = email.summary.replace(/'/g, "\\'");
+    return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); addToCalendar('${safeSummary}', ${email.timestamp})">Add to Calendar</button>`;
+  }
+
   // If action is a URL, render as <a>
   if (isUrl(action)) {
     return `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" href="${action}" target="_blank" rel="noopener" onclick="showActionLoading(this)">Open Link</a>`;
@@ -336,12 +342,6 @@ function createActionButton(action, email) {
   if (isMailto(action)) {
     const mail = action.startsWith('mailto:') ? action : `mailto:${action}`;
     return `<a class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" href="${mail}" onclick="showActionLoading(this)">Reply</a>`;
-  }
-  // If action is Add to Calendar and this is a schedule item, trigger calendar
-  if (actionLower.includes('add to calendar') && mapCategory(email.category) === 'schedule') {
-    // Escape single quotes in summary for JS string
-    const safeSummary = email.summary.replace(/'/g, "\\'");
-    return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); addToCalendar('${safeSummary}', ${email.timestamp})">Add to Calendar</button>`;
   }
   if (actionLower.includes('archive') || actionLower.includes('dismiss')) {
     return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); archiveEmail('${email.id}')">Archive</button>`;
@@ -435,6 +435,8 @@ function createDecoderCard(email) {
       previewImageHtml = `<div class="commerce-preview-img-wrapper" style="width:100%;text-align:center;margin-bottom:0.75rem;"><i data-lucide="shopping-bag" style="font-size:2.5rem;color:#f59e42;"></i></div>`;
     }
   }
+  // Add archive button
+  const archiveBtn = `<button class="btn-secondary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); archiveEmail('${email.id}')">Archive</button>`;
   return `
     <div class="decoder-card" data-email-id="${email.id}" style="border-radius: 14px; box-shadow: 0 2px 8px #e0e7ff; background: #fff; margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; transition: all 0.3s ease;">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -444,7 +446,8 @@ function createDecoderCard(email) {
       ${previewImageHtml}
       <div class="decoder-summary-text" style="font-size: 1.08rem; color: #22223b; font-weight: 500; line-height: 1.5;">${email.summary}</div>
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        ${actions.map(action => createActionButton(action, email)).join('')}
+        ${(email.actionLinks || []).map(action => createActionButton(action, email)).join('')}
+        ${archiveBtn}
       </div>
       ${feedbackHtml}
     </div>
