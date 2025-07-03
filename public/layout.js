@@ -1058,6 +1058,27 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.addEventListener('DOMContentLoaded', nukeRogueNavs);
 
+    // Find the HomeOps logo element and remove any click or link behavior
+    window.addEventListener('DOMContentLoaded', function() {
+      const logo = document.querySelector('.homeops-logo, #homeops-logo, .header-logo, .logo');
+      if (logo) {
+        // Remove anchor tag if present
+        if (logo.tagName === 'A') {
+          const parent = logo.parentNode;
+          const img = logo.querySelector('img, svg');
+          if (img) {
+            parent.insertBefore(img, logo);
+          }
+          parent.removeChild(logo);
+        } else {
+          // Remove any click handlers
+          logo.onclick = null;
+          logo.style.pointerEvents = 'none';
+          logo.style.cursor = 'default';
+        }
+      }
+    });
+
   } catch (err) {
     console.error("💥 layout.js crash:", err);
   }
