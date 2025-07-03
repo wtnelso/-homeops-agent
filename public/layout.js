@@ -431,6 +431,323 @@ document.addEventListener("DOMContentLoaded", () => {
     // Make renderCalendar available globally
     window.renderCalendar = renderCalendar;
 
+    // Modern Calendar Features
+    function updateCalendarStats() {
+      if (!window.calendar) return;
+      
+      const allEvents = window.calendar.getEvents();
+      const now = new Date();
+      const upcomingEvents = allEvents.filter(event => event.start > now);
+      
+      // Update stats
+      const totalEventsEl = document.getElementById('total-events');
+      const upcomingEventsEl = document.getElementById('upcoming-events');
+      
+      if (totalEventsEl) totalEventsEl.textContent = allEvents.length;
+      if (upcomingEventsEl) upcomingEventsEl.textContent = upcomingEvents.length;
+      
+      // Update upcoming events list
+      updateUpcomingEventsList(upcomingEvents.slice(0, 5));
+    }
+
+    function updateUpcomingEventsList(events) {
+      const container = document.getElementById('upcoming-events-list');
+      if (!container) return;
+      
+      if (events.length === 0) {
+        container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem; text-align: center; padding: 1rem;">No upcoming events</p>';
+        return;
+      }
+      
+      container.innerHTML = events.map(event => `
+        <div class="upcoming-event-item" onclick="showEventModal(${JSON.stringify(event).replace(/"/g, '&quot;')})">
+          <div class="upcoming-event-title">${event.title}</div>
+          <div class="upcoming-event-time">${formatEventTime(event.start, event.end)}</div>
+        </div>
+      `).join('');
+    }
+
+    function setupCalendarFilters() {
+      const filterInputs = document.querySelectorAll('.filter-item input[type="checkbox"]');
+      
+      filterInputs.forEach(input => {
+        input.addEventListener('change', function() {
+          const filterType = this.dataset.filter;
+          const isChecked = this.checked;
+          
+          if (filterType === 'all') {
+            // Handle "All Events" checkbox
+            if (isChecked) {
+              // Check all other filters
+              filterInputs.forEach(otherInput => {
+                if (otherInput !== this) {
+                  otherInput.checked = true;
+                }
+              });
+            } else {
+              // Uncheck all other filters
+              filterInputs.forEach(otherInput => {
+                if (otherInput !== this) {
+                  otherInput.checked = false;
+                }
+              });
+            }
+          } else {
+            // Handle individual filter checkboxes
+            const allFilter = document.querySelector('input[data-filter="all"]');
+            if (allFilter) {
+              const otherFilters = Array.from(filterInputs).filter(input => input.dataset.filter !== 'all');
+              const checkedFilters = otherFilters.filter(input => input.checked);
+              
+              if (checkedFilters.length === 0) {
+                // If no filters are checked, uncheck "All Events"
+                allFilter.checked = false;
+              } else if (checkedFilters.length === otherFilters.length) {
+                // If all filters are checked, check "All Events"
+                allFilter.checked = true;
+              }
+            }
+          }
+          
+          applyCalendarFilters();
+        });
+      });
+    }
+
+    function applyCalendarFilters() {
+      if (!window.calendar) return;
+      
+      const allEvents = window.calendar.getEvents();
+      const activeFilters = Array.from(document.querySelectorAll('.filter-item input[type="checkbox"]:checked'))
+        .map(input => input.dataset.filter)
+        .filter(filter => filter !== 'all');
+      
+      allEvents.forEach(event => {
+        const eventType = getEventType(event);
+        const shouldShow = activeFilters.includes('all') || activeFilters.includes(eventType);
+        
+        if (shouldShow) {
+          event.setProp('display', 'auto');
+        } else {
+          event.setProp('display', 'none');
+        }
+      });
+    }
+
+    function getEventType(event) {
+      // Determine event type based on title, description, or other properties
+      const title = event.title.toLowerCase();
+      const description = (event.extendedProps?.description || '').toLowerCase();
+      
+      if (title.includes('appointment') || title.includes('doctor') || title.includes('dentist') || 
+          description.includes('appointment') || description.includes('medical')) {
+        return 'appointment';
+      } else if (title.includes('meeting') || title.includes('call') || title.includes('conference') ||
+                 description.includes('meeting') || description.includes('work')) {
+        return 'meeting';
+      } else if (title.includes('birthday') || title.includes('party') || title.includes('dinner') ||
+                 description.includes('personal') || description.includes('family')) {
+        return 'personal';
+      }
+      
+      return 'personal'; // Default
+    }
+
+    function setupAddEventButton() {
+      const addEventBtn = document.getElementById('add-event-btn');
+      if (addEventBtn) {
+        addEventBtn.addEventListener('click', function() {
+          showAddEventModal();
+        });
+      }
+    }
+
+    function showAddEventModal() {
+      const modalHTML = `
+        <div id="add-event-modal" class="calendar-injection-overlay">
+          <div class="calendar-injection-modal">
+            <div class="calendar-injection-header">
+              <h2><i data-lucide="plus"></i> Add New Event</h2>
+              <button class="calendar-injection-close" onclick="closeAddEventModal()">×</button>
+            </div>
+            <div class="calendar-injection-content">
+              <form id="add-event-form">
+                <div class="form-group">
+                  <label for="new-event-title">Event Title</label>
+                  <input type="text" id="new-event-title" required>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="new-event-date">Date</label>
+                    <input type="date" id="new-event-date" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="new-event-time">Time</label>
+                    <input type="time" id="new-event-time">
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="new-event-location">Location</label>
+                  <input type="text" id="new-event-location" placeholder="Optional">
+                </div>
+                
+                <div class="form-group">
+                  <label for="new-event-description">Description</label>
+                  <textarea id="new-event-description" rows="3" placeholder="Optional"></textarea>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="new-event-all-day">
+                    <span class="checkmark"></span>
+                    All day event
+                  </label>
+                </div>
+                
+                <div class="calendar-injection-actions">
+                  <button type="button" class="btn-secondary" onclick="closeAddEventModal()">Cancel</button>
+                  <button type="submit" class="btn-primary">
+                    <i data-lucide="calendar-plus"></i>
+                    Add Event
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Add modal to body
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      
+      // Set default date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('new-event-date').value = today;
+      
+      // Add event listeners
+      document.getElementById('add-event-modal').addEventListener('click', function(e) {
+        if (e.target.id === 'add-event-modal') {
+          closeAddEventModal();
+        }
+      });
+      
+      // Handle form submission
+      document.getElementById('add-event-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitNewEvent();
+      });
+      
+      // Add escape key listener
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeAddEventModal();
+        }
+      });
+      
+      // Initialize Lucide icons
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    function closeAddEventModal() {
+      const modal = document.getElementById('add-event-modal');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    async function submitNewEvent() {
+      const title = document.getElementById('new-event-title').value;
+      const date = document.getElementById('new-event-date').value;
+      const time = document.getElementById('new-event-time').value;
+      const location = document.getElementById('new-event-location').value;
+      const description = document.getElementById('new-event-description').value;
+      const allDay = document.getElementById('new-event-all-day').checked;
+      
+      // Combine date and time
+      let startDateTime = date;
+      if (!allDay && time) {
+        startDateTime = `${date}T${time}`;
+      }
+      
+      // Create event data
+      const eventData = {
+        user_id: window.userId || "test_user",
+        title: title,
+        start: startDateTime,
+        allDay: allDay,
+        location: location || null,
+        description: description || null
+      };
+      
+      // Add end time if not all day
+      if (!allDay && time) {
+        const startDate = new Date(startDateTime);
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour later
+        eventData.end = endDate.toISOString();
+      }
+      
+      try {
+        const response = await fetch('/api/add-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(eventData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          closeAddEventModal();
+          
+          // Refresh calendar
+          if (window.calendar && typeof window.calendar.refetchEvents === 'function') {
+            window.calendar.refetchEvents();
+          }
+          
+          // Show success message
+          if (typeof showSuccess === 'function') {
+            showSuccess('Event added to your calendar!');
+          }
+        } else {
+          if (typeof showError === 'function') {
+            showError('Failed to add event to calendar');
+          }
+        }
+      } catch (error) {
+        console.error('Error adding event:', error);
+        if (typeof showError === 'function') {
+          showError('Error adding event to calendar');
+        }
+      }
+    }
+
+    // Make functions globally available
+    window.closeAddEventModal = closeAddEventModal;
+    window.showAddEventModal = showAddEventModal;
+
+    // Initialize modern calendar features when calendar is rendered
+    const originalRenderCalendar = window.renderCalendar;
+    window.renderCalendar = function() {
+      originalRenderCalendar();
+      
+      // Setup modern features after calendar is rendered
+      setTimeout(() => {
+        updateCalendarStats();
+        setupCalendarFilters();
+        setupAddEventButton();
+        
+        // Update stats when events change
+        if (window.calendar) {
+          window.calendar.on('eventAdd', updateCalendarStats);
+          window.calendar.on('eventRemove', updateCalendarStats);
+          window.calendar.on('eventChange', updateCalendarStats);
+        }
+      }, 500);
+    };
+
     // Event Modal System
     function showEventModal(event) {
       // Create modal HTML

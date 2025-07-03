@@ -994,11 +994,79 @@
 
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
-    <div class="view-header" style="justify-content: flex-end;">
-      <button id="clear-events-btn" class="calendar-clear-btn">Clear All Events</button>
+    <div class="modern-calendar-header">
+      <div class="calendar-header-left">
+        <h1 class="calendar-title">
+          <i data-lucide="calendar"></i>
+          Your Calendar
+        </h1>
+        <p class="calendar-subtitle">Manage your schedule and events</p>
+      </div>
+      <div class="calendar-header-right">
+        <div class="calendar-stats">
+          <div class="stat-item">
+            <span class="stat-number" id="total-events">0</span>
+            <span class="stat-label">Events</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="upcoming-events">0</span>
+            <span class="stat-label">Upcoming</span>
+          </div>
+        </div>
+        <div class="calendar-actions">
+          <button class="btn-secondary" id="add-event-btn">
+            <i data-lucide="plus"></i>
+            Add Event
+          </button>
+          <button class="btn-secondary" id="clear-events-btn">
+            <i data-lucide="trash-2"></i>
+            Clear All
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="calendar-outer">
-      <div id="calendar"></div>
+    
+    <div class="modern-calendar-container">
+      <div class="calendar-sidebar">
+        <div class="calendar-filters">
+          <h3>Event Types</h3>
+          <div class="filter-group">
+            <label class="filter-item">
+              <input type="checkbox" checked data-filter="all">
+              <span class="filter-checkmark"></span>
+              <span class="filter-label">All Events</span>
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" checked data-filter="appointment">
+              <span class="filter-checkmark appointment"></span>
+              <span class="filter-label">Appointments</span>
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" checked data-filter="meeting">
+              <span class="filter-checkmark meeting"></span>
+              <span class="filter-label">Meetings</span>
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" checked data-filter="personal">
+              <span class="filter-checkmark personal"></span>
+              <span class="filter-label">Personal</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="upcoming-events">
+          <h3>Upcoming</h3>
+          <div id="upcoming-events-list" class="upcoming-events-list">
+            <!-- Upcoming events will be populated here -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="calendar-main">
+        <div class="calendar-outer">
+          <div id="calendar"></div>
+        </div>
+      </div>
     </div>
   </section>
 

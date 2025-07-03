@@ -362,8 +362,7 @@ function createActionButton(action, email) {
 
   // Special handling for add-to-calendar actionLink
   if (action === 'add-to-calendar' && (mapCategory(email.category) === 'schedule' || mapCategory(email.category) === 'calendar')) {
-    const safeSummary = email.summary.replace(/'/g, "\\'");
-    return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); addToCalendar('${safeSummary}', ${email.timestamp})">Add to Calendar</button>`;
+    return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); addToCalendar('${email.id}')">Add to Calendar</button>`;
   }
 
   // If action is a URL, render as <a>
@@ -392,31 +391,196 @@ function createActionButton(action, email) {
   return `<button class="btn-primary action-btn-loading" style="padding: 0.5rem 1.1rem; font-size: 0.98rem; border-radius: 8px; position: relative;" onclick="showActionLoading(this); handleGenericAction('${safeAction}', '${email.id}')">${action}</button>`;
 }
 
-// Replace Add to Calendar logic to inject into FullCalendar
-window.addToCalendar = function(summary, timestamp) {
-  // Prepare event data
-  const dt = new Date(timestamp);
-  const endDt = new Date(dt.getTime() + 60*60*1000);
-  const event = {
-    title: summary,
-    start: dt.toISOString(),
-    end: endDt.toISOString(),
-    allDay: false
-  };
-  // If calendar is loaded, add event directly
-  if (window.calendar && typeof window.calendar.addEvent === 'function') {
-    window.calendar.addEvent(event);
-    window.calendar.refetchEvents && window.calendar.refetchEvents();
-    showSuccess('Event added to your calendar!');
-    // Optionally, switch to calendar view
-    if (typeof activateView === 'function') activateView('calendar');
-  } else {
-    // If calendar not loaded, queue event for later
-    window.pendingCalendarEvents = window.pendingCalendarEvents || [];
-    window.pendingCalendarEvents.push(event);
-    showSuccess('Event will be added to your calendar when it loads.');
+// Enhanced Add to Calendar with modal for event details
+window.addToCalendar = function(emailId) {
+  // Find the email data
+  const email = decodedEmails.find(e => e.id === emailId);
+  if (!email) {
+    console.error('Email not found for calendar injection:', emailId);
+    return;
   }
+
+  // Extract event details from email
+  const eventDetails = email.eventDetails || {};
+  const defaultTitle = email.subject || email.summary || 'New Event';
+  const defaultDate = email.timestamp ? new Date(email.timestamp) : new Date();
+  
+  // Show the calendar injection modal
+  showCalendarInjectionModal({
+    emailId: emailId,
+    title: eventDetails.title || defaultTitle,
+    date: eventDetails.date || defaultDate.toISOString().split('T')[0],
+    time: eventDetails.time || defaultDate.toTimeString().slice(0, 5),
+    location: eventDetails.location || '',
+    description: eventDetails.description || email.summary || '',
+    allDay: false
+  });
 };
+
+// Calendar Injection Modal
+function showCalendarInjectionModal(eventData) {
+  const modalHTML = `
+    <div id="calendar-injection-modal" class="calendar-injection-overlay">
+      <div class="calendar-injection-modal">
+        <div class="calendar-injection-header">
+          <h2><i data-lucide="calendar-plus"></i> Add to Calendar</h2>
+          <button class="calendar-injection-close" onclick="closeCalendarInjectionModal()">×</button>
+        </div>
+        <div class="calendar-injection-content">
+          <form id="calendar-injection-form">
+            <div class="form-group">
+              <label for="event-title">Event Title</label>
+              <input type="text" id="event-title" value="${eventData.title}" required>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="event-date">Date</label>
+                <input type="date" id="event-date" value="${eventData.date}" required>
+              </div>
+              <div class="form-group">
+                <label for="event-time">Time</label>
+                <input type="time" id="event-time" value="${eventData.time}">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="event-location">Location</label>
+              <input type="text" id="event-location" value="${eventData.location}" placeholder="Optional">
+            </div>
+            
+            <div class="form-group">
+              <label for="event-description">Description</label>
+              <textarea id="event-description" rows="3" placeholder="Optional">${eventData.description}</textarea>
+            </div>
+            
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="event-all-day" ${eventData.allDay ? 'checked' : ''}>
+                <span class="checkmark"></span>
+                All day event
+              </label>
+            </div>
+            
+            <div class="calendar-injection-actions">
+              <button type="button" class="btn-secondary" onclick="closeCalendarInjectionModal()">Cancel</button>
+              <button type="submit" class="btn-primary">
+                <i data-lucide="calendar-plus"></i>
+                Add to Calendar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Add modal to body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Add event listeners
+  document.getElementById('calendar-injection-modal').addEventListener('click', function(e) {
+    if (e.target.id === 'calendar-injection-modal') {
+      closeCalendarInjectionModal();
+    }
+  });
+  
+  // Handle form submission
+  document.getElementById('calendar-injection-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    submitCalendarEvent(eventData.emailId);
+  });
+  
+  // Add escape key listener
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeCalendarInjectionModal();
+    }
+  });
+  
+  // Initialize Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+}
+
+function closeCalendarInjectionModal() {
+  const modal = document.getElementById('calendar-injection-modal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+async function submitCalendarEvent(emailId) {
+  const form = document.getElementById('calendar-injection-form');
+  const formData = new FormData(form);
+  
+  const title = formData.get('event-title') || document.getElementById('event-title').value;
+  const date = formData.get('event-date') || document.getElementById('event-date').value;
+  const time = formData.get('event-time') || document.getElementById('event-time').value;
+  const location = formData.get('event-location') || document.getElementById('event-location').value;
+  const description = formData.get('event-description') || document.getElementById('event-description').value;
+  const allDay = document.getElementById('event-all-day').checked;
+  
+  // Combine date and time
+  let startDateTime = date;
+  if (!allDay && time) {
+    startDateTime = `${date}T${time}`;
+  }
+  
+  // Create event data
+  const eventData = {
+    user_id: getCurrentUserId(),
+    title: title,
+    start: startDateTime,
+    allDay: allDay,
+    location: location || null,
+    description: description || null
+  };
+  
+  // Add end time if not all day
+  if (!allDay && time) {
+    const startDate = new Date(startDateTime);
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour later
+    eventData.end = endDate.toISOString();
+  }
+  
+  try {
+    const response = await fetch('/api/add-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventData)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showSuccess('Event added to your calendar!');
+      closeCalendarInjectionModal();
+      
+      // Refresh calendar if it's loaded
+      if (window.calendar && typeof window.calendar.refetchEvents === 'function') {
+        window.calendar.refetchEvents();
+      }
+      
+      // Optionally switch to calendar view
+      if (typeof activateView === 'function') {
+        activateView('calendar');
+      }
+    } else if (result.duplicate) {
+      showSuccess('Event already exists in your calendar!');
+      closeCalendarInjectionModal();
+    } else {
+      showError('Failed to add event to calendar');
+    }
+  } catch (error) {
+    console.error('Error adding event:', error);
+    showError('Error adding event to calendar');
+  }
+}
+
+// Make functions globally available
+window.closeCalendarInjectionModal = closeCalendarInjectionModal;
 
 // Only show the witty decode button for processing emails
 function renderDecodeButtonOnly() {
