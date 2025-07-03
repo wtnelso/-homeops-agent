@@ -6964,3 +6964,47 @@ body > i,
     justify-content: center;
   }
 }
+
+/* Gradient header for Mission Control */
+.gradient-header {
+  background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 4px 24px rgba(118, 75, 162, 0.08);
+  color: #fff;
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.gradient-header .calendar-title,
+.gradient-header .calendar-subtitle {
+  color: #fff;
+}
+@media (max-width: 768px) {
+  .gradient-header {
+    flex-direction: column;
+    gap: 1.2rem;
+    padding: 1.2rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .gradient-header .calendar-title {
+    font-size: 1.3rem;
+  }
+  .gradient-header .calendar-header-right {
+    align-items: stretch;
+    width: 100%;
+    margin-top: 1rem;
+  }
+  .gradient-header .calendar-stats {
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: space-between;
+  }
+  .gradient-header .calendar-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+}
