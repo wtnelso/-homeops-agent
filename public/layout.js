@@ -277,6 +277,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- Calendar logic remains outside, but only uses window.userIdReady/window.userId
+    function getInitialCalendarView() {
+      if (window.innerWidth <= 768) {
+        return 'listWeek';
+      }
+      return 'dayGridMonth';
+    }
+
     function renderCalendar() {
       console.log("🔄 renderCalendar called");
       
@@ -333,12 +340,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Create calendar with proper event fetching
       window.calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "dayGridMonth",
+        initialView: getInitialCalendarView(),
         height: "auto",
         headerToolbar: {
           left: "prev,next today",
           center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay"
+          right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
         },
         events: function(fetchInfo, successCallback, failureCallback) {
           const userId = window.userId || "test_user";
