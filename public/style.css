@@ -7058,3 +7058,44 @@ body > i,
     overflow-x: auto !important;
   }
 }
+
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+  .modern-calendar-container,
+  .calendar-main,
+  .calendar-outer,
+  .fc,
+  .fc-view-harness,
+  #calendar {
+    width: 100vw !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box;
+  }
+  .fc {
+    margin: 0 auto !important;
+  }
+  .fc-scroller {
+    overflow-x: hidden !important;
+  }
+  .fc-daygrid {
+    min-width: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+  .fc-daygrid-body {
+    min-width: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+  .fc-daygrid-day {
+    min-width: 0 !important;
+    max-width: none !important;
+    box-sizing: border-box;
+  }
+}
