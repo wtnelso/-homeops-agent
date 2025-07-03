@@ -1086,6 +1086,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    // Responsive view switcher for FullCalendar
+    function handleCalendarResize() {
+      if (!window.calendar) return;
+      const isMobile = window.innerWidth <= 768;
+      const currentView = window.calendar.view.type;
+      if (isMobile && currentView !== 'listWeek') {
+        window.calendar.changeView('listWeek');
+      } else if (!isMobile && currentView !== 'dayGridMonth') {
+        window.calendar.changeView('dayGridMonth');
+      }
+    }
+    window.addEventListener('resize', handleCalendarResize);
+    // Also call once after render
+    setTimeout(handleCalendarResize, 1000);
+
   } catch (err) {
     console.error("💥 layout.js crash:", err);
   }
