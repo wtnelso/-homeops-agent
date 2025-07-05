@@ -276,7 +276,13 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // --- Calendar logic remains outside, but only uses window.userIdReady/window.userId
+    // Register FullCalendar List plugin if available
+    if (typeof FullCalendar !== 'undefined' && FullCalendar.ListWeek) {
+      if (FullCalendar.globalPlugins) {
+        FullCalendar.globalPlugins.push(FullCalendar.ListWeek);
+      }
+    }
+
     function getInitialCalendarView() {
       if (window.innerWidth <= 768) {
         return 'listWeek';
@@ -341,11 +347,14 @@ document.addEventListener("DOMContentLoaded", () => {
       // Create calendar with proper event fetching
       window.calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: getInitialCalendarView(),
+        plugins: [
+          ...(typeof FullCalendar !== 'undefined' && FullCalendar.ListWeek ? [FullCalendar.ListWeek] : [])
+        ],
         height: "auto",
         headerToolbar: {
           left: "prev,next today",
           center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
+          right: window.innerWidth <= 768 ? '' : "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
         },
         events: function(fetchInfo, successCallback, failureCallback) {
           const userId = window.userId || "test_user";
@@ -433,6 +442,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const newRect = calendarEl.getBoundingClientRect();
         console.log("🔄 Calendar dimensions after updateSize:", newRect.width, "x", newRect.height);
       }, 200);
+
+      // Force listWeek view on mobile after render
+      if (window.innerWidth <= 768) {
+        window.calendar.changeView('listWeek');
+      }
     }
 
     // Make renderCalendar available globally
@@ -1100,6 +1114,24 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('resize', handleCalendarResize);
     // Also call once after render
     setTimeout(handleCalendarResize, 1000);
+
+    // Diagnostic logging for FullCalendar List plugin
+    window.addEventListener('DOMContentLoaded', function() {
+      if (typeof FullCalendar === 'undefined') {
+        console.error('❌ FullCalendar global object is not defined!');
+      } else {
+        console.log('✅ FullCalendar global object found.');
+        if (typeof FullCalendar.ListWeek === 'undefined') {
+          console.error('❌ FullCalendar.ListWeek is not defined! The list plugin may not be loaded.');
+          const calWarn = document.createElement('div');
+          calWarn.style = 'background:#fee2e2;color:#b91c1c;padding:1rem;border-radius:10px;margin:1rem 0;text-align:center;font-weight:600;';
+          calWarn.innerText = 'Mobile calendar list view is not available. Please check FullCalendar List plugin.';
+          document.body.prepend(calWarn);
+        } else {
+          console.log('✅ FullCalendar.ListWeek is available.');
+        }
+      }
+    });
 
   } catch (err) {
     console.error("💥 layout.js crash:", err);
