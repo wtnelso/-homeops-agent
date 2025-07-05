@@ -84,7 +84,10 @@
         if (toolId === 'chat') {
           setTimeout(() => {
             if (window.initializeChat) {
-              window.initializeChat();
+              const mockUser = {
+                uid: "test_user"
+              };
+              window.initializeChat(null, mockUser);
             }
           }, 50);
         }

@@ -64,10 +64,12 @@ document.addEventListener("DOMContentLoaded", () => {
       // Handle chat initialization when chat view is activated
       if (viewId === 'chat') {
         setTimeout(() => {
-          // Always ensure #chat-root exists
+          // Show the chat tool panel and ensure #chat-root exists
           const chatTool = document.getElementById('chat-tool');
           if (chatTool) {
+            chatTool.style.display = 'block';
             chatTool.innerHTML = '<div id="chat-root"></div>';
+            console.log("💬 Chat tool panel activated and chat-root created");
           }
           // Now initialize chat
           const mockUser = {

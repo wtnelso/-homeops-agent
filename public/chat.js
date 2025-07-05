@@ -4,9 +4,12 @@
 // Refactored chat.js to export initializeChat
 window.initializeChat = function(auth, user) {
   console.log("💬 Initializing chat for user:", user ? user.uid : "test_user");
+  
+  // Retry mechanism if chat-root doesn't exist yet
   const chatRoot = document.getElementById("chat-root");
   if (!chatRoot) {
-    console.error("💬 chat-root element not found");
+    console.log("💬 chat-root element not found, retrying in 100ms...");
+    setTimeout(() => window.initializeChat(auth, user), 100);
     return;
   }
   chatRoot.innerHTML = '';
