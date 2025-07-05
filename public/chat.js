@@ -18,23 +18,15 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   }
   chatRoot.innerHTML = '';
 
+  // Add HomeOps label at the top
+  const label = document.createElement('div');
+  label.className = 'homeops-label';
+  label.textContent = 'HomeOps';
+  chatRoot.appendChild(label);
+
   // Create chat card container
   const chatCard = document.createElement("div");
   chatCard.className = "chat-card";
-
-  // Create header section with logo and HomeOps text
-  const chatBrandHeader = document.createElement("div");
-  chatBrandHeader.className = "chat-brand-header";
-  const logoImg = document.createElement("img");
-  logoImg.src = "img/homeops-logo.svg";
-  logoImg.alt = "HomeOps Logo";
-  logoImg.className = "chat-brand-logo";
-  const brandText = document.createElement("div");
-  brandText.className = "chat-brand-text";
-  brandText.textContent = "HomeOps";
-  chatBrandHeader.appendChild(logoImg);
-  chatBrandHeader.appendChild(brandText);
-  chatCard.appendChild(chatBrandHeader);
 
   // Chat box
   const chatBox = document.createElement("div");
@@ -127,13 +119,15 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     const messageDiv = document.createElement("div");
     messageDiv.className = `message ${sender}`;
     
-    // Agent avatar with HomeOps logo
+    // Assistant avatar
     if (sender === "agent") {
       const avatar = document.createElement("div");
       avatar.className = "agent-avatar";
       const logoImg = document.createElement("img");
       logoImg.src = "img/homeops-logo.svg";
       logoImg.alt = "HomeOps";
+      logoImg.width = 24;
+      logoImg.height = 24;
       avatar.appendChild(logoImg);
       messageDiv.appendChild(avatar);
     }
@@ -146,7 +140,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     }
     
     const messageBubble = document.createElement("div");
-    messageBubble.className = "message-bubble";
+    messageBubble.className = "message-bubble fade-in-bubble";
     messageBubble.textContent = message;
     
     if (bubbleAndChips) {
@@ -155,10 +149,10 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       messageDiv.appendChild(messageBubble);
     }
     
-    // Expanded quick-start chips under first agent message
+    // Quick-start chips
     if (sender === "agent" && opts.showChips) {
       const chips = document.createElement("div");
-      chips.className = "quick-start-chips";
+      chips.className = "quick-start-chips fade-in-chips";
       [
         "Remind me about something",
         "Check what is on my calendar",
@@ -180,6 +174,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       } else {
         messageDiv.appendChild(chips);
       }
+      // Animate chips fade-in
+      setTimeout(() => chips.classList.add('visible'), 300);
     }
     
     if (bubbleAndChips) {
@@ -193,44 +189,43 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     checkScrollButton();
   }
 
-  // Add welcome message with brand label
-  function addWelcomeMessage() {
-    const welcomeDiv = document.createElement("div");
-    welcomeDiv.className = "welcome-message";
-    
-    const brandLabel = document.createElement("div");
-    brandLabel.className = "brand-label";
-    brandLabel.textContent = "HomeOps";
-    welcomeDiv.appendChild(brandLabel);
-    
-    chatBox.appendChild(welcomeDiv);
+  // Typing indicator
+  function showTypingIndicator() {
+    let typing = document.querySelector('.typing-indicator');
+    if (!typing) {
+      typing = document.createElement('div');
+      typing.className = 'typing-indicator';
+      typing.innerHTML = '<span>HomeOps is thinking...</span>';
+      chatBox.appendChild(typing);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  }
+  function hideTypingIndicator() {
+    const typing = document.querySelector('.typing-indicator');
+    if (typing) typing.remove();
   }
 
-  // Scroll-to-bottom button functionality
+  // Scroll-to-bottom button logic (show only if overflow)
   function checkScrollButton() {
-    const isScrolledToBottom = chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 10;
-    const scrollBtn = document.querySelector('.scroll-to-bottom');
-    
-    if (!isScrolledToBottom) {
-      if (!scrollBtn) {
-        const btn = document.createElement("button");
-        btn.className = "scroll-to-bottom visible";
+    let btn = document.querySelector('.scroll-to-bottom');
+    if (chatBox.scrollHeight > chatBox.clientHeight + 40) {
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.className = 'scroll-to-bottom';
         btn.onclick = () => {
           chatBox.scrollTop = chatBox.scrollHeight;
         };
-        chatBox.appendChild(btn);
+        chatRoot.appendChild(btn);
       }
-    } else if (scrollBtn) {
-      scrollBtn.remove();
+      btn.classList.add('visible');
+    } else if (btn) {
+      btn.classList.remove('visible');
     }
   }
 
   // Listen for scroll events
   chatBox.addEventListener('scroll', checkScrollButton);
 
-  // Add welcome message first
-  addWelcomeMessage();
-  
   // Add initial greeting (with chips)
   addMessage("agent", "Welcome to HomeOps — your mental load operating system. What is top of mind?", { showChips: true });
   
@@ -245,11 +240,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     input.value = "";
     
     // Show typing indicator
-    const typingDiv = document.createElement("div");
-    typingDiv.className = "typing-indicator";
-    typingDiv.innerHTML = '<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDNDMTMuODY2IDMgMTcgNi4xMzQwMSAxNyAxMEMxNyAxMy44NjYgMTMuODY2IDE3IDEwIDE3QzYuMTM0MDEgMTcgMyAxMy44NjYgMyAxMEMzIDYuMTM0MDEgNi4xMzQwMSAzIDEwIDNaTTEwIDVjLTIuNzYxNDIgMC01IDIuMjM4NTgtNSA1czIuMjM4NTggNSA1IDVjMi43NjE0MiAwIDUtMi4yMzg1OCA1LTVTMTIuNzYxNCA1IDEwIDVaIiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik04IDhDOC44Mjg0MyA4IDkuNSA4LjY3MTU3IDkuNSA5LjVDOS41IDEwLjMyODQgOC44Mjg0MyAxMSA4IDExQzcuMTcxNTcgMTEgNi41IDEwLjMyODQgNi41IDkuNUM2LjUgOC42NzE1NyA3LjE3MTU3IDggOCA4WiIgZmlsbD0iIzk5OSIvPgo8cGF0aCBkPSJNMTIgOEMxMi44Mjg0IDggMTMuNSA4LjY3MTU3IDEzLjUgOS41QzEzLjUgMTAuMzI4NCAxMi44Mjg0IDExIDEyIDExQzExLjE3MTYgMTEgMTAuNSAxMC4zMjg0IDEwLjUgOS41QzEwLjUgOC42NzE1NyAxMS4xNzE2IDggMTIgOFoiIGZpbGw9IiM5OTkiLz4KPC9zdmc+Cg==" alt="Typing" /><span>HomeOps is thinking...</span>';
-    chatBox.appendChild(typingDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    showTypingIndicator();
     
     try {
       // Use the user ID from window.userId (set by Firebase auth) or fallback to test_user
@@ -268,9 +259,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       const data = await response.json();
       
       // Remove typing indicator
-      if (typingDiv.parentNode) {
-        chatBox.removeChild(typingDiv);
-      }
+      hideTypingIndicator();
       
       // Add agent message (use data.reply, not data.response)
       if (data.reply && data.reply.trim()) {
@@ -371,9 +360,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     } catch (error) {
       console.error("💬 Chat error:", error);
       // Remove typing indicator
-      if (typingDiv.parentNode) {
-        chatBox.removeChild(typingDiv);
-      }
+      hideTypingIndicator();
       // Add error message
       addMessage("agent", "Sorry, I'm having trouble connecting right now. Please try again.");
     }
