@@ -1146,6 +1146,8 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('resize', enforceMobileCalendarView);
     setTimeout(enforceMobileCalendarView, 1000);
 
+    setupAddEventButton();
+
   } catch (err) {
     console.error("💥 layout.js crash:", err);
   }
