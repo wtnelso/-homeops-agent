@@ -1134,6 +1134,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (el) el.textContent = score;
     };
 
+    function enforceMobileCalendarView() {
+      if (!window.calendar) return;
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile && window.calendar.view.type !== 'listWeek') {
+        window.calendar.changeView('listWeek');
+      } else if (!isMobile && window.calendar.view.type !== 'dayGridMonth') {
+        window.calendar.changeView('dayGridMonth');
+      }
+    }
+    window.addEventListener('resize', enforceMobileCalendarView);
+    setTimeout(enforceMobileCalendarView, 1000);
+
   } catch (err) {
     console.error("💥 layout.js crash:", err);
   }

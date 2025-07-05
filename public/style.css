@@ -7134,3 +7134,20 @@ body > i,
     justify-content: center;
   }
 }
+
+@media (max-width: 768px) {
+  #calendar,
+  .calendar-outer,
+  .calendar-main,
+  .fc,
+  .fc-view-harness {
+    width: 100vw !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+  .fc-toolbar-chunk:last-child {
+    display: none !important;
+  }
+}
