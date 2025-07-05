@@ -80,6 +80,15 @@
         activePanel.style.display = 'block';
         console.log(`✅ Tool panel ${toolId}-tool activated`);
         
+        // Initialize chat if needed
+        if (toolId === 'chat') {
+          setTimeout(() => {
+            if (window.initializeChat) {
+              window.initializeChat();
+            }
+          }, 50);
+        }
+        
         // Initialize decoder if needed
         if (toolId === 'decoder') {
           setTimeout(() => {
@@ -117,5 +126,6 @@
   </script>
   
   <script src="dashboard.js"></script>
+  <script src="chat.js"></script>
 </body>
 </html> 
