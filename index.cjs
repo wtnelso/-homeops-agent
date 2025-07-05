@@ -1412,6 +1412,51 @@ app.post('/api/email-decoder/process', async (req, res) => {
   });
   
   try {
+    // Get user preferences for personalized analysis
+    let userPreferences = null;
+    try {
+      const preferencesDoc = await db.collection('user_preferences').doc(user_id).get();
+      if (preferencesDoc.exists) {
+        userPreferences = preferencesDoc.data();
+        console.log('✅ Loaded user preferences for personalized analysis');
+      }
+    } catch (prefError) {
+      console.log('⚠️ Could not load user preferences, proceeding with default analysis');
+    }
+    
+    // Create personalized prompt based on user preferences
+    let personalizedPrompt = emailTonePrompt;
+    if (userPreferences) {
+      const preferenceContext = [];
+      
+      if (userPreferences.school_keywords) {
+        preferenceContext.push(`School/Education Keywords: ${userPreferences.school_keywords}`);
+      }
+      if (userPreferences.family_keywords) {
+        preferenceContext.push(`Family Activities: ${userPreferences.family_keywords}`);
+      }
+      if (userPreferences.healthcare_keywords) {
+        preferenceContext.push(`Healthcare Providers: ${userPreferences.healthcare_keywords}`);
+      }
+      if (userPreferences.work_keywords) {
+        preferenceContext.push(`Work/Company Keywords: ${userPreferences.work_keywords}`);
+      }
+      if (userPreferences.business_keywords) {
+        preferenceContext.push(`Business Terms: ${userPreferences.business_keywords}`);
+      }
+      if (userPreferences.shopping_keywords) {
+        preferenceContext.push(`Shopping/Brands: ${userPreferences.shopping_keywords}`);
+      }
+      if (userPreferences.services_keywords) {
+        preferenceContext.push(`Important Services: ${userPreferences.services_keywords}`);
+      }
+      
+      if (preferenceContext.length > 0) {
+        personalizedPrompt = `${emailTonePrompt}\n\n---\n\nPERSONALIZATION CONTEXT:\nThe user has specified these important keywords and contexts:\n${preferenceContext.join('\n')}\n\nWhen analyzing emails, pay special attention to these keywords and contexts. Emails containing these terms should be prioritized appropriately based on their relevance to the user's life.\n\n---\n\n`;
+        console.log('🎯 Using personalized prompt with user preferences');
+      }
+    }
+    
     // Get Gmail tokens
     const tokenDoc = await db.collection('gmail_tokens').doc(user_id).get();
     if (!tokenDoc.exists) {
@@ -1568,7 +1613,7 @@ app.post('/api/email-decoder/process', async (req, res) => {
           // Use the same GPT prompt and fallback logic as for real emails
           // ... (copy the GPT prompt, OpenAI call, and fallback CTA logic here, using the mock fields) ...
           // --- STRUCTURED GPT PROMPT ---
-          const gptPrompt = `${emailTonePrompt}\n\n---\n\nEmail:\nSubject: ${subject}\nFrom: ${from}\nDate: ${date}\nBody: ${body}`;
+          const gptPrompt = `${personalizedPrompt}\n\n---\n\nEmail:\nSubject: ${subject}\nFrom: ${from}\nDate: ${date}\nBody: ${body}`;
           const analysis = await callOpenAI(gptPrompt);
           let parsedAnalysis;
           try {
@@ -1722,7 +1767,7 @@ app.post('/api/email-decoder/process', async (req, res) => {
         // --- LOGGING ---
         console.log('🔍 Sending to GPT:', { subject, from, date, body });
         // --- STRUCTURED GPT PROMPT ---
-        const gptPrompt = `${emailTonePrompt}\n\n---\n\nEmail:\nSubject: ${subject}\nFrom: ${from}\nDate: ${date}\nBody: ${body}`;
+        const gptPrompt = `${personalizedPrompt}\n\n---\n\nEmail:\nSubject: ${subject}\nFrom: ${from}\nDate: ${date}\nBody: ${body}`;
         // --- END STRUCTURED PROMPT ---
 
         const analysis = await callOpenAI(gptPrompt);
@@ -2570,3 +2615,210 @@ try {
   const raw = fs.readFileSync(mockPath, 'utf8');
   mockEmails = JSON.parse(raw);
 } catch (e) { mockEmails = []; }
+
+// User Preferences API - Save personalization data
+app.post('/api/user-preferences/save', async (req, res) => {
+  const { 
+    user_id, 
+    school_keywords, 
+    family_keywords, 
+    healthcare_keywords, 
+    work_keywords, 
+    business_keywords, 
+    shopping_keywords, 
+    services_keywords,
+    timestamp 
+  } = req.body;
+  
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+  
+  try {
+    console.log('💾 Saving user preferences for:', user_id);
+    
+    const preferencesData = {
+      user_id,
+      school_keywords: school_keywords || '',
+      family_keywords: family_keywords || '',
+      healthcare_keywords: healthcare_keywords || '',
+      work_keywords: work_keywords || '',
+      business_keywords: business_keywords || '',
+      shopping_keywords: shopping_keywords || '',
+      services_keywords: services_keywords || '',
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+    
+    // Save to Firestore
+    await db.collection('user_preferences').doc(user_id).set(preferencesData);
+    
+    console.log('✅ User preferences saved successfully');
+    res.json({ 
+      success: true, 
+      message: 'Preferences saved successfully',
+      data: preferencesData
+    });
+    
+  } catch (error) {
+    console.error('❌ Error saving user preferences:', error);
+    res.status(500).json({ error: 'Failed to save preferences' });
+  }
+});
+
+// User Preferences API - Get personalization data
+app.get('/api/user-preferences/:user_id', async (req, res) => {
+  const { user_id } = req.params;
+  
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+  
+  try {
+    console.log('📖 Fetching user preferences for:', user_id);
+    
+    const preferencesDoc = await db.collection('user_preferences').doc(user_id).get();
+    
+    if (!preferencesDoc.exists) {
+      return res.json({ 
+        success: true, 
+        data: null,
+        message: 'No preferences found for this user'
+      });
+    }
+    
+    const preferencesData = preferencesDoc.data();
+    console.log('✅ User preferences retrieved successfully');
+    
+    res.json({ 
+      success: true, 
+      data: preferencesData
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching user preferences:', error);
+    res.status(500).json({ error: 'Failed to fetch preferences' });
+  }
+});
+
+// User Insights API - Get insights for a user
+app.get('/api/user-insights/:user_id', async (req, res) => {
+  const { user_id } = req.params;
+  
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+  
+  try {
+    console.log('💡 Fetching user insights for:', user_id);
+    
+    const insightsSnapshot = await db.collection('user_insights')
+      .where('userId', '==', user_id)
+      .orderBy('timestamp', 'desc')
+      .limit(10)
+      .get();
+    
+    const insights = [];
+    insightsSnapshot.forEach(doc => {
+      insights.push(doc.data());
+    });
+    
+    console.log('✅ User insights retrieved successfully');
+    
+    res.json({ 
+      success: true, 
+      insights: insights
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching user insights:', error);
+    res.status(500).json({ error: 'Failed to fetch insights' });
+  }
+});
+
+// User Recommendations API - Get personalized recommendations
+app.get('/api/user-recommendations/:user_id', async (req, res) => {
+  const { user_id } = req.params;
+  
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+  
+  try {
+    console.log('🎯 Generating recommendations for:', user_id);
+    
+    // Get user preferences
+    const preferencesDoc = await db.collection('user_preferences').doc(user_id).get();
+    const preferences = preferencesDoc.exists ? preferencesDoc.data() : {};
+    
+    // Get recent feedback
+    const feedbackSnapshot = await db.collection('decoder_feedback')
+      .where('userId', '==', user_id)
+      .orderBy('timestamp', 'desc')
+      .limit(20)
+      .get();
+    
+    const recommendations = [];
+    
+    // Generate recommendations based on preferences and feedback
+    if (preferences.school_keywords) {
+      recommendations.push({
+        type: 'school_priority',
+        title: 'School Communications',
+        message: `Prioritizing emails from: ${preferences.school_keywords}`,
+        priority: 'high'
+      });
+    }
+    
+    if (preferences.healthcare_keywords) {
+      recommendations.push({
+        type: 'healthcare_priority',
+        title: 'Healthcare Updates',
+        message: `Monitoring emails from: ${preferences.healthcare_keywords}`,
+        priority: 'high'
+      });
+    }
+    
+    // Add feedback-based recommendations
+    const positiveFeedback = [];
+    const negativeFeedback = [];
+    
+    feedbackSnapshot.forEach(doc => {
+      const feedback = doc.data();
+      if (feedback.feedback === 'positive') {
+        positiveFeedback.push(feedback);
+      } else {
+        negativeFeedback.push(feedback);
+      }
+    });
+    
+    if (positiveFeedback.length > 0) {
+      recommendations.push({
+        type: 'positive_pattern',
+        title: 'What You Like',
+        message: `You've given positive feedback to ${positiveFeedback.length} emails recently`,
+        priority: 'medium'
+      });
+    }
+    
+    if (negativeFeedback.length > 0) {
+      recommendations.push({
+        type: 'negative_pattern',
+        title: 'What You Don\'t Like',
+        message: `You've given negative feedback to ${negativeFeedback.length} emails recently`,
+        priority: 'medium'
+      });
+    }
+    
+    console.log('✅ User recommendations generated successfully');
+    
+    res.json({ 
+      success: true, 
+      recommendations: recommendations
+    });
+    
+  } catch (error) {
+    console.error('❌ Error generating recommendations:', error);
+    res.status(500).json({ error: 'Failed to generate recommendations' });
+  }
+});

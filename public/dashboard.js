@@ -1577,13 +1577,87 @@ window.connectGmail = function() {
   if (originalConnectGmail) {
     originalConnectGmail();
   }
+  // After successful connection, advance to personalization step
+  setTimeout(() => {
+    showWizardStep(2);
+  }, 2000); // Give time for connection to complete
 };
 
-// Initialize wizard when onboarding state is shown
-function initializeWizard() {
-  console.log('🎯 Initializing onboarding wizard');
-  showWizardStep(1);
+// Save personalization data and continue to next step
+window.savePersonalizationAndContinue = function() {
+  console.log('💾 Saving personalization data...');
+  
+  // Collect all the keyword inputs
+  const personalizationData = {
+    school_keywords: document.getElementById('school-keywords')?.value || '',
+    family_keywords: document.getElementById('family-keywords')?.value || '',
+    healthcare_keywords: document.getElementById('healthcare-keywords')?.value || '',
+    work_keywords: document.getElementById('work-keywords')?.value || '',
+    business_keywords: document.getElementById('business-keywords')?.value || '',
+    shopping_keywords: document.getElementById('shopping-keywords')?.value || '',
+    services_keywords: document.getElementById('services-keywords')?.value || '',
+    user_id: getCurrentUserId(),
+    timestamp: new Date().toISOString()
+  };
+  
+  console.log('💾 Personalization data:', personalizationData);
+  
+  // Save to localStorage for immediate use
+  localStorage.setItem('userPersonalization', JSON.stringify(personalizationData));
+  
+  // Save to backend for persistence
+  fetch('/api/user-preferences/save', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(personalizationData)
+  }).then(response => {
+    if (response.ok) {
+      console.log('✅ Personalization data saved successfully');
+    } else {
+      console.error('❌ Failed to save personalization data');
+    }
+  }).catch(error => {
+    console.error('❌ Error saving personalization data:', error);
+  });
+  
+  // Continue to next step (email processing)
+  showWizardStep(3);
+};
+
+// Load personalization data when step 2 is shown
+function loadPersonalizationData() {
+  const savedData = localStorage.getItem('userPersonalization');
+  if (savedData) {
+    try {
+      const data = JSON.parse(savedData);
+      if (data.school_keywords) document.getElementById('school-keywords').value = data.school_keywords;
+      if (data.family_keywords) document.getElementById('family-keywords').value = data.family_keywords;
+      if (data.healthcare_keywords) document.getElementById('healthcare-keywords').value = data.healthcare_keywords;
+      if (data.work_keywords) document.getElementById('work-keywords').value = data.work_keywords;
+      if (data.business_keywords) document.getElementById('business-keywords').value = data.business_keywords;
+      if (data.shopping_keywords) document.getElementById('shopping-keywords').value = data.shopping_keywords;
+      if (data.services_keywords) document.getElementById('services-keywords').value = data.services_keywords;
+    } catch (error) {
+      console.error('❌ Error loading personalization data:', error);
+    }
+  }
 }
+
+// Update the showWizardStep function to load personalization data when step 2 is shown
+const originalShowWizardStep = window.showWizardStep;
+window.showWizardStep = function(stepNumber) {
+  // Call the original function
+  if (originalShowWizardStep) {
+    originalShowWizardStep(stepNumber);
+  }
+  
+  // Load personalization data when step 2 is shown
+  if (stepNumber === 2) {
+    setTimeout(loadPersonalizationData, 100);
+  }
+};
 
 // 🎯 STATE CONTAINERS */ 
 

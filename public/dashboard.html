@@ -758,9 +758,150 @@
                   </div>
                 </div>
 
-                <!-- Step 2: Process Emails -->
+                <!-- Step 2: Personalize Your Experience -->
                 <div id="step-2" class="wizard-step" style="display: none;">
                   <div class="step-number">2</div>
+                  <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Personalize Your Experience</h2>
+                  <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
+                    Help us understand what matters to you. This makes the email decoder smarter and more relevant to your life.
+                  </p>
+                  
+                  <!-- Family & School Section -->
+                  <div class="personalization-section" style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; text-align: left;">
+                    <h3 style="font-size: 1.3rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                      <span style="color: #22c55e;">👨‍👩‍👧‍👦</span>
+                      Family & School
+                    </h3>
+                    <div class="keyword-input-group" style="margin-bottom: 1rem;">
+                      <label style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">School names or districts:</label>
+                      <input type="text" id="school-keywords" placeholder="e.g., Lincoln Elementary, PTA, school district" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 1px solid #d1d5db;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        background: white;
+                      ">
+                    </div>
+                    <div class="keyword-input-group" style="margin-bottom: 1rem;">
+                      <label style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Family activities & clubs:</label>
+                      <input type="text" id="family-keywords" placeholder="e.g., soccer, dance, scouts, swim team" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 1px solid #d1d5db;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        background: white;
+                      ">
+                    </div>
+                    <div class="keyword-input-group">
+                      <label style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Healthcare providers:</label>
+                      <input type="text" id="healthcare-keywords" placeholder="e.g., Dr. Smith, pediatrician, dentist, pharmacy" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 1px solid #d1d5db;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        background: white;
+                      ">
+                    </div>
+                  </div>
+
+                  <!-- Work & Business Section -->
+                  <div class="personalization-section" style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; text-align: left;">
+                    <h3 style="font-size: 1.3rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                      <span style="color: #3b82f6;">💼</span>
+                      Work & Business
+                    </h3>
+                    <div class="keyword-input-group" style="margin-bottom: 1rem;">
+                      <label style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Company names:</label>
+                      <input type="text" id="work-keywords" placeholder="e.g., Acme Corp, client names, project names" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 1px solid #d1d5db;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        background: white;
+                      ">
+                    </div>
+                    <div class="keyword-input-group">
+                      <label style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Important business terms:</label>
+                      <input type="text" id="business-keywords" placeholder="e.g., invoice, contract, meeting, deadline" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 1px solid #d1d5db;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        background: white;
+                      ">
+                    </div>
+                  </div>
+
+                  <!-- Shopping & Services Section -->
+                  <div class="personalization-section" style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
+                    <h3 style="font-size: 1.3rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                      <span style="color: #f59e42;">🛒</span>
+                      Shopping & Services
+                    </h3>
+                    <div class="keyword-input-group" style="margin-bottom: 1rem;">
+                      <label style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Favorite stores & brands:</label>
+                      <input type="text" id="shopping-keywords" placeholder="e.g., Amazon, Target, Costco, favorite brands" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 1px solid #d1d5db;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        background: white;
+                      ">
+                    </div>
+                    <div class="keyword-input-group">
+                      <label style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Important services:</label>
+                      <input type="text" id="services-keywords" placeholder="e.g., utilities, insurance, subscriptions" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 1px solid #d1d5db;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        background: white;
+                      ">
+                    </div>
+                  </div>
+
+                  <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button onclick="showWizardStep(1)" class="wizard-btn secondary" style="
+                      background: #f1f5f9;
+                      color: #64748b;
+                      border: 1px solid #e2e8f0;
+                      padding: 0.75rem 1.5rem;
+                      border-radius: 8px;
+                      font-weight: 600;
+                      cursor: pointer;
+                    ">
+                      ← Back
+                    </button>
+                    <button onclick="savePersonalizationAndContinue()" class="wizard-btn primary" style="
+                      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                      color: white;
+                      border: none;
+                      padding: 0.75rem 1.5rem;
+                      border-radius: 8px;
+                      font-size: 1rem;
+                      font-weight: 600;
+                      cursor: pointer;
+                      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                      transition: all 0.2s;
+                    ">
+                      Continue →
+                    </button>
+                  </div>
+                  <div style="margin-top: 1rem; color: #64748b; font-size: 0.9rem;">
+                    💡 You can update these preferences anytime in settings
+                  </div>
+                </div>
+
+                <!-- Step 3: Process Emails -->
+                <div id="step-3" class="wizard-step" style="display: none;">
+                  <div class="step-number">3</div>
                   <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Process Your Emails</h2>
                   <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
                     Now let's analyze your inbox and organize your emails into categories. This will take a few moments.
@@ -792,9 +933,9 @@
                   </div>
                 </div>
 
-                <!-- Step 3: Review & Train -->
-                <div id="step-3" class="wizard-step" style="display: none;">
-                  <div class="step-number">3</div>
+                <!-- Step 4: Review & Train -->
+                <div id="step-4" class="wizard-step" style="display: none;">
+                  <div class="step-number">4</div>
                   <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Review & Train</h2>
                   <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
                     Help us learn your preferences by giving thumbs up/down to email categorizations. This makes the decoder smarter for you.
@@ -864,9 +1005,9 @@
                   </button>
                 </div>
 
-                <!-- Step 4: Add to Calendar -->
-                <div id="step-4" class="wizard-step" style="display: none;">
-                  <div class="step-number">4</div>
+                <!-- Step 5: Add to Calendar -->
+                <div id="step-5" class="wizard-step" style="display: none;">
+                  <div class="step-number">5</div>
                   <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Add Events to Calendar</h2>
                   <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
                     Found events in your emails? Add them directly to your calendar with one click.
@@ -934,6 +1075,8 @@
                   <div class="progress-step" data-step="3">3</div>
                   <div class="progress-line"></div>
                   <div class="progress-step" data-step="4">4</div>
+                  <div class="progress-line"></div>
+                  <div class="progress-step" data-step="5">5</div>
                 </div>
 
               </div>
