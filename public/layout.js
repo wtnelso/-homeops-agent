@@ -1148,6 +1148,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setupAddEventButton();
 
+    // On DOMContentLoaded, animate logo
+    window.addEventListener('DOMContentLoaded', function() {
+      const logo = document.querySelector('.homeops-logo-icon');
+      if (logo) {
+        logo.style.animation = 'logoPulse 1.2s cubic-bezier(.4,0,.2,1) 1';
+      }
+    });
+
   } catch (err) {
     console.error("💥 layout.js crash:", err);
   }

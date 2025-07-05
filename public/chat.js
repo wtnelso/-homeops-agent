@@ -67,23 +67,63 @@ window.initializeChat = function(auth, user) {
     return '';
   }
   
-  function addMessage(sender, message) {
+  // Fun, brand-aligned opening lines
+  const openingLines = [
+    "Hi, I'm HomeOps — your mental load operating system. What's on your plate today?",
+    "Hey there! HomeOps here. What can I help you clear off your list?",
+    "Welcome to HomeOps — your family's chief of staff. What's top of mind?",
+    "Hi! I'm HomeOps. Ready to help you decode, plan, and conquer your day.",
+    "Hello! HomeOps at your service. What's the first thing you want to tackle?"
+  ];
+  function getOpeningLine() {
+    return openingLines[Math.floor(Math.random() * openingLines.length)];
+  }
+  
+  function addMessage(sender, message, opts = {}) {
     const messageDiv = document.createElement("div");
     messageDiv.className = `message ${sender}`;
+    // Agent avatar
+    if (sender === "agent") {
+      const avatar = document.createElement("div");
+      avatar.className = "agent-avatar";
+      avatar.textContent = "HO";
+      messageDiv.appendChild(avatar);
+    }
     const senderDiv = document.createElement("div");
     senderDiv.className = "sender";
-    senderDiv.textContent = sender === "agent" ? "HomeOps" : "You";
+    senderDiv.textContent = sender === "agent" ? "HOMEOPS" : "You";
     const messageBubble = document.createElement("div");
     messageBubble.className = "message-bubble";
     messageBubble.textContent = message;
     messageDiv.appendChild(senderDiv);
     messageDiv.appendChild(messageBubble);
+    // Quick-start chips under first agent message
+    if (sender === "agent" && opts.showChips) {
+      const chips = document.createElement("div");
+      chips.className = "quick-start-chips";
+      [
+        "Remind me about something",
+        "Check what's on my calendar",
+        "Review recent emails"
+      ].forEach(text => {
+        const chip = document.createElement("button");
+        chip.className = "quick-start-chip";
+        chip.type = "button";
+        chip.textContent = text;
+        chip.onclick = () => {
+          input.value = text;
+          input.focus();
+        };
+        chips.appendChild(chip);
+      });
+      messageDiv.appendChild(chips);
+    }
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
   
-  // Add initial greeting
-  addMessage("agent", "Hi. I'm your personal chief of staff. What can I help you with today?");
+  // Add initial greeting (with chips)
+  addMessage("agent", getOpeningLine(), { showChips: true });
   
   // Handle form submission
   chatForm.addEventListener("submit", async (e) => {
