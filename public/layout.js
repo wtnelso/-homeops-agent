@@ -64,26 +64,17 @@ document.addEventListener("DOMContentLoaded", () => {
       // Handle chat initialization when chat view is activated
       if (viewId === 'chat') {
         setTimeout(() => {
-          const chatBox = document.getElementById('chat');
-          const chatForm = document.getElementById('chatForm');
-          const input = document.getElementById('input');
-          
-          // Check if chat is already initialized (has event listeners)
-          if (chatBox && chatForm && input && !chatForm.hasAttribute('data-initialized')) {
-            console.log("💬 Initializing chat on view activation");
-            // Create a mock user object for development mode
-            const mockUser = {
-              uid: window.userId || "test_user"
-            };
-            // Initialize chat
-            if (window.initializeChat) {
-              window.initializeChat(null, mockUser);
-              chatForm.setAttribute('data-initialized', 'true');
-            }
-          } else if (chatBox && chatForm && input) {
-            console.log("💬 Chat already initialized");
-          } else {
-            console.error("💬 Chat elements not found for initialization");
+          // Always ensure #chat-root exists
+          const chatTool = document.getElementById('chat-tool');
+          if (chatTool) {
+            chatTool.innerHTML = '<div id="chat-root"></div>';
+          }
+          // Now initialize chat
+          const mockUser = {
+            uid: window.userId || "test_user"
+          };
+          if (window.initializeChat) {
+            window.initializeChat(null, mockUser);
           }
         }, 100);
       }
