@@ -2,14 +2,18 @@
 // This prevents race conditions with Firebase initialization
 
 // Refactored chat.js to export initializeChat
-window.initializeChat = function(auth, user) {
+window.initializeChat = function(auth, user, retryCount = 0) {
   console.log("💬 Initializing chat for user:", user ? user.uid : "test_user");
   
-  // Retry mechanism if chat-root doesn't exist yet
+  // Retry mechanism if chat-root doesn't exist yet (max 10 retries)
   const chatRoot = document.getElementById("chat-root");
   if (!chatRoot) {
-    console.log("💬 chat-root element not found, retrying in 100ms...");
-    setTimeout(() => window.initializeChat(auth, user), 100);
+    if (retryCount < 10) {
+      console.log(`💬 chat-root element not found, retrying in 100ms... (attempt ${retryCount + 1}/10)`);
+      setTimeout(() => window.initializeChat(auth, user, retryCount + 1), 100);
+    } else {
+      console.error("💬 chat-root element not found after 10 retries, giving up");
+    }
     return;
   }
   chatRoot.innerHTML = '';

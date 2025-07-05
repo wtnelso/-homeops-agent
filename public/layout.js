@@ -163,10 +163,8 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           window.userId = user.uid;
           window.userIdReady = true;
-          // Initialize chat after Firebase is ready and user is authenticated
-          if (window.initializeChat) {
-            window.initializeChat(auth, user);
-          }
+          // Store user info for later use, but don't auto-initialize chat
+          // Chat will be initialized when the chat view is activated
         }
       });
 
