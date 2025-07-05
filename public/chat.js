@@ -82,21 +82,23 @@ window.initializeChat = function(auth, user) {
   function addMessage(sender, message, opts = {}) {
     const messageDiv = document.createElement("div");
     messageDiv.className = `message ${sender}`;
-    // Agent avatar
+    
+    // Agent avatar with HomeOps logo
     if (sender === "agent") {
       const avatar = document.createElement("div");
       avatar.className = "agent-avatar";
-      avatar.textContent = "HO";
+      const logoImg = document.createElement("img");
+      logoImg.src = "img/homeops-logo.svg";
+      logoImg.alt = "HomeOps";
+      avatar.appendChild(logoImg);
       messageDiv.appendChild(avatar);
     }
-    const senderDiv = document.createElement("div");
-    senderDiv.className = "sender";
-    senderDiv.textContent = sender === "agent" ? "HOMEOPS" : "You";
+    
     const messageBubble = document.createElement("div");
     messageBubble.className = "message-bubble";
     messageBubble.textContent = message;
-    messageDiv.appendChild(senderDiv);
     messageDiv.appendChild(messageBubble);
+    
     // Quick-start chips under first agent message
     if (sender === "agent" && opts.showChips) {
       const chips = document.createElement("div");
@@ -118,9 +120,51 @@ window.initializeChat = function(auth, user) {
       });
       messageDiv.appendChild(chips);
     }
+    
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
+    
+    // Show scroll-to-bottom button if needed
+    checkScrollButton();
   }
+
+  // Add welcome message with brand label
+  function addWelcomeMessage() {
+    const welcomeDiv = document.createElement("div");
+    welcomeDiv.className = "welcome-message";
+    
+    const brandLabel = document.createElement("div");
+    brandLabel.className = "brand-label";
+    brandLabel.textContent = "HomeOps";
+    welcomeDiv.appendChild(brandLabel);
+    
+    chatBox.appendChild(welcomeDiv);
+  }
+
+  // Scroll-to-bottom button functionality
+  function checkScrollButton() {
+    const isScrolledToBottom = chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 10;
+    const scrollBtn = document.querySelector('.scroll-to-bottom');
+    
+    if (!isScrolledToBottom) {
+      if (!scrollBtn) {
+        const btn = document.createElement("button");
+        btn.className = "scroll-to-bottom visible";
+        btn.onclick = () => {
+          chatBox.scrollTop = chatBox.scrollHeight;
+        };
+        chatBox.appendChild(btn);
+      }
+    } else if (scrollBtn) {
+      scrollBtn.remove();
+    }
+  }
+
+  // Listen for scroll events
+  chatBox.addEventListener('scroll', checkScrollButton);
+
+  // Add welcome message first
+  addWelcomeMessage();
   
   // Add initial greeting (with chips)
   addMessage("agent", getOpeningLine(), { showChips: true });

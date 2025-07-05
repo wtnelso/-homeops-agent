@@ -7253,6 +7253,8 @@ body > i,
   margin-bottom: 0.5rem !important;
   max-width: 100% !important;
   min-height: 320px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 /* Message bubbles */
@@ -7328,21 +7330,27 @@ body > i,
   gap: 0.5rem;
   margin: 0.5rem 0 1.5rem 0;
   flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.4s forwards;
 }
 .quick-start-chip {
-  background: #f5f3ff;
-  color: #7c3aed;
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d9d9d9;
   border-radius: 999px;
-  padding: 0.4rem 1.1rem;
-  font-size: 0.97rem;
-  font-weight: 600;
-  border: 1px solid #ececec;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 .quick-start-chip:hover {
-  background: #ede9fe;
-  color: #5b21b6;
+  background: #f3f0ff;
+  border-color: #a78bfa;
+  color: #7c3aed;
+  transform: translateY(-1px);
 }
 
 /* Chat input: pill shape, modern send button */
@@ -7472,5 +7480,367 @@ body > i,
   .chat-form {
     margin: 0 0.5rem 0 0.5rem !important;
     padding: 0.3rem 0.3rem 0.3rem 0.7rem !important;
+  }
+}
+
+/* --- ELEGANT CHAT UI - Notion/Apple Messages Style --- */
+
+/* Remove all previous chat styling */
+#chat-view .chat-wrapper, .chat-box, .message-bubble, .chat-form {
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Chat area: clean, minimal container */
+#chat-view .chat-wrapper {
+  background: #fff;
+  border-radius: 0;
+  border: none;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0;
+  box-shadow: none;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Chat box: full width, no inner card */
+.chat-box {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 1rem 1.5rem 0 1.5rem !important;
+  margin-bottom: 0 !important;
+  max-width: 100% !important;
+  min-height: 320px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Welcome message styling */
+.welcome-message {
+  text-align: center;
+  margin-bottom: 2rem;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.2s forwards;
+}
+
+.welcome-message .brand-label {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 0.5rem;
+  font-weight: 400;
+}
+
+/* Message bubbles: clean, minimal */
+.message {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  animation: fadeInUp 0.4s ease-out;
+  gap: 0.75rem;
+}
+
+.message.agent {
+  flex-direction: row;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+/* Assistant avatar with HomeOps logo */
+.agent-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.agent-avatar img {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+/* Message bubble styling */
+.message-bubble {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #1f2937;
+  max-width: 70%;
+  word-wrap: break-word;
+  border: 1px solid #f3f4f6;
+}
+
+.message.user .message-bubble {
+  background: #6366f1;
+  color: #fff;
+  border-color: #6366f1;
+}
+
+/* Remove sender labels entirely */
+.sender {
+  display: none !important;
+}
+
+/* Quick-start chips: minimalist pills */
+.quick-start-chips {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 1.5rem 0;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.4s forwards;
+}
+
+.quick-start-chip {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d9d9d9;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quick-start-chip:hover {
+  background: #f3f0ff;
+  border-color: #a78bfa;
+  color: #7c3aed;
+  transform: translateY(-1px);
+}
+
+/* Typing indicator: clean and minimal */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #f3f4f6;
+  max-width: 200px;
+  margin-bottom: 1rem;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.typing-indicator span {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.typing-indicator img {
+  width: 16px;
+  height: 16px;
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+
+@keyframes typingBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Chat input: seamless bar */
+.chat-form {
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  margin: 0;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  border-radius: 0;
+}
+
+.chat-form input {
+  flex: 1;
+  background: #f4f4f4;
+  border: none;
+  border-radius: 20px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1f2937;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.chat-form input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.chat-form input:focus {
+  background: #fff;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Send button: minimal arrow */
+.chat-form button {
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chat-form button:hover {
+  background: #5b21b6;
+  transform: scale(1.05);
+}
+
+.chat-form button:active {
+  transform: scale(0.95);
+}
+
+.chat-form button i {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.chat-form button span {
+  display: none;
+}
+
+/* Scroll-to-bottom button: ghost style */
+.scroll-to-bottom {
+  position: absolute;
+  bottom: 80px;
+  right: 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  backdrop-filter: blur(8px);
+}
+
+.scroll-to-bottom.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-to-bottom:hover {
+  background: #f3f0ff;
+  border-color: #a78bfa;
+  color: #7c3aed;
+}
+
+.scroll-to-bottom::before {
+  content: '↓';
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.scroll-to-bottom:hover::before {
+  color: #7c3aed;
+}
+
+/* Message animations */
+@keyframes fadeInUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(16px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.message.agent {
+  animation: slideInLeft 0.4s ease-out;
+}
+
+.message.user {
+  animation: slideInRight 0.4s ease-out;
+}
+
+@keyframes slideInLeft {
+  from { 
+    opacity: 0; 
+    transform: translateX(-20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+@keyframes slideInRight {
+  from { 
+    opacity: 0; 
+    transform: translateX(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+  .chat-box {
+    padding: 0.75rem 1rem 0 1rem !important;
+  }
+  
+  .chat-form {
+    padding: 0.75rem 1rem;
+  }
+  
+  .message-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .quick-start-chips {
+    gap: 6px;
+  }
+  
+  .quick-start-chip {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .scroll-to-bottom {
+    bottom: 70px;
+    right: 1rem;
   }
 }
