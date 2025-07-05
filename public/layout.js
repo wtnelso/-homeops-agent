@@ -64,10 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
       // Handle chat initialization when chat view is activated
       if (viewId === 'chat') {
         setTimeout(() => {
-          // For dashboard.html, the chat view already exists with #chat element
-          const chatElement = document.getElementById('chat');
-          if (chatElement) {
-            console.log("💬 Chat view activated, initializing chat");
+          // Always inject a fresh #chat-root for the chat UI
+          const chatView = document.getElementById('chat-view');
+          if (chatView) {
+            chatView.innerHTML = '<div id="chat-root"></div>';
+            console.log("💬 chat-root injected into chat-view");
             const mockUser = {
               uid: window.userId || "test_user"
             };
@@ -75,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
               window.initializeChat(null, mockUser);
             }
           } else {
-            console.error("💬 Chat element not found in dashboard.html");
+            console.error("💬 chat-view element not found");
           }
         }, 100);
       }

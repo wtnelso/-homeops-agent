@@ -5,21 +5,18 @@
 window.initializeChat = function(auth, user, retryCount = 0) {
   console.log("💬 Initializing chat for user:", user ? user.uid : "test_user");
   
-  // Try to find either chat-root (for test.html) or chat (for dashboard.html)
+  // Always use #chat-root as the target
   const chatRoot = document.getElementById("chat-root");
-  const chatElement = document.getElementById("chat");
-  const targetElement = chatRoot || chatElement;
-  
-  if (!targetElement) {
+  if (!chatRoot) {
     if (retryCount < 10) {
-      console.log(`💬 Chat element not found, retrying in 100ms... (attempt ${retryCount + 1}/10)`);
+      console.log(`💬 chat-root element not found, retrying in 100ms... (attempt ${retryCount + 1}/10)`);
       setTimeout(() => window.initializeChat(auth, user, retryCount + 1), 100);
     } else {
-      console.error("💬 Chat element not found after 10 retries, giving up");
+      console.error("💬 chat-root element not found after 10 retries, giving up");
     }
     return;
   }
-  targetElement.innerHTML = '';
+  chatRoot.innerHTML = '';
 
   // Create chat card container
   const chatCard = document.createElement("div");
@@ -60,7 +57,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   chatForm.appendChild(sendBtn);
   chatCard.appendChild(chatForm);
 
-  targetElement.appendChild(chatCard);
+  chatRoot.appendChild(chatCard);
   
   // Helper function to convert natural language dates to ISO format
   function parseNaturalDate(dateString) {
