@@ -4,16 +4,53 @@
 // Refactored chat.js to export initializeChat
 window.initializeChat = function(auth, user) {
   console.log("💬 Initializing chat for user:", user ? user.uid : "test_user");
-  const chatBox = document.getElementById("chat");
-  const chatForm = document.getElementById("chatForm");
-  const input = document.getElementById("input");
-  if (!chatBox || !chatForm || !input) {
-    console.error("💬 Chat elements not found", { chatBox, chatForm, input });
+  const chatRoot = document.getElementById("chat-root");
+  if (!chatRoot) {
+    console.error("💬 chat-root element not found");
     return;
   }
-  
-  // Clear any existing content
-  chatBox.innerHTML = '';
+  chatRoot.innerHTML = '';
+
+  // Create chat card container
+  const chatCard = document.createElement("div");
+  chatCard.className = "chat-card";
+
+  // Create header section with logo and HomeOps text
+  const chatBrandHeader = document.createElement("div");
+  chatBrandHeader.className = "chat-brand-header";
+  const logoImg = document.createElement("img");
+  logoImg.src = "img/homeops-logo.svg";
+  logoImg.alt = "HomeOps Logo";
+  logoImg.className = "chat-brand-logo";
+  const brandText = document.createElement("div");
+  brandText.className = "chat-brand-text";
+  brandText.textContent = "HomeOps";
+  chatBrandHeader.appendChild(logoImg);
+  chatBrandHeader.appendChild(brandText);
+  chatCard.appendChild(chatBrandHeader);
+
+  // Chat box
+  const chatBox = document.createElement("div");
+  chatBox.className = "chat-box";
+  chatBox.id = "chat";
+  chatCard.appendChild(chatBox);
+
+  // Chat form
+  const chatForm = document.createElement("form");
+  chatForm.className = "chat-form";
+  chatForm.id = "chatForm";
+  const input = document.createElement("input");
+  input.type = "text";
+  input.id = "input";
+  input.placeholder = "Ask HomeOps anything...";
+  chatForm.appendChild(input);
+  const sendBtn = document.createElement("button");
+  sendBtn.type = "submit";
+  sendBtn.innerHTML = '<i class="send-icon"></i>';
+  chatForm.appendChild(sendBtn);
+  chatCard.appendChild(chatForm);
+
+  chatRoot.appendChild(chatCard);
   
   // Helper function to convert natural language dates to ISO format
   function parseNaturalDate(dateString) {
@@ -111,14 +148,15 @@ window.initializeChat = function(auth, user) {
       messageDiv.appendChild(messageBubble);
     }
     
-    // Quick-start chips under first agent message
+    // Expanded quick-start chips under first agent message
     if (sender === "agent" && opts.showChips) {
       const chips = document.createElement("div");
       chips.className = "quick-start-chips";
       [
         "Remind me about something",
-        "Check what's on my calendar",
-        "Review recent emails"
+        "Check what is on my calendar",
+        "Review my recent emails",
+        "Help me unblock a problem"
       ].forEach(text => {
         const chip = document.createElement("button");
         chip.className = "quick-start-chip";
@@ -187,7 +225,7 @@ window.initializeChat = function(auth, user) {
   addWelcomeMessage();
   
   // Add initial greeting (with chips)
-  addMessage("agent", getOpeningLine(), { showChips: true });
+  addMessage("agent", "Welcome to HomeOps — your mental load operating system. What is top of mind?", { showChips: true });
   
   // Handle form submission
   chatForm.addEventListener("submit", async (e) => {
