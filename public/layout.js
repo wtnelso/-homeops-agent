@@ -20,7 +20,19 @@ document.addEventListener("DOMContentLoaded", () => {
     window.userId = null;
     window.userIdReady = false;
 
-    lucide.createIcons();
+    // Initialize Lucide icons with error handling
+    try {
+      lucide.createIcons();
+      console.log("✅ Lucide icons initialized");
+    } catch (error) {
+      console.error("❌ Failed to initialize Lucide icons:", error);
+      // Fallback: ensure nav items are visible even without icons
+      document.querySelectorAll('.nav-item i[data-lucide]').forEach(icon => {
+        icon.style.display = 'block';
+        icon.style.width = '1.5rem';
+        icon.style.height = '1.5rem';
+      });
+    }
 
     const views = document.querySelectorAll(".view");
     const navButtons = document.querySelectorAll(".nav-item");
@@ -1030,8 +1042,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (sidebar && hamburgerBtn) {
       function openSidebar() {
+        console.log("🔄 Opening sidebar");
         sidebar.classList.add('open');
         hamburgerBtn.setAttribute('aria-expanded', 'true');
+        
+        // Debug: check if nav items are visible
+        const navItems = sidebar.querySelectorAll('.nav-item');
+        console.log("🔄 Nav items found:", navItems.length);
+        navItems.forEach((item, index) => {
+          console.log(`🔄 Nav item ${index}:`, item.textContent.trim(), item.style.display, item.offsetHeight);
+        });
+        
         // Add backdrop
         sidebarBackdrop = document.createElement('div');
         sidebarBackdrop.className = 'sidebar-backdrop';

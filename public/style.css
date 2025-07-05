@@ -103,15 +103,68 @@ body > i,
     z-index: 9999;
   }
   .sidebar.open {
-    display: block;
+    display: block !important;
     transform: translateX(0);
     z-index: 9999;
   }
-  .sidebar.open .nav,
+  .sidebar.open .nav {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 2.2rem !important;
+    margin-top: 2rem !important;
+    padding-top: 1rem !important;
+  }
   .sidebar.open .nav-item {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    cursor: pointer !important;
+    padding: 0.7rem !important;
+    margin: 0 !important;
+    border-radius: 1.2rem !important;
+    transition: all 0.2s ease !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 3rem !important;
+    height: 3rem !important;
+    color: #6366f1 !important;
+  }
+  .sidebar.open .nav-item:hover {
+    background: rgba(99, 102, 241, 0.1) !important;
+    color: #4f46e5 !important;
+    transform: translateY(-1px) !important;
+  }
+  .sidebar.open .nav-item.active {
+    background: rgba(99, 102, 241, 0.2) !important;
+    color: #4f46e5 !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
+  }
+  .sidebar.open .nav-item i {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    display: block !important;
+  }
+  .sidebar.open .nav-text {
+    display: block !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    margin-top: 0.25rem !important;
+    color: #6366f1 !important;
+  }
+  .sidebar.open .nav-item {
+    flex-direction: column !important;
+    gap: 0.25rem !important;
+    padding: 1rem 0.5rem !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 4rem !important;
   }
   .sidebar-backdrop {
     display: block;
@@ -190,6 +243,10 @@ body > i,
 .nav-item i {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+.nav-text {
+  display: none;
 }
 
 /* Command Center specific styling */
