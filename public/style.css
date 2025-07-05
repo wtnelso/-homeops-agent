@@ -7528,19 +7528,22 @@ body > i,
 }
 
 .welcome-message .brand-label {
-  font-size: 13px;
+  font-size: 12px;
   color: #999;
   margin-bottom: 0.5rem;
-  font-weight: 400;
+  font-weight: 500;
+  text-transform: none;
+  padding-bottom: 4px;
 }
 
 /* Message bubbles: clean, minimal */
 .message {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 1rem;
   animation: fadeInUp 0.4s ease-out;
   gap: 0.75rem;
+  padding-left: 1rem;
 }
 
 .message.agent {
@@ -7550,6 +7553,8 @@ body > i,
 .message.user {
   flex-direction: row-reverse;
   justify-content: flex-end;
+  padding-left: 0;
+  padding-right: 1rem;
 }
 
 /* Assistant avatar with HomeOps logo */
@@ -7563,7 +7568,7 @@ body > i,
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 2px;
+  align-self: center;
 }
 
 .agent-avatar img {
@@ -7582,7 +7587,7 @@ body > i,
   font-weight: 400;
   line-height: 1.5;
   color: #1f2937;
-  max-width: 70%;
+  max-width: 600px;
   word-wrap: break-word;
   border: 1px solid #f3f4f6;
 }
@@ -7598,7 +7603,7 @@ body > i,
   display: none !important;
 }
 
-/* Quick-start chips: minimalist pills */
+/* Quick-start chips: left-aligned under bubble */
 .quick-start-chips {
   display: flex;
   gap: 8px;
@@ -7606,6 +7611,7 @@ body > i,
   flex-wrap: wrap;
   opacity: 0;
   animation: fadeInUp 0.6s ease-out 0.4s forwards;
+  margin-left: calc(24px + 0.75rem + 1rem);
 }
 
 .quick-start-chip {
@@ -7641,6 +7647,7 @@ body > i,
   max-width: 200px;
   margin-bottom: 1rem;
   animation: fadeInUp 0.4s ease-out;
+  margin-left: calc(24px + 0.75rem + 1rem);
 }
 
 .typing-indicator span {
@@ -7832,6 +7839,7 @@ body > i,
   
   .quick-start-chips {
     gap: 6px;
+    margin-left: calc(24px + 0.5rem + 0.5rem);
   }
   
   .quick-start-chip {
@@ -7839,8 +7847,18 @@ body > i,
     font-size: 13px;
   }
   
+  .typing-indicator {
+    margin-left: calc(24px + 0.5rem + 0.5rem);
+  }
+  
   .scroll-to-bottom {
     bottom: 70px;
     right: 1rem;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .scroll-to-bottom::before {
+    font-size: 14px;
   }
 }
