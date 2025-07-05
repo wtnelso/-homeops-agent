@@ -1123,15 +1123,16 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('✅ FullCalendar global object found.');
         if (typeof FullCalendar.ListWeek === 'undefined') {
           console.error('❌ FullCalendar.ListWeek is not defined! The list plugin may not be loaded.');
-          const calWarn = document.createElement('div');
-          calWarn.style = 'background:#fee2e2;color:#b91c1c;padding:1rem;border-radius:10px;margin:1rem 0;text-align:center;font-weight:600;';
-          calWarn.innerText = 'Mobile calendar list view is not available. Please check FullCalendar List plugin.';
-          document.body.prepend(calWarn);
         } else {
           console.log('✅ FullCalendar.ListWeek is available.');
         }
       }
     });
+
+    window.updateMentalLoadScore = function(score) {
+      const el = document.getElementById('mental-load-score');
+      if (el) el.textContent = score;
+    };
 
   } catch (err) {
     console.error("💥 layout.js crash:", err);
