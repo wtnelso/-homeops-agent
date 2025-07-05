@@ -7927,167 +7927,240 @@ body, html {
   max-width: 700px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  background: transparent;
-}
+/*
+ * PREMIUM HOMEOPS CHAT UI STYLES (REPLACES ALL LEGACY CHAT STYLES)
+ * Last updated: 2024-06-09
+ */
 
-/* Message row: tight, modern */
-.message {
+/* Root chat card container */
+#chat-root {
   display: flex;
-  align-items: flex-end;
-  gap: 0.75rem;
-  margin: 0.5rem 0 0.5rem 0;
-  padding: 0 1.5rem;
-}
-
-.message.agent {
-  flex-direction: row;
+  flex-direction: column;
+  align-items: center;
   justify-content: flex-start;
-}
-.message.user {
-  flex-direction: row-reverse;
-  justify-content: flex-end;
+  min-height: 100vh;
+  background: linear-gradient(120deg, #f7f8fa 0%, #ede9fe 100%);
+  padding: 0;
+  width: 100vw;
+  box-sizing: border-box;
 }
 
-.agent-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+.homeops-chat-card {
   background: #fff;
-  border: 1px solid #ececec;
+  border-radius: 32px;
+  box-shadow: 0 8px 40px rgba(99,102,241,0.10), 0 1.5px 8px rgba(0,0,0,0.04);
+  max-width: 420px;
+  width: 100%;
+  margin: 48px 0 32px 0;
+  padding: 0 0 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* HomeOps logo and name */
+.homeops-logo-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #ede9fe;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-top: -36px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(99,102,241,0.10);
 }
-.agent-avatar img {
-  width: 18px;
-  height: 18px;
+.homeops-logo-avatar img {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
+}
+.homeops-brand-label {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #6366f1;
+  letter-spacing: -0.5px;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+/* Welcome message */
+.welcome-message {
+  font-size: 1.08rem;
+  color: #222;
+  font-weight: 500;
+  margin-bottom: 18px;
+  text-align: center;
+  padding: 0 18px;
+}
+
+/* Quick-start options */
+.quick-start-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 18px 0;
+  align-items: stretch;
+  padding: 0 18px;
+}
+.quick-start-chip {
+  background: #f7f8fa;
+  color: #6366f1;
+  border: 1.5px solid #ececec;
+  border-radius: 999px;
+  padding: 15px 0;
+  font-size: 1.08rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(.4,0,.2,1);
+  white-space: normal;
+  box-shadow: 0 1.5px 6px rgba(99,102,241,0.04);
+  width: 100%;
+  text-align: center;
+}
+.quick-start-chip:hover {
+  background: #ede9fe;
+  border-color: #a78bfa;
+  color: #7c3aed;
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* Chat message area */
+.homeops-chat-box {
+  width: 100%;
+  min-height: 320px;
+  max-height: 48vh;
+  overflow-y: auto;
+  padding: 0 18px 0 18px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .bubble-and-chips {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  width: 100%;
 }
 
-/* Chat bubble: soft, modern, max-width */
-.message-bubble {
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+.agent-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   background: #fff;
-  border-radius: 14px;
-  padding: 12px 18px;
-  font-size: 15px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border: 1.5px solid #ececec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1.5px 6px rgba(0,0,0,0.04);
+}
+.agent-avatar img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.message-bubble {
+  background: #f7f8fa;
+  border-radius: 18px 18px 18px 6px;
+  padding: 13px 18px;
+  font-size: 1.02rem;
+  font-family: inherit;
   font-weight: 400;
   line-height: 1.6;
   color: #222;
-  max-width: 90vw;
-  width: fit-content;
+  max-width: 80%;
   min-width: 44px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  border: 1px solid #ececec;
+  border: 1.5px solid #ececec;
   margin-bottom: 0;
+  word-break: break-word;
 }
 .message.user .message-bubble {
   background: #6366f1;
   color: #fff;
   border-color: #6366f1;
+  border-radius: 18px 18px 6px 18px;
+  margin-left: auto;
 }
 
-/* Quick-start chips: minimalist, tight, left-aligned */
-.bubble-and-chips .quick-start-chips {
-  display: flex;
-  gap: 8px;
-  margin: 8px 0 0 0;
-  flex-wrap: wrap;
-  padding: 0;
-}
-.quick-start-chip {
+/* Input bar */
+.homeops-chat-form {
   background: #f7f8fa;
-  color: #6366f1;
-  border: 1px solid #ececec;
-  border-radius: 999px;
-  padding: 7px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.18s cubic-bezier(.4,0,.2,1);
-  white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(99,102,241,0.03);
-}
-.quick-start-chip:hover {
-  background: #ede9fe;
-  border-color: #a78bfa;
-  color: #7c3aed;
-  transform: translateY(-1px);
-}
-
-/* Input bar: full-width, fixed at bottom, modern */
-.chat-form {
-  background: #fff;
-  border-top: 1px solid #ececec;
+  border-top: 1.5px solid #ececec;
   padding: 0.75rem 1.5rem 0.75rem 1.5rem;
   margin: 0 auto;
   width: 100%;
-  max-width: 700px;
+  max-width: 420px;
   display: flex;
   gap: 0.75rem;
   align-items: center;
-  border-radius: 0 0 18px 18px;
+  border-radius: 0 0 32px 32px;
   position: sticky;
   bottom: 0;
   z-index: 10;
-  box-shadow: 0 -1px 4px rgba(0,0,0,0.03);
+  box-shadow: 0 -1.5px 8px rgba(0,0,0,0.03);
 }
-.chat-form input {
+.homeops-chat-form input {
   flex: 1;
-  background: #f7f8fa;
+  background: #fff;
   border: none;
   border-radius: 18px;
-  padding: 12px 16px;
-  font-size: 15px;
+  padding: 13px 16px;
+  font-size: 1.02rem;
   font-family: inherit;
   color: #222;
   outline: none;
   box-shadow: none;
 }
-.chat-form input::placeholder {
+.homeops-chat-form input::placeholder {
   color: #b0b0b0;
   font-weight: 400;
 }
-.chat-form button {
+.homeops-chat-form button {
   background: #6366f1;
   color: #fff;
   border: none;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.18s cubic-bezier(.4,0,.2,1);
   flex-shrink: 0;
-  box-shadow: 0 1px 4px rgba(99,102,241,0.08);
+  box-shadow: 0 1.5px 8px rgba(99,102,241,0.08);
+  font-size: 1.2rem;
 }
-.chat-form button:hover {
+.homeops-chat-form button:hover {
   background: #7c3aed;
   transform: scale(1.05);
 }
 
-/* Scroll-to-bottom button: ghost, modern */
+/* Scroll-to-bottom button */
 .scroll-to-bottom {
   position: fixed;
-  bottom: 90px;
+  bottom: 110px;
   right: 2rem;
   background: #fff;
-  border: 1px solid #ececec;
+  border: 1.5px solid #ececec;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8095,7 +8168,7 @@ body, html {
   transition: all 0.18s cubic-bezier(.4,0,.2,1);
   opacity: 0;
   transform: translateY(10px) scale(0.9);
-  box-shadow: 0 2px 8px rgba(99,102,241,0.06);
+  box-shadow: 0 2px 12px rgba(99,102,241,0.06);
   z-index: 20;
 }
 .scroll-to-bottom.visible {
@@ -8103,10 +8176,10 @@ body, html {
   transform: translateY(0) scale(1);
 }
 .scroll-to-bottom::before {
-  content: '↓';
-  font-size: 18px;
+  content: ↓;
+  font-size: 22px;
   color: #7c3aed;
-  font-weight: 600;
+  font-weight: 700;
 }
 .scroll-to-bottom:hover {
   background: #ede9fe;
@@ -8116,40 +8189,43 @@ body, html {
   color: #5b21b6;
 }
 
-/* Mobile responsiveness */
-@media (max-width: 700px) {
-  .chat-header, .chat-form {
-    padding-left: 1rem;
-    padding-right: 1rem;
+/* Responsive styles */
+@media (max-width: 600px) {
+  .homeops-chat-card {
     max-width: 100vw;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+    padding-bottom: 0;
   }
-  .chat-box {
+  .homeops-chat-form {
     max-width: 100vw;
-    padding-left: 0;
-    padding-right: 0;
+    border-radius: 0 0 18px 18px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
-  .message {
+  .homeops-chat-box {
+    max-height: 38vh;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  .quick-start-chips {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }
   .message-bubble {
     max-width: 98vw;
-    font-size: 14px;
+    font-size: 0.98rem;
     padding: 10px 13px;
   }
   .quick-start-chip {
-    padding: 6px 12px;
-    font-size: 13px;
+    padding: 12px 0;
+    font-size: 0.98rem;
   }
   .scroll-to-bottom {
     right: 1rem;
-    width: 32px;
-    height: 32px;
-    bottom: 80px;
+    width: 36px;
+    height: 36px;
+    bottom: 90px;
   }
-}
-
-/* Hide HomeOps label above chat (if present) */
-.welcome-message, .brand-label {
-  display: none !important;
 }
