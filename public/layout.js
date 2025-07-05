@@ -64,19 +64,18 @@ document.addEventListener("DOMContentLoaded", () => {
       // Handle chat initialization when chat view is activated
       if (viewId === 'chat') {
         setTimeout(() => {
-          // Show the chat tool panel and ensure #chat-root exists
-          const chatTool = document.getElementById('chat-tool');
-          if (chatTool) {
-            chatTool.style.display = 'block';
-            chatTool.innerHTML = '<div id="chat-root"></div>';
-            console.log("💬 Chat tool panel activated and chat-root created");
-          }
-          // Now initialize chat
-          const mockUser = {
-            uid: window.userId || "test_user"
-          };
-          if (window.initializeChat) {
-            window.initializeChat(null, mockUser);
+          // For dashboard.html, the chat view already exists with #chat element
+          const chatElement = document.getElementById('chat');
+          if (chatElement) {
+            console.log("💬 Chat view activated, initializing chat");
+            const mockUser = {
+              uid: window.userId || "test_user"
+            };
+            if (window.initializeChat) {
+              window.initializeChat(null, mockUser);
+            }
+          } else {
+            console.error("💬 Chat element not found in dashboard.html");
           }
         }, 100);
       }
