@@ -94,10 +94,22 @@ window.initializeChat = function(auth, user) {
       messageDiv.appendChild(avatar);
     }
     
+    // Bubble and chips wrapper
+    let bubbleAndChips = null;
+    if (sender === "agent") {
+      bubbleAndChips = document.createElement("div");
+      bubbleAndChips.className = "bubble-and-chips";
+    }
+    
     const messageBubble = document.createElement("div");
     messageBubble.className = "message-bubble";
     messageBubble.textContent = message;
-    messageDiv.appendChild(messageBubble);
+    
+    if (bubbleAndChips) {
+      bubbleAndChips.appendChild(messageBubble);
+    } else {
+      messageDiv.appendChild(messageBubble);
+    }
     
     // Quick-start chips under first agent message
     if (sender === "agent" && opts.showChips) {
@@ -118,7 +130,15 @@ window.initializeChat = function(auth, user) {
         };
         chips.appendChild(chip);
       });
-      messageDiv.appendChild(chips);
+      if (bubbleAndChips) {
+        bubbleAndChips.appendChild(chips);
+      } else {
+        messageDiv.appendChild(chips);
+      }
+    }
+    
+    if (bubbleAndChips) {
+      messageDiv.appendChild(bubbleAndChips);
     }
     
     chatBox.appendChild(messageDiv);
