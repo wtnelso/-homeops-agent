@@ -6,32 +6,56 @@
 
 /* HomeOps Chat UI — Premium Notion/Apple/ChatGPT Style */
 
+/* --- World-Class HomeOps Chat UI: Anchored, Alive, and Inviting --- */
+
+body {
+  background: radial-gradient(ellipse at 60% 40%, #f7f5ff 60%, #e0e7ff 100%) !important;
+}
+
 #chat-root {
   min-height: 100vh;
   width: 100vw;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(120deg, #f7f5ff 0%, #f9fafb 100%);
+  background: none;
   box-sizing: border-box;
+  position: relative;
 }
 
 /* Chat card - minimal, no glow or shadows */
 .homeops-chat-card {
-  background: rgba(255,255,255,0.90);
+  background: rgba(255,255,255,0.96);
   backdrop-filter: blur(18px) saturate(1.2);
-  border-radius: 32px;
-  box-shadow: 0 12px 48px 0 rgba(126,94,255,0.10), 0 1.5px 0 0 #ede9fe;
+  border-radius: 36px;
+  box-shadow: 0 16px 64px 0 rgba(126,94,255,0.14), 0 1.5px 0 0 #ede9fe;
   border: none;
-  max-width: 680px;
+  max-width: 760px;
   width: 100%;
   margin: 0 auto;
-  padding: 2.5rem 2.5rem 1.2rem 2.5rem;
+  padding: 3.2rem 3.2rem 1.5rem 3.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
   transition: box-shadow 0.3s;
+  z-index: 2;
+}
+
+.homeops-chat-card::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  border-radius: 48px;
+  background: radial-gradient(ellipse at 60% 40%, #ede9fe 60%, #fff 100%);
+  filter: blur(32px) brightness(1.08);
+  opacity: 0.7;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* HomeOps logo and name - remove if not needed */
@@ -63,7 +87,7 @@
   margin-bottom: 0;
   display: flex;
   flex-direction: column;
-  gap: 2.2rem;
+  gap: 2.6rem;
   background: transparent;
 }
 
@@ -73,7 +97,7 @@
   align-items: flex-end;
   width: 100%;
   gap: 0.5rem;
-  animation: fadeInSlideUp 0.6s cubic-bezier(.23,1.01,.32,1) both;
+  animation: fadeInSlideUp 0.7s cubic-bezier(.23,1.01,.32,1) both;
   position: relative;
 }
 
@@ -82,28 +106,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  margin-left: -18px;
-  margin-right: 10px;
+  width: 52px;
+  height: 52px;
+  margin-left: -26px;
+  margin-right: 14px;
   flex-shrink: 0;
   background: linear-gradient(135deg, #f3f0ff 60%, #ede9fe 100%);
   border-radius: 50%;
-  padding: 4px;
-  opacity: 0.97;
-  box-shadow: 0 2px 16px 0 rgba(126,94,255,0.13);
+  padding: 6px;
+  opacity: 0.98;
+  box-shadow: 0 4px 24px 0 rgba(126,94,255,0.16);
   border: none;
   position: relative;
   z-index: 2;
-  transition: box-shadow 0.3s;
+  transition: box-shadow 0.3s, transform 0.3s;
 }
 .agent-avatar.pulse {
-  animation: avatarPulse 1.2s cubic-bezier(.4,0,.2,1) 1;
+  animation: avatarBounce 0.7s cubic-bezier(.4,0,.2,1) 1;
 }
-@keyframes avatarPulse {
-  0% { box-shadow: 0 0 0 0 rgba(126,94,255,0.18); }
-  70% { box-shadow: 0 0 0 16px rgba(126,94,255,0.08); }
-  100% { box-shadow: 0 2px 16px 0 rgba(126,94,255,0.13); }
+@keyframes avatarBounce {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(126,94,255,0.18); }
+  40% { transform: scale(1.12); box-shadow: 0 0 0 24px rgba(126,94,255,0.08); }
+  100% { transform: scale(1); box-shadow: 0 4px 24px 0 rgba(126,94,255,0.16); }
 }
 .agent-avatar img {
   width: 20px;
@@ -114,15 +138,15 @@
 
 /* Message Bubble - clean, 600px max, subtle background */
 .message-bubble {
-  max-width: 92%;
-  background: rgba(255,255,255,0.97);
+  max-width: 94%;
+  background: rgba(255,255,255,0.99);
   backdrop-filter: blur(8px);
-  border-radius: 20px;
-  box-shadow: 0 4px 32px 0 rgba(139,92,246,0.09);
-  font-size: 18px;
-  font-weight: 600;
-  padding: 22px 22px 22px 26px;
-  line-height: 1.7;
+  border-radius: 24px;
+  box-shadow: 0 6px 40px 0 rgba(139,92,246,0.11);
+  font-size: 20px;
+  font-weight: 700;
+  padding: 28px 28px 28px 36px;
+  line-height: 1.8;
   color: #18181b;
   font-family: system-ui, Inter, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif;
   margin: 0;
@@ -134,24 +158,24 @@
 
 .message-bubble.agent {
   border: none;
-  box-shadow: 0 4px 40px 0 rgba(126,94,255,0.13), 0 1.5px 0 0 #ede9fe;
+  box-shadow: 0 8px 48px 0 rgba(126,94,255,0.15), 0 1.5px 0 0 #ede9fe;
   background: linear-gradient(120deg, #f7f5ff 0%, #fff 100%);
 }
 .message-bubble.agent::before {
   content: '';
   position: absolute;
-  left: -18px;
-  top: 24px;
-  width: 18px;
-  height: 18px;
+  left: -24px;
+  top: 32px;
+  width: 24px;
+  height: 24px;
   background: linear-gradient(135deg, #f3f0ff 60%, #ede9fe 100%);
   border-radius: 50%;
   z-index: 0;
-  box-shadow: 0 2px 8px 0 rgba(126,94,255,0.10);
+  box-shadow: 0 2px 12px 0 rgba(126,94,255,0.10);
 }
 
 @keyframes fadeInSlideUp {
-  from { opacity: 0; transform: translateY(32px) scale(0.98); }
+  from { opacity: 0; transform: translateY(36px) scale(0.98); }
   to { opacity: 1; transform: none; }
 }
 
@@ -159,15 +183,15 @@
 .typing-indicator {
   display: flex;
   align-items: center;
-  height: 24px;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  height: 28px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   animation: fadeInSlideUp 0.5s cubic-bezier(.23,1.01,.32,1) both;
 }
 .typing-indicator-dot {
-  width: 8px;
-  height: 8px;
-  margin: 0 4px;
+  width: 10px;
+  height: 10px;
+  margin: 0 5px;
   border-radius: 50%;
   background: #B39DFF;
   opacity: 0.7;
@@ -177,7 +201,7 @@
 .typing-indicator-dot:nth-child(3) { animation-delay: 0.3s; }
 @keyframes typingBounce {
   0%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-8px); }
+  40% { transform: translateY(-10px); }
 }
 
 /* Quick-start chips */
@@ -185,52 +209,58 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  margin-top: 10px;
+  margin-top: 0.5rem;
   margin-bottom: 0;
   gap: 0;
-  animation: fadeInSlideUp 0.7s cubic-bezier(.23,1.01,.32,1) both;
+  animation: fadeInSlideUp 0.8s cubic-bezier(.23,1.01,.32,1) both;
 }
 .quick-start-chip {
   display: inline-block;
-  padding: 10px 22px;
+  padding: 14px 28px;
   border-radius: 9999px;
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 19px;
+  font-weight: 700;
   color: #333;
   background: #fff;
-  border: 1.5px solid #E0E0E0;
-  margin-right: 12px;
-  margin-top: 12px;
+  border: 2px solid #E0E0E0;
+  margin-right: 16px;
+  margin-top: 16px;
   cursor: pointer;
-  box-shadow: 0 2px 12px rgba(126,94,255,0.09);
-  transition: all 0.22s cubic-bezier(.23,1.01,.32,1);
+  box-shadow: 0 4px 18px rgba(126,94,255,0.11);
+  transition: all 0.25s cubic-bezier(.23,1.01,.32,1);
   position: relative;
+  opacity: 0;
+  transform: translateY(32px);
+}
+.quick-start-chip.animated {
+  opacity: 1 !important;
+  transform: none !important;
 }
 .quick-start-chip:hover, .quick-start-chip:focus {
   background: linear-gradient(90deg, #F7F5FF 0%, #EFEAFF 100%);
   color: #111;
-  transform: translateY(-2px) scale(1.06);
-  box-shadow: 0 6px 20px rgba(126,94,255,0.13);
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 8px 28px rgba(126,94,255,0.16);
   border-color: #D1C4E9;
 }
 
 /* Input form - clean, no shadows */
 .homeops-chat-form {
-  background: rgba(255,255,255,0.97);
+  background: rgba(255,255,255,0.99);
   backdrop-filter: blur(8px);
-  border-top: 1.5px solid #eee;
-  padding: 1.3rem 2.5rem 1.3rem 2.5rem;
+  border-top: 2px solid #eee;
+  padding: 1.5rem 3.2rem 1.5rem 3.2rem;
   margin: 0 auto;
   width: 100%;
-  max-width: 680px;
+  max-width: 760px;
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
-  border-radius: 0 0 32px 32px;
+  border-radius: 0 0 36px 36px;
   position: sticky;
   bottom: 0;
   z-index: 10;
-  box-shadow: 0 2px 16px 0 rgba(126,94,255,0.07);
+  box-shadow: 0 4px 24px 0 rgba(126,94,255,0.10);
   border: none;
 }
 
@@ -238,10 +268,10 @@
 .homeops-chat-form input {
   flex: 1;
   background: #fff;
-  border: 1.5px solid #DDD;
+  border: 2px solid #DDD;
   border-radius: 9999px;
-  padding: 16px 22px;
-  font-size: 18px;
+  padding: 20px 28px;
+  font-size: 20px;
   font-family: system-ui, Inter, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif;
   color: #333;
   outline: none;
@@ -256,7 +286,7 @@
 
 .homeops-chat-form input:focus {
   border-color: #a78bfa;
-  box-shadow: 0 0 0 3px #ede9fe;
+  box-shadow: 0 0 0 4px #ede9fe;
 }
 
 /* Send button - paper airplane icon, 44x44 circle */
@@ -265,8 +295,8 @@
   color: #6366f1;
   border: none;
   border-radius: 50%;
-  width: 54px;
-  height: 54px;
+  width: 62px;
+  height: 62px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,20 +304,20 @@
   transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
   flex-shrink: 0;
   box-shadow: none;
-  font-size: 22px;
+  font-size: 26px;
   padding: 0;
 }
 
 .homeops-chat-form button:hover {
   background: #EDE9FE;
   color: #7E5EFF;
-  transform: scale(1.12) rotate(-8deg);
-  box-shadow: 0 4px 16px 0 rgba(126,94,255,0.13);
+  transform: scale(1.16) rotate(-10deg);
+  box-shadow: 0 8px 28px 0 rgba(126,94,255,0.16);
 }
 
 .homeops-chat-form button svg {
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   display: block;
 }
 
@@ -334,6 +364,13 @@
 }
 
 /* Responsive styles */
+@media (max-width: 900px) {
+  .homeops-chat-card, .homeops-chat-form {
+    max-width: 98vw;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+  }
+}
 @media (max-width: 700px) {
   #chat-root {
     align-items: flex-start;
@@ -364,8 +401,8 @@
   .agent-avatar {
     margin-left: 0;
     margin-right: 6px;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     padding: 2px;
   }
   .quick-start-chips {

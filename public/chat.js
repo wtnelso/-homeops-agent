@@ -163,14 +163,12 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         chipElement.type = "button";
         chipElement.textContent = chip;
         chipElement.style.opacity = 0;
-        chipElement.style.transform = 'translateY(24px)';
+        chipElement.style.transform = 'translateY(32px)';
         chipElement.onclick = () => sendMessage(chip);
         chipsContainer.appendChild(chipElement);
         setTimeout(() => {
-          chipElement.style.transition = 'opacity 0.4s, transform 0.4s';
-          chipElement.style.opacity = 1;
-          chipElement.style.transform = 'none';
-        }, 400 + i * 120);
+          chipElement.classList.add('animated');
+        }, 500 + i * 140);
       });
       messageRow.appendChild(chipsContainer);
     }
