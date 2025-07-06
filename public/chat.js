@@ -5,7 +5,6 @@
 window.initializeChat = function(auth, user, retryCount = 0) {
   console.log("💬 Initializing chat for user:", user ? user.uid : "test_user");
   
-  // Always use #chat-root as the target
   const chatRoot = document.getElementById("chat-root");
   if (!chatRoot) {
     if (retryCount < 10) {
@@ -18,33 +17,67 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   }
   chatRoot.innerHTML = '';
 
-  // Create chat card container
-  const chatCard = document.createElement("div");
-  chatCard.className = "homeops-chat-card";
+  // Branding
+  const branding = document.createElement('div');
+  branding.className = 'homeops-branding';
+  branding.innerHTML = `
+    <img src="/public/img/homeops-logo.svg" class="homeops-logo" alt="HomeOps logo" />
+    <div class="homeops-title">HomeOps</div>
+    <div class="homeops-subtitle">Your intelligent family concierge</div>
+  `;
+  chatRoot.appendChild(branding);
 
-  // Chat box
-  const chatBox = document.createElement("div");
-  chatBox.className = "homeops-chat-box";
-  chatBox.id = "chat";
-  chatCard.appendChild(chatBox);
+  // Prompt
+  const prompt = document.createElement('div');
+  prompt.className = 'homeops-chat-prompt';
+  prompt.textContent = 'How can HomeOps help you?';
+  chatRoot.appendChild(prompt);
 
-  // Chat form
-  const chatForm = document.createElement("form");
-  chatForm.className = "homeops-chat-form";
-  chatForm.id = "chatForm";
-  const input = document.createElement("input");
-  input.type = "text";
-  input.id = "input";
-  input.placeholder = "Ask HomeOps anything...";
+  // Suggestions
+  const suggestions = [
+    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#7E5EFF" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10m-9 4h6m-7 4h8m-9 4h10"/></svg>', text: 'Remind me about something' },
+    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#7E5EFF" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', text: 'Check my calendar' },
+    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#7E5EFF" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>', text: 'Review recent emails' },
+    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#7E5EFF" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>', text: 'Help me unblock a problem' }
+  ];
+  const suggestionList = document.createElement('div');
+  suggestionList.className = 'suggestion-list';
+  suggestions.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'suggestion-row';
+    row.innerHTML = `${s.icon}<span>${s.text}</span>`;
+    row.onclick = () => {
+      input.value = s.text;
+      input.focus();
+    };
+    suggestionList.appendChild(row);
+  });
+  chatRoot.appendChild(suggestionList);
+
+  // Input form
+  const chatForm = document.createElement('form');
+  chatForm.className = 'homeops-chat-form';
+  chatForm.id = 'chatForm';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.id = 'input';
+  input.placeholder = 'Type a message';
   chatForm.appendChild(input);
-  const sendBtn = document.createElement("button");
-  sendBtn.type = "submit";
-  sendBtn.innerHTML = getSendButtonIcon();
+  const sendBtn = document.createElement('button');
+  sendBtn.type = 'submit';
+  sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
   chatForm.appendChild(sendBtn);
-  chatCard.appendChild(chatForm);
+  chatRoot.appendChild(chatForm);
 
-  chatRoot.appendChild(chatCard);
-  
+  // Form submit
+  chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+    // TODO: Add message to chat and send to backend
+    input.value = '';
+  });
+
   // Helper function to convert natural language dates to ISO format
   function parseNaturalDate(dateString) {
     if (!dateString || typeof dateString !== 'string') {

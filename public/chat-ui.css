@@ -10,17 +10,185 @@
 
 body {
   background: radial-gradient(ellipse at 60% 40%, #f7f5ff 60%, #e0e7ff 100%) !important;
+  margin: 0;
+  padding: 0;
 }
 
 #chat-root {
   min-height: 100vh;
   width: 100vw;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background: none;
   box-sizing: border-box;
   position: relative;
+  padding-top: 48px;
+}
+
+.homeops-branding {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+.homeops-logo {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+}
+.homeops-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #7E5EFF;
+  letter-spacing: -1px;
+  margin-bottom: 2px;
+  font-family: system-ui, Inter, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif;
+}
+.homeops-subtitle {
+  font-size: 1.1rem;
+  color: #555;
+  font-weight: 500;
+  margin-bottom: 0;
+}
+
+.homeops-chat-prompt {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #222;
+  text-align: center;
+  margin-bottom: 32px;
+  font-family: system-ui, Inter, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif;
+}
+
+.suggestion-list {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 40px;
+}
+.suggestion-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px 0 rgba(126,94,255,0.07);
+  padding: 18px 22px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  border: 1.5px solid #ece9f9;
+  transition: box-shadow 0.18s, transform 0.18s, background 0.18s;
+  gap: 16px;
+}
+.suggestion-row:hover, .suggestion-row:focus {
+  background: #F7F5FF;
+  box-shadow: 0 6px 24px 0 rgba(126,94,255,0.13);
+  transform: translateY(-2px) scale(1.03);
+  border-color: #d1c4e9;
+}
+.suggestion-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.homeops-chat-form {
+  background: #fff;
+  border-radius: 9999px;
+  box-shadow: 0 2px 16px 0 rgba(126,94,255,0.10);
+  padding: 0.5rem 1.5rem;
+  margin: 0 auto 32px auto;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+  border: 1.5px solid #ece9f9;
+}
+.homeops-chat-form input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  padding: 18px 0;
+  font-size: 1.18rem;
+  font-family: system-ui, Inter, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif;
+  color: #333;
+  outline: none;
+  box-shadow: none;
+}
+.homeops-chat-form input::placeholder {
+  color: #999;
+  font-weight: 400;
+}
+.homeops-chat-form input:focus {
+  background: #F7F5FF;
+}
+.homeops-chat-form button {
+  background: #F7F5FF;
+  color: #7E5EFF;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+  flex-shrink: 0;
+  box-shadow: none;
+  font-size: 22px;
+  padding: 0;
+}
+.homeops-chat-form button:hover {
+  background: #ede9fe;
+  color: #7E5EFF;
+  transform: scale(1.10) rotate(-8deg);
+  box-shadow: 0 4px 16px 0 rgba(126,94,255,0.13);
+}
+.homeops-chat-form button svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+@media (max-width: 700px) {
+  #chat-root {
+    padding-top: 18px;
+  }
+  .homeops-branding {
+    margin-bottom: 18px;
+  }
+  .homeops-chat-prompt {
+    font-size: 1.1rem;
+    margin-bottom: 18px;
+  }
+  .suggestion-list {
+    max-width: 98vw;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .suggestion-row {
+    font-size: 1rem;
+    padding: 12px 10px;
+    border-radius: 12px;
+  }
+  .homeops-chat-form {
+    max-width: 98vw;
+    padding: 0.5rem 0.5rem;
+    margin-bottom: 18px;
+  }
 }
 
 /* Chat card - minimal, no glow or shadows */
@@ -242,83 +410,6 @@ body {
   transform: translateY(-2px) scale(1.08);
   box-shadow: 0 8px 28px rgba(126,94,255,0.16);
   border-color: #D1C4E9;
-}
-
-/* Input form - clean, no shadows */
-.homeops-chat-form {
-  background: rgba(255,255,255,0.99);
-  backdrop-filter: blur(8px);
-  border-top: 2px solid #eee;
-  padding: 1.5rem 3.2rem 1.5rem 3.2rem;
-  margin: 0 auto;
-  width: 100%;
-  max-width: 760px;
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  border-radius: 0 0 36px 36px;
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-  box-shadow: 0 4px 24px 0 rgba(126,94,255,0.10);
-  border: none;
-}
-
-/* Input field - clean, rounded */
-.homeops-chat-form input {
-  flex: 1;
-  background: #fff;
-  border: 2px solid #DDD;
-  border-radius: 9999px;
-  padding: 20px 28px;
-  font-size: 20px;
-  font-family: system-ui, Inter, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif;
-  color: #333;
-  outline: none;
-  box-shadow: none;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-
-.homeops-chat-form input::placeholder {
-  color: #999;
-  font-weight: 400;
-}
-
-.homeops-chat-form input:focus {
-  border-color: #a78bfa;
-  box-shadow: 0 0 0 4px #ede9fe;
-}
-
-/* Send button - paper airplane icon, 44x44 circle */
-.homeops-chat-form button {
-  background: transparent;
-  color: #6366f1;
-  border: none;
-  border-radius: 50%;
-  width: 62px;
-  height: 62px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
-  flex-shrink: 0;
-  box-shadow: none;
-  font-size: 26px;
-  padding: 0;
-}
-
-.homeops-chat-form button:hover {
-  background: #EDE9FE;
-  color: #7E5EFF;
-  transform: scale(1.16) rotate(-10deg);
-  box-shadow: 0 8px 28px 0 rgba(126,94,255,0.16);
-}
-
-.homeops-chat-form button svg {
-  width: 32px;
-  height: 32px;
-  display: block;
 }
 
 /* Scroll-to-bottom button - only show when needed */
