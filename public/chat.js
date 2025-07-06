@@ -71,12 +71,16 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     chip.className = 'suggestion-chip';
     chip.innerHTML = `${s.icon}<span>${s.text}</span>`;
     chip.onclick = () => {
-      input.value = s.text;
-      input.focus();
+      sendMessage(s.text);
     };
     suggestionList.appendChild(chip);
   });
   wrapper.appendChild(suggestionList);
+
+  // Chat area
+  const chatArea = document.createElement('div');
+  chatArea.className = 'homeops-chat-area';
+  wrapper.appendChild(chatArea);
 
   // Input form
   const chatForm = document.createElement('form');
@@ -93,13 +97,85 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   chatForm.appendChild(sendBtn);
   wrapper.appendChild(chatForm);
 
-  // Form submit
-  chatForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const message = input.value.trim();
-    if (!message) return;
-    // TODO: Add message to chat and send to backend
+  // Message state
+  let messages = [];
+
+  // Render chat area
+  function renderChat() {
+    chatArea.innerHTML = '';
+    messages.forEach(msg => {
+      const row = document.createElement('div');
+      row.className = 'message-row ' + msg.sender;
+      // Avatar
+      const avatar = document.createElement('div');
+      avatar.className = 'message-avatar';
+      avatar.innerHTML = msg.sender === 'agent' ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5V21h6v-5h6v5h6V9.5L12 3z"/><path d="M9 21V12h6v9"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
+      row.appendChild(avatar);
+      // Bubble
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      bubble.textContent = msg.text;
+      row.appendChild(bubble);
+      // Timestamp
+      const ts = document.createElement('div');
+      ts.className = 'message-timestamp';
+      ts.textContent = msg.time;
+      row.appendChild(ts);
+      chatArea.appendChild(row);
+    });
+  }
+
+  // Typing indicator
+  function showTyping() {
+    const typing = document.createElement('div');
+    typing.className = 'typing-indicator';
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'typing-indicator-dot';
+      typing.appendChild(dot);
+    }
+    chatArea.appendChild(typing);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    return typing;
+  }
+  function removeTyping(typing) {
+    if (typing && typing.parentNode) typing.parentNode.removeChild(typing);
+  }
+
+  // Send message
+  function sendMessage(text) {
+    if (!text.trim()) return;
+    const now = new Date();
+    messages.push({ sender: 'user', text, time: now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+    renderChat();
+    chatArea.scrollTop = chatArea.scrollHeight;
     input.value = '';
+    // Typing indicator
+    const typing = showTyping();
+    setTimeout(() => {
+      removeTyping(typing);
+      // Simulate agent reply
+      const reply = getAgentReply(text);
+      messages.push({ sender: 'agent', text: reply, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+      renderChat();
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }, 1200);
+  }
+
+  // Simulate agent reply
+  function getAgentReply(userText) {
+    // TODO: Replace with real backend call
+    if (userText.toLowerCase().includes('calendar')) return "Here's what's on your calendar: Meeting at 2pm, Doctor at 4pm.";
+    if (userText.toLowerCase().includes('remind')) return "Sure! What should I remind you about?";
+    if (userText.toLowerCase().includes('email')) return "You have 3 new emails. Want a summary?";
+    if (userText.toLowerCase().includes('unblock')) return "Tell me what's blocking you and I'll help you get unstuck.";
+    return "I'm here to help!";
+  }
+
+  // Form submit
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendMessage(input.value);
   });
 
   // Helper function to convert natural language dates to ISO format
