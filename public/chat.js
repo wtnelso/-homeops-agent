@@ -97,7 +97,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     return '';
   }
   
-  // --- Premium Concierge Chat Engine ---
+  // --- World-Class HomeOps Chat UI Fixes ---
 
   const assistantIntros = [
     "👋 Hi there — I'm HomeOps, your intelligent family concierge. What's top of mind today?",
@@ -115,10 +115,10 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   }
 
   function getAgentAvatar(pulse) {
-    return `<span class="agent-avatar${pulse ? ' pulse' : ''}"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5V21h6v-5h6v5h6V9.5L12 3z"/><path d="M9 21V12h6v9"/></svg></span>`;
+    return `<span class=\"agent-avatar${pulse ? ' pulse' : ''}\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#7E5EFF\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 9.5V21h6v-5h6v5h6V9.5L12 3z\"/><path d=\"M9 21V12h6v9\"/></svg></span>`;
   }
   function getSendButtonIcon() {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+    return `<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#7E5EFF\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"22\" y1=\"2\" x2=\"11\" y2=\"13\"/><polygon points=\"22 2 15 22 11 13 2 9 22 2\"/></svg>`;
   }
 
   function showTypingIndicator() {
@@ -162,8 +162,15 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         chipElement.className = "quick-start-chip";
         chipElement.type = "button";
         chipElement.textContent = chip;
+        chipElement.style.opacity = 0;
+        chipElement.style.transform = 'translateY(24px)';
         chipElement.onclick = () => sendMessage(chip);
         chipsContainer.appendChild(chipElement);
+        setTimeout(() => {
+          chipElement.style.transition = 'opacity 0.4s, transform 0.4s';
+          chipElement.style.opacity = 1;
+          chipElement.style.transform = 'none';
+        }, 400 + i * 120);
       });
       messageRow.appendChild(chipsContainer);
     }
