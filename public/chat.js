@@ -97,18 +97,71 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     return '';
   }
   
-  // Fun, brand-aligned opening lines
-  const openingLines = [
-    "Hi, I'm HomeOps — your mental load operating system. What's on your plate today?",
-    "Hey there! HomeOps here. What can I help you clear off your list?",
-    "Welcome to HomeOps — your family's chief of staff. What's top of mind?",
-    "Hi! I'm HomeOps. Ready to help you decode, plan, and conquer your day.",
-    "Hello! HomeOps at your service. What's the first thing you want to tackle?"
+  // 1. Assistant intro rotation and personalization
+  const assistantIntros = [
+    "👋 Hi there. I'm HomeOps — here to manage the invisible work of your life. What's top of mind today?",
+    "What do you need cleared off your plate today?",
+    "Inbox chaos? Calendar overload? I've got it.",
+    "Let's make life feel lighter — what's on your mind?"
   ];
-  function getOpeningLine() {
-    return openingLines[Math.floor(Math.random() * openingLines.length)];
+  // Simulate user context (replace with real user data if available)
+  const userHasKids = false; // Set to true to test parent intro
+  const parentIntro = "Juggling school drop-offs and birthday invites? I got you.";
+  const workIntro = "Work stress or errands piling up? I can handle the admin.";
+
+  function getPersonalizedIntro() {
+    const base = assistantIntros[Math.floor(Math.random() * assistantIntros.length)];
+    const context = userHasKids ? parentIntro : workIntro;
+    return `${base}\n${context}`;
   }
-  
+
+  // 2. Typing indicator before first agent message
+  function showTypingIndicator() {
+    const chatBox = document.getElementById("chat");
+    const typing = document.createElement("div");
+    typing.className = "typing-indicator";
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement("div");
+      dot.className = "typing-indicator-dot";
+      typing.appendChild(dot);
+    }
+    chatBox.appendChild(typing);
+    return typing;
+  }
+
+  function removeTypingIndicator(typing) {
+    if (typing && typing.parentNode) typing.parentNode.removeChild(typing);
+  }
+
+  // 3. On page load, show typing indicator, then agent intro
+  window.addEventListener("DOMContentLoaded", () => {
+    const chatBox = document.getElementById("chat");
+    if (chatBox && chatBox.children.length === 0) {
+      const typing = showTypingIndicator();
+      setTimeout(() => {
+        removeTypingIndicator(typing);
+        addMessage("agent", getPersonalizedIntro(), {
+          quickStart: [
+            "Remind me about something",
+            "🗓️ Check my calendar",
+            "📩 Review recent emails",
+            "🧠 Help me unblock a problem"
+          ],
+          isFirst: true
+        });
+      }, 1000);
+    }
+  });
+
+  // 4. Ensure quick-start chips use only 1 emoji per chip and new style
+  // (Handled in addMessage options above)
+
+  // 5. Use Lucide icon for agent avatar
+  function getAgentAvatar() {
+    // Lucide house SVG (inline)
+    return `<span class="agent-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5V21h6v-5h6v5h6V9.5L12 3z"/><path d="M9 21V12h6v9"/></svg></span>`;
+  }
+
   function addMessage(sender, message, opts = {}) {
     const messageDiv = document.createElement("div");
     messageDiv.className = `message ${sender}`;
@@ -118,12 +171,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       // Agent avatar
       const avatar = document.createElement("div");
       avatar.className = "agent-avatar";
-      const logoImg = document.createElement("img");
-      logoImg.src = "img/homeops-logo.svg";
-      logoImg.alt = "HomeOps";
-      logoImg.width = 24;
-      logoImg.height = 24;
-      avatar.appendChild(logoImg);
+      avatar.innerHTML = getAgentAvatar();
       messageDiv.appendChild(avatar);
     }
     // Message bubble
@@ -150,22 +198,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     maybeShowEmptyPlaceholder();
   }
 
-  // Typing indicator
-  function showTypingIndicator() {
-    let typing = document.querySelector('.typing-indicator');
-    if (!typing) {
-      typing = document.createElement('div');
-      typing.className = 'typing-indicator';
-      typing.innerHTML = '<span>HomeOps is thinking...</span>';
-      chatBox.appendChild(typing);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-  }
-  function hideTypingIndicator() {
-    const typing = document.querySelector('.typing-indicator');
-    if (typing) typing.remove();
-  }
-
   // Scroll-to-bottom button logic (show only if overflow)
   function checkScrollButton() {
     let btn = document.querySelector('.scroll-to-bottom');
@@ -187,17 +219,26 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   // Listen for scroll events
   chatBox.addEventListener('scroll', checkScrollButton);
 
-  // Add initial greeting (with quick-start chips, with emoji)
-  addMessage("agent", "Welcome to HomeOps — your mental load operating system. What is top of mind?", {
-    quickStart: [
-      "Remind me about something",
-      "🗓️ Check what's on my calendar",
-      "🧠 Review recent emails",
-      "Help me unblock a problem"
-    ],
-    isFirst: true
-  });
-  
+  // Show empty state placeholder if no messages
+  function maybeShowEmptyPlaceholder() {
+    const chatBox = document.getElementById("chat");
+    if (chatBox && chatBox.children.length === 0) {
+      let placeholder = document.querySelector('.chat-empty-placeholder');
+      if (!placeholder) {
+        placeholder = document.createElement('div');
+        placeholder.className = 'chat-empty-placeholder';
+        placeholder.textContent = "Try something like: 'Add pediatrician appointment next week' or 'Remind me to order diapers'";
+        chatBox.parentNode.insertBefore(placeholder, chatBox.nextSibling);
+      }
+    } else {
+      const placeholder = document.querySelector('.chat-empty-placeholder');
+      if (placeholder) placeholder.remove();
+    }
+  }
+
+  // Call maybeShowEmptyPlaceholder on load and after each message
+  maybeShowEmptyPlaceholder();
+
   // Handle form submission
   chatForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -228,7 +269,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       const data = await response.json();
       
       // Remove typing indicator
-      hideTypingIndicator();
+      removeTypingIndicator(document.querySelector('.typing-indicator'));
       
       // Add agent message (use data.reply, not data.response)
       if (data.reply && data.reply.trim()) {
@@ -329,29 +370,9 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     } catch (error) {
       console.error("💬 Chat error:", error);
       // Remove typing indicator
-      hideTypingIndicator();
+      removeTypingIndicator(document.querySelector('.typing-indicator'));
       // Add error message
       addMessage("agent", "Sorry, I'm having trouble connecting right now. Please try again.");
     }
   });
-
-  // Show empty state placeholder if no messages
-  function maybeShowEmptyPlaceholder() {
-    const chatBox = document.getElementById("chat");
-    if (chatBox && chatBox.children.length === 0) {
-      let placeholder = document.querySelector('.chat-empty-placeholder');
-      if (!placeholder) {
-        placeholder = document.createElement('div');
-        placeholder.className = 'chat-empty-placeholder';
-        placeholder.textContent = "Try something like: 'Add pediatrician appointment next week' or 'Remind me to order diapers'";
-        chatBox.parentNode.insertBefore(placeholder, chatBox.nextSibling);
-      }
-    } else {
-      const placeholder = document.querySelector('.chat-empty-placeholder');
-      if (placeholder) placeholder.remove();
-    }
-  }
-
-  // Call maybeShowEmptyPlaceholder on load and after each message
-  maybeShowEmptyPlaceholder();
 };

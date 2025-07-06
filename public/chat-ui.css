@@ -122,37 +122,82 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* User message bubble */
+/* Assistant message bubble */
+.message-bubble.agent {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  max-width: 640px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #111;
+  line-height: 1.5;
+  font-family: system-ui, Inter, sans-serif;
+  animation: fadeInUp 0.5s cubic-bezier(.23,1.01,.32,1) both;
+  border: none;
+}
 
-/* Quick-Start Chips - inline, pill-style, not full-width */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Typing indicator (dot bounce) */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+.typing-indicator-dot {
+  width: 6px;
+  height: 6px;
+  margin: 0 2px;
+  border-radius: 50%;
+  background: #B39DFF;
+  opacity: 0.7;
+  animation: typingBounce 1s infinite both;
+}
+.typing-indicator-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-indicator-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typingBounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+}
+
+/* Quick-start chips */
 .quick-start-chips {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  margin-top: 8px;
-  margin-left: 48px;
+  margin-top: 10px;
+  margin-bottom: 2px;
   gap: 0;
 }
 .quick-start-chip {
   display: inline-block;
   padding: 6px 14px;
   border-radius: 9999px;
-  border: 1px solid #E0E0E0;
-  background: #fff;
   font-size: 14px;
   font-weight: 500;
   color: #333;
+  background: #fff;
+  border: 1px solid #E0E0E0;
   margin-right: 8px;
   margin-top: 8px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, border 0.2s;
-  outline: none;
-  box-shadow: 0 1px 2px rgba(126,94,255,0.04);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition: all 0.2s cubic-bezier(.23,1.01,.32,1);
 }
 .quick-start-chip:hover, .quick-start-chip:focus {
-  background: #F3F0FF;
+  background: linear-gradient(90deg, #F7F5FF 0%, #EFEAFF 100%);
   color: #111;
-  border: 1px solid linear-gradient(90deg, #7E5EFF 0%, #FFB86B 100%);
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 2px 8px rgba(126,94,255,0.08);
+  border-color: #D1C4E9;
 }
 
 /* Input form - clean, no shadows */
@@ -311,5 +356,26 @@
     height: 28px;
     bottom: 1rem;
     font-size: 14px;
+  }
+}
+
+@media (max-width: 700px) {
+  .homeops-chat-card {
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 16px;
+    padding-bottom: 12px;
+  }
+  .message-bubble.agent {
+    max-width: 98vw;
+    padding: 12px;
+    font-size: 14px;
+  }
+  .agent-avatar {
+    width: 28px;
+    height: 28px;
+    padding: 2px;
+    margin-left: 4px;
+    margin-right: 6px;
   }
 } 
