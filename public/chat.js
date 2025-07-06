@@ -26,17 +26,17 @@ window.initializeChat = function(auth, user, retryCount = 0) {
 
   // Create chat card container
   const chatCard = document.createElement("div");
-  chatCard.className = "chat-card";
+  chatCard.className = "homeops-chat-card";
 
   // Chat box
   const chatBox = document.createElement("div");
-  chatBox.className = "chat-box";
+  chatBox.className = "homeops-chat-box";
   chatBox.id = "chat";
   chatCard.appendChild(chatBox);
 
   // Chat form
   const chatForm = document.createElement("form");
-  chatForm.className = "chat-form";
+  chatForm.className = "homeops-chat-form";
   chatForm.id = "chatForm";
   const input = document.createElement("input");
   input.type = "text";
