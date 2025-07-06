@@ -39,7 +39,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   chatForm.appendChild(input);
   const sendBtn = document.createElement("button");
   sendBtn.type = "submit";
-  sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+  sendBtn.innerHTML = getSendButtonIcon();
   chatForm.appendChild(sendBtn);
   chatCard.appendChild(chatForm);
 
@@ -97,9 +97,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     return '';
   }
   
-  // --- Modern ChatGPT/Notion/Apple-style Chat Engine ---
+  // --- Premium Concierge Chat Engine ---
 
-  // 1. Rotating, warm, premium welcome messages
   const assistantIntros = [
     "👋 Hi there — I'm HomeOps, your intelligent family concierge. What's top of mind today?",
     "Welcome! I'm HomeOps — here to lighten your mental load. How can I help?",
@@ -115,15 +114,13 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     return `${base}\n${context}`;
   }
 
-  // 2. Lucide SVGs for avatar and send button
-  function getAgentAvatar() {
-    return `<span class="agent-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5V21h6v-5h6v5h6V9.5L12 3z"/><path d="M9 21V12h6v9"/></svg></span>`;
+  function getAgentAvatar(pulse) {
+    return `<span class="agent-avatar${pulse ? ' pulse' : ''}"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5V21h6v-5h6v5h6V9.5L12 3z"/><path d="M9 21V12h6v9"/></svg></span>`;
   }
   function getSendButtonIcon() {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
   }
 
-  // 3. Typing indicator (dot bounce)
   function showTypingIndicator() {
     const chatBox = document.getElementById("chat");
     const typing = document.createElement("div");
@@ -141,16 +138,14 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     if (typing && typing.parentNode) typing.parentNode.removeChild(typing);
   }
 
-  // 4. Add message row (avatar left, bubble right, animated)
   function addMessage(sender, message, opts = {}) {
     const chatBox = document.getElementById("chat");
     const messageRow = document.createElement("div");
     messageRow.className = `message ${sender}`;
     // Avatar
     if (sender === "agent") {
-      messageRow.innerHTML += getAgentAvatar();
+      messageRow.innerHTML += getAgentAvatar(true);
     } else {
-      // Optionally add user avatar or leave blank for now
       messageRow.innerHTML += '<span class="agent-avatar" style="background:transparent;"></span>';
     }
     // Bubble
@@ -177,7 +172,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     checkScrollButton();
   }
 
-  // 5. Modern chat UI initialization
+  // Show typing indicator, then welcome message and chips
   setTimeout(() => {
     const typing = showTypingIndicator();
     setTimeout(() => {
@@ -191,8 +186,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         ],
         isFirst: true
       });
-    }, 1000);
-  }, 200);
+    }, 1100);
+  }, 250);
 
   // Scroll-to-bottom button logic (show only if overflow)
   function checkScrollButton() {
@@ -226,7 +221,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     input.value = "";
     
     // Show typing indicator
-    showTypingIndicator();
+    const typing = showTypingIndicator();
     
     try {
       // Use the user ID from window.userId (set by Firebase auth) or fallback to test_user
@@ -245,7 +240,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       const data = await response.json();
       
       // Remove typing indicator
-      removeTypingIndicator(document.querySelector('.typing-indicator'));
+      removeTypingIndicator(typing);
       
       // Add agent message (use data.reply, not data.response)
       if (data.reply && data.reply.trim()) {
@@ -346,7 +341,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     } catch (error) {
       console.error("💬 Chat error:", error);
       // Remove typing indicator
-      removeTypingIndicator(document.querySelector('.typing-indicator'));
+      removeTypingIndicator(typing);
       // Add error message
       addMessage("agent", "Sorry, I'm having trouble connecting right now. Please try again.");
     }
