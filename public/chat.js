@@ -97,25 +97,33 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     return '';
   }
   
-  // 1. Assistant intro rotation and personalization
+  // --- Modern ChatGPT/Notion/Apple-style Chat Engine ---
+
+  // 1. Rotating, warm, premium welcome messages
   const assistantIntros = [
-    "👋 Hi there. I'm HomeOps — here to manage the invisible work of your life. What's top of mind today?",
-    "What do you need cleared off your plate today?",
-    "Inbox chaos? Calendar overload? I've got it.",
-    "Let's make life feel lighter — what's on your mind?"
+    "👋 Hi there — I'm HomeOps, your intelligent family concierge. What's top of mind today?",
+    "Welcome! I'm HomeOps — here to lighten your mental load. How can I help?",
+    "Let's make life feel lighter. What do you need cleared off your plate?",
+    "Inbox chaos? Calendar overload? I've got it."
   ];
-  // Simulate user context (replace with real user data if available)
-  const userHasKids = false; // Set to true to test parent intro
+  const userHasKids = false; // TODO: Replace with real user context
   const parentIntro = "Juggling school drop-offs and birthday invites? I got you.";
   const workIntro = "Work stress or errands piling up? I can handle the admin.";
-
   function getPersonalizedIntro() {
     const base = assistantIntros[Math.floor(Math.random() * assistantIntros.length)];
     const context = userHasKids ? parentIntro : workIntro;
     return `${base}\n${context}`;
   }
 
-  // 2. Typing indicator before first agent message
+  // 2. Lucide SVGs for avatar and send button
+  function getAgentAvatar() {
+    return `<span class="agent-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5V21h6v-5h6v5h6V9.5L12 3z"/><path d="M9 21V12h6v9"/></svg></span>`;
+  }
+  function getSendButtonIcon() {
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+  }
+
+  // 3. Typing indicator (dot bounce)
   function showTypingIndicator() {
     const chatBox = document.getElementById("chat");
     const typing = document.createElement("div");
@@ -126,77 +134,65 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       typing.appendChild(dot);
     }
     chatBox.appendChild(typing);
+    chatBox.scrollTop = chatBox.scrollHeight;
     return typing;
   }
-
   function removeTypingIndicator(typing) {
     if (typing && typing.parentNode) typing.parentNode.removeChild(typing);
   }
 
-  // 3. On page load, show typing indicator, then agent intro
-  window.addEventListener("DOMContentLoaded", () => {
-    const chatBox = document.getElementById("chat");
-    if (chatBox && chatBox.children.length === 0) {
-      const typing = showTypingIndicator();
-      setTimeout(() => {
-        removeTypingIndicator(typing);
-        addMessage("agent", getPersonalizedIntro(), {
-          quickStart: [
-            "Remind me about something",
-            "🗓️ Check my calendar",
-            "📩 Review recent emails",
-            "🧠 Help me unblock a problem"
-          ],
-          isFirst: true
-        });
-      }, 1000);
-    }
-  });
-
-  // 4. Ensure quick-start chips use only 1 emoji per chip and new style
-  // (Handled in addMessage options above)
-
-  // 5. Use Lucide icon for agent avatar
-  function getAgentAvatar() {
-    // Lucide house SVG (inline)
-    return `<span class="agent-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5V21h6v-5h6v5h6V9.5L12 3z"/><path d="M9 21V12h6v9"/></svg></span>`;
-  }
-
+  // 4. Add message row (avatar left, bubble right, animated)
   function addMessage(sender, message, opts = {}) {
-    const messageDiv = document.createElement("div");
-    messageDiv.className = `message ${sender}`;
+    const chatBox = document.getElementById("chat");
+    const messageRow = document.createElement("div");
+    messageRow.className = `message ${sender}`;
+    // Avatar
     if (sender === "agent") {
-      messageDiv.style.marginTop = opts.isFirst ? "32px" : "20px";
-      messageDiv.style.marginBottom = opts.isFirst ? "12px" : "8px";
-      // Agent avatar
-      const avatar = document.createElement("div");
-      avatar.className = "agent-avatar";
-      avatar.innerHTML = getAgentAvatar();
-      messageDiv.appendChild(avatar);
+      messageRow.innerHTML += getAgentAvatar();
+    } else {
+      // Optionally add user avatar or leave blank for now
+      messageRow.innerHTML += '<span class="agent-avatar" style="background:transparent;"></span>';
     }
-    // Message bubble
+    // Bubble
     const bubble = document.createElement("div");
-    bubble.className = "message-bubble";
+    bubble.className = `message-bubble${sender === "agent" ? " agent" : ""}`;
     bubble.textContent = message;
-    messageDiv.appendChild(bubble);
-    // Quick start chips for first agent message
+    messageRow.appendChild(bubble);
+    // Quick-start chips (only for first agent message)
     if (sender === "agent" && opts.quickStart) {
       const chipsContainer = document.createElement("div");
       chipsContainer.className = "quick-start-chips";
-      opts.quickStart.forEach(chip => {
+      opts.quickStart.forEach((chip, i) => {
         const chipElement = document.createElement("button");
         chipElement.className = "quick-start-chip";
+        chipElement.type = "button";
         chipElement.textContent = chip;
         chipElement.onclick = () => sendMessage(chip);
         chipsContainer.appendChild(chipElement);
       });
-      messageDiv.appendChild(chipsContainer);
+      messageRow.appendChild(chipsContainer);
     }
-    chatBox.appendChild(messageDiv);
+    chatBox.appendChild(messageRow);
     chatBox.scrollTop = chatBox.scrollHeight;
     checkScrollButton();
-    maybeShowEmptyPlaceholder();
   }
+
+  // 5. Modern chat UI initialization
+  setTimeout(() => {
+    const typing = showTypingIndicator();
+    setTimeout(() => {
+      removeTypingIndicator(typing);
+      addMessage("agent", getPersonalizedIntro(), {
+        quickStart: [
+          "Remind me about something",
+          "🗓️ Check my calendar",
+          "📩 Review recent emails",
+          "🧠 Help me unblock a problem"
+        ],
+        isFirst: true
+      });
+    }, 1000);
+  }, 200);
 
   // Scroll-to-bottom button logic (show only if overflow)
   function checkScrollButton() {
@@ -218,26 +214,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
 
   // Listen for scroll events
   chatBox.addEventListener('scroll', checkScrollButton);
-
-  // Show empty state placeholder if no messages
-  function maybeShowEmptyPlaceholder() {
-    const chatBox = document.getElementById("chat");
-    if (chatBox && chatBox.children.length === 0) {
-      let placeholder = document.querySelector('.chat-empty-placeholder');
-      if (!placeholder) {
-        placeholder = document.createElement('div');
-        placeholder.className = 'chat-empty-placeholder';
-        placeholder.textContent = "Try something like: 'Add pediatrician appointment next week' or 'Remind me to order diapers'";
-        chatBox.parentNode.insertBefore(placeholder, chatBox.nextSibling);
-      }
-    } else {
-      const placeholder = document.querySelector('.chat-empty-placeholder');
-      if (placeholder) placeholder.remove();
-    }
-  }
-
-  // Call maybeShowEmptyPlaceholder on load and after each message
-  maybeShowEmptyPlaceholder();
 
   // Handle form submission
   chatForm.addEventListener("submit", async (e) => {
