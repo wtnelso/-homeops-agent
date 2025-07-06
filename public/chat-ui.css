@@ -6,10 +6,10 @@
 
 /* HomeOps Chat UI — Premium Notion/Apple/ChatGPT Style */
 
-/* --- World-Class HomeOps Chat UI: Anchored, Alive, and Inviting --- */
+/* --- HomeOps Chat UI: World-Class, Clean, Mobile-First --- */
 
 body {
-  background: radial-gradient(ellipse at 60% 40%, #f7f5ff 60%, #e0e7ff 100%) !important;
+  background: linear-gradient(120deg, #f7f5ff 0%, #f3e8ff 100%) !important;
   margin: 0;
   padding: 0;
 }
@@ -26,20 +26,23 @@ body {
 }
 
 .homeops-chat-wrapper {
-  max-width: 600px;
-  margin: auto;
-  padding-top: 64px;
-  padding-bottom: 64px;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-top: 48px;
+  padding-bottom: 48px;
   text-align: center;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .homeops-branding {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  margin-top: 48px;
-  margin-bottom: 32px;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 28px;
   animation: fadeIn 0.7s cubic-bezier(.23,1.01,.32,1) both;
 }
 @keyframes fadeIn {
@@ -47,33 +50,37 @@ body {
   to { opacity: 1; transform: none; }
 }
 .homeops-logo {
-  max-height: 40px;
-  margin-bottom: 12px;
-  width: auto;
+  max-height: 36px;
+  width: 36px;
+  min-width: 36px;
+  margin: 0;
   display: block;
 }
-.homeops-title {
+.homeops-wordmark {
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.25px;
   color: #7E5EFF;
-  margin-bottom: 0;
   font-family: system-ui, Inter, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif;
+  margin: 0;
 }
 .homeops-subtitle {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 400;
   color: #777;
-  margin-top: 4px;
+  margin-top: 2px;
   margin-bottom: 0;
+  text-align: center;
+  width: 100%;
 }
 
 .homeops-chat-prompt {
   font-size: 20px;
   font-weight: 600;
   color: #222;
-  margin-bottom: 24px;
-  font-family: system-ui, Inter, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif;
+  margin-bottom: 22px;
+  margin-top: 0;
+  animation: fadeIn 0.8s cubic-bezier(.23,1.01,.32,1) both;
 }
 
 .suggestion-list {
@@ -81,34 +88,36 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 16px 12px;
-  margin-bottom: 32px;
+  gap: 12px 10px;
+  margin-bottom: 28px;
 }
-.suggestion-row {
+.suggestion-chip {
   display: inline-flex;
   align-items: center;
-  padding: 12px 18px;
-  border-radius: 12px;
+  padding: 10px 18px;
+  border-radius: 9999px;
   border: 1px solid #E0E0E0;
   background: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-  font-size: 14px;
+  box-shadow: 0 1px 3px rgba(167,139,250,0.07);
+  font-size: 15px;
   font-weight: 500;
   color: #333;
-  transition: all 0.2s ease;
+  transition: all 0.18s cubic-bezier(.23,1.01,.32,1);
   gap: 8px;
   cursor: pointer;
   margin: 0;
+  min-width: 0;
 }
-.suggestion-row:hover, .suggestion-row:focus {
+.suggestion-chip:hover, .suggestion-chip:focus {
   background: #F6F4FF;
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.04);
   box-shadow: 0 4px 12px rgba(167,139,250,0.13);
+  border-color: #d1c4e9;
 }
 .suggestion-icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -123,7 +132,7 @@ body {
   padding: 0.5rem 1.2rem;
   margin: 0 auto 0 auto;
   width: 100%;
-  max-width: 600px;
+  max-width: 480px;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -171,67 +180,42 @@ body {
   transform: scale(1.08);
 }
 .homeops-chat-form button svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: block;
   color: white;
   fill: white;
 }
 
-.typing-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 24px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  animation: fadeIn 0.5s cubic-bezier(.23,1.01,.32,1) both;
-}
-.typing-indicator-dot {
-  width: 7px;
-  height: 7px;
-  margin: 0 3px;
-  border-radius: 50%;
-  background: #B8A3FF;
-  opacity: 0.7;
-  animation: typingBounce 1s infinite both;
-}
-.typing-indicator-dot:nth-child(2) { animation-delay: 0.15s; }
-.typing-indicator-dot:nth-child(3) { animation-delay: 0.3s; }
-@keyframes typingBounce {
-  0%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-7px); }
-}
-
-@media (max-width: 700px) {
+@media (max-width: 600px) {
   .homeops-chat-wrapper {
     max-width: 98vw;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
-    padding-top: 24px;
-    padding-bottom: 24px;
+    padding-top: 18px;
+    padding-bottom: 18px;
   }
   .homeops-branding {
-    margin-top: 18px;
-    margin-bottom: 18px;
+    gap: 8px;
+    margin-bottom: 16px;
   }
   .homeops-chat-prompt {
     font-size: 16px;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
   .suggestion-list {
-    gap: 8px 6px;
-    margin-bottom: 18px;
+    gap: 8px 4px;
+    margin-bottom: 14px;
   }
-  .suggestion-row {
+  .suggestion-chip {
     font-size: 13px;
-    padding: 10px 10px;
-    border-radius: 10px;
+    padding: 8px 10px;
+    border-radius: 9999px;
   }
   .homeops-chat-form {
     max-width: 98vw;
     padding: 0.5rem 0.5rem;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 }
 

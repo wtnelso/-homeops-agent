@@ -22,15 +22,29 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   wrapper.className = 'homeops-chat-wrapper';
   chatRoot.appendChild(wrapper);
 
-  // Branding
+  // Branding (horizontal, fallback to wordmark if SVG missing)
   const branding = document.createElement('div');
   branding.className = 'homeops-branding';
-  branding.innerHTML = `
-    <img src="img/homeops-logo.svg" class="homeops-logo" alt="HomeOps logo" />
-    <div class="homeops-title">HomeOps</div>
-    <div class="homeops-subtitle">Your intelligent family concierge</div>
-  `;
+  let logoImg = document.createElement('img');
+  logoImg.src = 'img/homeops-logo.svg';
+  logoImg.className = 'homeops-logo';
+  logoImg.alt = 'HomeOps logo';
+  logoImg.onerror = function() {
+    logoImg.replaceWith(Object.assign(document.createElement('span'), {className: 'homeops-wordmark', textContent: 'HomeOps'}));
+  };
+  branding.appendChild(logoImg);
+  // Brand name (wordmark)
+  const wordmark = document.createElement('span');
+  wordmark.className = 'homeops-wordmark';
+  wordmark.textContent = 'HomeOps';
+  branding.appendChild(wordmark);
   wrapper.appendChild(branding);
+
+  // Subtitle
+  const subtitle = document.createElement('div');
+  subtitle.className = 'homeops-subtitle';
+  subtitle.textContent = 'Your intelligent family concierge';
+  wrapper.appendChild(subtitle);
 
   // Main prompt (random warm phrase)
   const prompts = [
@@ -43,7 +57,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   prompt.textContent = prompts[Math.floor(Math.random() * prompts.length)];
   wrapper.appendChild(prompt);
 
-  // Suggestions (inline-flex, lavender icons)
+  // Suggestions (pill-style chips, lavender icons)
   const suggestions = [
     { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="#B8A3FF" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2"><rect x="3" y="11" width="18" height="7" rx="2"/><rect x="7" y="7" width="10" height="4" rx="2"/></svg>', text: 'Remind me about something' },
     { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="#B8A3FF" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', text: 'Check my calendar' },
@@ -53,14 +67,14 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   const suggestionList = document.createElement('div');
   suggestionList.className = 'suggestion-list';
   suggestions.forEach(s => {
-    const row = document.createElement('div');
-    row.className = 'suggestion-row';
-    row.innerHTML = `${s.icon}<span>${s.text}</span>`;
-    row.onclick = () => {
+    const chip = document.createElement('div');
+    chip.className = 'suggestion-chip';
+    chip.innerHTML = `${s.icon}<span>${s.text}</span>`;
+    chip.onclick = () => {
       input.value = s.text;
       input.focus();
     };
-    suggestionList.appendChild(row);
+    suggestionList.appendChild(chip);
   });
   wrapper.appendChild(suggestionList);
 
@@ -75,7 +89,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   chatForm.appendChild(input);
   const sendBtn = document.createElement('button');
   sendBtn.type = 'submit';
-  sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+  sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
   chatForm.appendChild(sendBtn);
   wrapper.appendChild(chatForm);
 
