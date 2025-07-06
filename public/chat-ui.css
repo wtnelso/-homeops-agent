@@ -1,0 +1,223 @@
+/*
+ * PREMIUM HOMEOPS CHAT UI STYLES
+ * Extracted from style.css to fix CSS parsing issues
+ * Last updated: 2024-06-09
+ */
+
+/* Root chat container - clean, no shadows */
+#chat-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  background: #fafafa;
+  padding: 0;
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Chat card - minimal, no glow or shadows */
+.homeops-chat-card {
+  background: #fff !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  max-width: 800px !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  position: relative !important;
+}
+
+/* HomeOps logo and name - remove if not needed */
+.homeops-logo-avatar {
+  display: none;
+}
+
+.homeops-brand-label {
+  display: none;
+}
+
+/* Welcome message */
+.welcome-message {
+  font-size: 1.1rem;
+  color: #666;
+  text-align: center;
+  margin: 2rem 0 1rem 0;
+  padding: 0 1rem;
+  line-height: 1.5;
+}
+
+/* Chat box - clean, no shadows */
+.homeops-chat-box {
+  width: 100% !important;
+  min-height: 320px !important;
+  max-height: 60vh !important;
+  overflow-y: auto !important;
+  padding: 1rem 1.5rem !important;
+  margin-bottom: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem !important;
+  background: transparent !important;
+}
+
+/* Message container */
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+}
+
+/* Agent Avatar - house icon, 24x24, left-aligned, centered with bubble */
+
+/* Message Bubble - clean, 600px max, subtle background */
+
+/* User message bubble */
+
+/* Quick-Start Chips - inline, pill-style, not full-width */
+
+/* Input form - clean, no shadows */
+.homeops-chat-form {
+  background: transparent !important;
+  border-top: 1px solid #eee !important;
+  padding: 1rem 1.5rem !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: 800px !important;
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  border-radius: 0 !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 10 !important;
+  box-shadow: none !important;
+}
+
+/* Input field - clean, rounded */
+.homeops-chat-form input {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #DDD;
+  border-radius: 9999px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-family: system-ui, Inter, sans-serif;
+  color: #333;
+  outline: none;
+  box-shadow: none;
+}
+
+.homeops-chat-form input::placeholder {
+  color: #999;
+  font-weight: 400;
+}
+
+.homeops-chat-form input:focus {
+  border-color: #6366f1;
+  box-shadow: none;
+}
+
+/* Send button - paper airplane icon, 44x44 circle */
+.homeops-chat-form button {
+  background: transparent;
+  color: #6366f1;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  box-shadow: none;
+  font-size: 18px;
+}
+
+.homeops-chat-form button:hover {
+  background: #EDE9FE;
+  color: #6366f1;
+  transform: none;
+}
+
+.homeops-chat-form button i {
+  font-size: 18px;
+}
+
+/* Scroll-to-bottom button - only show when needed */
+.scroll-to-bottom {
+  display: none;
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #eee;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #6366f1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: all 0.15s;
+}
+
+.scroll-to-bottom.visible {
+  display: flex;
+}
+
+.scroll-to-bottom:hover {
+  background: #fff;
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.scroll-to-bottom::before {
+  content: "↓";
+  font-size: 18px;
+  color: #6366f1;
+  display: block;
+  line-height: 1;
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+  .homeops-chat-card {
+    max-width: 100vw;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+    padding-bottom: 0;
+  }
+  
+  .homeops-chat-form {
+    max-width: 100vw;
+    border-radius: 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .homeops-chat-box {
+    max-height: 50vh;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .scroll-to-bottom {
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    bottom: 1rem;
+  }
+} 
