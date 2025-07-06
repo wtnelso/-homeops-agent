@@ -45,7 +45,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   chatForm.appendChild(input);
   const sendBtn = document.createElement("button");
   sendBtn.type = "submit";
-  sendBtn.innerHTML = '<i class="send-icon"></i>';
+  sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
   chatForm.appendChild(sendBtn);
   chatCard.appendChild(chatForm);
 
@@ -119,7 +119,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     const messageDiv = document.createElement("div");
     messageDiv.className = `message ${sender}`;
     
-    // Assistant avatar
+    // Assistant avatar - use house icon (HomeOps logo)
     if (sender === "agent") {
       const avatar = document.createElement("div");
       avatar.className = "agent-avatar";
@@ -132,54 +132,26 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       messageDiv.appendChild(avatar);
     }
     
-    // Bubble and chips wrapper
-    let bubbleAndChips = null;
-    if (sender === "agent") {
-      bubbleAndChips = document.createElement("div");
-      bubbleAndChips.className = "bubble-and-chips";
-    }
+    // Message bubble
+    const bubble = document.createElement("div");
+    bubble.className = "message-bubble";
+    bubble.textContent = message;
+    messageDiv.appendChild(bubble);
     
-    const messageBubble = document.createElement("div");
-    messageBubble.className = "message-bubble fade-in-bubble";
-    messageBubble.textContent = message;
-    
-    if (bubbleAndChips) {
-      bubbleAndChips.appendChild(messageBubble);
-    } else {
-      messageDiv.appendChild(messageBubble);
-    }
-    
-    // Quick-start chips
-    if (sender === "agent" && opts.showChips) {
-      const chips = document.createElement("div");
-      chips.className = "quick-start-chips fade-in-chips";
-      [
-        "Remind me about something",
-        "Check what is on my calendar",
-        "Review my recent emails",
-        "Help me unblock a problem"
-      ].forEach(text => {
-        const chip = document.createElement("button");
-        chip.className = "quick-start-chip";
-        chip.type = "button";
-        chip.textContent = text;
-        chip.onclick = () => {
-          input.value = text;
-          input.focus();
-        };
-        chips.appendChild(chip);
+    // Quick start chips for agent messages
+    if (sender === "agent" && opts.quickStart) {
+      const chipsContainer = document.createElement("div");
+      chipsContainer.className = "quick-start-chips";
+      
+      opts.quickStart.forEach(chip => {
+        const chipElement = document.createElement("button");
+        chipElement.className = "quick-start-chip";
+        chipElement.textContent = chip;
+        chipElement.onclick = () => sendMessage(chip);
+        chipsContainer.appendChild(chipElement);
       });
-      if (bubbleAndChips) {
-        bubbleAndChips.appendChild(chips);
-      } else {
-        messageDiv.appendChild(chips);
-      }
-      // Animate chips fade-in
-      setTimeout(() => chips.classList.add('visible'), 300);
-    }
-    
-    if (bubbleAndChips) {
-      messageDiv.appendChild(bubbleAndChips);
+      
+      messageDiv.appendChild(chipsContainer);
     }
     
     chatBox.appendChild(messageDiv);
