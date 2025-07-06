@@ -147,6 +147,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
     checkScrollButton();
+    maybeShowEmptyPlaceholder();
   }
 
   // Typing indicator
@@ -186,12 +187,12 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   // Listen for scroll events
   chatBox.addEventListener('scroll', checkScrollButton);
 
-  // Add initial greeting (with quick-start chips)
+  // Add initial greeting (with quick-start chips, with emoji)
   addMessage("agent", "Welcome to HomeOps — your mental load operating system. What is top of mind?", {
     quickStart: [
       "Remind me about something",
-      "Check what's on my calendar",
-      "Review recent emails",
+      "🗓️ Check what's on my calendar",
+      "🧠 Review recent emails",
       "Help me unblock a problem"
     ],
     isFirst: true
@@ -333,4 +334,24 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       addMessage("agent", "Sorry, I'm having trouble connecting right now. Please try again.");
     }
   });
+
+  // Show empty state placeholder if no messages
+  function maybeShowEmptyPlaceholder() {
+    const chatBox = document.getElementById("chat");
+    if (chatBox && chatBox.children.length === 0) {
+      let placeholder = document.querySelector('.chat-empty-placeholder');
+      if (!placeholder) {
+        placeholder = document.createElement('div');
+        placeholder.className = 'chat-empty-placeholder';
+        placeholder.textContent = "Try something like: 'Add pediatrician appointment next week' or 'Remind me to order diapers'";
+        chatBox.parentNode.insertBefore(placeholder, chatBox.nextSibling);
+      }
+    } else {
+      const placeholder = document.querySelector('.chat-empty-placeholder');
+      if (placeholder) placeholder.remove();
+    }
+  }
+
+  // Call maybeShowEmptyPlaceholder on load and after each message
+  maybeShowEmptyPlaceholder();
 };
