@@ -18,12 +18,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   }
   chatRoot.innerHTML = '';
 
-  // Add HomeOps label at the top
-  const label = document.createElement('div');
-  label.className = 'homeops-label';
-  label.textContent = 'HomeOps';
-  chatRoot.appendChild(label);
-
   // Create chat card container
   const chatCard = document.createElement("div");
   chatCard.className = "homeops-chat-card";
@@ -118,9 +112,10 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   function addMessage(sender, message, opts = {}) {
     const messageDiv = document.createElement("div");
     messageDiv.className = `message ${sender}`;
-    
-    // Assistant avatar - use house icon (HomeOps logo)
     if (sender === "agent") {
+      messageDiv.style.marginTop = opts.isFirst ? "32px" : "20px";
+      messageDiv.style.marginBottom = opts.isFirst ? "12px" : "8px";
+      // Agent avatar
       const avatar = document.createElement("div");
       avatar.className = "agent-avatar";
       const logoImg = document.createElement("img");
@@ -131,18 +126,15 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       avatar.appendChild(logoImg);
       messageDiv.appendChild(avatar);
     }
-    
     // Message bubble
     const bubble = document.createElement("div");
     bubble.className = "message-bubble";
     bubble.textContent = message;
     messageDiv.appendChild(bubble);
-    
-    // Quick start chips for agent messages
+    // Quick start chips for first agent message
     if (sender === "agent" && opts.quickStart) {
       const chipsContainer = document.createElement("div");
       chipsContainer.className = "quick-start-chips";
-      
       opts.quickStart.forEach(chip => {
         const chipElement = document.createElement("button");
         chipElement.className = "quick-start-chip";
@@ -150,14 +142,10 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         chipElement.onclick = () => sendMessage(chip);
         chipsContainer.appendChild(chipElement);
       });
-      
       messageDiv.appendChild(chipsContainer);
     }
-    
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
-    
-    // Show scroll-to-bottom button if needed
     checkScrollButton();
   }
 
@@ -198,8 +186,16 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   // Listen for scroll events
   chatBox.addEventListener('scroll', checkScrollButton);
 
-  // Add initial greeting (with chips)
-  addMessage("agent", "Welcome to HomeOps — your mental load operating system. What is top of mind?", { showChips: true });
+  // Add initial greeting (with quick-start chips)
+  addMessage("agent", "Welcome to HomeOps — your mental load operating system. What is top of mind?", {
+    quickStart: [
+      "Remind me about something",
+      "Check what's on my calendar",
+      "Review recent emails",
+      "Help me unblock a problem"
+    ],
+    isFirst: true
+  });
   
   // Handle form submission
   chatForm.addEventListener("submit", async (e) => {
