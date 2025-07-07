@@ -2,10 +2,6 @@
 // Built with HomeOps Design System from Figma Mockup
 
 window.initializeChat = function(auth, user, retryCount = 0) {
-  // Fix: Declare messages and isTyping at the very top so all functions can access them
-  let messages = [];
-  let isTyping = false;
-
   console.log("💬 Initializing modern HomeOps chat for user:", user ? user.uid : "test_user");
   
   const chatRoot = document.getElementById("chat-root");
@@ -19,28 +15,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     return;
   }
   
-  // Render brand header
-  chatRoot.innerHTML = `
-    <div class="brand-header">
-      <img src="img/homeops-logo.svg" class="homeops-logo" alt="HomeOps logo" />
-      HomeOps
-    </div>
-    <div class="chat-area">
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input-container">
-        <form class="chat-input-form" onsubmit="return false;">
-          <input type="text" class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" />
-          <button type="submit" class="send-button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-        </form>
-      </div>
-    </div>
-  `;
-
-  const chatMessages = document.getElementById('chatMessages');
-  const chatInput = document.querySelector('.chat-input');
-  const chatForm = document.querySelector('.chat-input-form');
+  // Clear and create fresh chat interface
+  chatRoot.innerHTML = '';
   
   // Check if user has existing conversations
   const hasExistingChats = localStorage.getItem('homeops_chat_history') && 
@@ -51,6 +27,10 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   } else {
     renderWelcomeScreen();
   }
+  
+  // Chat state management
+  let messages = [];
+  let isTyping = false;
   
   // Load existing messages
   function loadChatHistory() {
@@ -219,10 +199,13 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   function renderMessages() {
     return messages.map(msg => `
       <div class="message-row ${msg.sender}">
-        ${msg.sender === 'agent' ? `<span class="agent-avatar"><img src='img/homeops-logo.svg' alt='HomeOps' style='width:32px;height:32px;border-radius:50%;background:#fff;'/></span>` : ''}
-        <div class="message-bubble">${msg.text}</div>
-        ${msg.sender === 'user' ? `<span style='width:32px;display:inline-block;'></span>` : ''}
-        <div class="message-timestamp">${msg.time}</div>
+        <div class="message-avatar">
+          ${msg.sender === 'assistant' ? getAssistantAvatar() : getUserAvatar()}
+        </div>
+        <div class="message-bubble">
+          <div class="message-content">${msg.content}</div>
+          <div class="message-time">${formatTime(msg.timestamp)}</div>
+        </div>
       </div>
     `).join('');
   }
@@ -287,12 +270,11 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   }
   
   // Add message to chat
-  function addMessage(sender, text) {
-    const now = new Date();
+  function addMessage(sender, content) {
     const message = {
       sender,
-      text,
-      time: now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+      content,
+      timestamp: new Date().toISOString()
     };
     
     messages.push(message);
@@ -304,10 +286,13 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       const messageDiv = document.createElement('div');
       messageDiv.className = 'message-row ' + sender;
       messageDiv.innerHTML = `
-        ${sender === 'agent' ? `<span class="agent-avatar"><img src='img/homeops-logo.svg' alt='HomeOps' style='width:32px;height:32px;border-radius:50%;background:#fff;'/></span>` : ''}
-        <div class="message-bubble">${text}</div>
-        ${sender === 'user' ? `<span style='width:32px;display:inline-block;'></span>` : ''}
-        <div class="message-timestamp">${formatTime(now)}</div>
+        <div class="message-avatar">
+          ${sender === 'assistant' ? getAssistantAvatar() : getUserAvatar()}
+        </div>
+        <div class="message-bubble">
+          <div class="message-content">${content}</div>
+          <div class="message-time">${formatTime(message.timestamp)}</div>
+        </div>
       `;
       
       messagesContainer.appendChild(messageDiv);
@@ -349,7 +334,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       isTyping = false;
       
       const response = getAssistantResponse(message);
-      addMessage('agent', response);
+      addMessage('assistant', response);
     }, 1500);
   };
   
@@ -373,7 +358,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       isTyping = false;
       
       const response = getAssistantResponse(message);
-      addMessage('agent', response);
+      addMessage('assistant', response);
     }, 1500);
   };
   
