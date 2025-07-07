@@ -274,55 +274,63 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     renderWelcome();
   });
   
-  // Onboarding empty state for first-time users
+  // Render welcome/onboarding state
   function renderWelcome() {
     chatMessages.innerHTML = '';
-    const card = document.createElement('div');
-    card.className = 'onboarding-card';
-    // Logo
-    const logo = document.createElement('div');
-    logo.className = 'onboarding-logo';
-    logo.innerHTML = "<img src='img/homeops-logo.svg' alt='HomeOps' />";
-    card.appendChild(logo);
-    // Greeting
+    // Container for onboarding
+    const container = document.createElement('div');
+    container.className = 'onboarding-welcome-container';
+    // Logo avatar
+    const avatar = document.createElement('div');
+    avatar.className = 'onboarding-logo-avatar';
+    avatar.innerHTML = `<img src="img/homeops-logo.svg" alt="HomeOps" />`;
+    container.appendChild(avatar);
+    // Greeting with typewriter effect
     const greeting = document.createElement('div');
     greeting.className = 'onboarding-greeting';
-    greeting.innerHTML = "Hi, I'm HomeOps";
-    card.appendChild(greeting);
-    // Description
-    const desc = document.createElement('div');
-    desc.className = 'onboarding-desc';
-    desc.innerHTML = "Let's lighten your mental load. Try asking me:";
-    card.appendChild(desc);
-    // Example chips
-    const chips = document.createElement('div');
-    chips.className = 'onboarding-chips';
-    const examples = [
-      "What's on my calendar today?",
-      "Remind me to order more diapers.",
-      "Help me unblock a problem",
-      "Review recent emails"
+    greeting.textContent = '';
+    container.appendChild(greeting);
+    // Typewriter effect for greeting
+    const greetingText = "👋 Hi, I'm HomeOps — your Mental Load Operating System. Let's clear your head.";
+    let i = 0;
+    function typeWriter() {
+      if (i < greetingText.length) {
+        greeting.textContent += greetingText.charAt(i);
+        i++;
+        setTimeout(typeWriter, 18);
+      }
+    }
+    typeWriter();
+    // Suggestion chips (inline, not buttons)
+    const suggestions = [
+      { text: "🧠 What's on my calendar today?" },
+      { text: "Remind me to buy diapers 🍼" },
+      { text: "Help me unblock a problem" },
+      { text: "📩 Review recent emails" }
     ];
-    examples.forEach(ex => {
-      const chip = document.createElement('button');
-      chip.className = 'onboarding-chip';
-      chip.textContent = ex;
-      chip.onclick = () => {
-        chatInput.value = ex;
+    const chipsRow = document.createElement('div');
+    chipsRow.className = 'onboarding-chips-row';
+    suggestions.forEach((s, idx) => {
+      const chip = document.createElement('span');
+      chip.className = 'suggestion-chip';
+      chip.textContent = s.text;
+      chip.style.opacity = '0';
+      chip.style.transform = 'translateY(12px)';
+      setTimeout(() => {
+        chip.style.transition = 'opacity 0.4s, transform 0.4s';
+        chip.style.opacity = '1';
+        chip.style.transform = 'translateY(0)';
+      }, 400 + idx * 200);
+      chip.addEventListener('click', () => {
+        chatInput.value = s.text;
         chatInput.focus();
-        charCount.textContent = `${ex.length}/1000`;
-        chatInput.style.height = 'auto';
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 72) + 'px';
-      };
-      chips.appendChild(chip);
+        charCount.textContent = `${chatInput.value.length}/1000`;
+      });
+      chipsRow.appendChild(chip);
     });
-    card.appendChild(chips);
-    // Center in onboarding-state
-    const state = document.createElement('div');
-    state.className = 'onboarding-state';
-    state.appendChild(card);
-    chatMessages.appendChild(state);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    container.appendChild(chipsRow);
+    chatMessages.appendChild(container);
+    chatMessages.scrollTop = 0;
   }
   
   // Initialize the appropriate view
