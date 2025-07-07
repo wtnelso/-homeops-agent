@@ -28,9 +28,9 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       <button class="new-chat-btn" id="newChatBtn">New Chat</button>
     </div>
     <div class="main-panel">
-      <div class="chat-viewport chat-messages" id="chatMessages"></div>
+      <div class="chat-thread" id="chatThread"></div>
     </div>
-    <div class="chat-input-container">
+    <div class="input-bar">
       <form class="chat-input-form" onsubmit="return false;">
         <textarea class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" maxlength="1000" rows="1" style="resize: none;"></textarea>
         <span class="char-count" id="charCount">0/1000</span>
@@ -39,15 +39,13 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         </button>
       </form>
     </div>
-    <button class="scroll-to-bottom" id="scrollToBottomBtn">↓ Scroll to bottom</button>
   `;
 
-  const chatMessages = document.getElementById('chatMessages');
+  const chatThread = document.getElementById('chatThread');
   const chatInput = document.querySelector('.chat-input');
   const chatForm = document.querySelector('.chat-input-form');
   const newChatBtn = document.getElementById('newChatBtn');
   const charCount = document.getElementById('charCount');
-  const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
 
   // Smart chip suggestions for first-time users
   const suggestions = [
@@ -81,15 +79,15 @@ window.initializeChat = function(auth, user, retryCount = 0) {
 
   // Scroll-to-bottom CTA
   function checkScrollToBottom() {
-    if (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight > 80) {
+    if (chatThread.scrollHeight - chatThread.scrollTop - chatThread.clientHeight > 80) {
       scrollToBottomBtn.classList.add('visible');
     } else {
       scrollToBottomBtn.classList.remove('visible');
     }
   }
-  chatMessages.addEventListener('scroll', checkScrollToBottom);
+  chatThread.addEventListener('scroll', checkScrollToBottom);
   scrollToBottomBtn.addEventListener('click', () => {
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatThread.scrollTop = chatThread.scrollHeight;
   });
 
   // Markdown rendering (basic)
@@ -104,7 +102,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
 
   // Render all messages with grouping and animation
   function renderMessages() {
-    chatMessages.innerHTML = '';
+    chatThread.innerHTML = '';
     messages.forEach((msg, idx) => {
       const group = document.createElement('div');
       group.className = 'message-group';
@@ -131,9 +129,9 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       ts.className = 'message-timestamp';
       ts.textContent = msg.time;
       group.appendChild(ts);
-      chatMessages.appendChild(group);
+      chatThread.appendChild(group);
     });
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatThread.scrollTop = chatThread.scrollHeight;
     checkScrollToBottom();
   }
   
@@ -146,8 +144,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       dot.className = 'typing-dot';
       typing.appendChild(dot);
     }
-    chatMessages.appendChild(typing);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatThread.appendChild(typing);
+    chatThread.scrollTop = chatThread.scrollHeight;
     return typing;
   }
   function removeTyping(typing) {
@@ -276,65 +274,40 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   
   // Render welcome/onboarding state
   function renderWelcome() {
-    chatMessages.innerHTML = '';
-    // Container for onboarding
-    const container = document.createElement('div');
-    container.className = 'onboarding-welcome-container';
-    // Logo avatar
-    const avatar = document.createElement('div');
-    avatar.className = 'onboarding-logo-avatar';
-    avatar.innerHTML = `<img src="img/homeops-logo.svg" alt="HomeOps" />`;
-    container.appendChild(avatar);
-    // Greeting with typewriter effect (no emoji)
-    const greeting = document.createElement('div');
-    greeting.className = 'onboarding-greeting';
-    greeting.textContent = '';
-    container.appendChild(greeting);
-    // Typewriter effect for greeting (no emoji)
-    const greetingText = "Hi, I'm HomeOps — your Mental Load Operating System. Let's clear your head.";
-    let i = 0;
-    function typeWriter() {
-      if (i < greetingText.length) {
-        greeting.textContent += greetingText.charAt(i);
-        i++;
-        setTimeout(typeWriter, 18);
-      }
-    }
-    typeWriter();
-    // Suggestion chips (Lucide icons, no emoji)
-    const suggestions = [
+    chatThread.innerHTML = '';
+    // Assistant greeting bubble
+    const row = document.createElement('div');
+    row.className = 'message-row assistant';
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble assistant-message';
+    bubble.innerHTML = "Hi, I'm HomeOps — your Mental Load Operating System.<br>Here to help you lighten the load. Try one of these:";
+    row.appendChild(bubble);
+    chatThread.appendChild(row);
+    // Suggested prompts
+    const prompts = [
       { icon: 'calendar', text: "What's on my calendar today?" },
       { icon: 'bell', text: "Remind me to buy diapers" },
       { icon: 'help-circle', text: "Help me unblock a problem" },
       { icon: 'mail', text: "Review recent emails" }
     ];
-    const chipsRow = document.createElement('div');
-    chipsRow.className = 'onboarding-chips-row';
-    suggestions.forEach((s, idx) => {
+    const promptsRow = document.createElement('div');
+    promptsRow.className = 'suggested-prompts';
+    prompts.forEach((p, idx) => {
       const chip = document.createElement('span');
-      chip.className = 'suggestion-chip';
-      chip.innerHTML = `<i data-lucide='${s.icon}' style='width:1em;height:1em;vertical-align:-0.15em;margin-right:7px;'></i>${s.text}`;
-      chip.style.opacity = '0';
-      chip.style.transform = 'translateY(12px)';
-      setTimeout(() => {
-        chip.style.transition = 'opacity 0.4s, transform 0.4s';
-        chip.style.opacity = '1';
-        chip.style.transform = 'translateY(0)';
-      }, 400 + idx * 200);
+      chip.className = 'prompt-chip';
+      chip.innerHTML = `<i data-lucide='${p.icon}' style='width:1em;height:1em;vertical-align:-0.15em;margin-right:7px;'></i>${p.text}`;
       chip.addEventListener('click', () => {
-        chatInput.value = s.text;
+        chatInput.value = p.text;
         chatInput.focus();
         charCount.textContent = `${chatInput.value.length}/1000`;
       });
-      chipsRow.appendChild(chip);
+      promptsRow.appendChild(chip);
     });
-    container.appendChild(chipsRow);
-    chatMessages.appendChild(container);
-    chatMessages.scrollTop = 0;
-    // Initialize Lucide icons after chips are rendered
+    chatThread.appendChild(promptsRow);
     if (window.lucide && window.lucide.createIcons) {
       window.lucide.createIcons();
     }
+    chatThread.scrollTop = 0;
   }
   
   // Initialize the appropriate view
