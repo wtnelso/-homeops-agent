@@ -124,7 +124,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     renderMessages();
   }
   
-  // Replace getAgentReply with real backend call
+  // Replace getAgentReply with real backend call and calendar injection
   async function getAgentReply(userText) {
     try {
       const res = await fetch('/chat', {
@@ -138,7 +138,19 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       });
       if (!res.ok) throw new Error('Agent API error');
       const data = await res.json();
-      // Assume response shape: { reply: "..." } or { message: "..." }
+      // If events are present, trigger calendar injection modal for the first event
+      if (data.events && Array.isArray(data.events) && data.events.length > 0 && typeof window.showCalendarInjectionModal === 'function') {
+        // Map event fields to modal format
+        const event = data.events[0];
+        window.showCalendarInjectionModal({
+          title: event.title || '',
+          date: event.start ? event.start.split('T')[0] : '',
+          time: event.start && event.start.includes('T') ? event.start.split('T')[1].slice(0,5) : '',
+          location: event.location || '',
+          description: event.description || '',
+          allDay: !!event.allDay
+        });
+      }
       return data.reply || data.message || JSON.stringify(data);
     } catch (err) {
       console.error('Agent error:', err);
