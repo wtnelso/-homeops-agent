@@ -28,17 +28,17 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       <button class="new-chat-btn" id="newChatBtn">New Chat</button>
     </div>
     <div class="conversation-container">
-      <div class="chat-area">
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input-container">
-          <form class="chat-input-form" onsubmit="return false;">
-            <input type="text" class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" />
-            <button type="submit" class="send-button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
-          </form>
-        </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-container">
+        <form class="chat-input-form" onsubmit="return false;">
+          <input type="text" class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" maxlength="1000" />
+          <span class="char-count" id="charCount">0/1000</span>
+          <button type="submit" class="send-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </form>
       </div>
+      <button class="scroll-to-bottom" id="scrollToBottomBtn">↓ Scroll to bottom</button>
     </div>
   `;
 
@@ -46,6 +46,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   const chatInput = document.querySelector('.chat-input');
   const chatForm = document.querySelector('.chat-input-form');
   const newChatBtn = document.getElementById('newChatBtn');
+  const charCount = document.getElementById('charCount');
+  const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
 
   // Smart chip suggestions for first-time users
   const suggestions = [
@@ -68,10 +70,39 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     localStorage.setItem('homeops_chat_history', JSON.stringify(messages));
   }
   
-  // Render all messages with grouping and rhythm
+  // Draft saving
+  chatInput.value = localStorage.getItem('homeops_chat_draft') || '';
+  chatInput.addEventListener('input', () => {
+    charCount.textContent = `${chatInput.value.length}/1000`;
+    localStorage.setItem('homeops_chat_draft', chatInput.value);
+  });
+
+  // Scroll-to-bottom CTA
+  function checkScrollToBottom() {
+    if (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight > 80) {
+      scrollToBottomBtn.classList.add('visible');
+    } else {
+      scrollToBottomBtn.classList.remove('visible');
+    }
+  }
+  chatMessages.addEventListener('scroll', checkScrollToBottom);
+  scrollToBottomBtn.addEventListener('click', () => {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+
+  // Markdown rendering (basic)
+  function renderMarkdown(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+      .replace(/\n\n/g, '<br/><br/>')
+      .replace(/\n/g, '<br/>')
+      .replace(/\- (.*?)(?=\n|$)/g, '<li>$1</li>')
+      .replace(/<li>(.*?)<\/li>/g, '<ul><li>$1</li></ul>');
+  }
+
+  // Render all messages with grouping and animation
   function renderMessages() {
     chatMessages.innerHTML = '';
-    let lastSender = null;
     messages.forEach((msg, idx) => {
       const group = document.createElement('div');
       group.className = 'message-group';
@@ -82,23 +113,26 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         avatar.className = 'agent-avatar';
         avatar.innerHTML = "<img src='img/homeops-logo.svg' alt='HomeOps' />";
         row.appendChild(avatar);
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerHTML = renderMarkdown(msg.text);
+        row.appendChild(bubble);
+      } else {
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.textContent = msg.text;
+        row.appendChild(bubble);
       }
-      const bubble = document.createElement('div');
-      bubble.className = 'message-bubble';
-      bubble.textContent = msg.text;
-      row.appendChild(bubble);
-      if (msg.sender === 'user') {
-        row.appendChild(document.createElement('span')); // spacing for alignment
-      }
+      group.appendChild(row);
+      // Timestamp below, faded
       const ts = document.createElement('div');
       ts.className = 'message-timestamp';
       ts.textContent = msg.time;
-      row.appendChild(ts);
-      group.appendChild(row);
+      group.appendChild(ts);
       chatMessages.appendChild(group);
-      lastSender = msg.sender;
     });
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    checkScrollToBottom();
   }
   
   // Typing indicator
@@ -217,6 +251,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     if (!text) return;
     addMessage('user', text);
     chatInput.value = '';
+    charCount.textContent = '0/1000';
+    localStorage.removeItem('homeops_chat_draft');
     // Typing indicator
     const typing = showTyping();
     try {
@@ -236,59 +272,13 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     renderWelcome();
   });
   
-  // Render smart chip suggestions and greeting for first-time users
+  // Onboarding empty state for first-time users
   function renderWelcome() {
     chatMessages.innerHTML = '';
-    // Greeting
-    const group = document.createElement('div');
-    group.className = 'message-group';
-    const row = document.createElement('div');
-    row.className = 'message-row agent';
-    const avatar = document.createElement('span');
-    avatar.className = 'agent-avatar';
-    avatar.innerHTML = "<img src='img/homeops-logo.svg' alt='HomeOps' />";
-    row.appendChild(avatar);
-    const bubble = document.createElement('div');
-    bubble.className = 'message-bubble';
-    bubble.textContent = "Hi, I'm HomeOps — your Mental Load Operating System. Let's lighten your load.";
-    row.appendChild(bubble);
-    group.appendChild(row);
-    chatMessages.appendChild(group);
-    // Suggestion chips
-    const chips = document.createElement('div');
-    chips.className = 'suggestion-chips';
-    const chipIcons = [
-      '<i data-lucide="brain"></i>',
-      '<i data-lucide="calendar-days"></i>',
-      '<i data-lucide="mail"></i>',
-      '<i data-lucide="help-circle"></i>'
-    ];
-    const chipLabels = [
-      "Help me unblock a problem",
-      "Check my calendar",
-      "Review recent emails",
-      "Remind me about something"
-    ];
-    chipLabels.forEach((s, i) => {
-      const chip = document.createElement('button');
-      chip.className = 'suggestion-chip';
-      chip.innerHTML = chipIcons[i] + s;
-      chip.onclick = async () => {
-        addMessage('user', s);
-        const typing = showTyping();
-        try {
-          const reply = await getAgentReply(s);
-          removeTyping(typing);
-          addMessage('agent', reply);
-        } catch (err) {
-          removeTyping(typing);
-          addMessage('agent', "Sorry, I'm having trouble connecting to HomeOps right now.");
-        }
-      };
-      chips.appendChild(chip);
-    });
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-    chatMessages.appendChild(chips);
+    const onboarding = document.createElement('div');
+    onboarding.className = 'onboarding-state';
+    onboarding.innerHTML = "👋 I'm <b>HomeOps</b> — let's lighten your mental load.<br>Try asking me:<br><br><span style='color:#7E5EFF;font-weight:600'>'What's on my calendar today?'</span> or <span style='color:#7E5EFF;font-weight:600'>'Remind me to order more diapers.'</span>";
+    chatMessages.appendChild(onboarding);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
   
