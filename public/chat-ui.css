@@ -175,6 +175,7 @@ body {
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   position: relative;
   word-break: break-word;
+  color: #222 !important;
 }
 
 .message-row.agent .message-bubble {
@@ -256,11 +257,12 @@ body {
 /* Chat Input */
 .chat-input-container {
   width: 100%;
-  background: #fff;
-  border-top: 1px solid #F3F0FF;
+  background: linear-gradient(90deg, #7E5EFF 0%, #FFB86B 100%) !important;
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 -2px 12px 0 rgba(126, 94, 255, 0.08);
   padding: 18px 24px;
   box-sizing: border-box;
-  border-radius: 0 0 16px 16px;
   position: sticky;
   bottom: 0;
   z-index: 2;
@@ -295,11 +297,11 @@ body {
 }
 
 .send-button {
-  background: linear-gradient(135deg, #7E5EFF, #B8A3FF);
+  background: #fff;
+  color: #7E5EFF;
   border-radius: 50%;
   width: 42px;
   height: 42px;
-  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -325,8 +327,8 @@ body {
   width: 20px;
   height: 20px;
   display: block;
-  color: white;
-  fill: white;
+  color: #7E5EFF;
+  fill: #7E5EFF;
 }
 
 /* Mobile Responsiveness */
