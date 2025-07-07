@@ -530,82 +530,87 @@ body {
   max-width: 680px;
   margin: 0 auto;
   padding: 48px 24px;
+  border-radius: 0;
+  box-shadow: none;
   background: #FAFAFA;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   min-height: 80vh;
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-/* 2. Modern Message Bubbles */
+/* More vertical rhythm between user-agent pairs */
+.message-group {
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: fadeInMsg 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes fadeInMsg {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 2. Assistant Bubble - Warm, Glassy, Badge Avatar */
 .message-row.agent .message-bubble {
   background: #F8F9FB;
   border-radius: 16px;
   padding: 16px;
   font-size: 15px;
   line-height: 1.6;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  max-width: 560px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  max-width: 540px;
   border: none;
+  margin-left: 0;
 }
+.agent-avatar {
+  background: #F3F0FF;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  margin-right: 10px;
+}
+.agent-avatar img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+/* 3. User Bubble - Soft, Right, Subtle */
 .message-row.user .message-bubble {
   background: #fff;
   border: 1px solid #E0E0E0;
   border-radius: 16px;
-  padding: 16px;
+  padding: 12px 16px;
   font-size: 15px;
   line-height: 1.6;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  max-width: 560px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  max-width: 500px;
   align-self: flex-end;
+  margin-right: 0;
 }
 
-/* 3. HomeOps Avatar (Assistant) */
-.agent-avatar img {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(126,94,255,0.10);
+/* 4. Timestamp - Lighter, Softer, Hide Until Hover */
+.message-timestamp {
+  font-size: 12px;
+  color: #AAA;
+  margin-top: 4px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  display: block;
+  line-height: 1.4;
+}
+.message-row:hover .message-timestamp {
+  opacity: 1;
 }
 
-/* 4. Conversational Chips */
-.suggestion-chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 8px;
-  margin: 16px 0 8px 0;
-  width: 100%;
-  animation: fadeInChips 0.7s cubic-bezier(0.4,0,0.2,1);
-}
-@keyframes fadeInChips {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.suggestion-chip {
-  background: #fff;
-  border: 1px solid #E0E0E0;
-  border-radius: 9999px;
-  padding: 8px 14px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-  margin: 4px 0;
-  color: #7E5EFF;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.suggestion-chip:hover {
-  background: #F3F0FF;
-  color: #222;
-}
-
-/* 5. Input Bar - Light, Pill, Minimal */
+/* 5. Input Bar - Pill, White, Purple Send */
 .chat-input-container {
   background: none !important;
   border-top: none;
@@ -623,7 +628,7 @@ body {
   background: #fff;
   border: 1px solid #D9D9D9;
   border-radius: 9999px;
-  padding: 6px 10px 6px 16px;
+  padding: 12px 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 .chat-input {
@@ -631,8 +636,8 @@ body {
   background: #fff;
   border: none;
   border-radius: 9999px;
-  padding: 12px 8px;
-  font-size: 15px;
+  padding: 0 8px;
+  font-size: 14px;
   color: #222;
   outline: none;
   box-shadow: none;
@@ -642,32 +647,38 @@ body {
   border: none;
 }
 .send-button {
-  background: none;
-  color: #7E5EFF;
+  background: #7E5EFF;
+  color: #fff;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: none;
+  box-shadow: 0 2px 6px rgba(126, 94, 255, 0.2);
   border: none;
   font-size: 18px;
   padding: 0;
-  transition: background 0.16s, transform 0.16s;
+  transition: background 0.2s;
 }
 .send-button svg {
-  width: 20px;
-  height: 20px;
-  color: #7E5EFF;
-  fill: #7E5EFF;
+  width: 22px;
+  height: 22px;
+  color: #fff;
+  fill: #fff;
 }
 .send-button:hover {
-  background: #F3F0FF;
-  transform: scale(1.08);
+  background: #B8A3FF;
 }
 
-/* 6. Typing Indicator - 3-dot animation */
+/* 6. Microinteractions */
+.suggestion-chips {
+  animation: fadeInChips 0.7s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes fadeInChips {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .typing-indicator {
   display: flex;
   align-items: center;
@@ -675,6 +686,7 @@ body {
   margin-left: 32px;
   margin-bottom: 8px;
   height: 18px;
+  animation: fadeInMsg 0.5s cubic-bezier(0.4,0,0.2,1);
 }
 .typing-dot {
   width: 7px;
@@ -689,28 +701,6 @@ body {
 @keyframes typingBounce {
   0%, 80%, 100% { transform: translateY(0); }
   40% { transform: translateY(-7px); }
-}
-
-/* 7. Message Divider/Timestamp Polish */
-.message-timestamp {
-  font-size: 12px;
-  color: #b6b6c7;
-  margin-top: 8px;
-  margin-left: 0;
-  margin-right: 0;
-  align-self: flex-end;
-  text-align: right;
-  display: block;
-  line-height: 1.4;
-  opacity: 0.85;
-}
-.message-row .message-timestamp {
-  margin-top: 8px;
-  margin-bottom: 2px;
-  width: 100%;
-  text-align: right;
-  position: relative;
-  left: 0;
 }
 
 /* Responsive: container padding */
