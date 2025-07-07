@@ -20,6 +20,8 @@ body {
   padding: 0;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif;
   color: #222;
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
 }
 
 #chat-root {
@@ -347,12 +349,35 @@ body {
 
 /* Mobile Responsiveness */
 @media (max-width: 800px) {
-  .homeops-header, .chat-area {
-    max-width: 100vw;
+  html, body {
+    height: 100vh;
+    min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden !important;
+    position: fixed;
+    width: 100vw;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+  .chat-area {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px - 64px); /* header + input heights */
+    min-height: 0;
+    margin-top: 60px;
+    padding-bottom: 0;
+    background: #fff;
   }
   .chat-messages {
+    flex: 1 1 auto;
+    overflow-y: auto;
     padding: 18px 8px 8px 8px;
     padding-bottom: 120px;
+    min-height: 0;
+    max-height: 100%;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background: #fff;
   }
   .chat-input-container {
     position: fixed;
@@ -363,22 +388,8 @@ body {
     border-radius: 0;
     max-width: 100vw;
     padding: 10px 4px;
-  }
-  .chat-area {
-    padding-bottom: 80px;
-    min-height: 100vh;
-  }
-  .suggestion-chips {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-    margin: 18px 0 8px 0;
-    width: 100%;
-  }
-  .suggestion-chip {
-    min-width: 120px;
-    font-size: 15px;
-    padding: 10px 16px;
+    background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%) !important;
+    box-shadow: 0 -2px 12px 0 rgba(126, 94, 255, 0.08);
   }
   .homeops-header {
     position: fixed;
@@ -389,9 +400,7 @@ body {
     max-width: 100vw;
     border-radius: 0;
     padding: 12px 0 6px 0;
-  }
-  .chat-area {
-    margin-top: 60px;
+    background: #fff;
   }
 }
 
