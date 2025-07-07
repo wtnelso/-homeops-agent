@@ -31,7 +31,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       <div class="chat-messages" id="chatMessages"></div>
       <div class="chat-input-container">
         <form class="chat-input-form" onsubmit="return false;">
-          <input type="text" class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" maxlength="1000" />
+          <textarea class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" maxlength="1000" rows="1" style="resize: none;"></textarea>
           <span class="char-count" id="charCount">0/1000</span>
           <button type="submit" class="send-button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -75,6 +75,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   chatInput.addEventListener('input', () => {
     charCount.textContent = `${chatInput.value.length}/1000`;
     localStorage.setItem('homeops_chat_draft', chatInput.value);
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 72) + 'px';
   });
 
   // Scroll-to-bottom CTA
@@ -309,6 +311,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         chatInput.value = ex;
         chatInput.focus();
         charCount.textContent = `${ex.length}/1000`;
+        chatInput.style.height = 'auto';
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 72) + 'px';
       };
       chips.appendChild(chip);
     });
