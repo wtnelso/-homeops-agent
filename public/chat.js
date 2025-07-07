@@ -124,7 +124,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     renderMessages();
   }
   
-  // Replace getAgentReply with real backend call and calendar injection
+  // Replace getAgentReply with real backend call and direct calendar injection
   async function getAgentReply(userText) {
     try {
       const res = await fetch('/chat', {
@@ -138,24 +138,74 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       });
       if (!res.ok) throw new Error('Agent API error');
       const data = await res.json();
-      // If events are present, trigger calendar injection modal for the first event
-      if (data.events && Array.isArray(data.events) && data.events.length > 0 && typeof window.showCalendarInjectionModal === 'function') {
-        // Map event fields to modal format
+      // If events are present, add the first event directly to the calendar
+      if (data.events && Array.isArray(data.events) && data.events.length > 0) {
         const event = data.events[0];
-        window.showCalendarInjectionModal({
+        // Prepare event data for API
+        const eventData = {
+          user_id: user && user.uid ? user.uid : 'test_user',
           title: event.title || '',
-          date: event.start ? event.start.split('T')[0] : '',
-          time: event.start && event.start.includes('T') ? event.start.split('T')[1].slice(0,5) : '',
+          start: event.start || '',
+          allDay: !!event.allDay,
           location: event.location || '',
-          description: event.description || '',
-          allDay: !!event.allDay
-        });
+          description: event.description || ''
+        };
+        // Add end time if available
+        if (event.end) eventData.end = event.end;
+        // POST to /api/add-event
+        fetch('/api/add-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(eventData)
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            showToast('Event added to your calendar!');
+            // Refresh calendar if open
+            if (window.calendar && typeof window.calendar.refetchEvents === 'function') {
+              window.calendar.refetchEvents();
+            }
+          } else if (result.duplicate) {
+            showToast('Event already exists in your calendar!');
+          } else {
+            showToast('Failed to add event to calendar');
+          }
+        })
+        .catch(() => showToast('Error adding event to calendar'));
       }
       return data.reply || data.message || JSON.stringify(data);
     } catch (err) {
       console.error('Agent error:', err);
       return "Sorry, I'm having trouble connecting to HomeOps right now.";
     }
+  }
+  
+  // Simple toast/snackbar
+  function showToast(msg) {
+    let toast = document.getElementById('homeops-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'homeops-toast';
+      toast.style.position = 'fixed';
+      toast.style.bottom = '32px';
+      toast.style.left = '50%';
+      toast.style.transform = 'translateX(-50%)';
+      toast.style.background = 'linear-gradient(90deg,#7E5EFF,#B8A3FF)';
+      toast.style.color = '#fff';
+      toast.style.padding = '14px 32px';
+      toast.style.borderRadius = '999px';
+      toast.style.fontSize = '16px';
+      toast.style.fontWeight = '600';
+      toast.style.boxShadow = '0 4px 24px rgba(126,94,255,0.13)';
+      toast.style.zIndex = '9999';
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    setTimeout(() => { toast.style.opacity = '0'; }, 2600);
   }
   
   // Handle form submit

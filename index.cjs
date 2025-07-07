@@ -564,6 +564,30 @@ app.post("/chat", async (req, res) => {
       ragContext = "";
     }
     
+    // Fetch user's upcoming events from Firestore
+    let userEvents = [];
+    try {
+      const eventsSnapshot = await db
+        .collection("events")
+        .where("user_id", "==", user_id)
+        .orderBy("start")
+        .get();
+      const now = new Date();
+      userEvents = eventsSnapshot.docs
+        .map(doc => doc.data())
+        .filter(ev => new Date(ev.start) > now)
+        .slice(0, 5);
+    } catch (e) {
+      console.error("Failed to fetch user events for chat context:", e);
+    }
+    // Format events for prompt
+    let eventsSummary = "";
+    if (userEvents.length > 0) {
+      eventsSummary = "Here are the user's next events:" + userEvents.map(ev => `\n- ${ev.title} on ${new Date(ev.start).toLocaleString()}${ev.location ? ' at ' + ev.location : ''}`).join("");
+    } else {
+      eventsSummary = "The user has no upcoming events.";
+    }
+    // Inject into system prompt
     const systemPrompt = `
 Your one and only job is to act as a persona synthesizer. You will be given a block of text under "Relevant context". You MUST adopt the tone, style, and personality of the author of that text to answer the user's message.
 
@@ -571,6 +595,8 @@ Your one and only job is to act as a persona synthesizer. You will be given a bl
 Relevant context from the knowledge base:
 ${ragContext}
 ---
+
+${eventsSummary}
 
 Your task is to synthesize a response that is 100% in-character with the context provided.
 It is a hard failure if you provide a generic, list-based answer. For example, DO NOT output a response like:

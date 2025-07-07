@@ -201,13 +201,24 @@ body {
 }
 
 .message-timestamp {
-  font-size: 11px;
+  font-size: 12px;
   color: #b6b6c7;
-  margin-top: 2px;
-  margin-left: 8px;
+  margin-top: 8px;
+  margin-left: 0;
   margin-right: 0;
   align-self: flex-end;
   text-align: right;
+  display: block;
+  line-height: 1.4;
+}
+
+.message-row .message-timestamp {
+  margin-top: 8px;
+  margin-bottom: 2px;
+  width: 100%;
+  text-align: right;
+  position: relative;
+  left: 0;
 }
 
 /* Typing Indicator */
@@ -362,11 +373,12 @@ body {
   .chat-area {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 60px - 64px); /* header + input heights */
+    height: calc(100vh - 60px - 64px);
     min-height: 0;
     margin-top: 60px;
     padding-bottom: 0;
     background: #fff;
+    overscroll-behavior: contain;
   }
   .chat-messages {
     flex: 1 1 auto;
@@ -378,18 +390,11 @@ body {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     background: #fff;
+    scroll-padding-top: 0;
+    scroll-snap-type: y proximity;
   }
-  .chat-input-container {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 100;
-    border-radius: 0;
-    max-width: 100vw;
-    padding: 10px 4px;
-    background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%) !important;
-    box-shadow: 0 -2px 12px 0 rgba(126, 94, 255, 0.08);
+  .chat-messages > *:first-child {
+    margin-top: 0 !important;
   }
   .homeops-header {
     position: fixed;
@@ -401,6 +406,12 @@ body {
     border-radius: 0;
     padding: 12px 0 6px 0;
     background: #fff;
+  }
+  .message-timestamp {
+    margin-right: 8px;
+    margin-left: 8px;
+    text-align: right;
+    word-break: keep-all;
   }
 }
 
