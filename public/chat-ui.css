@@ -32,23 +32,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin: 0 auto 12px auto;
-  padding: 18px 0 8px 0;
+  gap: 10px;
+  margin: 0 auto 8px auto;
+  padding: 16px 0 6px 0;
   background: transparent;
   width: 100%;
   max-width: 480px;
-  animation: fadeIn 0.7s cubic-bezier(.23,1.01,.32,1) both;
 }
 .homeops-logo {
-  max-height: 28px;
-  width: 28px;
-  min-width: 28px;
+  max-height: 22px;
+  width: 22px;
+  min-width: 22px;
   margin: 0;
   display: block;
 }
 .homeops-wordmark {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.25px;
   color: #7E5EFF;
@@ -70,34 +69,32 @@ body {
   width: 100%;
   max-width: 480px;
   flex: 1 1 auto;
-  min-height: 320px;
+  min-height: 60vh;
   margin: 0 auto 0 auto;
   padding: 0 0 0 0;
-  background: rgba(255,255,255,0.75);
-  border-radius: 18px;
-  box-shadow: 0 4px 24px 0 rgba(167,139,250,0.10);
-  border: 1.5px solid #ece9f9;
+  background: rgba(255,255,255,0.8);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px 0 rgba(167,139,250,0.07);
+  border: 1px solid #ece9f9;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
   position: relative;
   transition: background 0.2s, box-shadow 0.2s;
-  min-height: 60vh;
-  max-height: 70vh;
 }
 
 .message-row {
   display: flex;
   align-items: flex-end;
-  gap: 7px;
+  gap: 6px;
   width: 100%;
   justify-content: flex-start;
-  animation: fadeInMsg 0.5s cubic-bezier(.23,1.01,.32,1);
+  animation: fadeInMsg 0.4s cubic-bezier(.23,1.01,.32,1);
 }
 @keyframes fadeInMsg {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
 .message-row.user {
@@ -106,20 +103,20 @@ body {
 }
 .message-bubble {
   max-width: 75%;
-  background: rgba(246,244,255,0.95);
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(167,139,250,0.10);
-  font-size: 15px;
+  background: rgba(246,244,255,0.97);
+  border-radius: 14px;
+  box-shadow: 0 1px 6px rgba(167,139,250,0.07);
+  font-size: 14px;
   font-weight: 400;
-  padding: 8px 14px;
-  line-height: 1.6;
+  padding: 7px 13px;
+  line-height: 1.5;
   color: #222;
   margin: 0;
   border: 1px solid #ece9f9;
   transition: background 0.2s, box-shadow 0.2s;
   position: relative;
   word-break: break-word;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(1.5px);
   opacity: 0.98;
 }
 .message-row.user .message-bubble {
@@ -131,24 +128,24 @@ body {
   opacity: 1;
 }
 .message-avatar {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #ede9fe;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 11px;
   color: #7E5EFF;
   margin-bottom: 1px;
-  box-shadow: 0 1px 4px rgba(167,139,250,0.10);
+  box-shadow: 0 1px 2px rgba(167,139,250,0.07);
 }
 .message-row.user .message-avatar {
   background: #d1c4e9;
   color: #fff;
 }
 .message-timestamp {
-  font-size: 9px;
+  font-size: 8.5px;
   color: #b6b6c7;
   margin-top: 1px;
   margin-left: 2px;
@@ -160,16 +157,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  height: 18px;
+  height: 14px;
   margin-top: 1px;
   margin-bottom: 1px;
-  padding-left: 28px;
-  animation: fadeIn 0.5s cubic-bezier(.23,1.01,.32,1) both;
+  padding-left: 20px;
+  animation: fadeIn 0.4s cubic-bezier(.23,1.01,.32,1) both;
 }
 .typing-indicator-dot {
-  width: 5px;
-  height: 5px;
-  margin: 0 2px;
+  width: 4px;
+  height: 4px;
+  margin: 0 1.5px;
   border-radius: 50%;
   background: #B8A3FF;
   opacity: 0.7;
@@ -179,29 +176,29 @@ body {
 .typing-indicator-dot:nth-child(3) { animation-delay: 0.3s; }
 @keyframes typingBounce {
   0%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-5px); }
+  40% { transform: translateY(-4px); }
 }
 
 .quick-replies {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 6px;
-  margin: 8px 0 0 0;
+  gap: 6px 5px;
+  margin: 4px 0 0 0;
   justify-content: flex-start;
 }
 .quick-reply {
   display: inline-flex;
   align-items: center;
-  padding: 7px 14px;
+  padding: 5px 11px;
   border-radius: 9999px;
   border: 1px solid #E0E0E0;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(167,139,250,0.07);
-  font-size: 14px;
+  box-shadow: 0 1px 2px rgba(167,139,250,0.05);
+  font-size: 13px;
   font-weight: 500;
   color: #333;
-  transition: all 0.18s cubic-bezier(.23,1.01,.32,1);
-  gap: 7px;
+  transition: all 0.16s cubic-bezier(.23,1.01,.32,1);
+  gap: 6px;
   cursor: pointer;
   margin: 0;
   min-width: 0;
@@ -209,20 +206,20 @@ body {
 .quick-reply:hover, .quick-reply:focus {
   background: #F6F4FF;
   transform: translateY(-1px) scale(1.04);
-  box-shadow: 0 4px 12px rgba(167,139,250,0.13);
+  box-shadow: 0 2px 8px rgba(167,139,250,0.10);
   border-color: #d1c4e9;
 }
 
 .homeops-chat-form {
   background: #fff;
   border-radius: 9999px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  padding: 0.5rem 1.2rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  padding: 0.5rem 1.1rem;
   margin: 0 auto 0 auto;
   width: 100%;
   max-width: 480px;
   display: flex;
-  gap: 8px;
+  gap: 7px;
   align-items: center;
   position: sticky;
   bottom: 0;
@@ -234,12 +231,12 @@ body {
   background: white;
   border: none;
   border-radius: 9999px;
-  padding: 12px 14px;
-  font-size: 14px;
+  padding: 11px 12px;
+  font-size: 13px;
   color: #333;
   outline: none;
   box-shadow: none;
-  transition: box-shadow 0.18s;
+  transition: box-shadow 0.16s;
 }
 .homeops-chat-form input::placeholder {
   color: #999;
@@ -251,26 +248,26 @@ body {
 .homeops-chat-form button {
   background: linear-gradient(135deg, #A78BFA, #7E5EFF);
   border-radius: 50%;
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 8px;
-  box-shadow: 0 2px 6px rgba(126, 94, 255, 0.18);
+  margin-left: 7px;
+  box-shadow: 0 1px 4px rgba(126, 94, 255, 0.10);
   border: none;
-  font-size: 16px;
+  font-size: 14px;
   padding: 0;
-  transition: box-shadow 0.18s, transform 0.18s;
+  transition: box-shadow 0.16s, transform 0.16s;
 }
 .homeops-chat-form button:hover {
-  box-shadow: 0 4px 16px 0 rgba(126,94,255,0.13);
+  box-shadow: 0 2px 8px 0 rgba(126,94,255,0.10);
   transform: scale(1.08);
 }
 .homeops-chat-form button svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   display: block;
   color: white;
   fill: white;
@@ -281,7 +278,7 @@ body {
     max-width: 98vw;
   }
   .homeops-chat-area {
-    min-height: 50vh;
+    min-height: 40vh;
     max-height: 60vh;
     padding: 0;
   }

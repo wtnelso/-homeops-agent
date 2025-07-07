@@ -56,19 +56,19 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   chatForm.appendChild(input);
   const sendBtn = document.createElement('button');
   sendBtn.type = 'submit';
-  sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+  sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
   chatForm.appendChild(sendBtn);
   wrapper.appendChild(chatForm);
 
   // Message state
   let messages = [
-    { sender: 'agent', text: "Hi, I'm HomeOps. I can help you with reminders, your calendar, emails, and more. What can I take off your plate today?", time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }
+    { sender: 'agent', text: "Hi, I'm HomeOps. How can I help you today?", time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }
   ];
   let quickReplies = [
-    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="#B8A3FF" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2"><rect x="3" y="11" width="18" height="7" rx="2"/><rect x="7" y="7" width="10" height="4" rx="2"/></svg>', text: 'Remind me about something' },
-    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="#B8A3FF" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', text: 'Check my calendar' },
-    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="#B8A3FF" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>', text: 'Review recent emails' },
-    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="#B8A3FF" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>', text: 'Help me unblock a problem' }
+    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="#B8A3FF" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2"><rect x="3" y="11" width="18" height="7" rx="2"/><rect x="7" y="7" width="10" height="4" rx="2"/></svg>', text: 'Remind me' },
+    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="#B8A3FF" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', text: 'Check calendar' },
+    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="#B8A3FF" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>', text: 'Emails' },
+    { icon: '<svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" fill="#B8A3FF" viewBox="0 0 24 24" stroke="#A78BFA" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>', text: 'Unblock a problem' }
   ];
 
   // Render chat area
@@ -80,7 +80,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       // Avatar
       const avatar = document.createElement('div');
       avatar.className = 'message-avatar';
-      avatar.innerHTML = msg.sender === 'agent' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5V21h6v-5h6v5h6V9.5L12 3z"/><path d="M9 21V12h6v9"/></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
+      avatar.innerHTML = msg.sender === 'agent' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5V21h6v-5h6v5h6V9.5L12 3z"/><path d="M9 21V12h6v9"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7E5EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
       row.appendChild(avatar);
       // Bubble
       const bubble = document.createElement('div');
