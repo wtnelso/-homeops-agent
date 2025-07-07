@@ -78,19 +78,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     chatInput.style.height = Math.min(chatInput.scrollHeight, 72) + 'px';
   });
 
-  // Scroll-to-bottom CTA
-  function checkScrollToBottom() {
-    if (chatThread.scrollHeight - chatThread.scrollTop - chatThread.clientHeight > 80) {
-      scrollToBottomBtn.classList.add('visible');
-    } else {
-      scrollToBottomBtn.classList.remove('visible');
-    }
-  }
-  chatThread.addEventListener('scroll', checkScrollToBottom);
-  scrollToBottomBtn.addEventListener('click', () => {
-    chatThread.scrollTop = chatThread.scrollHeight;
-  });
-
   // Markdown rendering (basic)
   function renderMarkdown(text) {
     return text
@@ -133,7 +120,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       chatThread.appendChild(group);
     });
     chatThread.scrollTop = chatThread.scrollHeight;
-    checkScrollToBottom();
   }
   
   // Typing indicator
