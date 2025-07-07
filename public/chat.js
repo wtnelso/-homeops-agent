@@ -18,33 +18,34 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     return;
   }
   
-  // Render header
+  // Render sidebar and chat shell
   chatRoot.innerHTML = `
-    <div class="homeops-header">
-      <div class="homeops-header-left">
-        <img src="img/homeops-logo.svg" class="homeops-logo" alt="HomeOps logo" />
-        <span class="homeops-title">HomeOps</span>
+    <aside class="sidebar">
+      <img src="img/homeops-logo.svg" class="sidebar-logo" alt="HomeOps logo" />
+      <button class="nav-icon active" title="Chat"><i data-lucide="message-circle"></i></button>
+      <button class="nav-icon" title="Calendar"><i data-lucide="calendar"></i></button>
+      <button class="nav-icon" title="Dashboard"><i data-lucide="layout-dashboard"></i></button>
+    </aside>
+    <div class="chat-shell">
+      <div class="chat-main">
+        <div class="chat-thread" id="chatThread"></div>
       </div>
-      <button class="new-chat-btn" id="newChatBtn">New Chat</button>
-    </div>
-    <div class="main-panel">
-      <div class="chat-thread" id="chatThread"></div>
-    </div>
-    <div class="input-bar">
-      <form class="chat-input-form" onsubmit="return false;">
-        <textarea class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" maxlength="1000" rows="1" style="resize: none;"></textarea>
-        <span class="char-count" id="charCount">0/1000</span>
-        <button type="submit" class="send-button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </form>
+      <div class="chat-input-bar">
+        <form class="chat-input-form" onsubmit="return false;">
+          <textarea class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" maxlength="1000" rows="1" style="resize: none;"></textarea>
+          <span class="char-count" id="charCount">0/1000</span>
+          <button type="submit" class="send-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </form>
+      </div>
     </div>
   `;
+  if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
 
   const chatThread = document.getElementById('chatThread');
   const chatInput = document.querySelector('.chat-input');
   const chatForm = document.querySelector('.chat-input-form');
-  const newChatBtn = document.getElementById('newChatBtn');
   const charCount = document.getElementById('charCount');
 
   // Smart chip suggestions for first-time users
@@ -265,24 +266,16 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     }
   });
   
-  // Handle new chat
-  newChatBtn.addEventListener('click', () => {
-    messages = [];
-    saveChatHistory();
-    renderWelcome();
-  });
-  
   // Render welcome/onboarding state
   function renderWelcome() {
     chatThread.innerHTML = '';
-    // Assistant greeting bubble
-    const row = document.createElement('div');
-    row.className = 'message-row assistant';
+    // Assistant welcome bubble
+    const welcome = document.createElement('div');
+    welcome.className = 'assistant-welcome';
     const bubble = document.createElement('div');
-    bubble.className = 'message-bubble assistant-message';
-    bubble.innerHTML = "Hi, I'm HomeOps — your Mental Load Operating System.<br>Here to help you lighten the load. Try one of these:";
-    row.appendChild(bubble);
-    chatThread.appendChild(row);
+    bubble.className = 'assistant-welcome-bubble';
+    bubble.innerHTML = "Welcome to HomeOps — Your Mental Load Operating System.<br>How can I help?";
+    welcome.appendChild(bubble);
     // Suggested prompts
     const prompts = [
       { icon: 'calendar', text: "What's on my calendar today?" },
@@ -303,10 +296,9 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       });
       promptsRow.appendChild(chip);
     });
-    chatThread.appendChild(promptsRow);
-    if (window.lucide && window.lucide.createIcons) {
-      window.lucide.createIcons();
-    }
+    welcome.appendChild(promptsRow);
+    chatThread.appendChild(welcome);
+    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
     chatThread.scrollTop = 0;
   }
   
