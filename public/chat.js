@@ -31,7 +31,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         <div class="chat-thread" id="chatThread"></div>
       </div>
       <div class="chat-input-bar">
-        <form class="chat-input-form" onsubmit="return false;">
+        <form class="chat-input-form compact" onsubmit="return false;">
           <textarea class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" maxlength="1000" rows="1" style="resize: none;"></textarea>
           <span class="char-count" id="charCount">0/1000</span>
           <button type="submit" class="send-button">
@@ -39,6 +39,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
           </button>
         </form>
       </div>
+      <div class="chat-footer">Reduce Your Mental Load</div>
     </div>
   `;
   if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
@@ -69,6 +70,13 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     localStorage.setItem('homeops_chat_history', JSON.stringify(messages));
   }
   
+  // Onboarding: clear chat history for first-time user
+  if (!localStorage.getItem('homeops_onboarded')) {
+    localStorage.removeItem('homeops_chat_history');
+    localStorage.removeItem('homeops_chat_draft');
+    localStorage.setItem('homeops_onboarded', '1');
+  }
+
   // Draft saving
   chatInput.value = localStorage.getItem('homeops_chat_draft') || '';
   chatInput.addEventListener('input', () => {
@@ -77,6 +85,15 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     chatInput.style.height = 'auto';
     chatInput.style.height = Math.min(chatInput.scrollHeight, 72) + 'px';
   });
+
+  // Animate input bar after first message
+  function expandInputBar() {
+    chatForm.classList.remove('compact');
+    chatForm.classList.add('expanded');
+    chatInput.rows = 2;
+    chatInput.style.minHeight = '48px';
+    chatInput.style.maxHeight = '120px';
+  }
 
   // Markdown rendering (basic)
   function renderMarkdown(text) {
@@ -246,6 +263,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     chatInput.value = '';
     charCount.textContent = '0/1000';
     localStorage.removeItem('homeops_chat_draft');
+    expandInputBar();
     // Typing indicator
     const typing = showTyping();
     try {
