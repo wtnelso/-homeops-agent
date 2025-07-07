@@ -99,6 +99,16 @@ window.initializeChat = function(auth, user, retryCount = 0) {
 
   // Message state
   let messages = [];
+  let onboardingFaded = false;
+
+  // Fade out onboarding prompt and chips
+  function fadeOutOnboarding() {
+    if (onboardingFaded) return;
+    onboardingFaded = true;
+    prompt.classList.add('faded');
+    suggestionList.classList.add('faded');
+    subtitle.classList.add('faded');
+  }
 
   // Render chat area
   function renderChat() {
@@ -145,6 +155,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   // Send message
   function sendMessage(text) {
     if (!text.trim()) return;
+    if (!onboardingFaded) fadeOutOnboarding();
     const now = new Date();
     messages.push({ sender: 'user', text, time: now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
     renderChat();
@@ -176,6 +187,11 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   chatForm.addEventListener('submit', (e) => {
     e.preventDefault();
     sendMessage(input.value);
+  });
+
+  // Scroll chat area to bottom on input focus (prevents overlap with autocomplete)
+  input.addEventListener('focus', () => {
+    setTimeout(() => { chatArea.scrollTop = chatArea.scrollHeight; }, 100);
   });
 
   // Helper function to convert natural language dates to ISO format
