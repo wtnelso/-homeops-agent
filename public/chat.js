@@ -119,7 +119,10 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       group.appendChild(ts);
       chatThread.appendChild(group);
     });
-    chatThread.scrollTop = chatThread.scrollHeight;
+    // Always scroll to bottom after rendering messages
+    setTimeout(() => {
+      chatThread.scrollTop = chatThread.scrollHeight;
+    }, 10);
   }
   
   // Typing indicator
@@ -132,7 +135,10 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       typing.appendChild(dot);
     }
     chatThread.appendChild(typing);
-    chatThread.scrollTop = chatThread.scrollHeight;
+    // Scroll to show typing indicator
+    setTimeout(() => {
+      chatThread.scrollTop = chatThread.scrollHeight;
+    }, 10);
     return typing;
   }
   function removeTyping(typing) {
@@ -285,15 +291,16 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     welcome.appendChild(promptsRow);
     chatThread.appendChild(welcome);
     if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
-    chatThread.scrollTop = 0;
+    // Scroll to top for welcome state
+    setTimeout(() => {
+      chatThread.scrollTop = 0;
+    }, 10);
   }
   
   // On load, check for chat history and render welcome if empty
   loadChatHistory();
   if (messages.length === 0) {
     renderWelcome();
-    // Add extra bottom padding to chat-thread to prevent overlap
-    if (chatThread) chatThread.style.paddingBottom = '120px';
   } else {
     renderMessages();
   }
