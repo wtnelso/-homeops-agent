@@ -275,10 +275,49 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   // Onboarding empty state for first-time users
   function renderWelcome() {
     chatMessages.innerHTML = '';
-    const onboarding = document.createElement('div');
-    onboarding.className = 'onboarding-state';
-    onboarding.innerHTML = "👋 I'm <b>HomeOps</b> — let's lighten your mental load.<br>Try asking me:<br><br><span style='color:#7E5EFF;font-weight:600'>'What's on my calendar today?'</span> or <span style='color:#7E5EFF;font-weight:600'>'Remind me to order more diapers.'</span>";
-    chatMessages.appendChild(onboarding);
+    const card = document.createElement('div');
+    card.className = 'onboarding-card';
+    // Logo
+    const logo = document.createElement('div');
+    logo.className = 'onboarding-logo';
+    logo.innerHTML = "<img src='img/homeops-logo.svg' alt='HomeOps' />";
+    card.appendChild(logo);
+    // Greeting
+    const greeting = document.createElement('div');
+    greeting.className = 'onboarding-greeting';
+    greeting.innerHTML = "Hi, I'm HomeOps";
+    card.appendChild(greeting);
+    // Description
+    const desc = document.createElement('div');
+    desc.className = 'onboarding-desc';
+    desc.innerHTML = "Let's lighten your mental load. Try asking me:";
+    card.appendChild(desc);
+    // Example chips
+    const chips = document.createElement('div');
+    chips.className = 'onboarding-chips';
+    const examples = [
+      "What's on my calendar today?",
+      "Remind me to order more diapers.",
+      "Help me unblock a problem",
+      "Review recent emails"
+    ];
+    examples.forEach(ex => {
+      const chip = document.createElement('button');
+      chip.className = 'onboarding-chip';
+      chip.textContent = ex;
+      chip.onclick = () => {
+        chatInput.value = ex;
+        chatInput.focus();
+        charCount.textContent = `${ex.length}/1000`;
+      };
+      chips.appendChild(chip);
+    });
+    card.appendChild(chips);
+    // Center in onboarding-state
+    const state = document.createElement('div');
+    state.className = 'onboarding-state';
+    state.appendChild(card);
+    chatMessages.appendChild(state);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
   

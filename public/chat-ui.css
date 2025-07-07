@@ -731,17 +731,109 @@ html, body {
 /* 6. Onboarding empty state */
 .onboarding-state {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 60vh;
   background: none;
-  font-size: 1.2rem;
-  color: #7E5EFF;
+  font-size: 1.1rem;
+  color: #222;
   text-align: center;
-  padding: 2rem 1rem;
-  border-radius: 18px;
-  box-shadow: 0 2px 12px rgba(126,94,255,0.04);
-  animation: fadeInMsg 0.7s cubic-bezier(0.4,0,0.2,1);
+  padding: 0;
+}
+.onboarding-card {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(126,94,255,0.08);
+  max-width: 420px;
+  padding: 40px 32px 32px 32px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.onboarding-logo {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7E5EFF 0%, #B8A3FF 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(126,94,255,0.13);
+}
+.onboarding-logo img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+.onboarding-greeting {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #7E5EFF;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+.onboarding-desc {
+  font-size: 1.05rem;
+  color: #444;
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+.onboarding-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 18px;
+  width: 100%;
+  align-items: center;
+}
+.onboarding-chip {
+  background: #F3F0FF;
+  color: #7E5EFF;
+  border: 1px solid #E0E0E0;
+  border-radius: 9999px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(126,94,255,0.07);
+  transition: background 0.18s, box-shadow 0.18s;
+  min-width: 180px;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.3;
+}
+.onboarding-chip:hover {
+  background: #ede9fe;
+  box-shadow: 0 2px 8px rgba(126,94,255,0.13);
+}
+@media (max-width: 600px) {
+  .onboarding-card {
+    max-width: 98vw;
+    padding: 24px 8px 18px 8px;
+    border-radius: 14px;
+  }
+  .onboarding-logo {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 8px;
+  }
+  .onboarding-logo img {
+    width: 24px;
+    height: 24px;
+  }
+  .onboarding-greeting {
+    font-size: 1.1rem;
+  }
+  .onboarding-chip {
+    font-size: 14px;
+    padding: 10px 16px;
+    min-width: 120px;
+  }
 }
 
 /* Responsive: container padding */
