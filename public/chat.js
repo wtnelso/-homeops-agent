@@ -27,15 +27,17 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       </div>
       <button class="new-chat-btn" id="newChatBtn">New Chat</button>
     </div>
-    <div class="chat-area">
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input-container">
-        <form class="chat-input-form" onsubmit="return false;">
-          <input type="text" class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" />
-          <button type="submit" class="send-button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-        </form>
+    <div class="conversation-container">
+      <div class="chat-area">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-container">
+          <form class="chat-input-form" onsubmit="return false;">
+            <input type="text" class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" />
+            <button type="submit" class="send-button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   `;
@@ -255,13 +257,24 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     // Suggestion chips
     const chips = document.createElement('div');
     chips.className = 'suggestion-chips';
-    suggestions.forEach(s => {
+    const chipIcons = [
+      '<i data-lucide="brain"></i>',
+      '<i data-lucide="calendar-days"></i>',
+      '<i data-lucide="mail"></i>',
+      '<i data-lucide="help-circle"></i>'
+    ];
+    const chipLabels = [
+      "Help me unblock a problem",
+      "Check my calendar",
+      "Review recent emails",
+      "Remind me about something"
+    ];
+    chipLabels.forEach((s, i) => {
       const chip = document.createElement('button');
       chip.className = 'suggestion-chip';
-      chip.textContent = s;
+      chip.innerHTML = chipIcons[i] + s;
       chip.onclick = async () => {
         addMessage('user', s);
-        // Typing indicator
         const typing = showTyping();
         try {
           const reply = await getAgentReply(s);
@@ -274,6 +287,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       };
       chips.appendChild(chip);
     });
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     chatMessages.appendChild(chips);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
