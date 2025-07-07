@@ -257,7 +257,7 @@ body {
 /* Chat Input */
 .chat-input-container {
   width: 100%;
-  background: linear-gradient(90deg, #7E5EFF 0%, #FFB86B 100%) !important;
+  background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%) !important;
   border-top: none;
   border-radius: 0 0 16px 16px;
   box-shadow: 0 -2px 12px 0 rgba(126, 94, 255, 0.08);
@@ -406,4 +406,36 @@ body {
   .chat-input::placeholder {
     color: #9ca3af;
   }
+}
+
+/* 1. Force all chat message text to dark */
+.message-bubble, .message-bubble * {
+  color: #222 !important;
+}
+
+/* 2. Purple-only gradient input bar */
+.chat-input-container {
+  background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%) !important;
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 -2px 12px 0 rgba(126, 94, 255, 0.08);
+  padding: 18px 24px;
+}
+
+/* Input field remains light */
+.chat-input {
+  background: #F8F9FB;
+  border: 1.5px solid #F3F0FF;
+  color: #222;
+}
+
+/* Send button for contrast */
+.send-button {
+  background: #fff;
+  color: #7E5EFF;
+  box-shadow: 0 1px 4px rgba(126, 94, 255, 0.10);
+}
+.send-button svg {
+  color: #7E5EFF;
+  fill: #7E5EFF;
 } 
