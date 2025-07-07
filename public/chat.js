@@ -139,7 +139,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     // Always scroll to bottom after rendering messages
     setTimeout(() => {
       chatThread.scrollTop = chatThread.scrollHeight;
-    }, 10);
+    }, 0);
   }
   
   // Typing indicator
