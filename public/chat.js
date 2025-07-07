@@ -124,8 +124,30 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     renderMessages();
   }
   
+  // Replace getAgentReply with real backend call
+  async function getAgentReply(userText) {
+    try {
+      const res = await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userText,
+          user_id: user && user.uid ? user.uid : 'test_user',
+          context: {} // Add more context if needed (tone, calendar, etc)
+        })
+      });
+      if (!res.ok) throw new Error('Agent API error');
+      const data = await res.json();
+      // Assume response shape: { reply: "..." } or { message: "..." }
+      return data.reply || data.message || JSON.stringify(data);
+    } catch (err) {
+      console.error('Agent error:', err);
+      return "Sorry, I'm having trouble connecting to HomeOps right now.";
+    }
+  }
+  
   // Handle form submit
-  chatForm.addEventListener('submit', (e) => {
+  chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = chatInput.value.trim();
     if (!text) return;
@@ -133,10 +155,14 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     chatInput.value = '';
     // Typing indicator
     const typing = showTyping();
-    setTimeout(() => {
+    try {
+      const reply = await getAgentReply(text);
       removeTyping(typing);
-      addMessage('agent', getAgentReply(text));
-    }, 1000);
+      addMessage('agent', reply);
+    } catch (err) {
+      removeTyping(typing);
+      addMessage('agent', "Sorry, I'm having trouble connecting to HomeOps right now.");
+    }
   });
   
   // Handle new chat
@@ -171,28 +197,23 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       const chip = document.createElement('button');
       chip.className = 'suggestion-chip';
       chip.textContent = s;
-      chip.onclick = () => {
+      chip.onclick = async () => {
         addMessage('user', s);
         // Typing indicator
         const typing = showTyping();
-        setTimeout(() => {
+        try {
+          const reply = await getAgentReply(s);
           removeTyping(typing);
-          addMessage('agent', getAgentReply(s));
-        }, 1000);
+          addMessage('agent', reply);
+        } catch (err) {
+          removeTyping(typing);
+          addMessage('agent', "Sorry, I'm having trouble connecting to HomeOps right now.");
+        }
       };
       chips.appendChild(chip);
     });
     chatMessages.appendChild(chips);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-  
-  // Simulate agent reply (replace with real backend call)
-  function getAgentReply(userText) {
-    if (userText.toLowerCase().includes('calendar')) return "Here's what's on your calendar: Meeting at 2pm, Doctor at 4pm.";
-    if (userText.toLowerCase().includes('remind')) return "Sure! What should I remind you about?";
-    if (userText.toLowerCase().includes('email')) return "You have 3 new emails. Want a summary?";
-    if (userText.toLowerCase().includes('unblock')) return "Tell me what's blocking you and I'll help you get unstuck.";
-    return "I'm here to help!";
   }
   
   // Initialize the appropriate view
