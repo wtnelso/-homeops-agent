@@ -310,10 +310,12 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     chatThread.scrollTop = 0;
   }
   
-  // Initialize the appropriate view
+  // On load, check for chat history and render welcome if empty
   loadChatHistory();
   if (messages.length === 0) {
     renderWelcome();
+    // Add extra bottom padding to chat-thread to prevent overlap
+    if (chatThread) chatThread.style.paddingBottom = '120px';
   } else {
     renderMessages();
   }
