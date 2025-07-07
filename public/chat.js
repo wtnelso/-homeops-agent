@@ -127,7 +127,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   // Replace getAgentReply with real backend call
   async function getAgentReply(userText) {
     try {
-      const res = await fetch('/api/agent', {
+      const res = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
