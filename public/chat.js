@@ -27,19 +27,19 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       </div>
       <button class="new-chat-btn" id="newChatBtn">New Chat</button>
     </div>
-    <div class="conversation-container">
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input-container">
-        <form class="chat-input-form" onsubmit="return false;">
-          <textarea class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" maxlength="1000" rows="1" style="resize: none;"></textarea>
-          <span class="char-count" id="charCount">0/1000</span>
-          <button type="submit" class="send-button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-        </form>
-      </div>
-      <button class="scroll-to-bottom" id="scrollToBottomBtn">↓ Scroll to bottom</button>
+    <div class="main-panel">
+      <div class="chat-viewport chat-messages" id="chatMessages"></div>
     </div>
+    <div class="chat-input-container">
+      <form class="chat-input-form" onsubmit="return false;">
+        <textarea class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" maxlength="1000" rows="1" style="resize: none;"></textarea>
+        <span class="char-count" id="charCount">0/1000</span>
+        <button type="submit" class="send-button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </form>
+    </div>
+    <button class="scroll-to-bottom" id="scrollToBottomBtn">↓ Scroll to bottom</button>
   `;
 
   const chatMessages = document.getElementById('chatMessages');
@@ -285,13 +285,13 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     avatar.className = 'onboarding-logo-avatar';
     avatar.innerHTML = `<img src="img/homeops-logo.svg" alt="HomeOps" />`;
     container.appendChild(avatar);
-    // Greeting with typewriter effect
+    // Greeting with typewriter effect (no emoji)
     const greeting = document.createElement('div');
     greeting.className = 'onboarding-greeting';
     greeting.textContent = '';
     container.appendChild(greeting);
-    // Typewriter effect for greeting
-    const greetingText = "👋 Hi, I'm HomeOps — your Mental Load Operating System. Let's clear your head.";
+    // Typewriter effect for greeting (no emoji)
+    const greetingText = "Hi, I'm HomeOps — your Mental Load Operating System. Let's clear your head.";
     let i = 0;
     function typeWriter() {
       if (i < greetingText.length) {
@@ -301,19 +301,19 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       }
     }
     typeWriter();
-    // Suggestion chips (inline, not buttons)
+    // Suggestion chips (Lucide icons, no emoji)
     const suggestions = [
-      { text: "🧠 What's on my calendar today?" },
-      { text: "Remind me to buy diapers 🍼" },
-      { text: "Help me unblock a problem" },
-      { text: "📩 Review recent emails" }
+      { icon: 'calendar', text: "What's on my calendar today?" },
+      { icon: 'bell', text: "Remind me to buy diapers" },
+      { icon: 'help-circle', text: "Help me unblock a problem" },
+      { icon: 'mail', text: "Review recent emails" }
     ];
     const chipsRow = document.createElement('div');
     chipsRow.className = 'onboarding-chips-row';
     suggestions.forEach((s, idx) => {
       const chip = document.createElement('span');
       chip.className = 'suggestion-chip';
-      chip.textContent = s.text;
+      chip.innerHTML = `<i data-lucide='${s.icon}' style='width:1em;height:1em;vertical-align:-0.15em;margin-right:7px;'></i>${s.text}`;
       chip.style.opacity = '0';
       chip.style.transform = 'translateY(12px)';
       setTimeout(() => {
@@ -331,6 +331,10 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     container.appendChild(chipsRow);
     chatMessages.appendChild(container);
     chatMessages.scrollTop = 0;
+    // Initialize Lucide icons after chips are rendered
+    if (window.lucide && window.lucide.createIcons) {
+      window.lucide.createIcons();
+    }
   }
   
   // Initialize the appropriate view
