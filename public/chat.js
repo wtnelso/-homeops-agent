@@ -2,6 +2,10 @@
 // Built with HomeOps Design System from Figma Mockup
 
 window.initializeChat = function(auth, user, retryCount = 0) {
+  // Fix: Declare messages and isTyping at the very top so all functions can access them
+  let messages = [];
+  let isTyping = false;
+
   console.log("💬 Initializing modern HomeOps chat for user:", user ? user.uid : "test_user");
   
   const chatRoot = document.getElementById("chat-root");
@@ -27,10 +31,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   } else {
     renderWelcomeScreen();
   }
-  
-  // Chat state management
-  let messages = [];
-  let isTyping = false;
   
   // Load existing messages
   function loadChatHistory() {
