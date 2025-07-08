@@ -275,39 +275,51 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   // Render welcome/onboarding state
   function renderWelcome() {
     chatThread.innerHTML = '';
-    // Assistant welcome bubble
-    const welcome = document.createElement('div');
-    welcome.className = 'assistant-welcome';
-    const bubble = document.createElement('div');
-    bubble.className = 'assistant-welcome-bubble';
-    bubble.innerHTML = "Welcome to HomeOps — Your Mental Load Operating System.<br>How can I help?";
-    welcome.appendChild(bubble);
-    // Suggested prompts
+    // Onboarding container
+    const container = document.createElement('div');
+    container.className = 'onboarding-welcome-container';
+    // Card
+    const card = document.createElement('div');
+    card.className = 'onboarding-card';
+    // Logo
+    const logo = document.createElement('div');
+    logo.className = 'onboarding-logo';
+    logo.innerHTML = "<img src='img/homeops-logo.svg' alt='HomeOps' />";
+    card.appendChild(logo);
+    // Greeting
+    const greeting = document.createElement('div');
+    greeting.className = 'onboarding-greeting';
+    greeting.textContent = 'Welcome to HomeOps — Your Mental Load Operating System.';
+    card.appendChild(greeting);
+    // Description
+    const desc = document.createElement('div');
+    desc.className = 'onboarding-desc';
+    desc.textContent = 'How can I help?';
+    card.appendChild(desc);
+    // Chips
+    const chips = document.createElement('div');
+    chips.className = 'onboarding-chips';
     const prompts = [
       { icon: 'calendar', text: "What's on my calendar today?" },
       { icon: 'bell', text: "Remind me to buy diapers" },
       { icon: 'help-circle', text: "Help me unblock a problem" },
       { icon: 'mail', text: "Review recent emails" }
     ];
-    const promptsRow = document.createElement('div');
-    promptsRow.className = 'suggested-prompts';
-    prompts.forEach((p, idx) => {
+    prompts.forEach((p) => {
       const chip = document.createElement('span');
-      chip.className = 'prompt-chip';
-      chip.innerHTML = `<i data-lucide='${p.icon}' style='width:1em;height:1em;vertical-align:-0.15em;margin-right:7px;'></i>${p.text}`;
+      chip.className = 'onboarding-chip';
+      chip.innerHTML = `<i data-lucide='${p.icon}' style='width:1.1em;height:1.1em;vertical-align:-0.18em;margin-right:8px;'></i>${p.text}`;
       chip.addEventListener('click', () => {
         chatInput.value = p.text;
         chatInput.focus();
       });
-      promptsRow.appendChild(chip);
+      chips.appendChild(chip);
     });
-    welcome.appendChild(promptsRow);
-    chatThread.appendChild(welcome);
+    card.appendChild(chips);
+    container.appendChild(card);
+    chatThread.appendChild(container);
     if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
-    // Scroll to top for welcome state
-    setTimeout(() => {
-      chatThread.scrollTop = 0;
-    }, 10);
+    setTimeout(() => { chatThread.scrollTop = 0; }, 10);
   }
   
   // On load, check for chat history and render welcome if empty
