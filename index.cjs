@@ -546,13 +546,34 @@ app.post("/chat", async (req, res) => {
       .orderBy("timestamp", "desc")
       .limit(10)
       .get();
-
     const history = messagesSnapshot.docs.map(doc => doc.data()).reverse();
 
-    // 2. Construct the messages array for OpenAI
+    // 2. Fetch the 3 most recent decoded emails for the user
+    let emailSummaryArr = [];
+    try {
+      const decodedEmailsSnapshot = await db.collection('decoded_emails')
+        .where('user_id', '==', user_id)
+        .orderBy('created_at', 'desc')
+        .limit(3)
+        .get();
+      emailSummaryArr = decodedEmailsSnapshot.docs.map(doc => {
+        const d = doc.data();
+        return {
+          subject: d.subject || '',
+          from: d.from || d.sender || '',
+          summary: d.decoded_data?.summary || d.summary || '',
+          date: d.date || d.timestamp || ''
+        };
+      });
+    } catch (e) {
+      console.error("Failed to fetch recent emails for chat context:", e);
+      emailSummaryArr = [];
+    }
+
+    // 3. Construct the messages array for OpenAI
     const messagesForApi = [];
 
-    // System prompt combining the persona and the core instructions
+    // System prompt combining the persona, core instructions, events, and email summaries
     let ragContext = "";
     try {
       const userEmbedding = await createEmbedding(message);
@@ -560,10 +581,9 @@ app.post("/chat", async (req, res) => {
       ragContext = topChunks.map(c => anonymizeText(c.content)).join("\n---\n");
     } catch (e) {
       console.error("RAG context fetch failed:", e.message);
-      // Continue without RAG context if it fails
       ragContext = "";
     }
-    
+
     // Fetch user's upcoming events from Firestore
     let userEvents = [];
     try {
@@ -580,16 +600,27 @@ app.post("/chat", async (req, res) => {
     } catch (e) {
       console.error("Failed to fetch user events for chat context:", e);
     }
-    // Format events for prompt
     let eventsSummary = "";
     if (userEvents.length > 0) {
       eventsSummary = "Here are the user's next events:" + userEvents.map(ev => `\n- ${ev.title} on ${new Date(ev.start).toLocaleString()}${ev.location ? ' at ' + ev.location : ''}`).join("");
     } else {
       eventsSummary = "The user has no upcoming events.";
     }
-    // Inject into system prompt
+
+    // Email summary for prompt
+    let emailSummaryText = "";
+    if (emailSummaryArr.length > 0) {
+      emailSummaryText = "Recent emails (summarized):\n" + emailSummaryArr.map(e => `- From: ${e.from}\n  Subject: ${e.subject}\n  Summary: ${e.summary}\n  Date: ${e.date}`).join("\n");
+    } else {
+      emailSummaryText = "No recent emails found.";
+    }
+
+    // Enhanced system prompt
     const systemPrompt = `
-Your one and only job is to act as a persona synthesizer. You will be given a block of text under "Relevant context". You MUST adopt the tone, style, and personality of the author of that text to answer the user's message.
+You are HomeOps, a world-class, in-character AI assistant. Your job is to:
+- Synthesize a conversational reply in the HomeOps voice, using the knowledge base and context below.
+- Extract any new calendar events from the user's most recent message, returning them in a strict JSON array.
+- Reference the user's recent emails if relevant.
 
 ---
 Relevant context from the knowledge base:
@@ -598,29 +629,28 @@ ${ragContext}
 
 ${eventsSummary}
 
-Your task is to synthesize a response that is 100% in-character with the context provided.
-It is a hard failure if you provide a generic, list-based answer. For example, DO NOT output a response like:
-"- **Open Dialogue:** Create a safe space..."
-"- **Acknowledge and Apologize:** If there's something..."
+${emailSummaryText}
 
-Your response must be a conversational paragraph that captures the unique tone and style of the context.
-
-**Final check:** Does my response sound like a generic AI assistant? If it does, you have failed. Rewrite it to be in-character.
-
-Never mention the names of any real people, authors, or public figures.
 Today's date is: ${getCurrentDate()}.
 
-After crafting your in-character reply, extract any new calendar events found ONLY in the user's most recent message.
-
-Respond with ONLY a single, valid JSON object in this format.
-
+**Instructions:**
+- Your reply must be a single, conversational paragraph in the HomeOps voice.
+- If the user's message contains a new event, extract it as an object with fields: title, when, allDay, location, description, end (if available).
+- If you reference an email, use the summaries above.
+- Respond with ONLY a single, valid JSON object in this format:
 {
-  "reply": "Your in-character, conversational reply synthesized from the knowledge base goes here.",
+  "reply": "Your in-character, conversational reply goes here.",
   "events": [
-    { "title": "Event Title", "when": "A descriptive, natural language time like 'This coming Tuesday at 2pm' or 'August 15th at 10am'", "allDay": false }
+    { "title": "Event Title", "when": "A descriptive, natural language time like 'This coming Tuesday at 2pm' or 'August 15th at 10am'", "allDay": false, "location": "", "description": "", "end": "" }
+  ],
+  "emailSummary": [
+    { "from": "", "subject": "", "summary": "", "date": "" }
   ]
 }
-    `.trim();
+- If there are no events or emails, use empty arrays for those fields.
+- Do NOT include any text outside the JSON object.
+- If you fail to return valid JSON, your response will be rejected.
+`;
 
     messagesForApi.push({ role: "system", content: systemPrompt });
 
@@ -635,23 +665,23 @@ Respond with ONLY a single, valid JSON object in this format.
     // Add the current user message
     messagesForApi.push({ role: "user", content: message });
 
-    // 3. Call OpenAI API with timeout
+    // 4. Call OpenAI API with timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
     try {
-    const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        temperature: 0.7,
-        top_p: 1,
-        response_format: { type: "json_object" },
-        messages: messagesForApi
+      const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          temperature: 0.7,
+          top_p: 1,
+          response_format: { type: "json_object" },
+          messages: messagesForApi
         }),
         signal: controller.signal
       });
@@ -662,62 +692,64 @@ Respond with ONLY a single, valid JSON object in this format.
         throw new Error(`OpenAI API error: ${gptRes.status} ${gptRes.statusText}`);
       }
 
-    const gptData = await gptRes.json();
-    console.log("OpenAI Response Body:", JSON.stringify(gptData, null, 2));
-    const content = gptData.choices?.[0]?.message?.content;
+      const gptData = await gptRes.json();
+      console.log("OpenAI Response Body:", JSON.stringify(gptData, null, 2));
+      const content = gptData.choices?.[0]?.message?.content;
 
-    if (!content) {
-      throw new Error("No content from GPT response.");
-    }
-
-    const parsedResponse = JSON.parse(content);
-    const { reply, events = [] } = parsedResponse;
-
-    // 4. Save new message and reply to history
-    await db.collection("messages").add({
-      user_id,
-      message,
-      assistant_response: content,
-      timestamp: new Date()
-    });
-
-    // 5. Save events to Firestore
-    if (events.length > 0) {
-      const savedEvents = [];
-      const batch = db.batch();
-      
-      // Get the current time in the target timezone to use as a reference for parsing
-      const referenceDate = new Date();
-
-      events.forEach(event => {
-        if (event.title && event.when) {
-            // Parse the natural language "when" string in America/New_York timezone
-            const parsedStart = chrono.parseDate(event.when, referenceDate, { forwardDate: true, timezone: "America/New_York" });
-
-          if (parsedStart) {
-            // Convert to the required ISO 8601 format with timezone
-            const startISO = parsedStart.toISOString();
-
-            const eventRef = db.collection("events").doc();
-            const eventWithId = { 
-              ...event, 
-              start: startISO, // Add the parsed start time
-              id: eventRef.id, 
-              user_id, 
-              created_at: new Date() 
-            };
-            delete eventWithId.when; // Clean up the original 'when' field
-            
-            batch.set(eventRef, eventWithId);
-            savedEvents.push(eventWithId);
-          }
-        }
-      });
-      await batch.commit();
-      res.json({ reply, events: savedEvents });
-    } else {
-      res.json({ reply, events: [] });
+      if (!content) {
+        throw new Error("No content from GPT response.");
       }
+
+      let parsedResponse;
+      try {
+        parsedResponse = JSON.parse(content);
+      } catch (err) {
+        console.error("Failed to parse GPT response as JSON:", content);
+        throw new Error("Invalid JSON from GPT");
+      }
+      const { reply, events = [], emailSummary = [] } = parsedResponse;
+
+      // 5. Save new message and reply to history
+      await db.collection("messages").add({
+        user_id,
+        message,
+        assistant_response: content,
+        timestamp: new Date()
+      });
+
+      // 6. Save events to Firestore
+      let savedEvents = [];
+      if (Array.isArray(events) && events.length > 0) {
+        const batch = db.batch();
+        const referenceDate = new Date();
+        events.forEach(event => {
+          if (event.title && event.when) {
+            // Parse the natural language "when" string in America/New_York timezone
+            let parsedStart;
+            try {
+              parsedStart = chrono.parseDate(event.when, referenceDate, { forwardDate: true, timezone: "America/New_York" });
+            } catch (e) {
+              parsedStart = null;
+            }
+            if (parsedStart) {
+              const startISO = parsedStart.toISOString();
+              const eventRef = db.collection("events").doc();
+              const eventWithId = {
+                ...event,
+                start: startISO,
+                id: eventRef.id,
+                user_id,
+                created_at: new Date()
+              };
+              delete eventWithId.when;
+              batch.set(eventRef, eventWithId);
+              savedEvents.push(eventWithId);
+            }
+          }
+        });
+        await batch.commit();
+      }
+      res.json({ reply, events: savedEvents, emailSummary: emailSummaryArr });
     } catch (fetchError) {
       clearTimeout(timeoutId);
       if (fetchError.name === 'AbortError') {
