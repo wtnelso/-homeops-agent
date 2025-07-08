@@ -796,11 +796,11 @@ html, body {
   height: 48px;
   margin-bottom: 12px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #7E5EFF 0%, #B8A3FF 100%);
+  background: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(126,94,255,0.13);
+  box-shadow: none;
 }
 .onboarding-logo img {
   width: 32px;
@@ -1291,11 +1291,11 @@ body, html, #chat-root, .conversation-container, .chat-input, .chat-input-form, 
   height: 48px;
   margin-bottom: 12px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #7E5EFF 0%, #B8A3FF 100%);
+  background: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(126,94,255,0.13);
+  box-shadow: none;
 }
 .onboarding-logo img {
   width: 32px;
