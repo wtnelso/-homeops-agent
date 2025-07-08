@@ -1759,16 +1759,33 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   top: 0; left: 0; right: 0; bottom: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #7E5EFF 0%, #A78BFA 100%);
+  background: rgba(250,250,255,0.92); /* Light, subtle background */
   z-index: 9999;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   overflow: hidden;
-  padding-top: 10vh;
-  padding-bottom: 10vh;
+  padding-top: 8vh;
+  padding-bottom: 6vh;
 }
+
+.homeops-welcome-gradient-accent {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 520px;
+  height: 320px;
+  background: linear-gradient(135deg, #a18fff 0%, #6f6fff 100%);
+  filter: blur(80px);
+  opacity: 0.28;
+  z-index: 1;
+  pointer-events: none;
+}
+
 .homeops-welcome-card {
+  position: relative;
+  z-index: 2;
   background: rgba(255,255,255,0.97);
   border-radius: 40px;
   box-shadow: 0 8px 48px 0 rgba(126, 94, 255, 0.18);

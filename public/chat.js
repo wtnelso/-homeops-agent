@@ -301,6 +301,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     welcome.id = 'homeops-welcome';
     welcome.className = 'homeops-welcome-overlay';
     welcome.innerHTML = `
+      <div class="homeops-welcome-gradient-accent"></div>
       <div class="homeops-welcome-card">
         <div class="homeops-welcome-logo"><img src="img/homeops-logo.svg" alt="HomeOps" /></div>
         <div class="homeops-welcome-title">
