@@ -1747,4 +1747,137 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   margin-bottom: 16px;
   height: 22px;
   min-height: 22px;
+}
+
+.homeops-welcome-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(120deg, #f8f9fb 0%, #f3f0ff 100%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: fadeInWelcome 0.6s cubic-bezier(.4,0,.2,1);
+}
+.homeops-welcome-card {
+  background: #fff;
+  border-radius: 32px;
+  box-shadow: 0 8px 48px 0 rgba(126, 94, 255, 0.13);
+  padding: 48px 40px 36px 40px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  animation: popInWelcome 0.7s cubic-bezier(.4,0,.2,1);
+}
+.homeops-welcome-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #7E5EFF;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.homeops-welcome-greeting {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: #222;
+  margin-bottom: 0;
+}
+.homeops-welcome-desc {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 0;
+  text-align: left;
+}
+.homeops-welcome-list {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0 0;
+  text-align: left;
+}
+.homeops-welcome-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  color: #333;
+}
+.homeops-welcome-list .lucide {
+  color: #7E5EFF;
+  font-size: 1.2em;
+  margin-top: 2px;
+}
+.homeops-welcome-example {
+  color: #a78bfa;
+  font-size: 0.98em;
+  margin-left: 6px;
+  font-style: italic;
+}
+.homeops-welcome-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 18px;
+  justify-content: center;
+}
+.homeops-welcome-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%);
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(126, 94, 255, 0.10);
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s, transform 0.13s;
+  outline: none;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif !important;
+  animation: chipPopIn 0.5s cubic-bezier(.4,0,.2,1);
+}
+.homeops-welcome-chip:hover, .homeops-welcome-chip:focus {
+  background: linear-gradient(90deg, #B8A3FF 0%, #7E5EFF 100%);
+  box-shadow: 0 4px 16px rgba(126, 94, 255, 0.18);
+  transform: scale(1.04);
+}
+@keyframes fadeInWelcome {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes popInWelcome {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes chipPopIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@media (max-width: 600px) {
+  .homeops-welcome-card {
+    padding: 28px 8px 24px 8px;
+    max-width: 98vw;
+  }
+  .homeops-welcome-title {
+    font-size: 1.1rem;
+  }
+  .homeops-welcome-greeting, .homeops-welcome-desc {
+    font-size: 0.98rem;
+  }
+  .homeops-welcome-chip {
+    padding: 12px 16px;
+    font-size: 0.98rem;
+  }
 } 

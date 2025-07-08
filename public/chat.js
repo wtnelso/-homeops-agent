@@ -273,62 +273,71 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     }
   });
   
-  // Render welcome/onboarding state
-  function renderWelcome() {
-    chatThread.innerHTML = '';
-    // Onboarding container
-    const container = document.createElement('div');
-    container.className = 'onboarding-welcome-container';
-    // Card
-    const card = document.createElement('div');
-    card.className = 'onboarding-card';
-    // Logo
-    const logo = document.createElement('div');
-    logo.className = 'onboarding-logo';
-    logo.innerHTML = "<img src='img/homeops-logo.svg' alt='HomeOps' />";
-    card.appendChild(logo);
-    // Greeting
-    const greeting = document.createElement('div');
-    greeting.className = 'onboarding-greeting';
-    greeting.textContent = 'Welcome to HomeOps — Your Mental Load Operating System.';
-    card.appendChild(greeting);
-    // Description
-    const desc = document.createElement('div');
-    desc.className = 'onboarding-desc';
-    desc.innerHTML = 'How can I help?<br><span style="color:#7E5EFF;font-weight:500;display:block;margin-top:10px;">To add an event, just say: <em>Add [event] to my calendar on [date/time]</em></span>';
-    card.appendChild(desc);
-    // Chips
-    const chips = document.createElement('div');
-    chips.className = 'onboarding-chips';
-    const prompts = [
-      { icon: 'calendar', text: "What's on my calendar today?" },
-      { icon: 'bell', text: "Remind me to buy diapers" },
-      { icon: 'help-circle', text: "Help me unblock a problem" },
-      { icon: 'mail', text: "Review recent emails" }
-    ];
-    prompts.forEach((p) => {
-      const chip = document.createElement('span');
-      chip.className = 'onboarding-chip';
-      chip.innerHTML = `<i data-lucide='${p.icon}' style='width:1.1em;height:1.1em;vertical-align:-0.18em;margin-right:8px;'></i>${p.text}`;
-      chip.addEventListener('click', () => {
-        chatInput.value = p.text;
-        chatInput.focus();
-      });
-      chips.appendChild(chip);
-    });
-    card.appendChild(chips);
-    container.appendChild(card);
-    chatThread.appendChild(container);
-    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
-    setTimeout(() => { chatThread.scrollTop = 0; }, 10);
+  // Welcome Experience Logic
+  function shouldShowWelcome() {
+    return !localStorage.getItem('hasSeenChatWelcome');
   }
-  
-  // On load, check for chat history and render welcome if empty
-  loadChatHistory();
-  if (messages.length === 0) {
-    renderWelcome();
-  } else {
-    renderMessages();
+
+  function markWelcomeSeen() {
+    localStorage.setItem('hasSeenChatWelcome', 'true');
+  }
+
+  function renderWelcomeScreen() {
+    const chatRoot = document.getElementById('chat-root');
+    if (!chatRoot) return;
+    // Lock scroll
+    document.body.style.overflow = 'hidden';
+    // Remove any previous welcome
+    let welcome = document.getElementById('homeops-welcome');
+    if (welcome) welcome.remove();
+    // Create welcome overlay
+    welcome = document.createElement('div');
+    welcome.id = 'homeops-welcome';
+    welcome.className = 'homeops-welcome-overlay';
+    welcome.innerHTML = `
+      <div class="homeops-welcome-card">
+        <div class="homeops-welcome-title">
+          <span class="lucide lucide-brain"></span>
+          HomeOps Chat Agent
+        </div>
+        <div class="homeops-welcome-greeting">
+          Hi, I'm your HomeOps assistant — a dedicated mental load operating system for high-performing families.
+        </div>
+        <div class="homeops-welcome-desc">
+          I'm here to help you reduce decision fatigue, surface what matters, and get time back.<br><br>
+          <b>Here's what I can help with:</b>
+          <ul class="homeops-welcome-list">
+            <li><span class="lucide lucide-mail"></span> Summarize what's happening in your inbox</li>
+            <li><span class="lucide lucide-school"></span> Decode school or activity emails — just ask <span class="homeops-welcome-example">"What's going on at my kids' school this week?"</span></li>
+            <li><span class="lucide lucide-calendar"></span> Add calendar events or reminders <span class="homeops-welcome-example">"Add the birthday party to my calendar for tomorrow at 3pm."</span></li>
+            <li><span class="lucide lucide-compass"></span> Help you organize or offload a situation <span class="homeops-welcome-example">"Help me plan a backup childcare option."</span></li>
+          </ul>
+        </div>
+        <div class="homeops-welcome-chips">
+          <button class="homeops-welcome-chip" data-action="inbox"><span class="lucide lucide-mail"></span> Process My Inbox</button>
+          <button class="homeops-welcome-chip" data-action="calendar"><span class="lucide lucide-calendar"></span> Add an Event</button>
+          <button class="homeops-welcome-chip" data-action="task"><span class="lucide lucide-check-circle"></span> Clear a Task</button>
+          <button class="homeops-welcome-chip" data-action="help"><span class="lucide lucide-sparkles"></span> What can you do?</button>
+        </div>
+      </div>
+    `;
+    chatRoot.appendChild(welcome);
+    // Animate in
+    setTimeout(() => welcome.classList.add('visible'), 10);
+    // Chip click logic
+    welcome.querySelectorAll('.homeops-welcome-chip').forEach(btn => {
+      btn.addEventListener('click', e => {
+        markWelcomeSeen();
+        document.body.style.overflow = '';
+        welcome.remove();
+        // Optionally trigger chip action here
+      });
+    });
+  }
+
+  // On load
+  if (shouldShowWelcome()) {
+    renderWelcomeScreen();
   }
 
   // Remove char count and handle Enter/Shift+Enter for textarea
