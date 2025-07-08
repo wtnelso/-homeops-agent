@@ -310,8 +310,8 @@ function renderEmailCards() {
       ` + showMoreHtml;
     } else if (filteredEmails.length === 0) {
       // No emails at all - show zero state
-      showZeroState();
-      container.innerHTML = summaryHtml + showMoreHtml;
+    showZeroState();
+    container.innerHTML = summaryHtml + showMoreHtml;
     } else {
       // Some other filtering issue
       container.innerHTML = summaryHtml + `
@@ -1269,8 +1269,8 @@ async function checkGmailConnection() {
         } else {
           // First time user, show step 1: Gmail connection
           console.log('🔍 First time user, showing Gmail connection step');
-          showOnboardingState();
-          showWizardStep(1);
+        showOnboardingState();
+        showWizardStep(1);
         }
       } else {
         // Gmail is connected, check if we have processed emails
@@ -1288,8 +1288,8 @@ async function checkGmailConnection() {
         showWizardStep(2);
       } else {
         console.log('🔍 First time user, showing Gmail connection step');
-        showOnboardingState();
-        showWizardStep(1);
+      showOnboardingState();
+      showWizardStep(1);
       }
     }
   } catch (error) {
@@ -1302,8 +1302,8 @@ async function checkGmailConnection() {
       showOnboardingState();
       showWizardStep(2);
     } else {
-      showOnboardingState();
-      showWizardStep(1);
+    showOnboardingState();
+    showWizardStep(1);
     }
   }
 }
@@ -1348,8 +1348,8 @@ async function loadExistingEmails(userId) {
         } else {
           // No emails found and onboarding not complete, show processing step
           console.log('🔍 No emails found and onboarding not complete, showing processing step');
-          showOnboardingState();
-          showWizardStep(2); // Show processing step
+        showOnboardingState();
+        showWizardStep(2); // Show processing step
         }
       } else {
         // Emails found, show the main decoder
@@ -1365,8 +1365,8 @@ async function loadExistingEmails(userId) {
         showZeroState();
       } else {
         console.log('🔍 Can\'t load emails and onboarding not complete, showing processing step');
-        showOnboardingState();
-        showWizardStep(2); // Show processing step
+      showOnboardingState();
+      showWizardStep(2); // Show processing step
       }
     }
   } catch (error) {
@@ -1375,8 +1375,8 @@ async function loadExistingEmails(userId) {
     if (onboardingComplete) {
       showZeroState();
     } else {
-      showOnboardingState();
-      showWizardStep(2); // Show processing step
+    showOnboardingState();
+    showWizardStep(2); // Show processing step
     }
   }
 }
