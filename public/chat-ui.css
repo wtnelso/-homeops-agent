@@ -1238,7 +1238,6 @@ body, html, #chat-root, .conversation-container, .chat-input, .chat-input-form, 
 .onboarding-chips {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 16px;
   margin: 24px 0 8px 0;
   width: 100%;
@@ -1772,92 +1771,98 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   background: #fff;
   border-radius: 32px;
   box-shadow: 0 8px 48px 0 rgba(126, 94, 255, 0.13);
-  padding: 48px 40px 36px 40px;
-  max-width: 480px;
+  padding: 56px 48px 56px 48px;
+  max-width: 540px;
   width: 100%;
   text-align: center;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif !important;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
-  animation: popInWelcome 0.7s cubic-bezier(.4,0,.2,1);
+  gap: 36px;
+  margin-top: 32px;
+  margin-bottom: 56px;
 }
 .homeops-welcome-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 18px;
+  margin-bottom: 32px;
+  margin-top: 12px;
 }
 .homeops-welcome-logo img {
-  height: 54px;
+  height: 72px;
   width: auto;
   display: block;
   filter: drop-shadow(0 2px 8px rgba(126,94,255,0.10));
 }
 .homeops-welcome-title {
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   font-weight: 700;
   color: #7E5EFF;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 .homeops-welcome-greeting {
-  font-size: 1.15rem;
-  font-weight: 500;
+  font-size: 1.18rem;
+  font-weight: 600;
   color: #222;
   margin-bottom: 0;
 }
 .homeops-welcome-desc {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: #444;
   margin-bottom: 0;
-  text-align: left;
+  text-align: center;
+  font-weight: 400;
 }
-.homeops-welcome-list {
-  list-style: none;
-  padding: 0;
-  margin: 18px 0 0 0;
-  text-align: left;
-}
-.homeops-welcome-list li {
+.homeops-welcome-helpgrid {
+  width: 100%;
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 14px;
-  font-size: 1.05rem;
-  color: #333;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0 0 12px 0;
 }
-.homeops-welcome-list .lucide {
-  color: #7E5EFF;
-  font-size: 1.2em;
-  margin-top: 2px;
+.helpgrid-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1.2fr;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
 }
-.homeops-welcome-example {
+.helpgrid-feature {
+  font-weight: 600;
+  color: #222;
+  text-align: right;
+  font-size: 1.08rem;
+  padding-right: 8px;
+}
+.helpgrid-example {
   color: #a78bfa;
-  font-size: 0.98em;
-  margin-left: 6px;
+  font-size: 1.05rem;
   font-style: italic;
+  text-align: left;
+  padding-left: 8px;
 }
 .homeops-welcome-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 18px;
+  gap: 22px;
+  margin-top: 24px;
   justify-content: center;
 }
 .homeops-welcome-chip {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%);
   color: #fff;
   border: none;
   border-radius: 9999px;
-  padding: 14px 28px;
-  font-size: 1rem;
+  padding: 16px 36px;
+  font-size: 1.08rem;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(126, 94, 255, 0.10);
   cursor: pointer;
@@ -1885,20 +1890,30 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
 }
 @media (max-width: 600px) {
   .homeops-welcome-logo img {
-    height: 38px;
+    height: 48px;
   }
   .homeops-welcome-card {
-    padding: 28px 8px 24px 8px;
-    max-width: 98vw;
+    padding: 22px 4vw 32px 4vw;
+    max-width: 99vw;
+    gap: 22px;
+    margin-top: 12px;
+    margin-bottom: 32px;
   }
   .homeops-welcome-title {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
   }
   .homeops-welcome-greeting, .homeops-welcome-desc {
-    font-size: 0.98rem;
+    font-size: 0.99rem;
   }
   .homeops-welcome-chip {
-    padding: 12px 16px;
-    font-size: 0.98rem;
+    padding: 12px 12vw;
+    font-size: 0.99rem;
+  }
+  .homeops-welcome-helpgrid {
+    gap: 10px;
+  }
+  .helpgrid-feature, .helpgrid-example {
+    font-size: 0.99rem;
+    padding: 0 2px;
   }
 } 

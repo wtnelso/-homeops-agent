@@ -302,20 +302,18 @@ window.initializeChat = function(auth, user, retryCount = 0) {
           Hi, I'm HomeOps — your dedicated mental load operating system.
         </div>
         <div class="homeops-welcome-desc">
-          Built for high-performing families, I help you reduce decision fatigue, anticipate needs, and act on what matters most.<br><br>
-          <b>Here's how I can help right now:</b>
-          <ul class="homeops-welcome-list">
-            <li><span class="lucide lucide-search"></span> Understand what's happening in your world <span class="homeops-welcome-example">"What's going on at my kid's school this week?"</span></li>
-            <li><span class="lucide lucide-calendar"></span> Stay ahead of important logistics <span class="homeops-welcome-example">"When's the next swim meet or soccer game?"</span></li>
-            <li><span class="lucide lucide-calendar-plus"></span> Keep your calendar in sync <span class="homeops-welcome-example">"Add Lucy's doctor appointment for Thursday at 2pm."</span></li>
-            <li><span class="lucide lucide-mail"></span> Flag what matters from your inbox <span class="homeops-welcome-example">"Anything from the club I should know about?"</span></li>
-          </ul>
+          Built for high-performing families, I help you reduce decision fatigue, anticipate needs, and act on what matters most.
+        </div>
+        <div class="homeops-welcome-helpgrid">
+          <div class="helpgrid-row"><div class="helpgrid-feature">Understand what's happening in your world</div><div class="helpgrid-example">“What's going on at my kid's school this week?”</div></div>
+          <div class="helpgrid-row"><div class="helpgrid-feature">Stay ahead of important logistics</div><div class="helpgrid-example">“When's the next swim meet or soccer game?”</div></div>
+          <div class="helpgrid-row"><div class="helpgrid-feature">Keep your calendar in sync</div><div class="helpgrid-example">“Add Lucy's doctor appointment for Thursday at 2pm.”</div></div>
+          <div class="helpgrid-row"><div class="helpgrid-feature">Flag what matters from your inbox</div><div class="helpgrid-example">“Anything from the club I should know about?”</div></div>
         </div>
         <div class="homeops-welcome-chips">
           <button class="homeops-welcome-chip" data-action="inbox"><span class="lucide lucide-mail"></span> What's in my inbox?</button>
           <button class="homeops-welcome-chip" data-action="calendar"><span class="lucide lucide-calendar-plus"></span> Add something to my calendar</button>
           <button class="homeops-welcome-chip" data-action="upcoming"><span class="lucide lucide-calendar"></span> What's coming up this week?</button>
-          <button class="homeops-welcome-chip" data-action="examples"><span class="lucide lucide-sparkles"></span> Show me examples</button>
         </div>
       </div>
     `;
