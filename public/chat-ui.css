@@ -792,10 +792,10 @@ html, body {
   gap: 24px;
 }
 .onboarding-logo {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 12px;
-  border-radius: 12px;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 16px;
+  border-radius: 16px;
   background: none;
   display: flex;
   align-items: center;
@@ -803,9 +803,9 @@ html, body {
   box-shadow: none;
 }
 .onboarding-logo img {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
 }
 .onboarding-greeting {
   font-size: 1.25rem;
@@ -855,13 +855,15 @@ html, body {
     border-radius: 14px;
   }
   .onboarding-logo {
-    width: 36px;
-    height: 36px;
-    margin-bottom: 8px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+    border-radius: 10px;
   }
   .onboarding-logo img {
-    width: 24px;
-    height: 24px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
   }
   .onboarding-greeting {
     font-size: 1.1rem;
