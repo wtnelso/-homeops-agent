@@ -53,7 +53,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     "Remind me about something",
     "Check my calendar",
     "Review recent emails",
-    "Help me unblock a problem"
+    "Help me unblock a problem",
+    "Add golf this Saturday at 10am to my calendar"
   ];
 
   // Load existing messages
@@ -294,7 +295,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     // Description
     const desc = document.createElement('div');
     desc.className = 'onboarding-desc';
-    desc.textContent = 'How can I help?';
+    desc.innerHTML = 'How can I help?<br><span style="color:#7E5EFF;font-weight:500;display:block;margin-top:10px;">To add an event, just say: <em>Add [event] to my calendar on [date/time]</em></span>';
     card.appendChild(desc);
     // Chips
     const chips = document.createElement('div');

@@ -241,6 +241,8 @@ html, body {
   margin-left: 44px;
   margin-bottom: 8px;
   height: 18px;
+  border: 2px dashed #a78bfa;
+  background: #fafaff;
 }
 
 .typing-dot {
@@ -308,6 +310,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  border: 2px solid #a78bfa;
 }
 
 .chat-input-form {
@@ -1489,11 +1492,11 @@ body, html, #chat-root, .conversation-container, .chat-input, .chat-input-form, 
   width: 100vw;
   max-width: 900px;
   margin: 0 auto;
-  height: calc(100vh - 200px); /* Maximum safety: input bar + footer + buffer */
+  height: calc(100vh - 240px); /* Max safety: input bar + footer + buffer */
   overflow-y: auto;
   padding-top: 0;
-  padding-bottom: 200px; /* Maximum safety: ensure last message/indicator is always visible */
-  scroll-padding-bottom: 200px; /* Extra insurance for scroll-to-bottom */
+  padding-bottom: 240px; /* Max safety: ensure last message/indicator is always visible */
+  scroll-padding-bottom: 240px; /* Extra insurance for scroll-to-bottom */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1534,6 +1537,7 @@ body, html, #chat-root, .conversation-container, .chat-input, .chat-input-form, 
   padding: 0;
   border-top: 1px solid #EEE;
   z-index: 100;
+  border: 2px solid #a78bfa;
 }
 @media (max-width: 768px) {
   .chat-input-bar {
