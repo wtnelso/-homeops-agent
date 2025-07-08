@@ -57,25 +57,34 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     "Add golf this Saturday at 10am to my calendar"
   ];
 
-  // Load existing messages
+  // --- Chat History Persistence ---
+  const CHAT_HISTORY_KEY = 'homeops_chat_history';
+
+  function saveChatHistory(messages) {
+    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(messages));
+  }
+
   function loadChatHistory() {
-    const saved = localStorage.getItem('homeops_chat_history');
-    if (saved) {
-      messages = JSON.parse(saved);
+    const raw = localStorage.getItem(CHAT_HISTORY_KEY);
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
     }
   }
-  
-  // Save messages to localStorage
-  function saveChatHistory() {
-    localStorage.setItem('homeops_chat_history', JSON.stringify(messages));
-  }
-  
+
   // Onboarding: clear chat history for first-time user
   if (!localStorage.getItem('homeops_onboarded')) {
     localStorage.removeItem('homeops_chat_history');
     localStorage.removeItem('homeops_chat_draft');
     localStorage.setItem('homeops_onboarded', '1');
   }
+
+  // On page load, load chat history and render
+  messages = loadChatHistory();
+  renderMessages();
+  chatInput.value = '';
 
   // Draft saving
   chatInput.value = localStorage.getItem('homeops_chat_draft') || '';
@@ -165,7 +174,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   function addMessage(sender, text) {
     const now = new Date();
     messages.push({ sender, text, time: now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
-    saveChatHistory();
+    saveChatHistory(messages);
     renderMessages();
   }
   
@@ -187,7 +196,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       if (data.events && Array.isArray(data.events) && data.events.length > 0) {
         const event = data.events[0];
         // Prepare event data for API
-        const eventData = {
+          const eventData = {
           user_id: user && user.uid ? user.uid : 'test_user',
           title: event.title || '',
           start: event.start || '',
@@ -198,22 +207,22 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         // Add end time if available
         if (event.end) eventData.end = event.end;
         // POST to /api/add-event
-        fetch('/api/add-event', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData)
-        })
+          fetch('/api/add-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData)
+          })
         .then(res => res.json())
-        .then(result => {
-          if (result.success) {
+          .then(result => {
+            if (result.success) {
             showToast('Event added to your calendar!');
             // Refresh calendar if open
             if (window.calendar && typeof window.calendar.refetchEvents === 'function') {
-              window.calendar.refetchEvents();
-            }
-          } else if (result.duplicate) {
+                window.calendar.refetchEvents();
+              }
+            } else if (result.duplicate) {
             showToast('Event already exists in your calendar!');
-          } else {
+            } else {
             showToast('Failed to add event to calendar');
           }
         })
