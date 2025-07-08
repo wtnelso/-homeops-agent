@@ -33,7 +33,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       <div class="chat-input-bar">
         <form class="chat-input-form compact" onsubmit="return false;">
           <textarea class="chat-input" placeholder="Ask HomeOps anything..." autocomplete="off" maxlength="1000" rows="1" style="resize: none;"></textarea>
-          <span class="char-count" id="charCount">0/1000</span>
           <button type="submit" class="send-button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
@@ -80,7 +79,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   // Draft saving
   chatInput.value = localStorage.getItem('homeops_chat_draft') || '';
   chatInput.addEventListener('input', () => {
-    charCount.textContent = `${chatInput.value.length}/1000`;
     localStorage.setItem('homeops_chat_draft', chatInput.value);
     chatInput.style.height = 'auto';
     chatInput.style.height = Math.min(chatInput.scrollHeight, 72) + 'px';
@@ -261,8 +259,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     if (!text) return;
     addMessage('user', text);
     chatInput.value = '';
-    charCount.textContent = '0/1000';
-    localStorage.removeItem('homeops_chat_draft');
     expandInputBar();
     // Typing indicator
     const typing = showTyping();
@@ -302,7 +298,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       chip.addEventListener('click', () => {
         chatInput.value = p.text;
         chatInput.focus();
-        charCount.textContent = `${chatInput.value.length}/1000`;
       });
       promptsRow.appendChild(chip);
     });
@@ -322,4 +317,16 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   } else {
     renderMessages();
   }
+
+  // Remove char count and handle Enter/Shift+Enter for textarea
+  chatInput.removeEventListener('keydown', window._homeopsEnterHandler || (()=>{}));
+  window._homeopsEnterHandler = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      chatForm.dispatchEvent(new Event('submit', {bubbles:true}));
+    }
+    // Shift+Enter inserts newline (default)
+  };
+  chatInput.addEventListener('keydown', window._homeopsEnterHandler);
+  if (charCount) charCount.remove();
 };
