@@ -302,28 +302,22 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     welcome.className = 'homeops-welcome-overlay';
     welcome.innerHTML = `
       <div class="homeops-welcome-gradient-accent"></div>
-      <div class="homeops-welcome-card">
+      <div class="homeops-welcome-card compact">
         <div class="homeops-welcome-logo"><img src="img/homeops-logo.svg" alt="HomeOps" /></div>
-        <div class="homeops-welcome-title">
-          HomeOps Chat Agent
+        <div class="homeops-welcome-title">Welcome to HomeOps Chat</div>
+        <div class="homeops-welcome-desc">Your mental load operating system for high-performing families.</div>
+        <div class="homeops-welcome-featuregrid">
+          <div class="feature-row"><span class="feature-icon"><i data-lucide="brain"></i></span><span class="feature-label">Understand what matters this week</span><span class="feature-example">“What’s going on at my kid’s school this week?”</span></div>
+          <div class="feature-row"><span class="feature-icon"><i data-lucide="calendar-plus"></i></span><span class="feature-label">Add something to your calendar</span><span class="feature-example">“Add Lucy’s dentist appointment for Thursday at 2pm.”</span></div>
+          <div class="feature-row"><span class="feature-icon"><i data-lucide="box"></i></span><span class="feature-label">Find what needs restocking</span><span class="feature-example">“When did I last order paper towels?”</span></div>
+          <div class="feature-row"><span class="feature-icon"><i data-lucide="banknote"></i></span><span class="feature-label">Surface important updates from your community</span><span class="feature-example">“Anything from the club I should know about?”</span></div>
         </div>
-        <div class="homeops-welcome-greeting">
-          Hi, I'm HomeOps — your dedicated mental load operating system.
+        <div class="homeops-welcome-ctas">
+          <button class="homeops-welcome-cta" data-action="inbox"><i data-lucide="mail"></i> What’s in my inbox?</button>
+          <button class="homeops-welcome-cta" data-action="calendar"><i data-lucide="calendar-plus"></i> Add something to my calendar</button>
+          <button class="homeops-welcome-cta" data-action="action"><i data-lucide="check-circle"></i> What do I need to act on?</button>
         </div>
-        <div class="homeops-welcome-desc">
-          Built for high-performing families, I help you reduce decision fatigue, anticipate needs, and act on what matters most.
-        </div>
-        <div class="homeops-welcome-helpgrid">
-          <div class="helpgrid-row"><div class="helpgrid-feature">Understand what's happening in your world</div><div class="helpgrid-example">“What's going on at my kid's school this week?”</div></div>
-          <div class="helpgrid-row"><div class="helpgrid-feature">Stay ahead of important logistics</div><div class="helpgrid-example">“When's the next swim meet or soccer game?”</div></div>
-          <div class="helpgrid-row"><div class="helpgrid-feature">Keep your calendar in sync</div><div class="helpgrid-example">“Add Lucy's doctor appointment for Thursday at 2pm.”</div></div>
-          <div class="helpgrid-row"><div class="helpgrid-feature">Flag what matters from your inbox</div><div class="helpgrid-example">“Anything from the club I should know about?”</div></div>
-        </div>
-        <div class="homeops-welcome-chips">
-          <button class="homeops-welcome-chip" data-action="inbox"><span class="lucide lucide-mail"></span> What's in my inbox?</button>
-          <button class="homeops-welcome-chip" data-action="calendar"><span class="lucide lucide-calendar-plus"></span> Add something to my calendar</button>
-          <button class="homeops-welcome-chip" data-action="upcoming"><span class="lucide lucide-calendar"></span> What's coming up this week?</button>
-        </div>
+        <div class="homeops-welcome-footer">I'll get smarter the more we talk. Just ask me anything.</div>
       </div>
     `;
     chatRoot.appendChild(welcome);
