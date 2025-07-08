@@ -1489,10 +1489,10 @@ body, html, #chat-root, .conversation-container, .chat-input, .chat-input-form, 
   width: 100vw;
   max-width: 900px;
   margin: 0 auto;
-  height: calc(100vh - 128px); /* 48px input + 48px footer + 32px buffer */
+  height: calc(100vh - 140px); /* Aggressive: input bar + footer + buffer */
   overflow-y: auto;
   padding-top: 0;
-  padding-bottom: 48px; /* More space for typing indicator and last bubble */
+  padding-bottom: 140px; /* Aggressive: ensure last message/indicator is always visible */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
