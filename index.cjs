@@ -539,6 +539,44 @@ app.post("/chat", async (req, res) => {
     });
   }
 
+  // --- CALENDAR COMMANDER LOGIC ---
+  const calendarCmdRegex = /add (.+?) to my calendar( on| for)? (.+)/i;
+  const match = message.match(calendarCmdRegex);
+  if (match) {
+    const eventTitle = match[1].trim();
+    const eventWhen = match[3].trim();
+    let parsedStart;
+    try {
+      parsedStart = chrono.parseDate(eventWhen, new Date(), { forwardDate: true, timezone: "America/New_York" });
+    } catch (e) {
+      parsedStart = null;
+    }
+    if (eventTitle && parsedStart) {
+      const startISO = parsedStart.toISOString();
+      const eventRef = db.collection("events").doc();
+      const eventWithId = {
+        title: eventTitle,
+        start: startISO,
+        id: eventRef.id,
+        user_id,
+        created_at: new Date(),
+        allDay: false,
+        description: '',
+        location: ''
+      };
+      await eventRef.set(eventWithId);
+      await db.collection("messages").add({
+        user_id,
+        message,
+        assistant_response: JSON.stringify({ reply: `✅ Event '${eventTitle}' added to your calendar for ${parsedStart.toLocaleString()}.`, events: [eventWithId] }),
+        timestamp: new Date()
+      });
+      return res.json({ reply: `✅ Event '${eventTitle}' added to your calendar for ${parsedStart.toLocaleString()}.`, events: [eventWithId], emailSummary: [] });
+    } else {
+      return res.json({ reply: "Sorry, I couldn't understand the date/time for your event. Please try: 'Add [event] to my calendar on [date/time]'", events: [], emailSummary: [] });
+    }
+  }
+
   try {
     // 1. Fetch the last 10 messages for context
     const messagesSnapshot = await db.collection("messages")
