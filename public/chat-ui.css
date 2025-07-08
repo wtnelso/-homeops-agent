@@ -1759,20 +1759,21 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   top: 0; left: 0; right: 0; bottom: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(120deg, #f8f9fb 0%, #f3f0ff 100%);
+  background: linear-gradient(135deg, #7E5EFF 0%, #A78BFA 100%);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  animation: fadeInWelcome 0.6s cubic-bezier(.4,0,.2,1);
+  padding-top: 10vh;
+  padding-bottom: 10vh;
 }
 .homeops-welcome-card {
-  background: #fff;
-  border-radius: 32px;
-  box-shadow: 0 8px 48px 0 rgba(126, 94, 255, 0.13);
+  background: rgba(255,255,255,0.97);
+  border-radius: 40px;
+  box-shadow: 0 8px 48px 0 rgba(126, 94, 255, 0.18);
   padding: 56px 48px 56px 48px;
-  max-width: 540px;
+  max-width: 520px;
   width: 100%;
   text-align: center;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif !important;
@@ -1780,21 +1781,21 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   flex-direction: column;
   align-items: center;
   gap: 36px;
-  margin-top: 32px;
-  margin-bottom: 56px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .homeops-welcome-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 32px;
-  margin-top: 12px;
+  margin-bottom: 36px;
+  margin-top: 24px;
 }
 .homeops-welcome-logo img {
-  height: 72px;
+  height: 96px;
   width: auto;
   display: block;
-  filter: drop-shadow(0 2px 8px rgba(126,94,255,0.10));
+  filter: drop-shadow(0 2px 12px rgba(126,94,255,0.13));
 }
 .homeops-welcome-title {
   font-size: 1.7rem;
@@ -1896,8 +1897,6 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
     padding: 22px 4vw 32px 4vw;
     max-width: 99vw;
     gap: 22px;
-    margin-top: 12px;
-    margin-bottom: 32px;
   }
   .homeops-welcome-title {
     font-size: 1.15rem;
