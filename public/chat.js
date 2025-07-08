@@ -305,7 +305,6 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       <div class="homeops-welcome-card">
         <div class="homeops-welcome-logo"><img src="img/homeops-logo.svg" alt="HomeOps" /></div>
         <div class="homeops-welcome-title">
-          <span class="lucide lucide-brain"></span>
           HomeOps Chat Agent
         </div>
         <div class="homeops-welcome-greeting">
