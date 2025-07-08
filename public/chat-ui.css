@@ -1783,6 +1783,18 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   gap: 24px;
   animation: popInWelcome 0.7s cubic-bezier(.4,0,.2,1);
 }
+.homeops-welcome-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.homeops-welcome-logo img {
+  height: 54px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(126,94,255,0.10));
+}
 .homeops-welcome-title {
   font-size: 1.5rem;
   font-weight: 700;
@@ -1814,8 +1826,8 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin-bottom: 12px;
-  font-size: 1rem;
+  margin-bottom: 14px;
+  font-size: 1.05rem;
   color: #333;
 }
 .homeops-welcome-list .lucide {
@@ -1872,6 +1884,9 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   100% { transform: scale(1); opacity: 1; }
 }
 @media (max-width: 600px) {
+  .homeops-welcome-logo img {
+    height: 38px;
+  }
   .homeops-welcome-card {
     padding: 28px 8px 24px 8px;
     max-width: 98vw;
