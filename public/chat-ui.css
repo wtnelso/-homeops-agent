@@ -2148,3 +2148,52 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
     max-width: 98vw;
   }
 } 
+
+.welcome-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin: 14px 0 6px 0;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.welcome-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #f3f0ff;
+  color: #7E5EFF;
+  border: none;
+  border-radius: 9999px;
+  padding: 8px 16px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(126,94,255,0.06);
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  outline: none;
+  min-width: 0;
+  white-space: pre-line;
+}
+.welcome-chip i {
+  font-size: 1.15em;
+  color: #7E5EFF;
+  display: flex;
+  align-items: center;
+}
+.welcome-chip:hover, .welcome-chip:focus {
+  background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(126,94,255,0.13);
+}
+.welcome-chip:hover i, .welcome-chip:focus i {
+  color: #fff;
+}
+.welcome-caption {
+  font-size: 0.93rem;
+  color: #888;
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+} 

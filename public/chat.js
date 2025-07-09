@@ -90,17 +90,18 @@ window.initializeChat = function(auth, user, retryCount = 0) {
 
   const WELCOME_MESSAGE = `
 <div class="homeops-welcome-message">
-  <div class="welcome-intro"><b>Hi—I'm HomeOps</b>, your personal chief of staff and your mental load operating system.<br>My job is simple: help you run your life more efficiently.</div>
-  <div class="welcome-sub">How can I help you today?</div>
-  <ul class="welcome-examples">
-    <li><i data-lucide="brain"></i> What's going on at my kid’s school this week?</li>
-    <li><i data-lucide="calendar-plus"></i> Add Lucy’s dentist appointment for Thursday at 2pm.</li>
-    <li><i data-lucide="box"></i> When did I last order paper towels?</li>
-    <li><i data-lucide="banknote"></i> Anything from the club I should know about?</li>
-    <li><i data-lucide="stethoscope"></i> Put a doctor’s appointment on my calendar</li>
-    <li><i data-lucide="bell"></i> Remind me about something</li>
-    <li><i data-lucide="help-circle"></i> Help me unblock a problem</li>
-  </ul>
+  <div class="welcome-intro">👋 Hi, I'm HomeOps — your personal chief of staff and your mental load operating system.</div>
+  <div class="welcome-body">My job is simple: help you run your life more efficiently — by organizing what matters, offloading what doesn’t, and surfacing what’s easy to forget.<br><br>Let’s get you set up in under 60 seconds:</div>
+  <div class="welcome-chips">
+    <button class="welcome-chip" data-action="oauth"><i data-lucide="mail"></i> Connect your inbox to decode school updates, purchase history, and brand alerts</button>
+    <button class="welcome-chip" data-action="calendar"><i data-lucide="stethoscope"></i> Put Lucy’s dentist appointment on my calendar</button>
+    <button class="welcome-chip" data-action="school"><i data-lucide="calendar-days"></i> What's going on at my kid’s school this week?</button>
+    <button class="welcome-chip" data-action="order"><i data-lucide="package-check"></i> When did I last order paper towels?</button>
+    <button class="welcome-chip" data-action="club"><i data-lucide="golf"></i> Anything from the club I should know about?</button>
+    <button class="welcome-chip" data-action="help"><i data-lucide="life-buoy"></i> Help me unblock a problem</button>
+    <button class="welcome-chip" data-action="remind"><i data-lucide="bell"></i> Remind me about something</button>
+  </div>
+  <div class="welcome-caption">HomeOps is designed to carry the mental load — you just delegate. Think it, type it, done.</div>
 </div>`;
 
   // On page load, load chat history and render
