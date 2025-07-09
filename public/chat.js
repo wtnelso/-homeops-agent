@@ -307,12 +307,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       // Fill chat input and trigger send based on data-action
       const action = btn.getAttribute('data-action');
       let prompt = '';
-      if (action === 'inbox') {
-        prompt = "What's in my inbox?";
-      } else if (action === 'calendar') {
-        prompt = "Add something to my calendar";
-      } else if (action === 'action') {
-        prompt = "What do I need to act on?";
+      if (action === 'start-chat') {
+        prompt = "Hi!";
       }
       if (prompt) {
         const chatInput = document.querySelector('.chat-input');
@@ -384,9 +380,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
           </div>
         </div>
         <div class="homeops-welcome-ctas">
-          <button class="homeops-welcome-cta" data-action="inbox"><i data-lucide="mail"></i><span>What's in my inbox?</span></button>
-          <button class="homeops-welcome-cta" data-action="calendar"><i data-lucide="calendar-plus"></i><span>Add to my calendar</span></button>
-          <button class="homeops-welcome-cta" data-action="action"><i data-lucide="check-circle"></i><span>What do I need to act on?</span></button>
+          <button class="homeops-welcome-cta" data-action="start-chat"><i data-lucide="message-circle"></i><span>Chat with Your HomeOps Personal Chief of Staff</span></button>
         </div>
         <div class="homeops-welcome-footer">I'll get smarter the more we talk. Just ask me anything.</div>
       </div>
