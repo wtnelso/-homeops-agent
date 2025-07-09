@@ -1942,18 +1942,21 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   }
   .homeops-welcome-card.compact {
     position: fixed !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    bottom: 80px !important;
+    margin: auto !important;
     max-width: 98vw !important;
     width: 100% !important;
     border-radius: 40px !important;
     box-shadow: 0 8px 48px 0 rgba(126, 94, 255, 0.18) !important;
     padding: 14px 2vw 14px 2vw !important;
     gap: 12px !important;
-    max-height: 98vh !important;
+    max-height: calc(100vh - 80px) !important;
     overflow-y: auto !important;
     background: rgba(255,255,255,0.97) !important;
+    transform: none !important;
   }
   .homeops-welcome-featuregrid {
     grid-template-columns: 1fr !important;
