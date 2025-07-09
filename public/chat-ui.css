@@ -2086,50 +2086,89 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
 } 
 
 .homeops-welcome-message {
-  font-family: 'JetBrains Mono', 'Fira Mono', 'IBM Plex Mono', 'Menlo', 'Consolas', monospace !important;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
   background: rgba(255,255,255,0.98);
-  border-radius: 16px;
+  border-radius: 18px;
   box-shadow: 0 2px 16px rgba(126,94,255,0.08);
-  padding: 14px 12px 10px 12px;
+  padding: 24px 32px 24px 32px;
   margin: 0 auto 10px auto;
-  max-width: 400px;
-  font-size: 0.93rem;
+  max-width: 600px;
+  min-width: 320px;
+  font-family: 'Inter', 'Montserrat', 'Space Grotesk', Arial, sans-serif !important;
+  font-size: 1.01rem;
   color: #23223a;
-  letter-spacing: -0.01em;
-  line-height: 1.5;
   border: 1px solid #ece9ff;
+  gap: 32px;
+}
+.homeops-welcome-message .welcome-left {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: 12px;
 }
 .homeops-welcome-message .welcome-intro {
-  font-size: 1.01rem;
+  font-size: 1.13rem;
   font-weight: 700;
   color: #7E5EFF;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   letter-spacing: -0.01em;
 }
 .homeops-welcome-message .welcome-sub {
   color: #8b5cf6;
-  font-size: 0.93rem;
+  font-size: 1.01rem;
   font-weight: 500;
+  margin-top: 6px;
+}
+.homeops-welcome-message .welcome-right {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 12px;
 }
 .homeops-welcome-message .welcome-examples {
   list-style: none;
   padding: 0;
-  margin: 8px 0 0 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 18px;
 }
 .homeops-welcome-message .welcome-examples li {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 0.93rem;
-  margin-bottom: 4px;
+  gap: 8px;
+  font-size: 0.99rem;
   color: #23223a;
   font-weight: 500;
   letter-spacing: -0.01em;
+  background: none;
+  border: none;
+  margin: 0;
 }
 .homeops-welcome-message .welcome-examples li i {
   color: #7E5EFF;
-  font-size: 1em;
+  font-size: 1.15em;
   display: flex;
   align-items: center;
-  min-width: 1em;
+  min-width: 1.2em;
+}
+@media (max-width: 700px) {
+  .homeops-welcome-message {
+    flex-direction: column;
+    padding: 16px 8px 16px 8px;
+    gap: 12px;
+    max-width: 98vw;
+  }
+  .homeops-welcome-message .welcome-left, .homeops-welcome-message .welcome-right {
+    padding: 0;
+  }
+  .homeops-welcome-message .welcome-examples {
+    grid-template-columns: 1fr;
+    gap: 8px 0;
+  }
 } 
