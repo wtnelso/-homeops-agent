@@ -292,6 +292,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   document.addEventListener('click', function(e) {
     if (e.target.classList.contains('homeops-welcome-cta') || e.target.closest('.homeops-welcome-cta')) {
       const btn = e.target.classList.contains('homeops-welcome-cta') ? e.target : e.target.closest('.homeops-welcome-cta');
+      console.log('[HomeOps] CTA pill clicked:', btn.getAttribute('data-action'));
       const welcome = document.getElementById('homeops-welcome');
       if (welcome) {
         welcome.remove();
@@ -316,8 +317,15 @@ window.initializeChat = function(auth, user, retryCount = 0) {
           chatInput.focus();
           setTimeout(() => {
             const submitEvent = new Event('submit', {bubbles: true, cancelable: true});
-            chatForm.dispatchEvent(submitEvent);
-          }, 200);
+            const dispatched = chatForm.dispatchEvent(submitEvent);
+            console.log('[HomeOps] Dispatched submit:', dispatched);
+            // Fallback: manually call submit if event not handled
+            if (!dispatched) {
+              if (typeof chatForm.submit === 'function') chatForm.submit();
+            }
+          }, 250);
+        } else {
+          console.warn('[HomeOps] Could not find chat input or form');
         }
       }
     }

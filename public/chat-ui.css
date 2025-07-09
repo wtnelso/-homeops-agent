@@ -1798,6 +1798,7 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   justify-content: flex-start;
   overflow: visible;
   padding-bottom: 80px !important;
+  z-index: 2001;
 }
 .homeops-welcome-featuregrid {
   width: 100%;
