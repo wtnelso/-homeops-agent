@@ -317,6 +317,14 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   });
   // Attach event listeners to CTA buttons
   document.addEventListener('click', function(e) {
+    // Handle connect inbox button
+    if (e.target.id === 'connect-inbox-btn' || e.target.closest('#connect-inbox-btn')) {
+      console.log('[HomeOps] Connect inbox button clicked');
+      // Redirect to decoder section for setup flow
+      window.location.href = '/dashboard.html?view=decoder';
+      return;
+    }
+    
     if (e.target.classList.contains('homeops-welcome-cta') || e.target.closest('.homeops-welcome-cta')) {
       const btn = e.target.classList.contains('homeops-welcome-cta') ? e.target : e.target.closest('.homeops-welcome-cta');
       console.log('[HomeOps] CTA pill clicked:', btn.getAttribute('data-action'));
