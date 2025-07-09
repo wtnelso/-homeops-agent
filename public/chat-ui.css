@@ -1797,6 +1797,7 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   align-items: center;
   justify-content: flex-start;
   overflow: visible;
+  padding-bottom: 80px !important;
 }
 .homeops-welcome-featuregrid {
   width: 100%;
@@ -2041,6 +2042,11 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
     grid-template-columns: 1fr !important;
     gap: 12px 0 !important;
     margin: 10px 0 0 0 !important;
+  }
+  .homeops-welcome-featuregrid .feature-row:last-child {
+    grid-column: 1 / span 2 !important;
+    justify-self: center !important;
+    text-align: center !important;
   }
   .homeops-welcome-title {
     font-size: 1.18rem !important;

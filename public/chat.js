@@ -267,6 +267,13 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     e.preventDefault();
     const text = chatInput.value.trim();
     if (!text) return;
+    // Remove onboarding overlay if present
+    const welcome = document.getElementById('homeops-welcome');
+    if (welcome) {
+      welcome.remove();
+      document.body.style.overflow = '';
+      markWelcomeSeen();
+    }
     addMessage('user', text);
     chatInput.value = '';
     expandInputBar();
@@ -279,6 +286,38 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     } catch (err) {
       removeTyping(typing);
       addMessage('agent', "Sorry, I'm having trouble connecting to HomeOps right now.");
+    }
+  });
+  // Attach event listeners to CTA buttons
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('homeops-welcome-cta')) {
+      const btn = e.target;
+      const welcome = document.getElementById('homeops-welcome');
+      if (welcome) {
+        welcome.remove();
+        document.body.style.overflow = '';
+        markWelcomeSeen();
+      }
+      // Fill chat input and trigger send based on data-action
+      const action = btn.getAttribute('data-action');
+      let prompt = '';
+      if (action === 'inbox') {
+        prompt = "What's in my inbox?";
+      } else if (action === 'calendar') {
+        prompt = "Add something to my calendar";
+      } else if (action === 'action') {
+        prompt = "What do I need to act on?";
+      }
+      if (prompt) {
+        const chatInput = document.querySelector('.chat-input');
+        const chatForm = document.querySelector('.chat-input-form');
+        if (chatInput && chatForm) {
+          chatInput.value = prompt;
+          setTimeout(() => {
+            chatForm.dispatchEvent(new Event('submit', {bubbles:true}));
+          }, 100);
+        }
+      }
     }
   });
   
