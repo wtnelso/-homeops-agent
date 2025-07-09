@@ -2201,3 +2201,73 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   font-weight: 400;
   letter-spacing: -0.01em;
 } 
+
+.welcome-cta-row {
+  margin: 22px 0 10px 0;
+  display: flex;
+  align-items: flex-start;
+}
+.welcome-cta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(90deg, #b8a3ff 0%, #7E5EFF 100%);
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  padding: 12px 28px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(126,94,255,0.10);
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  outline: none;
+  min-width: 0;
+  text-align: left;
+  justify-content: flex-start;
+  white-space: pre-line;
+}
+.welcome-cta i {
+  font-size: 1.18em;
+  color: #fff;
+  display: flex;
+  align-items: center;
+}
+.welcome-cta:hover, .welcome-cta:focus {
+  background: linear-gradient(90deg, #7E5EFF 0%, #b8a3ff 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(126,94,255,0.18);
+}
+.welcome-examples-soft {
+  color: #666;
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 18px 0 0 0;
+  font-weight: 400;
+}
+.welcome-examples-soft ul {
+  margin: 10px 0 0 0;
+  padding: 0 0 0 12px;
+}
+.welcome-examples-soft li {
+  list-style: none;
+  margin-bottom: 4px;
+  padding-left: 0;
+}
+.welcome-caption-soft {
+  margin-top: 24px;
+  color: #aaa;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-align: left;
+}
+.caption-divider {
+  border-top: 1px solid #EEE;
+  margin-bottom: 10px;
+  width: 100%;
+}
+.caption-text {
+  margin-top: 0;
+}

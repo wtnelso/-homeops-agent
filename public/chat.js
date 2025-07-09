@@ -90,18 +90,24 @@ window.initializeChat = function(auth, user, retryCount = 0) {
 
   const WELCOME_MESSAGE = `
 <div class="homeops-welcome-message">
-  <div class="welcome-intro">👋 Hi, I'm HomeOps — your personal chief of staff and your mental load operating system.</div>
-  <div class="welcome-body">My job is simple: help you run your life more efficiently — by organizing what matters, offloading what doesn’t, and surfacing what’s easy to forget.<br><br>Let’s get you set up in under 60 seconds:</div>
-  <div class="welcome-chips">
-    <button class="welcome-chip" data-action="oauth"><i data-lucide="mail"></i> Connect your inbox to decode school updates, purchase history, and brand alerts</button>
-    <button class="welcome-chip" data-action="calendar"><i data-lucide="stethoscope"></i> Put Lucy’s dentist appointment on my calendar</button>
-    <button class="welcome-chip" data-action="school"><i data-lucide="calendar-days"></i> What's going on at my kid’s school this week?</button>
-    <button class="welcome-chip" data-action="order"><i data-lucide="package-check"></i> When did I last order paper towels?</button>
-    <button class="welcome-chip" data-action="club"><i data-lucide="golf"></i> Anything from the club I should know about?</button>
-    <button class="welcome-chip" data-action="help"><i data-lucide="life-buoy"></i> Help me unblock a problem</button>
-    <button class="welcome-chip" data-action="remind"><i data-lucide="bell"></i> Remind me about something</button>
+  <div class="welcome-intro">👋 Hi, I'm <b>HomeOps</b> — your personal chief of staff and your mental load operating system.</div>
+  <div class="welcome-body">My job is simple: help you run your life more efficiently — by organizing what matters, offloading what doesn’t, and surfacing what’s easy to forget.<br><br>To get started, connect your inbox so I can decode school updates, purchase history, club notices, and brand alerts.</div>
+  <div class="welcome-cta-row">
+    <button class="welcome-cta" id="connect-inbox-btn"><i data-lucide="mail"></i> Connect your inbox</button>
   </div>
-  <div class="welcome-caption">HomeOps is designed to carry the mental load — you just delegate. Think it, type it, done.</div>
+  <div class="welcome-examples-soft">
+    <div class="examples-label">Once connected, you’ll be able to ask me things like:</div>
+    <ul>
+      <li>— What’s going on at my kid’s school this week?</li>
+      <li>— Any good deals coming in from Vuori?</li>
+      <li>— When did we last order paper towels?</li>
+      <li>— Can you put Beau’s dentist appointment on the calendar for next Tuesday at 10am?</li>
+    </ul>
+  </div>
+  <div class="welcome-caption-soft">
+    <div class="caption-divider"></div>
+    <div class="caption-text"><em>HomeOps is designed to carry the mental load — you just delegate. Think it, type it, done.</em></div>
+  </div>
 </div>`;
 
   // On page load, load chat history and render
