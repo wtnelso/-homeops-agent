@@ -2031,7 +2031,7 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
     width: 100% !important;
     border-radius: 40px !important;
     box-shadow: 0 8px 48px 0 rgba(126, 94, 255, 0.18) !important;
-    padding: 14px 2vw 14px 2vw !important;
+    padding: 14px 2vw 24px 2vw !important;
     gap: 12px !important;
     max-height: calc(100vh - 80px) !important;
     overflow-y: auto !important;

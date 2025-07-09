@@ -290,8 +290,8 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   });
   // Attach event listeners to CTA buttons
   document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('homeops-welcome-cta')) {
-      const btn = e.target;
+    if (e.target.classList.contains('homeops-welcome-cta') || e.target.closest('.homeops-welcome-cta')) {
+      const btn = e.target.classList.contains('homeops-welcome-cta') ? e.target : e.target.closest('.homeops-welcome-cta');
       const welcome = document.getElementById('homeops-welcome');
       if (welcome) {
         welcome.remove();
@@ -313,9 +313,11 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         const chatForm = document.querySelector('.chat-input-form');
         if (chatInput && chatForm) {
           chatInput.value = prompt;
+          chatInput.focus();
           setTimeout(() => {
-            chatForm.dispatchEvent(new Event('submit', {bubbles:true}));
-          }, 100);
+            const submitEvent = new Event('submit', {bubbles: true, cancelable: true});
+            chatForm.dispatchEvent(submitEvent);
+          }, 200);
         }
       }
     }
@@ -377,34 +379,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     `;
     chatRoot.appendChild(welcome);
     setTimeout(() => welcome.classList.add('visible'), 10);
-    // Attach event listeners to CTA buttons
-    welcome.querySelectorAll('.homeops-welcome-cta').forEach(btn => {
-      btn.addEventListener('click', e => {
-        markWelcomeSeen();
-        document.body.style.overflow = '';
-        welcome.remove();
-        // Fill chat input and trigger send based on data-action
-        const action = btn.getAttribute('data-action');
-        let prompt = '';
-        if (action === 'inbox') {
-          prompt = "What's in my inbox?";
-        } else if (action === 'calendar') {
-          prompt = "Add something to my calendar";
-        } else if (action === 'action') {
-          prompt = "What do I need to act on?";
-        }
-        if (prompt) {
-          const chatInput = document.querySelector('.chat-input');
-          const chatForm = document.querySelector('.chat-input-form');
-          if (chatInput && chatForm) {
-            chatInput.value = prompt;
-            setTimeout(() => {
-              chatForm.dispatchEvent(new Event('submit', {bubbles:true}));
-            }, 100);
-          }
-        }
-      });
-    });
+    // Event listeners are handled by the global document listener above
   }
 
   // On load
