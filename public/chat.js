@@ -338,11 +338,32 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     `;
     chatRoot.appendChild(welcome);
     setTimeout(() => welcome.classList.add('visible'), 10);
-    welcome.querySelectorAll('.homeops-welcome-chip').forEach(btn => {
+    // Attach event listeners to CTA buttons
+    welcome.querySelectorAll('.homeops-welcome-cta').forEach(btn => {
       btn.addEventListener('click', e => {
         markWelcomeSeen();
         document.body.style.overflow = '';
         welcome.remove();
+        // Fill chat input and trigger send based on data-action
+        const action = btn.getAttribute('data-action');
+        let prompt = '';
+        if (action === 'inbox') {
+          prompt = "What's in my inbox?";
+        } else if (action === 'calendar') {
+          prompt = "Add something to my calendar";
+        } else if (action === 'action') {
+          prompt = "What do I need to act on?";
+        }
+        if (prompt) {
+          const chatInput = document.querySelector('.chat-input');
+          const chatForm = document.querySelector('.chat-input-form');
+          if (chatInput && chatForm) {
+            chatInput.value = prompt;
+            setTimeout(() => {
+              chatForm.dispatchEvent(new Event('submit', {bubbles:true}));
+            }, 100);
+          }
+        }
       });
     });
   }
