@@ -290,12 +290,12 @@ Here are some things you can ask me:
     const text = chatInput.value.trim();
     if (!text) return;
     // Remove onboarding overlay if present
-    const welcome = document.getElementById('homeops-welcome');
-    if (welcome) {
-      welcome.remove();
-      document.body.style.overflow = '';
-      markWelcomeSeen();
-    }
+    // const welcome = document.getElementById('homeops-welcome');
+    // if (welcome) {
+    //   welcome.remove();
+    //   document.body.style.overflow = '';
+    //   markWelcomeSeen();
+    // }
     addMessage('user', text);
     chatInput.value = '';
     expandInputBar();
@@ -315,13 +315,13 @@ Here are some things you can ask me:
     if (e.target.classList.contains('homeops-welcome-cta') || e.target.closest('.homeops-welcome-cta')) {
       const btn = e.target.classList.contains('homeops-welcome-cta') ? e.target : e.target.closest('.homeops-welcome-cta');
       console.log('[HomeOps] CTA pill clicked:', btn.getAttribute('data-action'));
-      const welcome = document.getElementById('homeops-welcome');
-      if (welcome) {
-        console.log('[DEBUG] Removing homeops-welcome overlay');
-        welcome.remove();
-        document.body.style.overflow = '';
-        markWelcomeSeen();
-      }
+      // const welcome = document.getElementById('homeops-welcome');
+      // if (welcome) {
+      //   console.log('[DEBUG] Removing homeops-welcome overlay');
+      //   welcome.remove();
+      //   document.body.style.overflow = '';
+      //   markWelcomeSeen();
+      // }
       // Fill chat input and trigger send based on data-action
       const action = btn.getAttribute('data-action');
       let prompt = '';
@@ -350,73 +350,6 @@ Here are some things you can ask me:
     }
   });
   
-  // Welcome Experience Logic
-  function shouldShowWelcome() {
-    return !localStorage.getItem('hasSeenChatWelcome');
-  }
-
-  function markWelcomeSeen() {
-    localStorage.setItem('hasSeenChatWelcome', 'true');
-  }
-
-  function renderWelcomeScreen() {
-    console.log('[DEBUG] Entered renderWelcomeScreen');
-    const chatRoot = document.getElementById('chat-root');
-    if (!chatRoot) return;
-    document.body.style.overflow = 'hidden';
-    let welcome = document.getElementById('homeops-welcome');
-    if (welcome) welcome.remove();
-    welcome = document.createElement('div');
-    welcome.id = 'homeops-welcome';
-    welcome.className = 'homeops-welcome-overlay';
-    welcome.innerHTML = `
-      <div class="homeops-welcome-gradient-accent"></div>
-      <div class="homeops-welcome-card compact">
-        <div class="homeops-welcome-logo"><img src="img/homeops-logo.svg" alt="HomeOps" /></div>
-        <div class="homeops-welcome-title">Welcome to HomeOps Chat</div>
-        <div class="homeops-welcome-desc">Your mental load operating system for high-performing families.</div>
-        <div class="homeops-welcome-featuregrid">
-          <div class="feature-row">
-            <span class="feature-icon"><i data-lucide="brain"></i></span>
-            <span class="feature-label">Understand what matters this week</span>
-            <span class="feature-example">“What’s going on at my kid’s school this week?”</span>
-          </div>
-          <div class="feature-row">
-            <span class="feature-icon"><i data-lucide="calendar-plus"></i></span>
-            <span class="feature-label">Add to your calendar</span>
-            <span class="feature-example">“Add Lucy’s dentist appointment for Thursday at 2pm.”</span>
-          </div>
-          <div class="feature-row">
-            <span class="feature-icon"><i data-lucide="box"></i></span>
-            <span class="feature-label">Find what needs restocking</span>
-            <span class="feature-example">“When did I last order paper towels?”</span>
-          </div>
-          <div class="feature-row">
-            <span class="feature-icon"><i data-lucide="banknote"></i></span>
-            <span class="feature-label">Surface important updates</span>
-            <span class="feature-example">“Anything from the club I should know about?”</span>
-          </div>
-        </div>
-        <div class="homeops-welcome-ctas">
-          <button class="homeops-welcome-cta" data-action="start-chat"><i data-lucide="message-circle"></i><span>Chat with Your HomeOps Personal Chief of Staff</span></button>
-        </div>
-        <div class="homeops-welcome-footer">I'll get smarter the more we talk. Just ask me anything.</div>
-      </div>
-    `;
-    document.body.appendChild(welcome);
-    console.log('[DEBUG] homeops-welcome appended:', welcome);
-    setTimeout(() => welcome.classList.add('visible'), 10);
-    // Event listeners are handled by the global document listener above
-    console.log('[DEBUG] Exiting renderWelcomeScreen');
-  }
-
-  // On load
-  console.log('[DEBUG] shouldShowWelcome:', shouldShowWelcome());
-  if (shouldShowWelcome()) {
-    console.log('[DEBUG] Calling renderWelcomeScreen()');
-    renderWelcomeScreen();
-  }
-
   // Remove char count and handle Enter/Shift+Enter for textarea
   chatInput.removeEventListener('keydown', window._homeopsEnterHandler || (()=>{}));
   window._homeopsEnterHandler = function(e) {
