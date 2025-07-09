@@ -90,23 +90,18 @@ window.initializeChat = function(auth, user, retryCount = 0) {
 
   const WELCOME_MESSAGE = `
 <div class="homeops-welcome-message">
-  <div class="welcome-intro">👋 Hi, I'm <b>HomeOps</b> — your personal chief of staff and your mental load operating system.</div>
-  <div class="welcome-body">My job is simple: help you run your life more efficiently — by organizing what matters, offloading what doesn’t, and surfacing what’s easy to forget.<br><br>To get started, connect your inbox so I can decode school updates, purchase history, club notices, and brand alerts.</div>
+  <div class="welcome-intro">👋 Hi, I'm <b>HomeOps</b> — your chief of staff for mental load relief.</div>
+  <div class="welcome-body">I help you organize what matters and surface what’s easy to forget. Connect your inbox to get started!</div>
   <div class="welcome-cta-row">
-    <button class="welcome-cta" id="connect-inbox-btn"><i data-lucide="mail"></i> Set up your Inbox Decoder Engine</button>
+    <button class="welcome-cta" id="connect-inbox-btn"><i data-lucide="mail"></i> Connect Inbox</button>
   </div>
   <div class="welcome-examples-soft">
-    <div class="examples-label">Once connected, you’ll be able to ask me things like:</div>
+    <div class="examples-label">Try asking:</div>
     <ul>
-      <li>— What’s going on at my kid’s school this week?</li>
-      <li>— Any good deals coming in from Vuori?</li>
+      <li>— What’s going on at my kid’s school?</li>
       <li>— When did we last order paper towels?</li>
-      <li>— Can you put Beau’s dentist appointment on the calendar for next Tuesday at 10am?</li>
+      <li>— Add Beau’s dentist appointment next Tuesday</li>
     </ul>
-  </div>
-  <div class="welcome-caption-soft">
-    <div class="caption-divider"></div>
-    <div class="caption-text"><em>HomeOps is designed to carry the mental load — you just delegate. Think it, type it, done.</em></div>
   </div>
 </div>`;
 
