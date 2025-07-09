@@ -1755,15 +1755,13 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
 }
 
 .homeops-welcome-overlay {
-  position: absolute;
-  top: 0; left: 56px; right: 0; bottom: 0;
-  width: calc(100vw - 56px);
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
   height: 100vh;
   background: rgba(250,250,255,0.92);
   z-index: 10;
-  display: block;
-  overflow: hidden;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .homeops-welcome-gradient-accent {
@@ -1780,15 +1778,18 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   pointer-events: none;
 }
 
-.homeops-welcome-card {
-  position: relative;
-  z-index: 2;
+.homeops-welcome-card.compact {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
   background: rgba(255,255,255,0.97);
   border-radius: 40px;
   box-shadow: 0 8px 48px 0 rgba(126, 94, 255, 0.18);
   padding: 56px 48px 56px 48px;
-  max-width: 520px;
-  width: 100%;
   text-align: center;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif !important;
   display: flex;
@@ -1798,130 +1799,17 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   margin: 0;
   justify-content: flex-start;
   overflow: visible;
+  pointer-events: auto;
+  z-index: 11;
 }
-.homeops-welcome-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 36px;
-  margin-top: 24px;
+
+.sidebar {
+  z-index: 100;
 }
-.homeops-welcome-logo img {
-  height: 96px;
-  width: auto;
-  display: block;
-  filter: drop-shadow(0 2px 12px rgba(126,94,255,0.13));
-}
-.homeops-welcome-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #7E5EFF;
-  margin-bottom: 0.2em;
-  text-align: center;
-  letter-spacing: -0.5px;
-}
-.homeops-welcome-greeting {
-  font-size: 1.18rem;
-  font-weight: 600;
-  color: #222;
-  margin-bottom: 0;
-}
-.homeops-welcome-desc {
-  font-size: 1.08rem;
-  color: #444;
-  margin-bottom: 0.7em;
-  text-align: center;
-  font-weight: 400;
-}
-.homeops-welcome-featuregrid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px 24px;
-  margin: 10px 0 0 0;
-}
-.feature-row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  border-bottom: 1px solid #f3f0ff;
-  padding-bottom: 8px;
-  min-height: 56px;
-}
-.feature-row:last-child {
-  border-bottom: none;
-}
-.feature-icon {
-  color: #7E5EFF;
-  font-size: 1.5rem;
-  margin-bottom: 2px;
-  display: flex;
-  align-items: center;
-}
-.feature-label {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #222;
-  margin-bottom: 0.1em;
-}
-.feature-example {
-  font-size: 0.93rem;
-  color: #8b5cf6;
-  font-style: italic;
-  margin-top: 2px;
-  font-weight: 400;
-}
-.homeops-welcome-ctas {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin: 18px 0 0 0;
-  align-items: center;
-}
-.homeops-welcome-cta {
-  width: 100%;
-  background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%);
-  color: #fff;
-  border: none;
-  border-radius: 9999px;
-  padding: 16px 0;
-  font-size: 1.12rem;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(126, 94, 255, 0.10);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  transition: background 0.18s, box-shadow 0.18s, transform 0.13s;
-  outline: none;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif !important;
-  letter-spacing: -0.01em;
-}
-.homeops-welcome-cta:hover, .homeops-welcome-cta:focus {
-  background: linear-gradient(90deg, #B8A3FF 0%, #7E5EFF 100%);
-  box-shadow: 0 4px 16px rgba(126, 94, 255, 0.18);
-  transform: scale(1.03);
-}
-.homeops-welcome-cta i {
-  font-size: 1.3em;
-  display: flex;
-  align-items: center;
-}
-.homeops-welcome-footer {
-  font-size: 0.97rem;
-  color: #888;
-  margin-top: 10px;
-  text-align: center;
-}
-.sidebar .sidebar-logo {
-  opacity: 0.7;
-  filter: grayscale(0);
-}
-.homeops-header {
-  opacity: 0.7;
+
+.homeops-header, .logout-btn {
+  z-index: 100;
+  position: relative;
 }
 @keyframes fadeInWelcome {
   from { opacity: 0; }
