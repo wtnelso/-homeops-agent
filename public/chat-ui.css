@@ -1755,17 +1755,15 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
 }
 
 .homeops-welcome-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100vw;
+  position: absolute;
+  top: 0; left: 56px; right: 0; bottom: 0;
+  width: calc(100vw - 56px);
   height: 100vh;
-  background: rgba(250,250,255,0.92); /* Light, subtle background */
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow-y: auto;
-  padding: 0;
+  background: rgba(250,250,255,0.92);
+  z-index: 10;
+  display: block;
+  overflow: hidden;
+  pointer-events: auto;
 }
 
 .homeops-welcome-gradient-accent {
@@ -1797,7 +1795,9 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   flex-direction: column;
   align-items: center;
   gap: 36px;
-  margin: 40px 0;
+  margin: 0;
+  justify-content: flex-start;
+  overflow: visible;
 }
 .homeops-welcome-logo {
   display: flex;
