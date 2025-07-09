@@ -90,21 +90,17 @@ window.initializeChat = function(auth, user, retryCount = 0) {
 
   const WELCOME_MESSAGE = `
 <div class="homeops-welcome-message">
-  <div class="welcome-left">
-    <div class="welcome-intro"><b>Hi—I'm HomeOps</b>, your personal chief of staff and your mental load operating system.<br>My job is simple: help you run your life more efficiently.</div>
-    <div class="welcome-sub">How can I help you today?</div>
-  </div>
-  <div class="welcome-right">
-    <ul class="welcome-examples">
-      <li><i data-lucide="brain"></i> What's going on at my kid’s school this week?</li>
-      <li><i data-lucide="calendar-plus"></i> Add Lucy’s dentist appointment for Thursday at 2pm.</li>
-      <li><i data-lucide="box"></i> When did I last order paper towels?</li>
-      <li><i data-lucide="banknote"></i> Anything from the club I should know about?</li>
-      <li><i data-lucide="stethoscope"></i> Put a doctor’s appointment on my calendar</li>
-      <li><i data-lucide="bell"></i> Remind me about something</li>
-      <li><i data-lucide="help-circle"></i> Help me unblock a problem</li>
-    </ul>
-  </div>
+  <div class="welcome-intro"><b>Hi—I'm HomeOps</b>, your personal chief of staff and your mental load operating system.<br>My job is simple: help you run your life more efficiently.</div>
+  <div class="welcome-sub">How can I help you today?</div>
+  <ul class="welcome-examples">
+    <li><i data-lucide="brain"></i> What's going on at my kid’s school this week?</li>
+    <li><i data-lucide="calendar-plus"></i> Add Lucy’s dentist appointment for Thursday at 2pm.</li>
+    <li><i data-lucide="box"></i> When did I last order paper towels?</li>
+    <li><i data-lucide="banknote"></i> Anything from the club I should know about?</li>
+    <li><i data-lucide="stethoscope"></i> Put a doctor’s appointment on my calendar</li>
+    <li><i data-lucide="bell"></i> Remind me about something</li>
+    <li><i data-lucide="help-circle"></i> Help me unblock a problem</li>
+  </ul>
 </div>`;
 
   // On page load, load chat history and render

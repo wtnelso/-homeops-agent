@@ -2086,57 +2086,40 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
 } 
 
 .homeops-welcome-message {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  justify-content: center;
   background: rgba(255,255,255,0.98);
   border-radius: 18px;
   box-shadow: 0 2px 16px rgba(126,94,255,0.08);
   padding: 24px 32px 24px 32px;
   margin: 0 auto 10px auto;
-  max-width: 600px;
-  min-width: 320px;
+  max-width: 440px;
+  min-width: 220px;
   font-family: 'Inter', 'Montserrat', 'Space Grotesk', Arial, sans-serif !important;
   font-size: 1.01rem;
   color: #23223a;
   border: 1px solid #ece9ff;
-  gap: 32px;
-}
-.homeops-welcome-message .welcome-left {
-  flex: 1 1 220px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding-right: 12px;
+  align-items: flex-start;
+  gap: 10px;
 }
 .homeops-welcome-message .welcome-intro {
   font-size: 1.13rem;
   font-weight: 700;
   color: #7E5EFF;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   letter-spacing: -0.01em;
 }
 .homeops-welcome-message .welcome-sub {
   color: #8b5cf6;
   font-size: 1.01rem;
   font-weight: 500;
-  margin-top: 6px;
-}
-.homeops-welcome-message .welcome-right {
-  flex: 1 1 220px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-left: 12px;
+  margin-bottom: 8px;
 }
 .homeops-welcome-message .welcome-examples {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 18px;
+  width: 100%;
 }
 .homeops-welcome-message .welcome-examples li {
   display: flex;
@@ -2148,7 +2131,10 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   letter-spacing: -0.01em;
   background: none;
   border: none;
-  margin: 0;
+  margin: 0 0 6px 0;
+}
+.homeops-welcome-message .welcome-examples li:last-child {
+  margin-bottom: 0;
 }
 .homeops-welcome-message .welcome-examples li i {
   color: #7E5EFF;
@@ -2159,16 +2145,7 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
 }
 @media (max-width: 700px) {
   .homeops-welcome-message {
-    flex-direction: column;
     padding: 16px 8px 16px 8px;
-    gap: 12px;
     max-width: 98vw;
-  }
-  .homeops-welcome-message .welcome-left, .homeops-welcome-message .welcome-right {
-    padding: 0;
-  }
-  .homeops-welcome-message .welcome-examples {
-    grid-template-columns: 1fr;
-    gap: 8px 0;
   }
 } 
