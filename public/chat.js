@@ -299,6 +299,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       console.log('[HomeOps] CTA pill clicked:', btn.getAttribute('data-action'));
       const welcome = document.getElementById('homeops-welcome');
       if (welcome) {
+        console.log('[DEBUG] Removing homeops-welcome overlay');
         welcome.remove();
         document.body.style.overflow = '';
         markWelcomeSeen();
@@ -345,6 +346,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   }
 
   function renderWelcomeScreen() {
+    console.log('[DEBUG] Entered renderWelcomeScreen');
     const chatRoot = document.getElementById('chat-root');
     if (!chatRoot) return;
     document.body.style.overflow = 'hidden';
@@ -390,8 +392,10 @@ window.initializeChat = function(auth, user, retryCount = 0) {
       </div>
     `;
     chatRoot.appendChild(welcome);
+    console.log('[DEBUG] homeops-welcome appended:', welcome);
     setTimeout(() => welcome.classList.add('visible'), 10);
     // Event listeners are handled by the global document listener above
+    console.log('[DEBUG] Exiting renderWelcomeScreen');
   }
 
   // On load
