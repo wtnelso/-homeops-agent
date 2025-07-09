@@ -1,3 +1,7 @@
+// GLOBAL CLICK DEBUGGER
+window.addEventListener('click', function(e) {
+  console.log('[DEBUG] Global click:', e.target, 'Class:', e.target.className);
+});
 // HomeOps Modern Chat UI - ChatGPT-Inspired
 // Built with HomeOps Design System from Figma Mockup
 
