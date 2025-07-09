@@ -172,6 +172,15 @@ I help you organize what matters and surface what's easy to forget.<br>
     // Always scroll to bottom after rendering messages
     setTimeout(() => {
       chatThread.scrollTop = chatThread.scrollHeight;
+      // Add direct event listener to connect-inbox-btn if present
+      const connectBtn = document.getElementById('connect-inbox-btn');
+      if (connectBtn) {
+        connectBtn.onclick = function(e) {
+          e.preventDefault();
+          console.log('[HomeOps] Direct connect inbox button click');
+          window.location.href = '/dashboard.html?view=decoder';
+        };
+      }
     }, 0);
   }
   
