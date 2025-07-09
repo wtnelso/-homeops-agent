@@ -395,7 +395,9 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   }
 
   // On load
+  console.log('[DEBUG] shouldShowWelcome:', shouldShowWelcome());
   if (shouldShowWelcome()) {
+    console.log('[DEBUG] Calling renderWelcomeScreen()');
     renderWelcomeScreen();
   }
 
