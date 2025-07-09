@@ -2039,14 +2039,19 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
     transform: none !important;
   }
   .homeops-welcome-featuregrid {
-    grid-template-columns: 1fr !important;
-    gap: 12px 0 !important;
-    margin: 10px 0 0 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px !important;
+  }
+  .homeops-welcome-featuregrid .feature-row {
+    width: 100% !important;
+    border-bottom: 1px solid #f3f0ff !important;
+    padding-bottom: 12px !important;
+    min-height: 60px !important;
+    text-align: left !important;
   }
   .homeops-welcome-featuregrid .feature-row:last-child {
-    grid-column: 1 / span 2 !important;
-    justify-self: center !important;
-    text-align: center !important;
+    border-bottom: none !important;
   }
   .homeops-welcome-title {
     font-size: 1.18rem !important;
