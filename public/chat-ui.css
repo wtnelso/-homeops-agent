@@ -2086,68 +2086,47 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
 } 
 
 .homeops-welcome-message {
-  background: none;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 0;
-  margin: 0;
-  max-width: 100%;
-  min-width: 0;
-  font-family: inherit !important;
-  font-size: inherit;
-  color: inherit;
-  display: block;
-  line-height: inherit;
-  gap: 0;
+  padding: 18px 18px 12px 18px;
+  margin: 0 auto 4px auto;
+  max-width: 420px;
 }
-.homeops-welcome-message .welcome-intro {
-  font-size: inherit;
-  font-weight: 700;
-  color: inherit;
+.welcome-intro {
   margin-bottom: 6px;
-  letter-spacing: -0.01em;
 }
-.homeops-welcome-message .welcome-sub {
-  color: #8b5cf6;
-  font-size: inherit;
-  font-weight: 500;
-  margin-bottom: 8px;
+.welcome-body {
+  margin-bottom: 10px;
+  font-size: 1rem;
+  line-height: 1.6;
 }
-.homeops-welcome-message .welcome-examples {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  width: 100%;
-}
-.homeops-welcome-message .welcome-examples li {
+.welcome-cta-row {
+  margin: 14px 0 6px 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: inherit;
-  color: inherit;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  background: none;
-  border: none;
-  margin: 0 0 6px 0;
+  justify-content: center;
 }
-.homeops-welcome-message .welcome-examples li:last-child {
-  margin-bottom: 0;
+.welcome-cta {
+  padding: 10px 22px;
+  font-size: 1.01rem;
 }
-.homeops-welcome-message .welcome-examples li i {
-  color: #7E5EFF;
-  font-size: 1.15em;
-  display: flex;
-  align-items: center;
-  min-width: 1.2em;
+.welcome-examples-soft {
+  margin: 10px 0 0 0;
+  font-size: 14.5px;
+  line-height: 1.6;
 }
-@media (max-width: 700px) {
-  .homeops-welcome-message {
-    padding: 16px 8px 16px 8px;
-    max-width: 98vw;
-  }
-} 
+.welcome-examples-soft ul {
+  margin: 6px 0 0 0;
+  padding: 0 0 0 12px;
+}
+.welcome-examples-soft li {
+  margin-bottom: 2px;
+}
+.welcome-caption-soft {
+  margin-top: 14px;
+  font-size: 12.5px;
+}
+.caption-divider {
+  margin-bottom: 6px;
+}
 
 .welcome-chips {
   display: flex;

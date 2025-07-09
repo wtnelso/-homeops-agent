@@ -93,7 +93,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   <div class="welcome-intro">👋 Hi, I'm <b>HomeOps</b> — your personal chief of staff and your mental load operating system.</div>
   <div class="welcome-body">My job is simple: help you run your life more efficiently — by organizing what matters, offloading what doesn’t, and surfacing what’s easy to forget.<br><br>To get started, connect your inbox so I can decode school updates, purchase history, club notices, and brand alerts.</div>
   <div class="welcome-cta-row">
-    <button class="welcome-cta" id="connect-inbox-btn"><i data-lucide="mail"></i> Connect your inbox</button>
+    <button class="welcome-cta" id="connect-inbox-btn"><i data-lucide="mail"></i> Set up your Inbox Decoder Engine</button>
   </div>
   <div class="welcome-examples-soft">
     <div class="examples-label">Once connected, you’ll be able to ask me things like:</div>
