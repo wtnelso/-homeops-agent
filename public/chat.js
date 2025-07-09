@@ -365,4 +365,31 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   };
   chatInput.addEventListener('keydown', window._homeopsEnterHandler);
   if (charCount) charCount.remove();
+
+  setTimeout(() => {
+    document.querySelectorAll('.welcome-chip').forEach((chip, idx) => {
+      chip.onclick = function() {
+        const action = chip.getAttribute('data-action');
+        if (action === 'oauth') {
+          // Link to decoder page for Google authentication
+          window.location.href = '/dashboard.html?view=decoder';
+        } else {
+          let prompt = '';
+          if (action === 'calendar') prompt = "Put Lucy’s dentist appointment on my calendar";
+          if (action === 'school') prompt = "What's going on at my kid’s school this week?";
+          if (action === 'order') prompt = "When did I last order paper towels?";
+          if (action === 'club') prompt = "Anything from the club I should know about?";
+          if (action === 'help') prompt = "Help me unblock a problem";
+          if (action === 'remind') prompt = "Remind me about something";
+          if (prompt) {
+            const chatInput = document.querySelector('.chat-input');
+            if (chatInput) {
+              chatInput.value = prompt;
+              chatInput.focus();
+            }
+          }
+        }
+      };
+    });
+  }, 100);
 };

@@ -2151,8 +2151,9 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
 
 .welcome-chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px 12px;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 10px;
   margin: 14px 0 6px 0;
   align-items: flex-start;
   justify-content: flex-start;
@@ -2173,6 +2174,9 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   transition: background 0.15s, color 0.15s, box-shadow 0.15s;
   outline: none;
   min-width: 0;
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
   white-space: pre-line;
 }
 .welcome-chip i {
