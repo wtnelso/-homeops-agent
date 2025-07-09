@@ -307,15 +307,31 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         <div class="homeops-welcome-title">Welcome to HomeOps Chat</div>
         <div class="homeops-welcome-desc">Your mental load operating system for high-performing families.</div>
         <div class="homeops-welcome-featuregrid">
-          <div class="feature-row"><span class="feature-icon"><i data-lucide="brain"></i></span><span class="feature-label">Understand what matters this week</span><span class="feature-example">“What’s going on at my kid’s school this week?”</span></div>
-          <div class="feature-row"><span class="feature-icon"><i data-lucide="calendar-plus"></i></span><span class="feature-label">Add something to your calendar</span><span class="feature-example">“Add Lucy’s dentist appointment for Thursday at 2pm.”</span></div>
-          <div class="feature-row"><span class="feature-icon"><i data-lucide="box"></i></span><span class="feature-label">Find what needs restocking</span><span class="feature-example">“When did I last order paper towels?”</span></div>
-          <div class="feature-row"><span class="feature-icon"><i data-lucide="banknote"></i></span><span class="feature-label">Surface important updates from your community</span><span class="feature-example">“Anything from the club I should know about?”</span></div>
+          <div class="feature-row">
+            <span class="feature-icon"><i data-lucide="brain"></i></span>
+            <span class="feature-label">Understand what matters this week</span>
+            <span class="feature-example">“What’s going on at my kid’s school this week?”</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-icon"><i data-lucide="calendar-plus"></i></span>
+            <span class="feature-label">Add to your calendar</span>
+            <span class="feature-example">“Add Lucy’s dentist appointment for Thursday at 2pm.”</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-icon"><i data-lucide="box"></i></span>
+            <span class="feature-label">Find what needs restocking</span>
+            <span class="feature-example">“When did I last order paper towels?”</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-icon"><i data-lucide="banknote"></i></span>
+            <span class="feature-label">Surface important updates</span>
+            <span class="feature-example">“Anything from the club I should know about?”</span>
+          </div>
         </div>
         <div class="homeops-welcome-ctas">
-          <button class="homeops-welcome-cta" data-action="inbox"><i data-lucide="mail"></i> What’s in my inbox?</button>
-          <button class="homeops-welcome-cta" data-action="calendar"><i data-lucide="calendar-plus"></i> Add something to my calendar</button>
-          <button class="homeops-welcome-cta" data-action="action"><i data-lucide="check-circle"></i> What do I need to act on?</button>
+          <button class="homeops-welcome-cta" data-action="inbox"><i data-lucide="mail"></i><span>What's in my inbox?</span></button>
+          <button class="homeops-welcome-cta" data-action="calendar"><i data-lucide="calendar-plus"></i><span>Add to my calendar</span></button>
+          <button class="homeops-welcome-cta" data-action="action"><i data-lucide="check-circle"></i><span>What do I need to act on?</span></button>
         </div>
         <div class="homeops-welcome-footer">I'll get smarter the more we talk. Just ask me anything.</div>
       </div>

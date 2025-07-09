@@ -1813,13 +1813,12 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   filter: drop-shadow(0 2px 12px rgba(126,94,255,0.13));
 }
 .homeops-welcome-title {
-  font-size: 1.7rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 800;
   color: #7E5EFF;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 0.2em;
+  text-align: center;
+  letter-spacing: -0.5px;
 }
 .homeops-welcome-greeting {
   font-size: 1.18rem;
@@ -1828,69 +1827,101 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   margin-bottom: 0;
 }
 .homeops-welcome-desc {
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   color: #444;
-  margin-bottom: 0;
+  margin-bottom: 0.7em;
   text-align: center;
   font-weight: 400;
 }
-.homeops-welcome-helpgrid {
+.homeops-welcome-featuregrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 24px;
+  margin: 10px 0 0 0;
+}
+.feature-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border-bottom: 1px solid #f3f0ff;
+  padding-bottom: 8px;
+  min-height: 56px;
+}
+.feature-row:last-child {
+  border-bottom: none;
+}
+.feature-icon {
+  color: #7E5EFF;
+  font-size: 1.5rem;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+}
+.feature-label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 0.1em;
+}
+.feature-example {
+  font-size: 0.93rem;
+  color: #8b5cf6;
+  font-style: italic;
+  margin-top: 2px;
+  font-weight: 400;
+}
+.homeops-welcome-ctas {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  margin: 0 0 12px 0;
-}
-.helpgrid-row {
-  display: grid;
-  grid-template-columns: 1.1fr 1.2fr;
+  gap: 14px;
+  margin: 18px 0 0 0;
   align-items: center;
-  gap: 18px;
+}
+.homeops-welcome-cta {
   width: 100%;
-}
-.helpgrid-feature {
-  font-weight: 600;
-  color: #222;
-  text-align: right;
-  font-size: 1.08rem;
-  padding-right: 8px;
-}
-.helpgrid-example {
-  color: #a78bfa;
-  font-size: 1.05rem;
-  font-style: italic;
-  text-align: left;
-  padding-left: 8px;
-}
-.homeops-welcome-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 22px;
-  margin-top: 24px;
-  justify-content: center;
-}
-.homeops-welcome-chip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%);
   color: #fff;
   border: none;
   border-radius: 9999px;
-  padding: 16px 36px;
-  font-size: 1.08rem;
-  font-weight: 600;
+  padding: 16px 0;
+  font-size: 1.12rem;
+  font-weight: 700;
   box-shadow: 0 2px 8px rgba(126, 94, 255, 0.10);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   transition: background 0.18s, box-shadow 0.18s, transform 0.13s;
   outline: none;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif !important;
-  animation: chipPopIn 0.5s cubic-bezier(.4,0,.2,1);
+  letter-spacing: -0.01em;
 }
-.homeops-welcome-chip:hover, .homeops-welcome-chip:focus {
+.homeops-welcome-cta:hover, .homeops-welcome-cta:focus {
   background: linear-gradient(90deg, #B8A3FF 0%, #7E5EFF 100%);
   box-shadow: 0 4px 16px rgba(126, 94, 255, 0.18);
-  transform: scale(1.04);
+  transform: scale(1.03);
+}
+.homeops-welcome-cta i {
+  font-size: 1.3em;
+  display: flex;
+  align-items: center;
+}
+.homeops-welcome-footer {
+  font-size: 0.97rem;
+  color: #888;
+  margin-top: 10px;
+  text-align: center;
+}
+.sidebar .sidebar-logo {
+  opacity: 0.7;
+  filter: grayscale(0);
+}
+.homeops-header {
+  opacity: 0.7;
 }
 @keyframes fadeInWelcome {
   from { opacity: 0; }
@@ -1930,5 +1961,17 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
   .helpgrid-feature, .helpgrid-example {
     font-size: 0.99rem;
     padding: 0 2px;
+  }
+  .homeops-welcome-featuregrid {
+    grid-template-columns: 1fr;
+    gap: 10px 0;
+  }
+  .feature-row {
+    min-height: 40px;
+    padding-bottom: 4px;
+  }
+  .homeops-welcome-cta {
+    padding: 12px 0;
+    font-size: 1rem;
   }
 } 
