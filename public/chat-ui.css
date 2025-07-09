@@ -1834,32 +1834,110 @@ body, html, #chat-root, .chat-shell, .chat-main, .chat-thread, .chat-input, .cha
     margin: 18px 0;
   }
   .homeops-welcome-title {
-    font-size: 1.15rem;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #7E5EFF;
+    margin-bottom: 0.2em;
+    text-align: center;
+    letter-spacing: -0.5px;
   }
-  .homeops-welcome-greeting, .homeops-welcome-desc {
-    font-size: 0.99rem;
-  }
-  .homeops-welcome-chip {
-    padding: 12px 12vw;
-    font-size: 0.99rem;
-  }
-  .homeops-welcome-helpgrid {
-    gap: 10px;
-  }
-  .helpgrid-feature, .helpgrid-example {
-    font-size: 0.99rem;
-    padding: 0 2px;
+  .homeops-welcome-desc {
+    font-size: 1.08rem;
+    color: #444;
+    margin-bottom: 1.2em;
+    text-align: center;
+    font-weight: 400;
   }
   .homeops-welcome-featuregrid {
-    grid-template-columns: 1fr;
-    gap: 10px 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 32px;
+    margin: 18px 0 0 0;
   }
   .feature-row {
-    min-height: 40px;
-    padding-bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    border-bottom: 1px solid #f3f0ff;
+    padding-bottom: 12px;
+    min-height: 60px;
+  }
+  .feature-row:last-child {
+    border-bottom: none;
+  }
+  .feature-icon {
+    color: #7E5EFF;
+    font-size: 1.6rem;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+  }
+  .feature-label {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 0.1em;
+  }
+  .feature-example {
+    font-size: 0.97rem;
+    color: #8b5cf6;
+    font-style: italic;
+    margin-top: 2px;
+    font-weight: 400;
+  }
+  .homeops-welcome-ctas {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 28px 0 0 0;
+    align-items: center;
   }
   .homeops-welcome-cta {
-    padding: 12px 0;
-    font-size: 1rem;
+    width: 100%;
+    background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%);
+    color: #fff;
+    border: none;
+    border-radius: 9999px;
+    padding: 18px 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(126, 94, 255, 0.10);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    transition: background 0.18s, box-shadow 0.18s, transform 0.13s;
+    outline: none;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'San Francisco', sans-serif !important;
+    letter-spacing: -0.01em;
+  }
+  .homeops-welcome-cta:hover, .homeops-welcome-cta:focus {
+    background: linear-gradient(90deg, #B8A3FF 0%, #7E5EFF 100%);
+    box-shadow: 0 4px 16px rgba(126, 94, 255, 0.18);
+    transform: scale(1.04);
+  }
+  .homeops-welcome-cta i {
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+  }
+  .homeops-welcome-footer {
+    font-size: 0.99rem;
+    color: #888;
+    margin-top: 18px;
+    text-align: center;
+  }
+  .sidebar .homeops-logo {
+    opacity: 1;
+    color: #7E5EFF !important;
+    filter: none;
+  }
+  .homeops-header {
+    opacity: 1;
+    color: #7E5EFF !important;
   }
 } 
