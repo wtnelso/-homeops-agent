@@ -88,22 +88,17 @@ window.initializeChat = function(auth, user, retryCount = 0) {
   // Remove onboarding overlay logic
   // Instead, on chat initialization, if there are no messages, add a welcome message from HomeOps
 
-  const WELCOME_MESSAGE = `
-<div class="homeops-welcome-message">
-  <div class="welcome-intro">👋 Hi, I'm <b>HomeOps</b> — your chief of staff for mental load relief.</div>
-  <div class="welcome-body">I help you organize what matters and surface what’s easy to forget. Connect your inbox to get started!</div>
-  <div class="welcome-cta-row">
-    <button class="welcome-cta" id="connect-inbox-btn"><i data-lucide="mail"></i> Connect Inbox</button>
-  </div>
-  <div class="welcome-examples-soft">
-    <div class="examples-label">Try asking:</div>
-    <ul>
-      <li>— What’s going on at my kid’s school?</li>
-      <li>— When did we last order paper towels?</li>
-      <li>— Add Beau’s dentist appointment next Tuesday</li>
-    </ul>
-  </div>
-</div>`;
+  const WELCOME_MESSAGE = `👋 Hi! I'm <b>HomeOps</b> — your personal mental load operating system.
+
+I help you organize what matters and surface what's easy to forget. Connect your inbox to get started.
+
+Then you can start asking me things such as:
+• "Are there any key events I should be aware of for my kids school this week?"
+• "When was the last time I bought paper towels?"
+• "Are there any good brand deals I should be aware of - I am shopping for a new tee shirt for my upcoming trip"
+• "Can you add my tennis match on Friday to my calendar?"
+
+<button class="welcome-cta" id="connect-inbox-btn" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%); color: #fff; border: none; border-radius: 9999px; padding: 12px 24px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(126,94,255,0.10); transition: all 0.15s; margin-top: 16px;"><i data-lucide="mail"></i> Connect Inbox</button>`;
 
   // On page load, load chat history and render
   messages = loadChatHistory();
