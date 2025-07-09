@@ -391,7 +391,7 @@ window.initializeChat = function(auth, user, retryCount = 0) {
         <div class="homeops-welcome-footer">I'll get smarter the more we talk. Just ask me anything.</div>
       </div>
     `;
-    chatRoot.appendChild(welcome);
+    document.body.appendChild(welcome);
     console.log('[DEBUG] homeops-welcome appended:', welcome);
     setTimeout(() => welcome.classList.add('visible'), 10);
     // Event listeners are handled by the global document listener above
