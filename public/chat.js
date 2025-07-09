@@ -85,8 +85,26 @@ window.initializeChat = function(auth, user, retryCount = 0) {
     localStorage.setItem('homeops_onboarded', '1');
   }
 
+  // Remove onboarding overlay logic
+  // Instead, on chat initialization, if there are no messages, add a welcome message from HomeOps
+
+  const WELCOME_MESSAGE = `Hi—I’m HomeOps, your personal chief of staff and your mental load operating system. My job is simple: help you run your life more efficiently. How can I help you today?
+
+Here are some things you can ask me:
+• What's going on at my kid’s school this week?
+• Add Lucy’s dentist appointment for Thursday at 2pm.
+• When did I last order paper towels?
+• Anything from the club I should know about?
+• Put a doctor’s appointment on my calendar
+• Remind me about something
+• Help me unblock a problem
+`;
+
   // On page load, load chat history and render
   messages = loadChatHistory();
+  if (messages.length === 0) {
+    addMessage('agent', WELCOME_MESSAGE);
+  }
   renderMessages();
   chatInput.value = '';
 
