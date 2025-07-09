@@ -90,13 +90,12 @@ window.initializeChat = function(auth, user, retryCount = 0) {
 
   const WELCOME_MESSAGE = `
 <span style="font-size:1.2em;">👋 Hi! I'm <b>HomeOps</b> — your personal mental load operating system.</span><br><br>
-I help you organize what matters and surface what's easy to forget. Connect your inbox to get started.<br><br>
-Then you can start asking me things such as:<br><br>
+I help you organize what matters and surface what's easy to forget.<br>
+<button class="welcome-cta" id="connect-inbox-btn" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%); color: #fff; border: none; border-radius: 9999px; padding: 12px 24px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(126,94,255,0.10); transition: all 0.15s; margin-top: 16px; margin-bottom: 24px;"><i data-lucide="mail"></i> Set Up Your Email Decoder</button><br>
 <em>Are there any key events I should be aware of for my kids school this week?</em><br>
 <em>When was the last time I bought paper towels?</em><br>
 <em>Are there any good brand deals I should be aware of? I am shopping for a new tee shirt for my upcoming trip.</em><br>
 <em>Can you add my tennis match on Friday to my calendar?</em><br><br>
-<button class="welcome-cta" id="connect-inbox-btn" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(90deg, #7E5EFF 0%, #B8A3FF 100%); color: #fff; border: none; border-radius: 9999px; padding: 12px 24px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(126,94,255,0.10); transition: all 0.15s; margin-top: 16px;"><i data-lucide="mail"></i> Connect Inbox</button><br><br>
 <span class="gradient-text">The more we talk, the more efficiently I can help you run your life.</span>`;
 
   // On page load, load chat history and render
