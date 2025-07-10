@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize Lucide icons with error handling
     try {
-      lucide.createIcons();
+    lucide.createIcons();
       console.log("✅ Lucide icons initialized");
     } catch (error) {
       console.error("❌ Failed to initialize Lucide icons:", error);

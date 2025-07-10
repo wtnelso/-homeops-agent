@@ -1656,7 +1656,7 @@ window.showWizardStep = function(stepNumber) {
   // Load personalization data when step 2 is shown
   if (stepNumber === 2) {
     setTimeout(loadPersonalizationData, 100);
-  }
+}
 };
 
 // 🎯 STATE CONTAINERS */ 
