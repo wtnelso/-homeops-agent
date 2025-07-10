@@ -7264,3 +7264,166 @@ body, html {
     overflow-x: hidden !important;
   }
 }
+
+/* 🚨 NUCLEAR CALENDAR OVERRIDES - FORCE STYLING */
+#calendar-view .modern-calendar-container {
+  background: #fff !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08) !important;
+  border: 3px solid !important;
+  border-image: linear-gradient(135deg, #A78BFA, #7E5EFF) 1 !important;
+  padding: 24px !important;
+  margin: 20px auto !important;
+  max-width: 1200px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#calendar-view .calendar-main {
+  background: #fff !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04) !important;
+}
+
+#calendar-view .calendar-outer {
+  background: #fff !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  border: 2px solid #f1f5f9 !important;
+}
+
+#calendar-view .calendar-insights-bar {
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 16px 24px !important;
+  margin: 20px auto 24px auto !important;
+  max-width: 1200px !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 24px !important;
+  font-size: 14px !important;
+  color: #475569 !important;
+  box-sizing: border-box !important;
+}
+
+#calendar-view .modern-calendar-header {
+  background: linear-gradient(135deg, #A78BFA, #7E5EFF) !important;
+  color: white !important;
+  padding: 24px !important;
+  border-radius: 16px !important;
+  margin: 20px auto 24px auto !important;
+  max-width: 1200px !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  box-sizing: border-box !important;
+}
+
+#calendar-view .calendar-title {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+#calendar-view .calendar-subtitle {
+  font-size: 14px !important;
+  opacity: 0.9 !important;
+  margin: 4px 0 0 0 !important;
+}
+
+#calendar-view .calendar-stats {
+  display: flex !important;
+  gap: 24px !important;
+}
+
+#calendar-view .stat-item {
+  text-align: center !important;
+}
+
+#calendar-view .stat-number {
+  display: block !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+#calendar-view .stat-label {
+  font-size: 12px !important;
+  opacity: 0.8 !important;
+}
+
+#calendar-view #add-event-btn {
+  background: rgba(255,255,255,0.2) !important;
+  color: white !important;
+  border: 1px solid rgba(255,255,255,0.3) !important;
+  padding: 12px 20px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.2s !important;
+}
+
+#calendar-view #add-event-btn:hover {
+  background: rgba(255,255,255,0.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Force FullCalendar button styling */
+#calendar-view .fc-button {
+  background: linear-gradient(135deg, #A78BFA, #7E5EFF) !important;
+  border: none !important;
+  color: white !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s !important;
+}
+
+#calendar-view .fc-button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
+}
+
+#calendar-view .fc-button.fc-button-active {
+  background: linear-gradient(135deg, #7E5EFF, #6D28D9) !important;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4) !important;
+}
+
+/* Mobile overrides */
+@media (max-width: 768px) {
+  #calendar-view .modern-calendar-container {
+    margin: 10px !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+  
+  #calendar-view .calendar-insights-bar {
+    margin: 10px !important;
+    padding: 12px 16px !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    text-align: center !important;
+  }
+  
+  #calendar-view .modern-calendar-header {
+    margin: 10px !important;
+    padding: 16px !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    text-align: center !important;
+  }
+  
+  #calendar-view .calendar-stats {
+    gap: 16px !important;
+  }
+}

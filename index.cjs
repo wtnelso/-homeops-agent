@@ -292,7 +292,6 @@ For the email below, analyze it with your HomeOps voice and return ONLY a JSON o
 Make the summary clear and non-redundant. Use natural, modern language that reflects the HomeOps voice. Return ONLY the JSON object, no other text.`;
 
 app.use(bodyParser.json());
-app.use(express.static("public"));
 app.use("/mock", express.static("mock"));
 
 // All API routes should be defined above the SPA catch-all
@@ -621,7 +620,7 @@ app.post("/chat", async (req, res) => {
       console.error("RAG context fetch failed:", e.message);
       ragContext = "";
     }
-
+    
     // Fetch user's upcoming events from Firestore
     let userEvents = [];
     try {
@@ -708,18 +707,18 @@ Today's date is: ${getCurrentDate()}.
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
     try {
-      const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          temperature: 0.7,
-          top_p: 1,
-          response_format: { type: "json_object" },
-          messages: messagesForApi
+    const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0.7,
+        top_p: 1,
+        response_format: { type: "json_object" },
+        messages: messagesForApi
         }),
         signal: controller.signal
       });
@@ -730,13 +729,13 @@ Today's date is: ${getCurrentDate()}.
         throw new Error(`OpenAI API error: ${gptRes.status} ${gptRes.statusText}`);
       }
 
-      const gptData = await gptRes.json();
-      console.log("OpenAI Response Body:", JSON.stringify(gptData, null, 2));
-      const content = gptData.choices?.[0]?.message?.content;
+    const gptData = await gptRes.json();
+    console.log("OpenAI Response Body:", JSON.stringify(gptData, null, 2));
+    const content = gptData.choices?.[0]?.message?.content;
 
-      if (!content) {
-        throw new Error("No content from GPT response.");
-      }
+    if (!content) {
+      throw new Error("No content from GPT response.");
+    }
 
       let parsedResponse;
       try {
@@ -748,20 +747,20 @@ Today's date is: ${getCurrentDate()}.
       const { reply, events = [], emailSummary = [] } = parsedResponse;
 
       // 5. Save new message and reply to history
-      await db.collection("messages").add({
-        user_id,
-        message,
-        assistant_response: content,
-        timestamp: new Date()
-      });
+    await db.collection("messages").add({
+      user_id,
+      message,
+      assistant_response: content,
+      timestamp: new Date()
+    });
 
       // 6. Save events to Firestore
       let savedEvents = [];
       if (Array.isArray(events) && events.length > 0) {
-        const batch = db.batch();
-        const referenceDate = new Date();
-        events.forEach(event => {
-          if (event.title && event.when) {
+      const batch = db.batch();
+      const referenceDate = new Date();
+      events.forEach(event => {
+        if (event.title && event.when) {
             // Parse the natural language "when" string in America/New_York timezone
             let parsedStart;
             try {
@@ -769,23 +768,23 @@ Today's date is: ${getCurrentDate()}.
             } catch (e) {
               parsedStart = null;
             }
-            if (parsedStart) {
-              const startISO = parsedStart.toISOString();
-              const eventRef = db.collection("events").doc();
-              const eventWithId = {
-                ...event,
+          if (parsedStart) {
+            const startISO = parsedStart.toISOString();
+            const eventRef = db.collection("events").doc();
+            const eventWithId = { 
+              ...event, 
                 start: startISO,
-                id: eventRef.id,
-                user_id,
-                created_at: new Date()
-              };
+              id: eventRef.id, 
+              user_id, 
+              created_at: new Date() 
+            };
               delete eventWithId.when;
-              batch.set(eventRef, eventWithId);
-              savedEvents.push(eventWithId);
-            }
+            batch.set(eventRef, eventWithId);
+            savedEvents.push(eventWithId);
           }
-        });
-        await batch.commit();
+        }
+      });
+      await batch.commit();
       }
       res.json({ reply, events: savedEvents, emailSummary: emailSummaryArr });
     } catch (fetchError) {
@@ -2424,7 +2423,10 @@ async function generateUserInsights(userId, preferences, emailContext, feedback)
   }
 }
 
-// SPA catch-all route should be last
+// Serve static files BEFORE the catch-all route
+app.use(express.static("public"));
+
+// SPA catch-all route should be last - but AFTER static files
 app.get('*', (req, res) => {
   // For the root path, serve auth.html (login page)
   if (req.path === '/' || req.path === '/index.html') {

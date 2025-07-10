@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>HomeOps Decoder - Transform Your Inbox</title>
 
-  <link rel="stylesheet" href="style.css?v=2024-07-07" />
+  <link rel="stylesheet" href="style.css?v=2024-07-10" />
   <link rel="stylesheet" href="chat-ui.css?v=2024-07-09" />
     <!-- ✅ Add Tippy.js tooltip support -->
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
@@ -1191,8 +1191,34 @@
       <i data-lucide="calendar-clock" class="insight-icon"></i>
       <span>3 upcoming events</span>
     </div>
-    <!-- Removed the 'Your Calendar' header for a cleaner look -->
-    <div class="modern-calendar-header gradient-header" style="display:none;"></div>
+    <!-- Modern Calendar Header -->
+    <div class="modern-calendar-header gradient-header">
+      <div class="calendar-header-left">
+        <h2 class="calendar-title">
+          <i data-lucide="calendar"></i>
+          Your Calendar
+        </h2>
+        <p class="calendar-subtitle">Manage your family's schedule</p>
+      </div>
+      <div class="calendar-header-right">
+        <div class="calendar-stats">
+          <div class="stat-item">
+            <span class="stat-number">12</span>
+            <span class="stat-label">Events</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">3</span>
+            <span class="stat-label">This Week</span>
+          </div>
+        </div>
+        <div class="calendar-actions">
+          <button id="add-event-btn">
+            <i data-lucide="plus"></i>
+            <span>Add Event</span>
+          </button>
+        </div>
+      </div>
+    </div>
     <div class="modern-calendar-container">
       <div class="calendar-main">
         <div class="calendar-outer">
