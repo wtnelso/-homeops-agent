@@ -1043,31 +1043,26 @@ body > i,
 }
 
 #calendar-view .calendar-outer {
-  width: 100%;
-  max-width: 900px;
-  background: linear-gradient(135deg, #F8F6FF 0%, #F3F3F3 100%) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 8px 32px rgba(126, 94, 255, 0.10) !important;
-  border: 2.5px solid #A78BFA !important;
-  padding: 0 0 3.5rem 0 !important; /* extra bottom padding for border wrap */
-  margin: 0 auto 2rem auto;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  transition: box-shadow 0.18s, border 0.18s;
-  overflow: visible !important;
-  min-height: unset !important;
+  display: flex !important;
+  flex-direction: column !important;
   height: auto !important;
+  min-height: 0 !important;
+  padding-bottom: 0 !important;
+  border-radius: 18px !important;
+  border: 2.5px solid #A78BFA !important;
+  box-shadow: 0 8px 32px rgba(126, 94, 255, 0.10) !important;
+  background: linear-gradient(135deg, #F8F6FF 0%, #F3F3F3 100%) !important;
 }
-#calendar {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  background: none;
-  box-shadow: none;
-  border: none;
-  border-radius: 16px;
-  overflow: visible;
+#calendar-view #calendar, #calendar-view .fc {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+#calendar-view .fc-scroller {
+  min-height: 0 !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
 }
 
 @media (max-width: 900px) {
