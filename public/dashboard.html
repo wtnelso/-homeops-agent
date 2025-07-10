@@ -7,6 +7,28 @@
 
   <link rel="stylesheet" href="style.css?v=2024-07-10" />
   <link rel="stylesheet" href="chat-ui.css?v=2024-07-09" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#7E5EFF',
+              light: '#A78BFA', 
+              dark: '#6B46C1',
+            },
+            background: '#FAFAFA',
+            muted: '#F3F3F3',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
     <!-- ✅ Add Tippy.js tooltip support -->
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
   <script src="https://unpkg.com/@popperjs/core@2"></script>
