@@ -6958,83 +6958,62 @@ body, html {
 #calendar-view {
   background: #FAFAFA !important;
   font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-#calendar-view .calendar-insights-bar {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  background: #F3F3F3;
-  color: #6B7280;
-  font-size: 1rem;
-  padding: 1.1rem 2rem 1.1rem 2rem;
-  border-radius: 14px;
-  margin: 2rem auto 1.5rem auto;
-  box-shadow: 0 2px 8px rgba(126, 94, 255, 0.07);
-  max-width: 1100px;
-  font-weight: 500;
-  transition: box-shadow 0.2s;
-}
-#calendar-view .calendar-insights-bar .insight-icon {
-  width: 22px;
-  height: 22px;
-  color: #7E5EFF;
-  flex-shrink: 0;
-  margin-right: 0.3rem;
-}
-@media (max-width: 700px) {
-  #calendar-view .calendar-insights-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.7rem;
-    font-size: 0.98rem;
-    padding: 1rem 0.7rem;
-    margin: 1rem 0.5rem 1rem 0.5rem;
-  }
-}
-
-#calendar-view .modern-calendar-header {
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  margin-bottom: 1.5rem;
-  padding: 0 2rem 0 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1100px;
+#calendar-view .modern-calendar-header,
+#calendar-view .calendar-insights-bar,
+#calendar-view .modern-calendar-container {
+  max-width: 900px;
   margin-left: auto;
   margin-right: auto;
 }
-#calendar-view .calendar-title {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  font-size: 2.1rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin: 0;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+
+#calendar-view .modern-calendar-header {
+  padding: 0 1.5rem;
 }
+
+#calendar-view .calendar-insights-bar {
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+#calendar-view .modern-calendar-container {
+  width: 100%;
+  padding: 0 1.5rem 2rem 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+#calendar-view .calendar-main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#calendar-view .calendar-outer {
+  width: 100%;
+  background: #fff0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
 #calendar-view .calendar-title i {
-  color: #7E5EFF;
-  width: 32px;
-  height: 32px;
+  color: #A78BFA;
+  background: linear-gradient(135deg, #A78BFA, #7E5EFF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 #calendar-view .fc-header-toolbar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   gap: 0.7rem;
-  margin-bottom: 1.5rem !important;
-  background: none;
-  border: none;
-}
-#calendar-view .fc-button-group {
-  display: flex;
-  gap: 0.5rem;
 }
 #calendar-view .fc-button {
   background: #F3F3F3 !important;
@@ -7050,7 +7029,7 @@ body, html {
 }
 #calendar-view .fc-button:hover {
   background: #E9E7FD !important;
-  color: #5B3CC4 !important;
+  color: #7E5EFF !important;
   box-shadow: 0 4px 16px rgba(126, 94, 255, 0.13) !important;
 }
 #calendar-view .fc-button.fc-button-active {
@@ -7119,38 +7098,27 @@ body, html {
 }
 #calendar-view #clear-events-btn:hover {
   background: #E9E7FD !important;
-  color: #5B3CC4 !important;
+  color: #7E5EFF !important;
   box-shadow: 0 4px 16px rgba(126, 94, 255, 0.13) !important;
 }
 
-#calendar-view .modern-calendar-container {
-  background: none !important;
-  box-shadow: none !important;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 2rem 2rem 2rem;
-}
-#calendar-view .calendar-outer {
-  background: #fff0 !important;
-  box-shadow: none !important;
-  border: none !important;
-  padding: 0 !important;
-}
-
 @media (max-width: 900px) {
-  #calendar-view .modern-calendar-header, #calendar-view .modern-calendar-container {
+  #calendar-view .modern-calendar-header, #calendar-view .calendar-insights-bar, #calendar-view .modern-calendar-container {
     max-width: 100vw;
     padding-left: 1rem;
     padding-right: 1rem;
   }
 }
 @media (max-width: 700px) {
-  #calendar-view .modern-calendar-header, #calendar-view .modern-calendar-container {
+  #calendar-view .modern-calendar-header, #calendar-view .calendar-insights-bar, #calendar-view .modern-calendar-container {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }
   #calendar-view .calendar-title {
     font-size: 1.3rem;
+  }
+  #calendar-view .modern-calendar-container {
+    padding-bottom: 1rem;
   }
 }
 @media (max-width: 700px) {
