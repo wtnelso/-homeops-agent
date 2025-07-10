@@ -978,7 +978,10 @@ body > i,
   align-items: center;
   justify-content: center;
   gap: 2.2rem;
-  margin: 1.2rem auto 1.2rem auto;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1.2rem;
+  margin-bottom: 1.2rem;
   padding: 0.8rem 1.5rem;
   border-radius: 16px;
   background: #F3F3F3;
@@ -1016,12 +1019,11 @@ body > i,
 #calendar-view .modern-calendar-container {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   justify-content: flex-start;
+  margin: 0 auto;
   width: 100%;
   max-width: 900px;
-  padding: 0;
-  margin: 0 auto;
   background: none;
   box-shadow: none;
   border: none;
@@ -1031,29 +1033,31 @@ body > i,
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   justify-content: flex-start;
   background: none;
   box-shadow: none;
   border: none;
   padding: 0;
+  margin: 0 auto;
 }
 
 #calendar-view .calendar-outer {
   width: 100%;
-  max-width: 100%;
+  max-width: 900px;
   background: linear-gradient(135deg, #F8F6FF 0%, #F3F3F3 100%) !important;
   border-radius: 18px !important;
   box-shadow: 0 8px 32px rgba(126, 94, 255, 0.10) !important;
   border: 2.5px solid #A78BFA !important;
-  padding: 0 0 2.5rem 0 !important; /* extra bottom padding for border wrap */
+  padding: 0 0 3.5rem 0 !important; /* extra bottom padding for border wrap */
   margin: 0 auto 2rem auto;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   transition: box-shadow 0.18s, border 0.18s;
   overflow: visible !important;
-  min-height: 0;
+  min-height: unset !important;
+  height: auto !important;
 }
 #calendar {
   width: 100%;
@@ -1109,23 +1113,7 @@ body > i,
 }
 
 .calendar-outer {
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-  background: rgba(255,255,255,0.95);
-  border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-  border: 1px solid rgba(226,232,240,0.8);
-  padding: 2.5rem 2rem 2rem 2rem;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  flex: 1 1 auto;
-  min-height: 0;
-  height: 100%;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  all: unset;
 }
 
 .calendar-outer:hover {
@@ -7140,23 +7128,25 @@ body, html {
   box-shadow: none;
   border: none;
   padding: 0;
+  margin: 0 auto;
 }
 
 #calendar-view .calendar-outer {
   width: 100%;
-  max-width: 100%;
+  max-width: 900px;
   background: linear-gradient(135deg, #F8F6FF 0%, #F3F3F3 100%) !important;
   border-radius: 18px !important;
   box-shadow: 0 8px 32px rgba(126, 94, 255, 0.10) !important;
   border: 2.5px solid #A78BFA !important;
-  padding: 0 0 2.5rem 0 !important; /* extra bottom padding for border wrap */
+  padding: 0 0 3.5rem 0 !important; /* extra bottom padding for border wrap */
   margin: 0 auto 2rem auto;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   transition: box-shadow 0.18s, border 0.18s;
   overflow: visible !important;
-  min-height: 0;
+  min-height: unset !important;
+  height: auto !important;
 }
 #calendar {
   width: 100%;
