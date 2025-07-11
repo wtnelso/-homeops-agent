@@ -472,16 +472,27 @@
       display: block;
     }
     
-    /* CLEAN CALENDAR STYLING - NOTION/LINEAR STYLE */
+    /* CLEAN CALENDAR STYLING - FIXED: Proper height and rendering */
     #calendar {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
       border: none !important;
+      min-height: 550px !important;
+      height: auto !important;
+    }
+    
+    /* FORCE CALENDAR TO RENDER PROPERLY */
+    .fc {
+      min-height: 500px !important;
+    }
+    
+    .fc-view-harness {
+      min-height: 450px !important;
     }
     
     /* FullCalendar toolbar styling - Clean and minimal */
     .fc-toolbar {
       padding: 16px 0 !important;
-      margin-bottom: 0 !important;
+      margin-bottom: 16px !important;
       border-bottom: 1px solid #e5e7eb !important;
     }
     
@@ -543,7 +554,8 @@
     
     /* Grid styling - clean borders */
     .fc-scrollgrid {
-      border: none !important;
+      border: 1px solid #e5e7eb !important;
+      border-radius: 8px !important;
     }
     
     .fc-col-header-cell {
@@ -1333,83 +1345,83 @@
 
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
-    <!-- Clean Notion/Linear Style Layout -->
-    <div class="flex-1 overflow-y-auto bg-[#FAFAFA]">
-      <div class="max-w-6xl mx-auto p-8">
+    <!-- FIXED: Standard CSS layout - no Tailwind classes -->
+    <div style="flex: 1; overflow-y: auto; background-color: #fafafa; padding: 2rem;">
+      <div style="max-width: 1200px; margin: 0 auto;">
         
         <!-- Top Header -->
-        <div class="flex items-center justify-between mb-6">
-          <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-            <i data-lucide="calendar-days" class="w-5 h-5 text-purple-500"></i>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+          <h1 style="font-size: 1.875rem; font-weight: 600; color: #111827; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="calendar-days" style="width: 1.25rem; height: 1.25rem; color: #8b5cf6;"></i>
             Calendar
           </h1>
           
-          <div class="flex gap-2">
-            <button id="addEventBtn" class="bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-colors font-medium">
-              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="addEventBtn" style="background: #8b5cf6; color: white; border: none; border-radius: 0.5rem; padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; transition: background-color 0.2s;">
+              <i data-lucide="plus-circle" style="width: 1rem; height: 1rem;"></i>
               Add Event
             </button>
-            <button id="clearAllBtn" class="border border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-gray-700 transition-colors font-medium flex items-center gap-2">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <button id="clearAllBtn" style="border: 1px solid #d1d5db; background: white; border-radius: 0.5rem; padding: 0.5rem 1rem; color: #374151; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; transition: background-color 0.2s;">
+              <i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i>
               Clear All
             </button>
           </div>
         </div>
 
         <!-- Forecast Bar -->
-        <div class="flex items-center gap-4 text-sm text-gray-600 mb-6">
-          <div class="flex items-center gap-2">
-            <i data-lucide="brain" class="w-4 h-4 text-purple-500"></i>
+        <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; color: #6b7280; margin-bottom: 2rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="brain" style="width: 1rem; height: 1rem; color: #8b5cf6;"></i>
             Forecast: Busy week ahead (July 15–21)
           </div>
-          <div class="flex items-center gap-2">
-            <i data-lucide="mail-open" class="w-4 h-4 text-purple-500"></i>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="mail-open" style="width: 1rem; height: 1rem; color: #8b5cf6;"></i>
             6 schedule emails
           </div>
-          <div class="flex items-center gap-2">
-            <i data-lucide="calendar-days" class="w-4 h-4 text-purple-500"></i>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="calendar-days" style="width: 1rem; height: 1rem; color: #8b5cf6;"></i>
             3 events
           </div>
         </div>
 
-        <!-- FullCalendar Container - Clean and Centered -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div id="calendar" class="p-4"></div>
+        <!-- FullCalendar Container - FIXED: Proper height and sizing -->
+        <div style="background: white; border-radius: 0.5rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); min-height: 600px;">
+          <div id="calendar" style="padding: 1rem; min-height: 550px; height: auto;"></div>
         </div>
         
       </div>
     </div>
 
     <!-- Event Panel - Right Slide-over Style -->
-    <div id="eventModal" class="fixed inset-0 bg-black/30 z-50 hidden flex justify-end">
-      <div class="bg-white w-full max-w-md h-full shadow-lg overflow-y-auto">
-        <div class="p-6">
+    <div id="eventModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.3); z-index: 50; display: none; justify-content: flex-end;">
+      <div style="background: white; width: 100%; max-width: 28rem; height: 100%; box-shadow: -10px 0 20px rgba(0, 0, 0, 0.1); overflow-y: auto;">
+        <div style="padding: 1.5rem;">
           <!-- Panel Header -->
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-900" id="modalEventTitle">Event Details</h2>
-            <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 p-1">
-              <i data-lucide="x" class="w-5 h-5"></i>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 600; color: #111827;" id="modalEventTitle">Event Details</h2>
+            <button id="closeModalBtn" style="color: #9ca3af; background: none; border: none; padding: 0.25rem; cursor: pointer;">
+              <i data-lucide="x" style="width: 1.25rem; height: 1.25rem;"></i>
             </button>
           </div>
 
           <!-- Event Date/Time -->
-          <div class="text-sm text-gray-600 mb-4">
-            <i data-lucide="calendar-clock" class="inline w-4 h-4 mr-1 text-purple-500"></i>
+          <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">
+            <i data-lucide="calendar-clock" style="width: 1rem; height: 1rem; color: #8b5cf6; margin-right: 0.25rem; vertical-align: middle;"></i>
             <span id="modalEventTime">Loading...</span>
           </div>
 
           <!-- AI Reframe Section -->
-          <h3 class="text-sm font-semibold text-purple-700 mb-2">✨ AI Reframe</h3>
-          <p class="text-gray-800 whitespace-pre-line mb-6" id="modalEventReframe">
+          <h3 style="font-size: 0.875rem; font-weight: 600; color: #7c3aed; margin-bottom: 0.5rem;">✨ AI Reframe</h3>
+          <p style="color: #374151; white-space: pre-line; margin-bottom: 1.5rem;" id="modalEventReframe">
             This event appears to be a family activity. Consider preparing any necessary items in advance.
           </p>
 
           <!-- Action Buttons -->
-          <div class="flex gap-2">
-            <button id="editEventBtn" class="flex-1 border border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-gray-700 font-medium transition-colors">
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="editEventBtn" style="flex: 1; border: 1px solid #d1d5db; background: white; border-radius: 0.5rem; padding: 0.5rem 1rem; color: #374151; font-weight: 500; cursor: pointer; transition: background-color 0.2s;">
               Edit
             </button>
-            <button id="deleteEventBtn" class="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 font-medium transition-colors">
+            <button id="deleteEventBtn" style="flex: 1; background: #dc2626; color: white; border: none; border-radius: 0.5rem; padding: 0.5rem 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s;">
               Delete
             </button>
           </div>

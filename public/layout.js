@@ -340,10 +340,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log("🔄 Proceeding with calendar initialization");
 
-      // Clean FullCalendar setup
+      // Clean FullCalendar setup - FIXED: Ensure proper height
       window.calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        height: 600,
+        height: 600, // Fixed height to ensure calendar renders
+        contentHeight: 550, // Ensure content area has proper height
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
@@ -367,6 +368,16 @@ document.addEventListener("DOMContentLoaded", () => {
             extendedProps: {
               reframe: 'This event represents another sample activity. Make sure to set reminders and gather materials needed in advance.'
             }
+          },
+          {
+            title: 'Team Meeting',
+            start: '2025-07-12T10:00:00',
+            end: '2025-07-12T11:00:00',
+            backgroundColor: '#f59e0b',
+            borderColor: '#f59e0b',
+            extendedProps: {
+              reframe: 'Weekly team meeting to discuss project progress and upcoming deliverables.'
+            }
           }
         ],
         eventClick: function(info) {
@@ -388,7 +399,12 @@ document.addEventListener("DOMContentLoaded", () => {
               }
             });
           }
-        }
+        },
+        // Ensure proper sizing and responsiveness
+        aspectRatio: 1.35,
+        expandRows: true,
+        dayMaxEvents: 3,
+        moreLinkClick: 'popover'
       });
 
       console.log("🔄 Rendering calendar...");
