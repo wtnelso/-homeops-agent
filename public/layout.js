@@ -279,16 +279,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Register FullCalendar List plugin if available
-    if (typeof FullCalendar !== 'undefined' && FullCalendar.ListWeek) {
-      if (FullCalendar.globalPlugins) {
-        FullCalendar.globalPlugins.push(FullCalendar.ListWeek);
-      }
-    }
-
     function getInitialCalendarView() {
       if (window.innerWidth <= 768) {
-        return 'listWeek';
+        return 'dayGridMonth'; // Simplified for mobile
       }
       return 'dayGridMonth';
     }
@@ -347,77 +340,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log("🔄 Proceeding with calendar initialization");
 
-      // Create calendar with proper event fetching
+      // Simple FullCalendar v6 setup - no plugins needed for basic views
       window.calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: getInitialCalendarView(),
-        plugins: ['dayGrid', 'timeGrid', 'list'],
-        height: "auto",
+        initialView: 'dayGridMonth',
+        height: 'auto',
         headerToolbar: {
-          left: "prev,next today",
-          center: "title",
-          right: window.innerWidth <= 768 ? '' : "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        events: function(fetchInfo, successCallback, failureCallback) {
-          const userId = window.userId || "test_user";
-          const url = `/api/get-events?user_id=${userId}`;
-          console.log("🟢 FullCalendar fetching events from:", url);
-          console.log("🟢 Current window.userId:", window.userId);
-          
-          fetch(url)
-            .then(response => {
-              console.log("🟢 Response status:", response.status);
-              console.log("🟢 Response ok:", response.ok);
-              return response.json();
-            })
-            .then(data => {
-              console.log("🟢 Events fetched for calendar:", data);
-              console.log("🟢 Events type:", typeof data);
-              console.log("🟢 Events length:", data.length);
-              
-              if (Array.isArray(data)) {
-                console.log("✅ Calling successCallback with events");
-                successCallback(data);
-              } else {
-                console.warn("⚠️ Events data is not an array:", data);
-                successCallback([]);
-              }
-            })
-            .catch(error => {
-              console.error("❌ Error fetching events:", error);
-              failureCallback(error);
-            });
-        },
-        eventDisplay: "block",
-        eventClick: function(info) {
-          // Show event modal with details and reframe
-          showEventModal(info.event);
-          info.jsEvent.preventDefault();
-        },
+        events: [
+          // Sample events for testing
+          {
+            title: 'Test Event',
+            start: '2025-07-15',
+            backgroundColor: '#3b82f6'
+          },
+          {
+            title: 'Another Event',
+            start: '2025-07-20',
+            backgroundColor: '#10b981'
+          }
+        ],
         dateClick: function(info) {
           const title = prompt("Add an event:");
           if (title) {
-            const userId = window.userId || "test_user";
-            fetch("/api/add-event", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                user_id: userId,
-                title: title,
-                start: info.dateStr,
-                allDay: true
-              })
-            })
-            .then(response => response.json())
-            .then(data => {
-              if (data.success) {
-                window.calendar.refetchEvents();
-              }
-            })
-            .catch(error => console.error("Error adding event:", error));
+            // Add event directly to calendar for now
+            window.calendar.addEvent({
+              title: title,
+              start: info.dateStr,
+              allDay: true,
+              backgroundColor: '#3b82f6'
+            });
           }
         }
       });
 
+      console.log("🔄 Rendering calendar...");
       window.calendar.render();
       window.calendarRendered = true;
       console.log("✅ Calendar initialized and rendered");
@@ -436,18 +395,69 @@ document.addEventListener("DOMContentLoaded", () => {
       
       // Force calendar to update its size after a short delay
       setTimeout(() => {
-        console.log("🔄 Forcing calendar updateSize after initialization");
         if (window.calendar) {
           window.calendar.updateSize();
+          console.log("🔄 Calendar size updated");
         }
-        const newRect = calendarEl.getBoundingClientRect();
-        console.log("🔄 Calendar dimensions after updateSize:", newRect.width, "x", newRect.height);
-      }, 200);
+      }, 100);
 
-      // Force listWeek view on mobile after render
-      if (window.innerWidth <= 768) {
-        window.calendar.changeView('listWeek');
+      // Wire up view buttons
+      const monthBtn = document.getElementById('monthViewBtn');
+      const weekBtn = document.getElementById('weekViewBtn');
+      const dayBtn = document.getElementById('dayViewBtn');
+      const listBtn = document.getElementById('listViewBtn');
+
+      if (monthBtn) {
+        monthBtn.addEventListener('click', () => {
+          if (window.calendar) {
+            window.calendar.changeView('dayGridMonth');
+            updateActiveViewButton('monthViewBtn');
+          }
+        });
       }
+
+      if (weekBtn) {
+        weekBtn.addEventListener('click', () => {
+          if (window.calendar) {
+            window.calendar.changeView('timeGridWeek');
+            updateActiveViewButton('weekViewBtn');
+          }
+        });
+      }
+
+      if (dayBtn) {
+        dayBtn.addEventListener('click', () => {
+          if (window.calendar) {
+            window.calendar.changeView('timeGridDay');
+            updateActiveViewButton('dayViewBtn');
+          }
+        });
+      }
+
+      if (listBtn) {
+        listBtn.addEventListener('click', () => {
+          if (window.calendar) {
+            window.calendar.changeView('listWeek');
+            updateActiveViewButton('listViewBtn');
+          }
+        });
+      }
+    }
+
+    function updateActiveViewButton(activeId) {
+      const buttons = ['monthViewBtn', 'weekViewBtn', 'dayViewBtn', 'listViewBtn'];
+      buttons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          if (id === activeId) {
+            btn.classList.add('active', 'bg-gray-100', 'text-gray-700');
+            btn.classList.remove('bg-white', 'text-gray-600');
+          } else {
+            btn.classList.remove('active', 'bg-gray-100', 'text-gray-700');
+            btn.classList.add('bg-white', 'text-gray-600');
+          }
+        }
+      });
     }
 
     // Make renderCalendar available globally
