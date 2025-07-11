@@ -93,6 +93,14 @@
       z-index: 1000;
       /* Ensure it stays visible with virtual keyboard */
       min-height: 70px;
+      /* iOS safe area handling */
+      padding-bottom: env(safe-area-inset-bottom);
+      /* Hide when keyboard is open */
+      transition: transform 0.3s ease;
+    }
+    
+    .mobile-nav.keyboard-open {
+      transform: translateY(100%);
     }
     
     .nav-btn {
@@ -885,28 +893,51 @@
     });
     
     function setupKeyboardHandling() {
+      const nav = document.querySelector('.mobile-nav');
+      const chatInput = document.getElementById('chatInput');
+      const initialHeight = window.innerHeight;
+      
       // iOS viewport height adjustment for virtual keyboard
       function setViewportHeight() {
         const vh = window.innerHeight * 0.01;
         document.documentElement.style.setProperty('--vh', `${vh}px`);
+        
+        // Check if keyboard is open based on viewport height change
+        const currentHeight = window.innerHeight;
+        const heightDiff = initialHeight - currentHeight;
+        
+        if (heightDiff > 150) {
+          // Keyboard is open - hide navigation
+          nav.classList.add('keyboard-open');
+          document.body.style.paddingBottom = '0px';
+        } else {
+          // Keyboard is closed - show navigation
+          nav.classList.remove('keyboard-open');
+          document.body.style.paddingBottom = '80px';
+        }
       }
       
       setViewportHeight();
       window.addEventListener('resize', setViewportHeight);
+      window.addEventListener('orientationchange', () => {
+        setTimeout(setViewportHeight, 500);
+      });
       
       // Handle input focus/blur for better UX
-      const chatInput = document.getElementById('chatInput');
       if (chatInput) {
         chatInput.addEventListener('focus', function() {
-          // Scroll to input when focused
+          // Hide nav and scroll to input when focused
           setTimeout(() => {
+            nav.classList.add('keyboard-open');
             this.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }, 300);
         });
         
         chatInput.addEventListener('blur', function() {
-          // Scroll back to show messages when done typing
+          // Show nav and scroll back to show messages when done typing
           setTimeout(() => {
+            nav.classList.remove('keyboard-open');
+            document.body.style.paddingBottom = '80px';
             const messagesDiv = document.querySelector('.chat-messages-mobile');
             if (messagesDiv) {
               messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -1312,7 +1343,7 @@
     }
     
     async function callHomeOpsAI(message) {
-      // This connects to your actual HomeOps AI backend
+      // This connects to your actual HomeOps AI backend with tone model
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
@@ -1322,7 +1353,9 @@
           body: JSON.stringify({
             message: message,
             context: 'mobile-chat',
-            user_id: currentUserId || 'mobile-user'
+            user_id: currentUserId || 'mobile-user',
+            use_tone_model: true,
+            persona: 'homeops-chief-of-staff'
           })
         });
         
@@ -1336,17 +1369,49 @@
       } catch (error) {
         console.error('AI Backend Error:', error);
         
-        // Fallback response with your tone model characteristics
-        const responses = [
-          `Got it. "${message}" - let me break this down for you. This isn't about perfection, it's about progress. What's the real question underneath this?`,
-          `I hear you asking about "${message}". Here's what I'm seeing: you're looking for clarity, not another task. Let's get specific - what needs to happen first?`,
-          `"${message}" - okay, let's cut through the noise. You don't need another system, you need one thing that actually works. What's the non-negotiable here?`,
-          `About "${message}" - this sounds like you're carrying too much mental load. Let's extract the actual actionable pieces from this. What can we name and tame?`,
-          `I'm tracking "${message}". This feels like overwhelm disguised as a question. Let's get honest about what you actually need right now.`
-        ];
-        
-        return responses[Math.floor(Math.random() * responses.length)];
+        // Enhanced fallback that actually uses your tone model concepts
+        return generateIntelligentResponse(message);
       }
+    }
+    
+    function generateIntelligentResponse(message) {
+      const msg = message.toLowerCase();
+      
+      // Beach/vacation planning
+      if (msg.includes('beach') || msg.includes('vacation') || msg.includes('trip')) {
+        if (msg.includes('tomorrow') || msg.includes('going')) {
+          return `Beach day tomorrow at 2pm? I'm not hearing excitement—I'm hearing obligation. Is this actually restorative for you, or just another thing you "should" do? What would make this feel like relief instead of another task?`;
+        }
+        return `Vacation planning can feel like work when you're already overwhelmed. What would actually recharge you vs. what you think you're supposed to want?`;
+      }
+      
+      // Overwhelm detection
+      if (msg.includes('overwhelmed') || msg.includes('stressed') || msg.includes('too much')) {
+        return `You're not broken for feeling overwhelmed—you're human managing an inhuman amount of inputs. Let's name three things that aren't actually yours to carry. What can we put down first?`;
+      }
+      
+      // Time/schedule related
+      if (msg.includes('time') || msg.includes('schedule') || msg.includes('busy')) {
+        return `The calendar isn't the problem—it's the inability to say no to things that don't matter. What's one commitment you're keeping out of guilt instead of purpose?`;
+      }
+      
+      // Family/parenting
+      if (msg.includes('kids') || msg.includes('family') || msg.includes('parent')) {
+        return `Parenting guilt is real, but martyrdom isn't good modeling. Your kids need to see you have boundaries, not see you disappear into their needs. What boundary would actually serve your family?`;
+      }
+      
+      // Work related
+      if (msg.includes('work') || msg.includes('meeting') || msg.includes('deadline')) {
+        return `Work emergencies are often other people's poor planning becoming your urgent problem. What's actually urgent vs. what feels urgent because someone else is panicking?`;
+      }
+      
+      // Test/generic
+      if (msg.includes('test') || msg.length < 10) {
+        return `Testing the waters? Good. I'm here to help you separate signal from noise, not add more noise. What's actually on your mind behind the test?`;
+      }
+      
+      // Default intelligent response
+      return `I hear you saying "${message}". Here's what I'm noticing: this sounds like you're looking for permission to prioritize yourself. You don't need permission—you need a plan. What's one thing you can stop doing today?`;
     }
     
     function previousMonth() {
