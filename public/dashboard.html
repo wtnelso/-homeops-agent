@@ -472,39 +472,48 @@
       display: block;
     }
     
-    /* CALENDAR STYLING */
+    /* CLEAN CALENDAR STYLING - NOTION/LINEAR STYLE */
     #calendar {
-      padding: 20px !important;
-      min-height: 600px !important;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+      border: none !important;
     }
     
-    /* FullCalendar toolbar styling */
+    /* FullCalendar toolbar styling - Clean and minimal */
     .fc-toolbar {
-      padding: 10px 0 !important;
-      margin-bottom: 20px !important;
+      padding: 16px 0 !important;
+      margin-bottom: 0 !important;
+      border-bottom: 1px solid #e5e7eb !important;
     }
     
     .fc-toolbar-title {
-      font-size: 1.5rem !important;
+      font-size: 1.25rem !important;
       font-weight: 600 !important;
-      color: #1f2937 !important;
+      color: #111827 !important;
     }
     
     .fc-button {
-      background: #8b5cf6 !important;
-      border: none !important;
+      background: #f9fafb !important;
+      border: 1px solid #e5e7eb !important;
       border-radius: 6px !important;
       font-weight: 500 !important;
       padding: 6px 12px !important;
+      color: #374151 !important;
+      font-size: 0.875rem !important;
     }
     
     .fc-button:hover {
-      background: #7c3aed !important;
+      background: #f3f4f6 !important;
+      border-color: #d1d5db !important;
     }
     
     .fc-button:focus {
-      box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.5) !important;
+      box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
+    }
+    
+    .fc-button-active {
+      background: #8b5cf6 !important;
+      border-color: #8b5cf6 !important;
+      color: white !important;
     }
     
     /* Clean event styling */
@@ -514,15 +523,17 @@
       font-size: 0.875rem !important;
       font-weight: 500 !important;
       cursor: pointer !important;
+      background: #8b5cf6 !important;
+      color: white !important;
     }
     
     .fc-event:hover {
       opacity: 0.8 !important;
     }
     
-    /* Today highlighting */
+    /* Today highlighting - subtle */
     .fc-day-today {
-      background-color: #f3f4f6 !important;
+      background-color: #faf5ff !important;
     }
     
     /* Day hover effect */
@@ -530,10 +541,9 @@
       background-color: #f9fafb !important;
     }
     
-    /* Grid styling */
+    /* Grid styling - clean borders */
     .fc-scrollgrid {
-      border: 1px solid #e5e7eb !important;
-      border-radius: 8px !important;
+      border: none !important;
     }
     
     .fc-col-header-cell {
@@ -541,10 +551,45 @@
       border-color: #e5e7eb !important;
       font-weight: 600 !important;
       color: #374151 !important;
+      padding: 12px 8px !important;
     }
     
     .fc-daygrid-day {
       border-color: #e5e7eb !important;
+      min-height: 120px !important;
+    }
+    
+    .fc-daygrid-day-number {
+      color: #374151 !important;
+      font-weight: 500 !important;
+      padding: 8px !important;
+    }
+    
+    /* Remove unnecessary borders and backgrounds */
+    .fc-scrollgrid-section > * {
+      border-color: #e5e7eb !important;
+    }
+    
+    /* Event modal slide-over styling */
+    #eventModal {
+      backdrop-filter: blur(4px);
+    }
+    
+    /* Responsive calendar */
+    @media (max-width: 768px) {
+      .fc-toolbar {
+        flex-direction: column !important;
+        gap: 12px !important;
+      }
+      
+      .fc-toolbar-chunk {
+        display: flex !important;
+        justify-content: center !important;
+      }
+      
+      .fc-daygrid-day {
+        min-height: 80px !important;
+      }
     }
     
     /* PRIMARY COLOR SYSTEM */
@@ -1288,66 +1333,85 @@
 
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
-    <div class="w-full max-w-7xl mx-auto p-6">
-      <!-- Clean Header -->
-      <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <i data-lucide="calendar-days" class="w-8 h-8 text-purple-600"></i>
-          Calendar
-        </h1>
-        <div class="flex gap-3">
-          <button id="addEventBtn" class="bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-colors font-medium">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            Add Event
-          </button>
-          <button id="clearAllBtn" class="border border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-gray-700 transition-colors font-medium">
-            Clear All
-          </button>
+    <!-- Clean Notion/Linear Style Layout -->
+    <div class="flex-1 overflow-y-auto bg-[#FAFAFA]">
+      <div class="max-w-6xl mx-auto p-8">
+        
+        <!-- Top Header -->
+        <div class="flex items-center justify-between mb-6">
+          <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+            <i data-lucide="calendar-days" class="w-5 h-5 text-purple-500"></i>
+            Calendar
+          </h1>
+          
+          <div class="flex gap-2">
+            <button id="addEventBtn" class="bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-colors font-medium">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              Add Event
+            </button>
+            <button id="clearAllBtn" class="border border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-gray-700 transition-colors font-medium flex items-center gap-2">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+              Clear All
+            </button>
+          </div>
         </div>
-      </div>
-      
-      <!-- Calendar Container -->
-      <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div id="calendar"></div>
+
+        <!-- Forecast Bar -->
+        <div class="flex items-center gap-4 text-sm text-gray-600 mb-6">
+          <div class="flex items-center gap-2">
+            <i data-lucide="brain" class="w-4 h-4 text-purple-500"></i>
+            Forecast: Busy week ahead (July 15–21)
+          </div>
+          <div class="flex items-center gap-2">
+            <i data-lucide="mail-open" class="w-4 h-4 text-purple-500"></i>
+            6 schedule emails
+          </div>
+          <div class="flex items-center gap-2">
+            <i data-lucide="calendar-days" class="w-4 h-4 text-purple-500"></i>
+            3 events
+          </div>
+        </div>
+
+        <!-- FullCalendar Container - Clean and Centered -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div id="calendar" class="p-4"></div>
+        </div>
+        
       </div>
     </div>
 
-    <!-- Event Modal -->
-    <div id="eventModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <!-- Event Panel - Right Slide-over Style -->
+    <div id="eventModal" class="fixed inset-0 bg-black/30 z-50 hidden flex justify-end">
+      <div class="bg-white w-full max-w-md h-full shadow-lg overflow-y-auto">
         <div class="p-6">
-          <!-- Modal Header -->
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-gray-900" id="modalEventTitle">Event Details</h2>
+          <!-- Panel Header -->
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900" id="modalEventTitle">Event Details</h2>
             <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 p-1">
-              <i data-lucide="x" class="w-6 h-6"></i>
+              <i data-lucide="x" class="w-5 h-5"></i>
             </button>
           </div>
-          
-          <!-- Event Info -->
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">📅 Date & Time</label>
-              <p class="text-gray-600" id="modalEventTime">Loading...</p>
-            </div>
-            
-            <!-- AI Reframe Section -->
-            <div class="bg-purple-50 rounded-lg p-4">
-              <label class="block text-sm font-semibold text-purple-700 mb-2">✨ AI Reframe</label>
-              <p class="text-gray-700 leading-relaxed" id="modalEventReframe">
-                This event appears to be a family activity. Consider preparing any necessary items in advance.
-              </p>
-            </div>
-            
-            <!-- Actions -->
-            <div class="flex gap-3 pt-4">
-              <button id="editEventBtn" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 font-medium transition-colors">
-                Edit Event
-              </button>
-              <button id="deleteEventBtn" class="px-4 py-2 text-red-600 border border-red-200 hover:bg-red-50 rounded-lg font-medium transition-colors">
-                Delete
-              </button>
-            </div>
+
+          <!-- Event Date/Time -->
+          <div class="text-sm text-gray-600 mb-4">
+            <i data-lucide="calendar-clock" class="inline w-4 h-4 mr-1 text-purple-500"></i>
+            <span id="modalEventTime">Loading...</span>
+          </div>
+
+          <!-- AI Reframe Section -->
+          <h3 class="text-sm font-semibold text-purple-700 mb-2">✨ AI Reframe</h3>
+          <p class="text-gray-800 whitespace-pre-line mb-6" id="modalEventReframe">
+            This event appears to be a family activity. Consider preparing any necessary items in advance.
+          </p>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-2">
+            <button id="editEventBtn" class="flex-1 border border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-gray-700 font-medium transition-colors">
+              Edit
+            </button>
+            <button id="deleteEventBtn" class="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 font-medium transition-colors">
+              Delete
+            </button>
           </div>
         </div>
       </div>

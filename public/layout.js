@@ -600,9 +600,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return 'personal'; // Default
     }
 
-    // Event Modal Functions
+    // Event Modal Functions - Updated for slide-over style
     function showEventModal(event) {
-      console.log('📅 Opening modal for:', event.title);
+      console.log('📅 Opening slide-over for:', event.title);
       
       const modal = document.getElementById('eventModal');
       const titleEl = document.getElementById('modalEventTitle');
@@ -639,19 +639,40 @@ document.addEventListener("DOMContentLoaded", () => {
       const reframe = event.extendedProps?.reframe || 'No AI summary available for this event.';
       reframeEl.textContent = reframe;
       
-      // Show modal
+      // Show modal with slide-over animation
       modal.classList.remove('hidden');
       modal.style.display = 'flex';
       
-      console.log('✅ Modal opened successfully');
+      // Add slide-in animation
+      const panel = modal.querySelector('.bg-white');
+      if (panel) {
+        panel.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          panel.style.transition = 'transform 0.3s ease-out';
+          panel.style.transform = 'translateX(0)';
+        }, 10);
+      }
+      
+      console.log('✅ Slide-over opened successfully');
     }
 
     function hideEventModal() {
       const modal = document.getElementById('eventModal');
       if (modal) {
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
-        console.log('✅ Modal closed');
+        const panel = modal.querySelector('.bg-white');
+        if (panel) {
+          panel.style.transform = 'translateX(100%)';
+          setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            panel.style.transition = '';
+            panel.style.transform = '';
+          }, 300);
+        } else {
+          modal.classList.add('hidden');
+          modal.style.display = 'none';
+        }
+        console.log('✅ Slide-over closed');
       }
     }
 
@@ -659,7 +680,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.showEventModal = showEventModal;
     window.hideEventModal = hideEventModal;
 
-    // Set up modal event listeners
+    // Set up modal event listeners - Updated for slide-over
     document.addEventListener('DOMContentLoaded', function() {
       const closeBtn = document.getElementById('closeModalBtn');
       const modal = document.getElementById('eventModal');
@@ -669,7 +690,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       
       if (modal) {
-        // Close modal when clicking outside
+        // Close modal when clicking the backdrop (not the panel)
         modal.addEventListener('click', function(e) {
           if (e.target === modal) {
             hideEventModal();
@@ -682,16 +703,19 @@ document.addEventListener("DOMContentLoaded", () => {
       if (addEventBtn) {
         addEventBtn.addEventListener('click', function() {
           const title = prompt('Event title:');
-          const date = prompt('Date (YYYY-MM-DD):');
+          if (!title) return;
           
-          if (title && date && window.calendar) {
+          const date = prompt('Date (YYYY-MM-DD):') || new Date().toISOString().split('T')[0];
+          
+          if (window.calendar) {
             window.calendar.addEvent({
               title: title,
               start: date,
               allDay: true,
               backgroundColor: '#8b5cf6',
+              borderColor: '#8b5cf6',
               extendedProps: {
-                reframe: `This is a user-created event: ${title}. Consider preparing any necessary materials and setting reminders as needed.`
+                reframe: `User-created event: ${title}. Consider preparing any necessary materials and setting reminders as needed.`
               }
             });
             console.log('✅ Event added:', title);
@@ -706,6 +730,28 @@ document.addEventListener("DOMContentLoaded", () => {
           if (window.calendar && confirm('Are you sure you want to clear all events?')) {
             window.calendar.removeAllEvents();
             console.log('✅ All events cleared');
+          }
+        });
+      }
+      
+      // Edit and Delete button handlers
+      const editEventBtn = document.getElementById('editEventBtn');
+      const deleteEventBtn = document.getElementById('deleteEventBtn');
+      
+      if (editEventBtn) {
+        editEventBtn.addEventListener('click', function() {
+          // For now, just close the modal - can be expanded later
+          hideEventModal();
+          alert('Edit functionality coming soon!');
+        });
+      }
+      
+      if (deleteEventBtn) {
+        deleteEventBtn.addEventListener('click', function() {
+          if (confirm('Are you sure you want to delete this event?')) {
+            // Delete logic would go here
+            hideEventModal();
+            alert('Delete functionality coming soon!');
           }
         });
       }
