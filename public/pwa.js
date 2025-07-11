@@ -39,65 +39,19 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// PWA Install Prompt
+// DISABLED: PWA Install Prompt (focusing on web app experience)
+// This will be a browser-based web app, not a downloadable app
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
-  console.log('📱 HomeOps PWA: Install prompt available');
+  console.log('📱 HomeOps: Install prompt suppressed for web app focus');
   e.preventDefault();
-  deferredPrompt = e;
-  showInstallButton();
+  // Don't show install button for web app experience
 });
 
-// Show install button
+// DISABLED: Show install button (focusing on web app experience)
 function showInstallButton() {
-  const installBtn = document.createElement('button');
-  installBtn.innerHTML = `
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-    </svg>
-    Install App
-  `;
-  installBtn.className = 'pwa-install-btn';
-  installBtn.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #8b5cf6;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-    cursor: pointer;
-    z-index: 1000;
-    transition: all 0.2s;
-    min-height: 44px;
-  `;
-  
-  installBtn.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log('📱 HomeOps PWA: Install outcome:', outcome);
-      deferredPrompt = null;
-      installBtn.remove();
-    }
-  });
-  
-  document.body.appendChild(installBtn);
-  
-  // Auto-hide after 10 seconds
-  setTimeout(() => {
-    if (installBtn.parentNode) {
-      installBtn.style.opacity = '0';
-      setTimeout(() => installBtn.remove(), 300);
-    }
-  }, 10000);
+  // No install button for web app experience
+  console.log('📱 HomeOps: Install button disabled for web app focus');
 }
 
 // Show update notification
@@ -185,40 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   
-  // Pull-to-refresh simulation
-  let startY = 0;
-  let pullDistance = 0;
-  const pullThreshold = 100;
-  
-  document.addEventListener('touchstart', (e) => {
-    startY = e.touches[0].clientY;
-  }, { passive: true });
-  
-  document.addEventListener('touchmove', (e) => {
-    if (window.scrollY === 0) {
-      pullDistance = e.touches[0].clientY - startY;
-      if (pullDistance > 0) {
-        const pullIndicator = document.getElementById('pull-indicator');
-        if (pullIndicator) {
-          pullIndicator.style.transform = `translateY(${Math.min(pullDistance / 2, 50)}px)`;
-          pullIndicator.style.opacity = Math.min(pullDistance / pullThreshold, 1);
-        }
-      }
-    }
-  }, { passive: true });
-  
-  document.addEventListener('touchend', () => {
-    if (pullDistance > pullThreshold && window.scrollY === 0) {
-      console.log('🔄 HomeOps PWA: Pull-to-refresh triggered');
-      window.location.reload();
-    }
-    pullDistance = 0;
-    const pullIndicator = document.getElementById('pull-indicator');
-    if (pullIndicator) {
-      pullIndicator.style.transform = '';
-      pullIndicator.style.opacity = '';
-    }
-  }, { passive: true });
+  // DISABLED: Pull-to-refresh (was too sensitive and awkward)
+  // User feedback: "completely awkward and way too sensitive"
   
   // Swipe navigation
   let touchStartX = 0;
