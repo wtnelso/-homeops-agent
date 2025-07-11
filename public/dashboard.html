@@ -463,6 +463,20 @@
     @media (max-width: 700px) {
       .onboarding-modules { grid-template-columns: 1fr; }
     }
+    
+    /* VIEW MANAGEMENT */
+    .view {
+      display: none;
+    }
+    .view.active {
+      display: block;
+    }
+    
+    /* CALENDAR FIXES */
+    #calendar {
+      min-height: 600px !important;
+      height: auto !important;
+    }
   </style>
   <style>
   /* NUCLEAR CALENDAR FIX FOR DEMO */
@@ -1228,11 +1242,11 @@
 <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
 
-<!-- ✅ Your app scripts -->
-<script src="layout.js?v=2024-07-02" defer></script>
-<script src="chat.js?v=2024-07-09" defer></script>
-<script src="/relief.js?v=2024-07-02" defer></script>
-<script src="dashboard.js?v=2024-07-03" defer></script>
+<!-- ✅ Your app scripts - REMOVE DEFER so they load in order -->
+<script src="layout.js?v=2024-07-02"></script>
+<script src="chat.js?v=2024-07-09"></script>
+<script src="/relief.js?v=2024-07-02"></script>
+<script src="dashboard.js?v=2024-07-03"></script>
 
 <!-- ✅ Bottom nav for mobile view -->
 <div class="bottom-nav">
@@ -1244,6 +1258,109 @@
 
 <script src="/homebase.js?v=2024-07-02" defer></script>
 <script>
+// IMMEDIATE ACTIVATION SETUP - No waiting for DOM
+window.activateView = function(viewId) {
+  console.log('🎯 Activating view:', viewId);
+  
+  // Hide all views
+  document.querySelectorAll('.view').forEach(view => {
+    view.classList.remove('active');
+    view.style.display = 'none';
+  });
+  
+  // Show the selected view
+  const activeView = document.getElementById(`${viewId}-view`);
+  if (activeView) {
+    activeView.classList.add('active');
+    activeView.style.display = 'block';
+    console.log('✅ View activated:', viewId);
+  } else {
+    console.error('❌ View not found:', `${viewId}-view`);
+  }
+  
+  // Handle calendar specifically
+  if (viewId === 'calendar') {
+    setTimeout(() => {
+      console.log('📅 Attempting to render calendar...');
+      if (typeof renderCalendar === 'function') {
+        renderCalendar();
+      } else if (window.renderCalendar) {
+        window.renderCalendar();
+      } else {
+        console.error('❌ renderCalendar function not found');
+        // Direct calendar initialization
+        initCalendarDirect();
+      }
+    }, 200);
+  }
+};
+
+// Direct calendar initialization as backup
+window.initCalendarDirect = function() {
+  console.log('🔧 Direct calendar initialization...');
+  const calendarEl = document.getElementById('calendar');
+  if (!calendarEl) {
+    console.error('❌ Calendar element not found');
+    return;
+  }
+  
+  if (typeof FullCalendar === 'undefined') {
+    console.error('❌ FullCalendar not loaded');
+    return;
+  }
+  
+  try {
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      height: 'auto',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      events: [
+        {
+          title: 'Test Event',
+          start: '2025-07-15',
+          backgroundColor: '#3b82f6'
+        }
+      ]
+    });
+    
+    calendar.render();
+    window.calendar = calendar;
+    console.log('✅ Direct calendar initialization successful');
+  } catch (error) {
+    console.error('❌ Direct calendar initialization failed:', error);
+  }
+};
+
+// Setup navigation immediately
+document.addEventListener('DOMContentLoaded', function() {
+  // Set up sidebar navigation
+  document.querySelectorAll('.nav-item').forEach(button => {
+    button.addEventListener('click', function() {
+      const view = this.getAttribute('data-view');
+      if (view) {
+        activateView(view);
+      }
+    });
+  });
+  
+  // Set up bottom navigation
+  document.querySelectorAll('.bottom-nav button').forEach(button => {
+    button.addEventListener('click', function() {
+      const view = this.getAttribute('data-view');
+      if (view) {
+        activateView(view);
+      }
+    });
+  });
+  
+  // Default to home view
+  activateView('home');
+});
+
 function showDashboardControls() {
   document.getElementById('dashboard-controls').style.display = 'block';
 }
