@@ -347,7 +347,8 @@ document.addEventListener("DOMContentLoaded", () => {
       window.calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: getInitialCalendarView(),
         plugins: [
-          ...(typeof FullCalendar !== 'undefined' && FullCalendar.List ? [FullCalendar.List] : [])
+          ...(typeof FullCalendar !== 'undefined' && FullCalendar.List ? [FullCalendar.List] : []),
+          ...(typeof FullCalendar !== 'undefined' && FullCalendar.DayGrid ? [FullCalendar.DayGrid] : [])
         ],
         height: "auto",
         headerToolbar: {
