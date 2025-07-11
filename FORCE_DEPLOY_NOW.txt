@@ -1,0 +1,23 @@
+🚨 EMERGENCY DEPLOYMENT OVERRIDE 🚨
+Timestamp: 2025-07-11T15:45:00Z
+
+GOOGLE CALENDAR AI FEATURES ARE READY BUT NOT DEPLOYING
+
+The issue: Render is stuck on old "width constraints" commit
+The solution: Manual deployment required
+
+IMMEDIATE ACTION REQUIRED:
+1. Go to https://dashboard.render.com RIGHT NOW
+2. Find homeops-agent service
+3. Click "Manual Deploy" 
+4. Deploy latest commit
+5. This should override the stuck auto-deploy
+
+ALL GOOGLE CALENDAR AI INTELLIGENCE FEATURES ARE CODED AND WAITING:
+- Blue sync button
+- AI reframing system  
+- Calendar integration
+- Smart actions
+- Pattern analysis
+
+This file exists solely to trigger a new commit and force Render to recognize the changes.

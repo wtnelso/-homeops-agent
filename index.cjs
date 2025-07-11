@@ -1269,7 +1269,8 @@ app.get('/auth/google', (req, res) => {
   );
 
   const scopes = [
-    'https://www.googleapis.com/auth/gmail.readonly'
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/calendar.readonly'
   ];
 
   console.log('🔍 Using scopes:', scopes);
@@ -1323,7 +1324,7 @@ app.get('/auth/google/callback', async (req, res) => {
       refresh_token: tokens.refresh_token,
       expiry_date: tokens.expiry_date,
       created_at: new Date(),
-      scopes: tokens.scope || 'https://www.googleapis.com/auth/gmail.readonly'
+      scopes: tokens.scope || 'https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/calendar.readonly'
     });
     console.log('✅ Tokens saved for user:', userId);
 
@@ -1371,7 +1372,8 @@ app.post('/api/gmail/auth', async (req, res) => {
     );
 
     const scopes = [
-      'https://www.googleapis.com/auth/gmail.readonly'
+      'https://www.googleapis.com/auth/gmail.readonly',
+      'https://www.googleapis.com/auth/calendar.readonly'
     ];
 
     // Use the actual user_id from the request
@@ -1458,7 +1460,8 @@ app.post('/api/gmail/reauth', async (req, res) => {
     );
 
     const scopes = [
-      'https://www.googleapis.com/auth/gmail.readonly'
+      'https://www.googleapis.com/auth/gmail.readonly',
+      'https://www.googleapis.com/auth/calendar.readonly'
     ];
 
     const state = `force_reauth_${Date.now()}_${actualUserId}`;
@@ -1483,6 +1486,356 @@ app.post('/api/gmail/reauth', async (req, res) => {
     res.status(500).json({ error: 'Failed to force reauthorization' });
   }
 });
+
+// ================================
+// 📅 GOOGLE CALENDAR API INTEGRATION
+// ================================
+
+// Helper function to get authenticated Google Calendar client
+async function getCalendarClient(userId) {
+  try {
+    const tokenDoc = await db.collection('gmail_tokens').doc(userId).get();
+    if (!tokenDoc.exists) {
+      throw new Error('No authentication tokens found');
+    }
+
+    const tokens = tokenDoc.data();
+    const oauth2Client = new google.auth.OAuth2(
+      GMAIL_OAUTH_CONFIG.clientId,
+      GMAIL_OAUTH_CONFIG.clientSecret,
+      GMAIL_OAUTH_CONFIG.redirectUri
+    );
+
+    oauth2Client.setCredentials({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expiry_date: tokens.expiry_date
+    });
+
+    return google.calendar({ version: 'v3', auth: oauth2Client });
+  } catch (error) {
+    console.error('❌ Error creating calendar client:', error);
+    throw error;
+  }
+}
+
+// Endpoint to fetch Google Calendar events
+app.get('/api/calendar/events', async (req, res) => {
+  const { user_id, timeMin, timeMax, maxResults = 50 } = req.query;
+  
+  console.log('📅 Fetching calendar events for user:', user_id);
+  
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  try {
+    const calendar = await getCalendarClient(user_id);
+    
+    // Set default time range if not provided
+    const defaultTimeMin = timeMin || new Date().toISOString();
+    const defaultTimeMax = timeMax || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days from now
+
+    console.log('📅 Fetching events from', defaultTimeMin, 'to', defaultTimeMax);
+
+    const response = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: defaultTimeMin,
+      timeMax: defaultTimeMax,
+      maxResults: parseInt(maxResults),
+      singleEvents: true,
+      orderBy: 'startTime'
+    });
+
+    const events = response.data.items || [];
+    console.log(`✅ Found ${events.length} calendar events`);
+
+    // Transform events for our intelligent calendar format
+    const intelligentEvents = events.map(event => {
+      const startTime = event.start?.dateTime || event.start?.date;
+      const endTime = event.end?.dateTime || event.end?.date;
+      
+      return {
+        id: event.id,
+        title: event.summary || 'Untitled Event',
+        start: startTime,
+        end: endTime,
+        description: event.description || '',
+        location: event.location || '',
+        attendees: event.attendees?.map(a => a.email) || [],
+        isAllDay: !event.start?.dateTime, // If no dateTime, it's all day
+        googleEventId: event.id,
+        source: 'google_calendar',
+        created: event.created,
+        updated: event.updated,
+        status: event.status,
+        organizer: event.organizer?.email,
+        htmlLink: event.htmlLink
+      };
+    });
+
+    res.json({
+      success: true,
+      events: intelligentEvents,
+      totalCount: events.length,
+      timeRange: {
+        start: defaultTimeMin,
+        end: defaultTimeMax
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching calendar events:', error);
+    
+    if (error.message.includes('invalid_grant') || error.message.includes('unauthorized')) {
+      res.status(401).json({
+        error: 'Calendar authorization expired. Please reconnect your Google account.',
+        needsReauth: true
+      });
+    } else {
+      res.status(500).json({
+        error: 'Failed to fetch calendar events',
+        details: error.message
+      });
+    }
+  }
+});
+
+// Endpoint to analyze calendar patterns for AI intelligence
+app.get('/api/calendar/intelligence', async (req, res) => {
+  const { user_id, days = 90 } = req.query;
+  
+  console.log('🧠 Analyzing calendar intelligence for user:', user_id);
+  
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  try {
+    const calendar = await getCalendarClient(user_id);
+    
+    // Fetch historical data for pattern analysis
+    const pastDate = new Date(Date.now() - parseInt(days) * 24 * 60 * 60 * 1000);
+    const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    const response = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: pastDate.toISOString(),
+      timeMax: futureDate.toISOString(),
+      maxResults: 500,
+      singleEvents: true,
+      orderBy: 'startTime'
+    });
+
+    const events = response.data.items || [];
+    console.log(`🧠 Analyzing ${events.length} events for intelligence patterns`);
+
+    // Analyze patterns
+    const patterns = analyzeCalendarPatterns(events);
+    
+    res.json({
+      success: true,
+      intelligence: patterns,
+      analyzedEvents: events.length,
+      timeRange: {
+        start: pastDate.toISOString(),
+        end: futureDate.toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error analyzing calendar intelligence:', error);
+    res.status(500).json({
+      error: 'Failed to analyze calendar patterns',
+      details: error.message
+    });
+  }
+});
+
+// Helper function to analyze calendar patterns for AI insights
+function analyzeCalendarPatterns(events) {
+  const patterns = {
+    eventTypes: {},
+    timePatterns: {
+      morningEvents: 0,
+      afternoonEvents: 0,
+      eveningEvents: 0
+    },
+    dayPatterns: {
+      weekdays: 0,
+      weekends: 0
+    },
+    commonKeywords: {},
+    averageEventsPerWeek: 0,
+    busyDays: [],
+    freeTimeSlots: [],
+    insights: []
+  };
+
+  if (events.length === 0) {
+    return patterns;
+  }
+
+  // Analyze event types by keywords
+  events.forEach(event => {
+    const title = (event.summary || '').toLowerCase();
+    const description = (event.description || '').toLowerCase();
+    const fullText = `${title} ${description}`;
+
+    // Categorize by keywords
+    if (fullText.match(/birthday|party|celebration/)) {
+      patterns.eventTypes.birthday = (patterns.eventTypes.birthday || 0) + 1;
+    }
+    if (fullText.match(/doctor|medical|appointment|checkup|dentist/)) {
+      patterns.eventTypes.medical = (patterns.eventTypes.medical || 0) + 1;
+    }
+    if (fullText.match(/meeting|call|conference|presentation/)) {
+      patterns.eventTypes.work = (patterns.eventTypes.work || 0) + 1;
+    }
+    if (fullText.match(/school|pta|education|class|teacher/)) {
+      patterns.eventTypes.school = (patterns.eventTypes.school || 0) + 1;
+    }
+    if (fullText.match(/sports|game|practice|soccer|basketball|tennis/)) {
+      patterns.eventTypes.sports = (patterns.eventTypes.sports || 0) + 1;
+    }
+    if (fullText.match(/social|dinner|lunch|friends|family/)) {
+      patterns.eventTypes.social = (patterns.eventTypes.social || 0) + 1;
+    }
+
+    // Analyze time patterns
+    if (event.start?.dateTime) {
+      const hour = new Date(event.start.dateTime).getHours();
+      if (hour < 12) patterns.timePatterns.morningEvents++;
+      else if (hour < 17) patterns.timePatterns.afternoonEvents++;
+      else patterns.timePatterns.eveningEvents++;
+
+      // Day patterns
+      const dayOfWeek = new Date(event.start.dateTime).getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        patterns.dayPatterns.weekends++;
+      } else {
+        patterns.dayPatterns.weekdays++;
+      }
+    }
+
+    // Common keywords analysis
+    const words = fullText.split(/\s+/).filter(word => word.length > 3);
+    words.forEach(word => {
+      patterns.commonKeywords[word] = (patterns.commonKeywords[word] || 0) + 1;
+    });
+  });
+
+  // Generate AI insights
+  const totalEvents = events.length;
+  const workEvents = patterns.eventTypes.work || 0;
+  const socialEvents = patterns.eventTypes.social || 0;
+  const medicalEvents = patterns.eventTypes.medical || 0;
+
+  if (workEvents > totalEvents * 0.6) {
+    patterns.insights.push("Work-focused schedule - consider blocking time for personal activities");
+  }
+  if (socialEvents < totalEvents * 0.1) {
+    patterns.insights.push("Limited social events - might benefit from more connection time");
+  }
+  if (medicalEvents > 0) {
+    patterns.insights.push("Active health management - great job prioritizing wellness");
+  }
+  if (patterns.timePatterns.morningEvents > patterns.timePatterns.eveningEvents) {
+    patterns.insights.push("Morning person detected - optimize energy for important morning tasks");
+  }
+
+  patterns.averageEventsPerWeek = Math.round((totalEvents / (90 / 7)) * 10) / 10;
+
+  return patterns;
+}
+
+// Endpoint to sync calendar events with our intelligent system
+app.post('/api/calendar/sync', async (req, res) => {
+  const { user_id, syncDays = 30 } = req.body;
+  
+  console.log('🔄 Syncing calendar for intelligent analysis, user:', user_id);
+  
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  try {
+    // Fetch recent and upcoming events
+    const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 1 week ago
+    const endDate = new Date(Date.now() + parseInt(syncDays) * 24 * 60 * 60 * 1000);
+
+    const calendar = await getCalendarClient(user_id);
+    const response = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: startDate.toISOString(),
+      timeMax: endDate.toISOString(),
+      maxResults: 100,
+      singleEvents: true,
+      orderBy: 'startTime'
+    });
+
+    const events = response.data.items || [];
+    console.log(`🔄 Syncing ${events.length} events for intelligent calendar`);
+
+    // Store events in Firestore for intelligence analysis
+    const batch = db.batch();
+    let syncedCount = 0;
+
+    for (const event of events) {
+      const eventData = {
+        userId: user_id,
+        googleEventId: event.id,
+        title: event.summary || 'Untitled Event',
+        description: event.description || '',
+        location: event.location || '',
+        startTime: event.start?.dateTime || event.start?.date,
+        endTime: event.end?.dateTime || event.end?.date,
+        attendees: event.attendees?.map(a => a.email) || [],
+        isAllDay: !event.start?.dateTime,
+        status: event.status,
+        organizer: event.organizer?.email,
+        created: event.created,
+        updated: event.updated,
+        syncedAt: new Date(),
+        source: 'google_calendar'
+      };
+
+      // Use a unique document ID combining user and event ID
+      const docId = `${user_id}_${event.id}`;
+      const docRef = db.collection('synced_calendar_events').doc(docId);
+      batch.set(docRef, eventData, { merge: true });
+      syncedCount++;
+    }
+
+    await batch.commit();
+    console.log(`✅ Synced ${syncedCount} calendar events to intelligent system`);
+
+    // Analyze patterns for immediate insights
+    const patterns = analyzeCalendarPatterns(events);
+
+    res.json({
+      success: true,
+      message: `Successfully synced ${syncedCount} calendar events`,
+      syncedEvents: syncedCount,
+      intelligence: patterns,
+      timeRange: {
+        start: startDate.toISOString(),
+        end: endDate.toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error syncing calendar:', error);
+    res.status(500).json({
+      error: 'Failed to sync calendar events',
+      details: error.message
+    });
+  }
+});
+
+// ================================
+// 📧 EMAIL DECODER ENGINE (Existing)
+// ================================
 
 // Email Decoder Engine - Process emails (Memory Optimized)
 app.post('/api/email-decoder/process', async (req, res) => {
@@ -2699,221 +3052,6 @@ app.get('/api/user-recommendations/:userId', async (req, res) => {
     recommendations.sort((a, b) => b.confidence - a.confidence);
     
     res.json({ recommendations });
-    
-  } catch (error) {
-    console.error('❌ Error generating recommendations:', error);
-    res.status(500).json({ error: 'Failed to generate recommendations' });
-  }
-});
-
-// TEMP: Inject mock email for fallback CTA testing
-let mockEmails = [];
-try {
-  const mockPath = path.join(__dirname, 'mock', 'emails.json');
-  const raw = fs.readFileSync(mockPath, 'utf8');
-  mockEmails = JSON.parse(raw);
-} catch (e) { mockEmails = []; }
-
-// User Preferences API - Save personalization data
-app.post('/api/user-preferences/save', async (req, res) => {
-  const { 
-    user_id, 
-    school_keywords, 
-    family_keywords, 
-    healthcare_keywords, 
-    work_keywords, 
-    business_keywords, 
-    shopping_keywords, 
-    services_keywords,
-    timestamp 
-  } = req.body;
-  
-  if (!user_id) {
-    return res.status(400).json({ error: 'user_id is required' });
-  }
-  
-  try {
-    console.log('💾 Saving user preferences for:', user_id);
-    
-    const preferencesData = {
-      user_id,
-      school_keywords: school_keywords || '',
-      family_keywords: family_keywords || '',
-      healthcare_keywords: healthcare_keywords || '',
-      work_keywords: work_keywords || '',
-      business_keywords: business_keywords || '',
-      shopping_keywords: shopping_keywords || '',
-      services_keywords: services_keywords || '',
-      created_at: new Date(),
-      updated_at: new Date()
-    };
-    
-    // Save to Firestore
-    await db.collection('user_preferences').doc(user_id).set(preferencesData);
-    
-    console.log('✅ User preferences saved successfully');
-    res.json({ 
-      success: true, 
-      message: 'Preferences saved successfully',
-      data: preferencesData
-    });
-    
-  } catch (error) {
-    console.error('❌ Error saving user preferences:', error);
-    res.status(500).json({ error: 'Failed to save preferences' });
-  }
-});
-
-// User Preferences API - Get personalization data
-app.get('/api/user-preferences/:user_id', async (req, res) => {
-  const { user_id } = req.params;
-  
-  if (!user_id) {
-    return res.status(400).json({ error: 'user_id is required' });
-  }
-  
-  try {
-    console.log('📖 Fetching user preferences for:', user_id);
-    
-    const preferencesDoc = await db.collection('user_preferences').doc(user_id).get();
-    
-    if (!preferencesDoc.exists) {
-      return res.json({ 
-        success: true, 
-        data: null,
-        message: 'No preferences found for this user'
-      });
-    }
-    
-    const preferencesData = preferencesDoc.data();
-    console.log('✅ User preferences retrieved successfully');
-    
-    res.json({ 
-      success: true, 
-      data: preferencesData
-    });
-    
-  } catch (error) {
-    console.error('❌ Error fetching user preferences:', error);
-    res.status(500).json({ error: 'Failed to fetch preferences' });
-  }
-});
-
-// User Insights API - Get insights for a user
-app.get('/api/user-insights/:user_id', async (req, res) => {
-  const { user_id } = req.params;
-  
-  if (!user_id) {
-    return res.status(400).json({ error: 'user_id is required' });
-  }
-  
-  try {
-    console.log('💡 Fetching user insights for:', user_id);
-    
-    const insightsSnapshot = await db.collection('user_insights')
-      .where('userId', '==', user_id)
-      .orderBy('timestamp', 'desc')
-      .limit(10)
-      .get();
-    
-    const insights = [];
-    insightsSnapshot.forEach(doc => {
-      insights.push(doc.data());
-    });
-    
-    console.log('✅ User insights retrieved successfully');
-    
-    res.json({ 
-      success: true, 
-      insights: insights
-    });
-    
-  } catch (error) {
-    console.error('❌ Error fetching user insights:', error);
-    res.status(500).json({ error: 'Failed to fetch insights' });
-  }
-});
-
-// User Recommendations API - Get personalized recommendations
-app.get('/api/user-recommendations/:user_id', async (req, res) => {
-  const { user_id } = req.params;
-  
-  if (!user_id) {
-    return res.status(400).json({ error: 'user_id is required' });
-  }
-  
-  try {
-    console.log('🎯 Generating recommendations for:', user_id);
-    
-    // Get user preferences
-    const preferencesDoc = await db.collection('user_preferences').doc(user_id).get();
-    const preferences = preferencesDoc.exists ? preferencesDoc.data() : {};
-    
-    // Get recent feedback
-    const feedbackSnapshot = await db.collection('decoder_feedback')
-      .where('userId', '==', user_id)
-      .orderBy('timestamp', 'desc')
-      .limit(20)
-      .get();
-    
-    const recommendations = [];
-    
-    // Generate recommendations based on preferences and feedback
-    if (preferences.school_keywords) {
-      recommendations.push({
-        type: 'school_priority',
-        title: 'School Communications',
-        message: `Prioritizing emails from: ${preferences.school_keywords}`,
-        priority: 'high'
-      });
-    }
-    
-    if (preferences.healthcare_keywords) {
-      recommendations.push({
-        type: 'healthcare_priority',
-        title: 'Healthcare Updates',
-        message: `Monitoring emails from: ${preferences.healthcare_keywords}`,
-        priority: 'high'
-      });
-    }
-    
-    // Add feedback-based recommendations
-    const positiveFeedback = [];
-    const negativeFeedback = [];
-    
-    feedbackSnapshot.forEach(doc => {
-      const feedback = doc.data();
-      if (feedback.feedback === 'positive') {
-        positiveFeedback.push(feedback);
-      } else {
-        negativeFeedback.push(feedback);
-      }
-    });
-    
-    if (positiveFeedback.length > 0) {
-      recommendations.push({
-        type: 'positive_pattern',
-        title: 'What You Like',
-        message: `You've given positive feedback to ${positiveFeedback.length} emails recently`,
-        priority: 'medium'
-      });
-    }
-    
-    if (negativeFeedback.length > 0) {
-      recommendations.push({
-        type: 'negative_pattern',
-        title: 'What You Don\'t Like',
-        message: `You've given negative feedback to ${negativeFeedback.length} emails recently`,
-        priority: 'medium'
-      });
-    }
-    
-    console.log('✅ User recommendations generated successfully');
-    
-    res.json({ 
-      success: true, 
-      recommendations: recommendations
-    });
     
   } catch (error) {
     console.error('❌ Error generating recommendations:', error);

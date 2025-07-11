@@ -356,32 +356,60 @@ document.addEventListener("DOMContentLoaded", () => {
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         events: [
+          // FUTURE OF CALENDARS: Intelligent sample events
           {
-            title: 'Test Event',
+            title: "Emma's 7th Birthday Party",
             start: '2025-07-15',
-            backgroundColor: '#8b5cf6',
-            borderColor: '#8b5cf6',
-            extendedProps: {
-              reframe: 'This is a test event to verify calendar functionality. Consider reviewing your schedule and preparing for upcoming activities.'
-            }
-          },
-          {
-            title: 'Another Event',
-            start: '2025-07-20',
-            backgroundColor: '#10b981',
-            borderColor: '#10b981',
-            extendedProps: {
-              reframe: 'This event represents another sample activity. Make sure to set reminders and gather materials needed in advance.'
-            }
-          },
-          {
-            title: 'Team Meeting',
-            start: '2025-07-12T10:00:00',
-            end: '2025-07-12T11:00:00',
+            allDay: true,
             backgroundColor: '#f59e0b',
             borderColor: '#f59e0b',
             extendedProps: {
-              reframe: 'Weekly team meeting to discuss project progress and upcoming deliverables.'
+              description: "Birthday party for Emma turning 7 at Riverside Park",
+              type: 'birthday'
+            }
+          },
+          {
+            title: 'Lacrosse Game vs Eagles',
+            start: '2025-07-12T10:00:00',
+            end: '2025-07-12T12:00:00',
+            backgroundColor: '#10b981',
+            borderColor: '#10b981',
+            extendedProps: {
+              description: "Saturday morning lacrosse game at Memorial Field",
+              type: 'sports'
+            }
+          },
+          {
+            title: 'Dr. Peterson Checkup',
+            start: '2025-07-18T14:30:00',
+            end: '2025-07-18T15:30:00',
+            backgroundColor: '#3b82f6',
+            borderColor: '#3b82f6',
+            extendedProps: {
+              description: "Annual physical exam with pediatrician",
+              type: 'medical'
+            }
+          },
+          {
+            title: 'PTA Meeting',
+            start: '2025-07-20T19:00:00',
+            end: '2025-07-20T20:30:00',
+            backgroundColor: '#8b5cf6',
+            borderColor: '#8b5cf6',
+            extendedProps: {
+              description: "Monthly parent-teacher association meeting",
+              type: 'school'
+            }
+          },
+          {
+            title: 'Client Strategy Call',
+            start: '2025-07-16T08:00:00',
+            end: '2025-07-16T09:00:00',
+            backgroundColor: '#dc2626',
+            borderColor: '#dc2626',
+            extendedProps: {
+              description: "Early morning strategy session with key client",
+              type: 'work'
             }
           }
         ],
@@ -478,6 +506,22 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       }
+      
+      // Auto-load Google Calendar events after calendar is initialized
+      setTimeout(async () => {
+        try {
+          console.log('📅 Auto-loading Google Calendar events...');
+          await window.loadGoogleCalendarEvents();
+          console.log('✅ Google Calendar events auto-loaded successfully');
+          
+          // Also get intelligence insights
+          await window.getCalendarIntelligence();
+          console.log('✅ Calendar intelligence loaded successfully');
+        } catch (error) {
+          console.log('📅 Google Calendar not yet connected or authorized');
+          console.log('💡 Click "Sync Google Calendar" to connect your calendar');
+        }
+      }, 1500); // Give calendar time to fully render first
     }
 
     function updateActiveViewButton(activeId) {
@@ -602,33 +646,142 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    function getEventType(event) {
-      // Determine event type based on title, description, or other properties
+    // FUTURE OF CALENDARS: Intelligent Event Analysis & Reframing
+    function analyzeEventContext(event) {
       const title = event.title.toLowerCase();
       const description = (event.extendedProps?.description || '').toLowerCase();
+      const timeOfDay = new Date(event.start).getHours();
+      const dayOfWeek = new Date(event.start).getDay();
       
-      if (title.includes('appointment') || title.includes('doctor') || title.includes('dentist') || 
-          description.includes('appointment') || description.includes('medical')) {
-        return 'appointment';
-      } else if (title.includes('meeting') || title.includes('call') || title.includes('conference') ||
-                 description.includes('meeting') || description.includes('work')) {
-        return 'meeting';
-      } else if (title.includes('birthday') || title.includes('party') || title.includes('dinner') ||
-                 description.includes('personal') || description.includes('family')) {
-        return 'personal';
+      // SMART CONTEXT DETECTION
+      const contexts = {
+        birthday: /birthday|bday|b-day|party.*birthday|turning \d+/i.test(title + ' ' + description),
+        sports: /soccer|football|basketball|lacrosse|tennis|baseball|game|practice|tournament/i.test(title + ' ' + description),
+        medical: /doctor|dentist|appointment|checkup|physical|vaccine|medical/i.test(title + ' ' + description),
+        school: /school|pta|teacher|conference|pickup|dropoff|field trip/i.test(title + ' ' + description),
+        work: /meeting|call|conference|presentation|deadline|client/i.test(title + ' ' + description),
+        social: /dinner|lunch|coffee|drinks|date|hangout|gathering/i.test(title + ' ' + description),
+        travel: /flight|airport|trip|vacation|hotel|travel/i.test(title + ' ' + description),
+        maintenance: /repair|service|maintenance|cleaning|installation/i.test(title + ' ' + description)
+      };
+      
+      return { contexts, timeOfDay, dayOfWeek, title, description };
+    }
+
+    // FUTURE OF CALENDARS: Proactive AI Insights with Mel Robbins + Malcolm Gladwell Reframing
+    function generateIntelligentReframe(event) {
+      const analysis = analyzeEventContext(event);
+      const { contexts, timeOfDay, dayOfWeek } = analysis;
+      
+      // BIRTHDAY PARTY INTELLIGENCE
+      if (contexts.birthday) {
+        const ageMatch = event.title.match(/(\d+)/);
+        const age = ageMatch ? parseInt(ageMatch[1]) : null;
+        
+        if (age && age <= 12) {
+          return {
+            reframe: "Kids' birthday parties are networking events for parents. The gift matters less than showing up consistently. Your presence teaches your child how to honor friendships.",
+            actions: [
+              { text: "🎁 Gift Ideas for Age " + age, type: "gift_suggestions", priority: "high" },
+              { text: "📸 Bring camera/phone charger", type: "reminder", priority: "medium" },
+              { text: "💝 RSVP deadline check", type: "deadline", priority: "high" }
+            ],
+            insight: "Malcolm Gladwell would say: Small gestures compound into social capital. This isn't just a party—it's investing in your child's community."
+          };
+        } else if (age && age >= 13) {
+          return {
+            reframe: "Teen birthdays are about belonging, not gifts. Your job: facilitate connection, step back from control. They're learning to host their own life.",
+            actions: [
+              { text: "💬 Ask what they actually want", type: "communication", priority: "high" },
+              { text: "🚗 Transportation plan", type: "logistics", priority: "medium" }
+            ],
+            insight: "Mel Robbins truth: You can't engineer their social life. You can just show up when it matters."
+          };
+        }
       }
       
-      return 'personal'; // Default
+      // SPORTS EVENT INTELLIGENCE  
+      if (contexts.sports) {
+        return {
+          reframe: "Sports events are disguised lessons in resilience. Win or lose, your kid is learning how effort translates to outcome. Your energy sets their relationship with competition.",
+          actions: [
+            { text: "🚗 Carpool coordination check", type: "logistics", priority: "high" },
+            { text: "⚽ Equipment check (cleats, water, snacks)", type: "preparation", priority: "medium" },
+            { text: "📱 Other parents contact info", type: "networking", priority: "low" },
+            { text: "🌧️ Weather backup plan", type: "contingency", priority: "medium" }
+          ],
+          insight: "Andrew Huberman science: Physical challenges rewire the brain for stress tolerance. This game is building their nervous system for life."
+        };
+      }
+      
+      // MEDICAL APPOINTMENT INTELLIGENCE
+      if (contexts.medical) {
+        return {
+          reframe: "Medical appointments are data collection, not judgment day. You're the CEO of your family's health—gather intel, ask questions, advocate without apology.",
+          actions: [
+            { text: "📋 List current symptoms/questions", type: "preparation", priority: "high" },
+            { text: "💊 Bring current medications list", type: "documentation", priority: "high" },
+            { text: "📱 Insurance card & ID ready", type: "logistics", priority: "medium" },
+            { text: "⏰ Plan for wait time (book/activity)", type: "self_care", priority: "low" }
+          ],
+          insight: "Cheryl Strayed wisdom: You don't have to be the perfect patient. You just have to be the persistent advocate."
+        };
+      }
+      
+      // SCHOOL EVENT INTELLIGENCE
+      if (contexts.school) {
+        return {
+          reframe: "School events are intelligence gathering missions. You're not just supporting your kid—you're building relationships that make the whole system work better for everyone.",
+          actions: [
+            { text: "📝 Questions for teacher prepared", type: "preparation", priority: "medium" },
+            { text: "📧 Follow-up email drafted", type: "communication", priority: "low" },
+            { text: "👥 Connect with other parents", type: "networking", priority: "medium" }
+          ],
+          insight: "Malcolm Gladwell insight: Schools are complex adaptive systems. Your engagement creates ripple effects beyond your child."
+        };
+      }
+      
+      // WORK MEETING INTELLIGENCE
+      if (contexts.work) {
+        const isEarlyMorning = timeOfDay < 9;
+        const isLateDay = timeOfDay > 17;
+        
+        return {
+          reframe: isEarlyMorning 
+            ? "Early meetings are power moves—you're buying focus before the world wakes up. Your brain is sharpest now. Use it."
+            : isLateDay 
+            ? "Late meetings test boundaries. Either this is urgent or someone's poor planning became your problem. Know the difference."
+            : "Mid-day meetings interrupt deep work. Make them count by being the most prepared person in the room.",
+          actions: [
+            { text: "📊 Key points prepared", type: "preparation", priority: "high" },
+            { text: "⏰ Calendar block post-meeting", type: "time_management", priority: "medium" },
+            { text: "🎯 Desired outcome defined", type: "strategy", priority: "high" }
+          ],
+          insight: "Cal Newport principle: Meetings are expensive. Make sure the return on attention is worth the cognitive cost."
+        };
+      }
+      
+      // DEFAULT INTELLIGENT REFRAME
+      return {
+        reframe: "Every commitment is a choice about who you're becoming. This event matters because you decided it matters. Own that decision fully.",
+        actions: [
+          { text: "⚡ Energy check: Are you showing up fully?", type: "mindset", priority: "medium" },
+          { text: "🎯 Intention setting: What's your why?", type: "reflection", priority: "low" }
+        ],
+        insight: "Mel Robbins truth: You don't have to love it. You just have to show up like the person you want to become would show up."
+      };
     }
 
     // Event Modal Functions - Updated for slide-over style
     function showEventModal(event) {
-      console.log('📅 Opening slide-over for:', event.title);
+      console.log('📅 Opening intelligent slide-over for:', event.title);
       
       const modal = document.getElementById('eventModal');
       const titleEl = document.getElementById('modalEventTitle');
       const timeEl = document.getElementById('modalEventTime');
       const reframeEl = document.getElementById('modalEventReframe');
+      const actionsEl = document.getElementById('modalEventActions');
+      const insightEl = document.getElementById('modalEventInsight');
       
       if (!modal || !titleEl || !timeEl || !reframeEl) {
         console.error('❌ Modal elements not found');
@@ -656,9 +809,54 @@ document.addEventListener("DOMContentLoaded", () => {
       
       timeEl.textContent = timeString;
       
+      // FUTURE OF CALENDARS: Generate intelligent reframe and actions
+      const intelligence = generateIntelligentReframe(event);
+      
       // Set reframe content
-      const reframe = event.extendedProps?.reframe || 'No AI summary available for this event.';
-      reframeEl.textContent = reframe;
+      reframeEl.textContent = intelligence.reframe;
+      
+      // Add actionable intelligence if actions container exists
+      if (actionsEl && intelligence.actions) {
+        actionsEl.innerHTML = intelligence.actions.map(action => `
+          <div class="action-item" style="
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+            padding: 0.75rem; 
+            background: ${action.priority === 'high' ? 'rgba(220, 38, 38, 0.05)' : action.priority === 'medium' ? 'rgba(139, 92, 246, 0.05)' : 'rgba(107, 114, 128, 0.05)'}; 
+            border-radius: 0.5rem; 
+            border-left: 3px solid ${action.priority === 'high' ? '#dc2626' : action.priority === 'medium' ? '#8b5cf6' : '#6b7280'};
+            cursor: pointer;
+            transition: all 0.2s;
+          " onclick="handleActionClick('${action.type}', '${action.text}')">
+            <span style="flex: 1; font-size: 0.875rem; font-weight: 500;">${action.text}</span>
+            <div style="
+              width: 0.5rem; 
+              height: 0.5rem; 
+              border-radius: 50%; 
+              background: ${action.priority === 'high' ? '#dc2626' : action.priority === 'medium' ? '#8b5cf6' : '#6b7280'};
+            "></div>
+          </div>
+        `).join('');
+      }
+      
+      // Add insight if insight container exists
+      if (insightEl && intelligence.insight) {
+        insightEl.innerHTML = `
+          <div style="
+            font-style: italic; 
+            color: #6b7280; 
+            font-size: 0.875rem; 
+            line-height: 1.5;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+          ">
+            💡 ${intelligence.insight}
+          </div>
+        `;
+      }
       
       // Show modal with slide-over animation
       modal.classList.remove('hidden');
@@ -678,7 +876,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Ensure modal listeners are set up
       setTimeout(setupModalEventListeners, 50);
       
-      console.log('✅ Slide-over opened successfully');
+      console.log('✅ Intelligent slide-over opened successfully');
     }
 
     function hideEventModal() {
@@ -703,6 +901,36 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } else {
         console.warn('⚠️ Modal element not found');
+      }
+    }
+
+    // FUTURE OF CALENDARS: Handle intelligent action clicks
+    function handleActionClick(actionType, actionText) {
+      console.log('🎯 Action clicked:', actionType, actionText);
+      
+      switch(actionType) {
+        case 'gift_suggestions':
+          // Future: Open gift suggestion modal or redirect to curated gift ideas
+          alert('🎁 Gift Suggestions: Opening personalized recommendations...\n\n(Future: AI-curated gift ideas based on age, interests, and budget)');
+          break;
+        case 'logistics':
+          // Future: Open logistics helper (carpool coordination, weather check, etc.)
+          alert('🚗 Logistics Helper: Coordinating details...\n\n(Future: Auto-check carpool groups, weather, and send coordination texts)');
+          break;
+        case 'preparation':
+          // Future: Create preparation checklist
+          alert('📋 Preparation Mode: Creating your checklist...\n\n(Future: Smart checklists based on event type and your history)');
+          break;
+        case 'communication':
+          // Future: Draft suggested messages or emails
+          alert('💬 Communication Assistant: Drafting message...\n\n(Future: AI-generated context-appropriate messages)');
+          break;
+        case 'self_care':
+          // Future: Self-care recommendations
+          alert('🧘 Self-Care Mode: Preparing you for success...\n\n(Future: Personalized energy management and prep suggestions)');
+          break;
+        default:
+          alert('🚀 Smart Action: ' + actionText + '\n\n(Future: Context-aware assistance for every life situation)');
       }
     }
 
@@ -747,6 +975,14 @@ document.addEventListener("DOMContentLoaded", () => {
         clearAllBtn.removeEventListener('click', handleClearAll);
         clearAllBtn.addEventListener('click', handleClearAll);
         console.log('✅ Clear All button listener attached');
+      }
+      
+      // Google Calendar Sync button functionality
+      const syncGoogleCalendarBtn = document.getElementById('syncGoogleCalendarBtn');
+      if (syncGoogleCalendarBtn) {
+        syncGoogleCalendarBtn.removeEventListener('click', handleGoogleCalendarSync);
+        syncGoogleCalendarBtn.addEventListener('click', handleGoogleCalendarSync);
+        console.log('✅ Google Calendar Sync button listener attached');
       }
       
       // Edit and Delete button handlers
@@ -800,6 +1036,80 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.calendar && confirm('Are you sure you want to clear all events?')) {
         window.calendar.removeAllEvents();
         console.log('✅ All events cleared');
+      }
+    }
+
+    async function handleGoogleCalendarSync() {
+      const syncBtn = document.getElementById('syncGoogleCalendarBtn');
+      
+      if (!syncBtn) return;
+      
+      // Show loading state
+      const originalText = syncBtn.innerHTML;
+      syncBtn.innerHTML = '<i data-lucide="loader-2" style="width: 1rem; height: 1rem; animation: spin 1s linear infinite;"></i> Syncing...';
+      syncBtn.disabled = true;
+      
+      try {
+        // First, try to sync with Google Calendar
+        await window.syncGoogleCalendar();
+        
+        // Then load the events into the calendar
+        await window.loadGoogleCalendarEvents();
+        
+        // Get intelligence insights
+        await window.getCalendarIntelligence();
+        
+        // Show success state
+        syncBtn.innerHTML = '<i data-lucide="check" style="width: 1rem; height: 1rem;"></i> Synced!';
+        syncBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        
+        // Reset button after 3 seconds
+        setTimeout(() => {
+          syncBtn.innerHTML = originalText;
+          syncBtn.style.background = 'linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)';
+          syncBtn.disabled = false;
+          
+          // Re-initialize Lucide icons
+          if (window.lucide) {
+            window.lucide.createIcons();
+          }
+        }, 3000);
+        
+      } catch (error) {
+        console.error('❌ Calendar sync failed:', error);
+        
+        // Show error state
+        syncBtn.innerHTML = '<i data-lucide="alert-circle" style="width: 1rem; height: 1rem;"></i> Failed';
+        syncBtn.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        
+        // If not authenticated, show connect option
+        if (error.message.includes('authentication') || error.message.includes('authorization')) {
+          setTimeout(() => {
+            syncBtn.innerHTML = '<i data-lucide="link" style="width: 1rem; height: 1rem;"></i> Connect Google';
+            syncBtn.style.background = 'linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)';
+            syncBtn.disabled = false;
+            
+            // Change click handler to connect instead of sync
+            syncBtn.onclick = () => {
+              window.location.href = '/auth/google';
+            };
+            
+            if (window.lucide) {
+              window.lucide.createIcons();
+            }
+          }, 2000);
+        } else {
+          // Reset button after 3 seconds for other errors
+          setTimeout(() => {
+            syncBtn.innerHTML = originalText;
+            syncBtn.style.background = 'linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)';
+            syncBtn.disabled = false;
+            
+            if (window.lucide) {
+              window.lucide.createIcons();
+            }
+          }, 3000);
+        }
       }
     }
 
@@ -971,4 +1281,288 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("💥 layout.js crash:", err);
   }
 });
+
+// ================================
+// 📅 GOOGLE CALENDAR INTEGRATION
+// ================================
+
+// Global calendar integration functions
+window.syncGoogleCalendar = async function() {
+  console.log('🔄 Starting Google Calendar sync...');
+  
+  const userId = localStorage.getItem('user_email') || 'test_user';
+  
+  try {
+    const response = await fetch('/api/calendar/sync', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        syncDays: 30
+      })
+    });
+
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('✅ Calendar sync successful:', result);
+      
+      // Show success notification
+      showNotification(`📅 Synced ${result.syncedEvents} calendar events for AI intelligence!`, 'success');
+      
+      // Reload calendar to show synced events
+      if (window.loadGoogleCalendarEvents) {
+        await window.loadGoogleCalendarEvents();
+      }
+      
+      // Refresh the calendar view
+      if (window.calendar && window.calendar.refetchEvents) {
+        window.calendar.refetchEvents();
+      }
+      
+      return result;
+    } else {
+      throw new Error(result.error || 'Calendar sync failed');
+    }
+  } catch (error) {
+    console.error('❌ Calendar sync error:', error);
+    showNotification('❌ Calendar sync failed. Please reconnect your Google account.', 'error');
+    throw error;
+  }
+};
+
+// Load Google Calendar events for the intelligent calendar
+window.loadGoogleCalendarEvents = async function() {
+  console.log('📅 Loading Google Calendar events...');
+  
+  const userId = localStorage.getItem('user_email') || 'test_user';
+  
+  try {
+    // Get upcoming events for the next 30 days
+    const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    
+    const response = await fetch(`/api/calendar/events?user_id=${encodeURIComponent(userId)}&timeMin=${new Date().toISOString()}&timeMax=${thirtyDaysFromNow}&maxResults=100`);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      if (errorData.needsReauth) {
+        console.log('🔄 Calendar authorization expired, showing reauth option');
+        showCalendarReauthPrompt();
+        return [];
+      }
+      throw new Error(errorData.error || 'Failed to load calendar events');
+    }
+
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log(`✅ Loaded ${result.events.length} Google Calendar events`);
+      
+      // Transform events for FullCalendar
+      const calendarEvents = result.events.map(event => ({
+        id: event.googleEventId,
+        title: event.title,
+        start: event.start,
+        end: event.end,
+        description: event.description,
+        location: event.location,
+        allDay: event.isAllDay,
+        backgroundColor: '#4285f4', // Google blue
+        borderColor: '#4285f4',
+        textColor: '#ffffff',
+        extendedProps: {
+          source: 'google_calendar',
+          organizer: event.organizer,
+          attendees: event.attendees,
+          htmlLink: event.htmlLink,
+          status: event.status
+        }
+      }));
+      
+      // Store events globally for calendar access
+      window.googleCalendarEvents = calendarEvents;
+      
+      // Merge with existing sample events if calendar exists
+      if (window.calendar) {
+        // Remove existing Google Calendar events
+        const existingEvents = window.calendar.getEvents();
+        existingEvents.forEach(event => {
+          if (event.extendedProps?.source === 'google_calendar') {
+            event.remove();
+          }
+        });
+        
+        // Add new Google Calendar events
+        calendarEvents.forEach(event => {
+          window.calendar.addEvent(event);
+        });
+        
+        console.log('✅ Calendar updated with Google events');
+      }
+      
+      return calendarEvents;
+    } else {
+      throw new Error(result.error || 'Failed to load calendar events');
+    }
+  } catch (error) {
+    console.error('❌ Error loading Google Calendar events:', error);
+    showNotification('❌ Failed to load Google Calendar events', 'error');
+    return [];
+  }
+};
+
+// Get calendar intelligence and insights
+window.getCalendarIntelligence = async function() {
+  console.log('🧠 Analyzing calendar intelligence...');
+  
+  const userId = localStorage.getItem('user_email') || 'test_user';
+  
+  try {
+    const response = await fetch(`/api/calendar/intelligence?user_id=${encodeURIComponent(userId)}&days=90`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to get calendar intelligence');
+    }
+
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('🧠 Calendar intelligence loaded:', result.intelligence);
+      
+      // Store intelligence globally
+      window.calendarIntelligence = result.intelligence;
+      
+      // Update calendar insights bar if it exists
+      updateCalendarInsights(result.intelligence);
+      
+      return result.intelligence;
+    } else {
+      throw new Error(result.error || 'Failed to analyze calendar intelligence');
+    }
+  } catch (error) {
+    console.error('❌ Error getting calendar intelligence:', error);
+    return null;
+  }
+};
+
+// Show calendar reauth prompt
+function showCalendarReauthPrompt() {
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+  modal.innerHTML = `
+    <div class="bg-white rounded-lg p-6 max-w-md mx-4">
+      <h3 class="text-xl font-semibold mb-4">📅 Calendar Access Expired</h3>
+      <p class="text-gray-600 mb-6">Your Google Calendar access has expired. Please reconnect to continue syncing your calendar events for AI intelligence.</p>
+      <div class="flex space-x-3">
+        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+          Later
+        </button>
+        <button onclick="reconnectGoogleAccount()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          Reconnect Google
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+// Update calendar insights bar with intelligence data
+function updateCalendarInsights(intelligence) {
+  const insightsBar = document.querySelector('.calendar-insights-bar');
+  if (!insightsBar) return;
+  
+  const insights = intelligence.insights || [];
+  const totalEvents = intelligence.averageEventsPerWeek || 0;
+  
+  let insightsHTML = `
+    <div class="intelligence-summary">
+      <div class="stat">
+        <span class="stat-number">${totalEvents}</span>
+        <span class="stat-label">Events/Week</span>
+      </div>
+  `;
+  
+  // Add event type breakdown
+  const eventTypes = intelligence.eventTypes || {};
+  const topEventType = Object.keys(eventTypes).reduce((a, b) => eventTypes[a] > eventTypes[b] ? a : b, 'mixed');
+  
+  if (topEventType !== 'mixed') {
+    insightsHTML += `
+      <div class="stat">
+        <span class="stat-number">${eventTypes[topEventType]}</span>
+        <span class="stat-label">${topEventType} events</span>
+      </div>
+    `;
+  }
+  
+  insightsHTML += '</div>';
+  
+  // Add insights
+  if (insights.length > 0) {
+    insightsHTML += `
+      <div class="intelligence-insights">
+        <h4>🧠 AI Insights</h4>
+        <ul>
+          ${insights.slice(0, 2).map(insight => `<li>${insight}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+  
+  insightsBar.innerHTML = insightsHTML;
+}
+
+// Initialize calendar integration when page loads
+function initializeCalendarIntegration() {
+  console.log('📅 Initializing Google Calendar integration...');
+  
+  // Auto-sync calendar when calendar view is activated
+  if (window.location.hash === '#calendar' || window.location.pathname.includes('calendar')) {
+    setTimeout(async () => {
+      try {
+        await window.loadGoogleCalendarEvents();
+        await window.getCalendarIntelligence();
+      } catch (error) {
+        console.log('📅 Calendar integration not yet authorized');
+      }
+    }, 1000);
+  }
+}
+
+// Enhanced notification system
+function showNotification(message, type = 'info') {
+  // Remove existing notifications
+  const existing = document.querySelector('.calendar-notification');
+  if (existing) {
+    existing.remove();
+  }
+  
+  const notification = document.createElement('div');
+  notification.className = `calendar-notification fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 max-w-md`;
+  
+  const colors = {
+    success: 'bg-green-100 border border-green-400 text-green-700',
+    error: 'bg-red-100 border border-red-400 text-red-700',
+    info: 'bg-blue-100 border border-blue-400 text-blue-700'
+  };
+  
+  notification.className += ` ${colors[type] || colors.info}`;
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    notification.remove();
+  }, 5000);
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeCalendarIntegration);
+} else {
+  initializeCalendarIntegration();
+}
 

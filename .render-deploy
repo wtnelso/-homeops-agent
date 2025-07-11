@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-07-11T15:20:00Z",
+  "trigger": "force_deployment",
+  "version": "Calendar-AI-v2.3-CRITICAL",
+  "features": [
+    "Google Calendar Integration",
+    "AI Intelligence System", 
+    "Blue Sync Button",
+    "Event Reframing",
+    "Smart Actions"
+  ],
+  "cache_bust": "2025-07-11",
+  "deployment_required": true
+}

@@ -3,20 +3,23 @@
 <head>
   <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>HomeOps Decoder - Transform Your Inbox</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>HomeOps Decoder - LIVE TEST 2025.07.11.15:20 - AI Calendar Intelligence</title>
 
-  <link rel="stylesheet" href="style.css?v=2024-07-10" />
+  <link rel="stylesheet" href="style.css?v=2025-07-11" />
   <script>
     // Tailwind config moved to built CSS
   </script>
-  <link rel="stylesheet" href="chat-ui.css?v=2024-07-09" />
+  <link rel="stylesheet" href="chat-ui.css?v=2025-07-11" />
     <!-- ✅ Add Tippy.js tooltip support -->
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
   <script src="https://unpkg.com/@popperjs/core@2"></script>
   <script src="https://unpkg.com/tippy.js@6"></script>
   <!-- API Configuration -->
   <script src="config.js"></script>
-  <link rel="stylesheet" href="dashboard.css?v=2024-07-02" />
+  <link rel="stylesheet" href="dashboard.css?v=2025-07-11" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -792,6 +795,171 @@
       }
     }
     
+    /* ================================
+       📅 GOOGLE CALENDAR INTEGRATION STYLES
+       ================================ */
+    
+    /* Calendar sync button states */
+    #syncGoogleCalendarBtn {
+      transition: all 0.3s ease !important;
+    }
+    
+    #syncGoogleCalendarBtn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(66, 133, 244, 0.35) !important;
+    }
+    
+    #syncGoogleCalendarBtn:disabled {
+      opacity: 0.8;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    /* Calendar intelligence insights */
+    .calendar-insights-bar {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .intelligence-summary {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-number {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1;
+    }
+    
+    .stat-label {
+      display: block;
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.025em;
+      margin-top: 0.25rem;
+    }
+    
+    .intelligence-insights h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #374151;
+      margin: 0 0 0.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .intelligence-insights ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    
+    .intelligence-insights li {
+      font-size: 0.875rem;
+      color: #6b7280;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+      position: relative;
+      padding-left: 1rem;
+    }
+    
+    .intelligence-insights li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #8b5cf6;
+      font-weight: 600;
+    }
+    
+    /* Calendar notifications */
+    .calendar-notification {
+      font-weight: 500;
+      font-size: 0.875rem;
+      line-height: 1.4;
+      animation: slideInRight 0.3s ease-out;
+    }
+    
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    /* Google Calendar events styling */
+    .fc-event[data-source="google_calendar"] {
+      background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%) !important;
+      border-color: #1a73e8 !important;
+      position: relative;
+    }
+    
+    .fc-event[data-source="google_calendar"]:before {
+      content: "📅";
+      position: absolute;
+      left: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.7rem;
+    }
+    
+    .fc-event[data-source="google_calendar"] .fc-event-title {
+      padding-left: 16px;
+    }
+    
+    /* Loading spinner animation */
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
+    /* Mobile responsive adjustments for intelligence features */
+    @media (max-width: 768px) {
+      .intelligence-summary {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+      
+      .calendar-insights-bar {
+        padding: 0.75rem;
+      }
+      
+      .intelligence-insights li {
+        font-size: 0.8rem;
+      }
+      
+      #syncGoogleCalendarBtn span {
+        display: none;
+      }
+      
+      #syncGoogleCalendarBtn:after {
+        content: "Sync";
+      }
+    }
+    
     /* Logo text responsive */
     @media (max-width: 480px) {
       header .homeops-text {
@@ -1448,6 +1616,10 @@
           </div>
           
           <div style="display: flex; gap: 0.75rem; flex-shrink: 0;">
+            <button id="syncGoogleCalendarBtn" style="background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%); color: white; border: none; border-radius: 0.75rem; padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25); white-space: nowrap;">
+              <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i>
+              Sync Google Calendar
+            </button>
             <button id="addEventBtn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 0.75rem; padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25); white-space: nowrap;">
               <i data-lucide="plus" style="width: 1rem; height: 1rem;"></i>
               Add Event
@@ -1501,7 +1673,7 @@
 
     <!-- Event Panel - Right Slide-over Style -->
     <div id="eventModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.4); z-index: 50; display: none; justify-content: flex-end; backdrop-filter: blur(4px);">
-      <div style="background: white; width: 100%; max-width: 28rem; height: 100%; box-shadow: -20px 0 40px rgba(0, 0, 0, 0.15); overflow-y: auto; border-left: 1px solid #e5e7eb;">
+      <div style="background: white; width: 100%; max-width: 32rem; height: 100%; box-shadow: -20px 0 40px rgba(0, 0, 0, 0.15); overflow-y: auto; border-left: 1px solid #e5e7eb;">
         <div style="padding: 2rem;">
           <!-- Panel Header -->
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -1525,12 +1697,38 @@
               <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 0.5rem; padding: 0.25rem;">
                 <i data-lucide="sparkles" style="width: 1rem; height: 1rem; color: white;"></i>
               </div>
-              <h3 style="font-size: 0.875rem; font-weight: 600; color: #7c3aed; margin: 0;">AI Insights</h3>
+              <h3 style="font-size: 0.875rem; font-weight: 600; color: #7c3aed; margin: 0;">AI Reframe</h3>
             </div>
             <div style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); border-radius: 0.75rem; padding: 1rem; border: 1px solid #e9d5ff;">
               <p style="color: #374151; line-height: 1.6; margin: 0; font-size: 0.875rem;" id="modalEventReframe">
                 This event appears to be a family activity. Consider preparing any necessary items in advance.
               </p>
+            </div>
+          </div>
+
+          <!-- FUTURE OF CALENDARS: Intelligent Actions -->
+          <div style="margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 0.5rem; padding: 0.25rem;">
+                <i data-lucide="zap" style="width: 1rem; height: 1rem; color: white;"></i>
+              </div>
+              <h3 style="font-size: 0.875rem; font-weight: 600; color: #059669; margin: 0;">Smart Actions</h3>
+            </div>
+            <div id="modalEventActions" style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <!-- Dynamic actions will be inserted here -->
+            </div>
+          </div>
+
+          <!-- FUTURE OF CALENDARS: AI Insight -->
+          <div style="margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 0.5rem; padding: 0.25rem;">
+                <i data-lucide="lightbulb" style="width: 1rem; height: 1rem; color: white;"></i>
+              </div>
+              <h3 style="font-size: 0.875rem; font-weight: 600; color: #d97706; margin: 0;">Deep Insight</h3>
+            </div>
+            <div id="modalEventInsight">
+              <!-- Dynamic insight will be inserted here -->
             </div>
           </div>
 
@@ -1567,10 +1765,10 @@
 <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
 
 <!-- ✅ Your app scripts - REMOVE DEFER so they load in order -->
-<script src="layout.js?v=2024-07-02"></script>
-<script src="chat.js?v=2024-07-09"></script>
-<script src="/relief.js?v=2024-07-02"></script>
-<script src="dashboard.js?v=2024-07-03"></script>
+<script src="layout.js?v=2025-07-11"></script>
+<script src="chat.js?v=2025-07-11"></script>
+<script src="/relief.js?v=2025-07-11"></script>
+<script src="dashboard.js?v=2025-07-11"></script>
 
 <!-- ✅ Bottom nav for mobile view -->
 <div class="bottom-nav">
@@ -1580,7 +1778,7 @@
   <button data-view="calendar" onclick="activateView('calendar')">📅</button>
 </div>
 
-<script src="/homebase.js?v=2024-07-02" defer></script>
+<script src="/homebase.js?v=2025-07-11" defer></script>
 <script>
 // IMMEDIATE ACTIVATION SETUP - No waiting for DOM
 window.activateView = function(viewId) {
