@@ -8,6 +8,10 @@
   <!-- Mobile-First CSS -->
   <style>
     /* MOBILE-FIRST RESET */
+    :root {
+      --vh: 1vh;
+    }
+    
     * {
       margin: 0;
       padding: 0;
@@ -20,15 +24,21 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #fff;
       height: 100vh;
+      /* iOS viewport units fix */
+      height: 100dvh;
       overflow: hidden;
       touch-action: manipulation;
+      /* Prevent zoom on input focus */
+      -webkit-text-size-adjust: 100%;
     }
     
     /* MOBILE APP LAYOUT */
     .mobile-app {
       height: 100vh;
+      height: calc(var(--vh, 1vh) * 100); /* Use custom property for iOS */
       display: flex;
       flex-direction: column;
+      position: relative;
     }
     
     /* TOP HEADER */
@@ -54,6 +64,8 @@
       flex: 1;
       overflow: hidden;
       position: relative;
+      /* Add padding for fixed navigation */
+      padding-bottom: 70px;
     }
     
     .mobile-view {
@@ -74,7 +86,13 @@
       display: flex;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       padding: 8px 0;
-      position: relative;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      /* Ensure it stays visible with virtual keyboard */
+      min-height: 70px;
     }
     
     .nav-btn {
@@ -116,6 +134,8 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      /* Ensure proper spacing with fixed nav */
+      padding-bottom: 10px;
     }
     
     .chat-messages-mobile {
@@ -127,12 +147,20 @@
       border-radius: 20px;
       margin-bottom: 16px;
       border: 1px solid rgba(255, 255, 255, 0.1);
+      /* Ensure scrollable area doesn't get cut off */
+      min-height: 200px;
+      max-height: calc(100vh - 280px);
     }
     
     .chat-input-mobile {
       display: flex;
       gap: 12px;
       align-items: center;
+      /* Ensure input area is always visible */
+      position: sticky;
+      bottom: 0;
+      background: inherit;
+      padding-top: 8px;
     }
     
     .mobile-input {
@@ -763,12 +791,47 @@
         showView('chat-mobile', chatBtn);
       }
       
+      // Handle virtual keyboard visibility
+      setupKeyboardHandling();
+      
       // Initialize other components
       setTimeout(() => {
         checkGmailConnection();
         renderCalendar();
       }, 500);
     });
+    
+    function setupKeyboardHandling() {
+      // iOS viewport height adjustment for virtual keyboard
+      function setViewportHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      }
+      
+      setViewportHeight();
+      window.addEventListener('resize', setViewportHeight);
+      
+      // Handle input focus/blur for better UX
+      const chatInput = document.getElementById('chatInput');
+      if (chatInput) {
+        chatInput.addEventListener('focus', function() {
+          // Scroll to input when focused
+          setTimeout(() => {
+            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        });
+        
+        chatInput.addEventListener('blur', function() {
+          // Scroll back to show messages when done typing
+          setTimeout(() => {
+            const messagesDiv = document.querySelector('.chat-messages-mobile');
+            if (messagesDiv) {
+              messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+          }, 100);
+        });
+      }
+    }
     
     async function checkGmailConnection() {
       const statusEl = document.getElementById('connection-status');
