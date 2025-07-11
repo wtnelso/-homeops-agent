@@ -478,11 +478,6 @@
       height: auto !important;
     }
     
-    /* Hide FullCalendar's default toolbar */
-    .fc-toolbar {
-      display: none !important;
-    }
-    
     /* Clean calendar styling */
     .fc-event {
       border-radius: 6px !important;
@@ -1241,10 +1236,13 @@
 
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
-    <div class="max-w-6xl mx-auto">
-      <!-- 📅 Calendar Header -->
+    <div class="max-w-6xl mx-auto p-6">
+      <!-- Simple Calendar Header -->
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-semibold text-gray-900">📅 Calendar</h1>
+        <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+          <i data-lucide="calendar-days" class="w-6 h-6"></i>
+          Calendar
+        </h1>
         <div class="flex gap-2">
           <button id="addEventBtn" class="bg-primary text-white rounded-md px-4 py-2 flex items-center gap-2 hover:bg-primary-dark transition-colors">
             <i data-lucide="plus-circle" class="w-4 h-4"></i>
@@ -1256,33 +1254,10 @@
           </button>
         </div>
       </div>
-
-      <!-- 📅 Clean Calendar Toolbar -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            <button class="px-3 py-1.5 text-sm font-medium text-white bg-primary rounded-md transition-colors" id="monthViewBtn">Month</button>
-            <button class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" id="weekViewBtn">Week</button>
-            <button class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" id="dayViewBtn">Day</button>
-          </div>
-          <div class="flex items-center gap-4">
-            <button id="calendarPrevBtn" class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-              <i data-lucide="chevron-left" class="w-5 h-5"></i>
-            </button>
-            <h2 class="text-lg font-semibold text-gray-900 min-w-[140px] text-center" id="calendarTitle">July 2025</h2>
-            <button id="calendarNextBtn" class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-              <i data-lucide="chevron-right" class="w-5 h-5"></i>
-            </button>
-          </div>
-          <button id="calendarTodayBtn" class="px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-            Today
-          </button>
-        </div>
-      </div>
       
-      <!-- 📆 Calendar Grid -->
+      <!-- Calendar Container with FullCalendar's built-in toolbar -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div id="calendar" class="p-4" style="min-height: 600px;"></div>
+        <div id="calendar" style="min-height: 600px; padding: 20px;"></div>
       </div>
     </div>
 

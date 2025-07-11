@@ -340,11 +340,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log("🔄 Proceeding with calendar initialization");
 
-      // Clean FullCalendar v6 setup with no toolbar clutter
+      // Restore working FullCalendar v6 setup with built-in toolbar
       window.calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         height: 'auto',
-        headerToolbar: false, // Hide FullCalendar's built-in toolbar
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
         events: [
           // Sample events for testing
           {
@@ -384,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
           }
         },
-        // Custom styling
+        // Better styling
         dayMaxEvents: 3,
         moreLinkClick: 'popover',
         eventDisplay: 'block'
@@ -394,9 +398,6 @@ document.addEventListener("DOMContentLoaded", () => {
       window.calendar.render();
       window.calendarRendered = true;
       console.log("✅ Calendar initialized and rendered");
-      
-      // Setup custom navigation
-      setupCalendarNavigation();
       
       // Handle any pending events from chat
       if (window.pendingCalendarEvents && window.pendingCalendarEvents.length > 0) {
@@ -459,101 +460,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       }
-
-      // 🎯 Custom Calendar Navigation Functions
-      function setupCalendarNavigation() {
-        if (!window.calendar) return;
-        
-        // View switching buttons
-        const monthBtn = document.getElementById('monthViewBtn');
-        const weekBtn = document.getElementById('weekViewBtn');
-        const dayBtn = document.getElementById('dayViewBtn');
-        
-        // Navigation buttons
-        const prevBtn = document.getElementById('calendarPrevBtn');
-        const nextBtn = document.getElementById('calendarNextBtn');
-        const todayBtn = document.getElementById('calendarTodayBtn');
-        
-        // Update active view button
-        function updateActiveViewButton(view) {
-          [monthBtn, weekBtn, dayBtn].forEach(btn => {
-            btn.classList.remove('text-white', 'bg-primary');
-            btn.classList.add('text-gray-600');
-          });
-          
-          if (view === 'dayGridMonth') {
-            monthBtn.classList.remove('text-gray-600');
-            monthBtn.classList.add('text-white', 'bg-primary');
-          } else if (view === 'timeGridWeek') {
-            weekBtn.classList.remove('text-gray-600');
-            weekBtn.classList.add('text-white', 'bg-primary');
-          } else if (view === 'timeGridDay') {
-            dayBtn.classList.remove('text-gray-600');
-            dayBtn.classList.add('text-white', 'bg-primary');
-          }
-        }
-        
-        // Update calendar title
-        function updateCalendarTitle() {
-          const titleEl = document.getElementById('calendarTitle');
-          if (titleEl && window.calendar) {
-            titleEl.textContent = window.calendar.view.title;
-          }
-        }
-        
-        // View change handlers
-        if (monthBtn) {
-          monthBtn.addEventListener('click', () => {
-            window.calendar.changeView('dayGridMonth');
-            updateActiveViewButton('dayGridMonth');
-            updateCalendarTitle();
-          });
-        }
-        
-        if (weekBtn) {
-          weekBtn.addEventListener('click', () => {
-            window.calendar.changeView('timeGridWeek');
-            updateActiveViewButton('timeGridWeek');
-            updateCalendarTitle();
-          });
-        }
-        
-        if (dayBtn) {
-          dayBtn.addEventListener('click', () => {
-            window.calendar.changeView('timeGridDay');
-            updateActiveViewButton('timeGridDay');
-            updateCalendarTitle();
-          });
-        }
-        
-        // Navigation handlers
-        if (prevBtn) {
-          prevBtn.addEventListener('click', () => {
-            window.calendar.prev();
-            updateCalendarTitle();
-          });
-        }
-        
-        if (nextBtn) {
-          nextBtn.addEventListener('click', () => {
-            window.calendar.next();
-            updateCalendarTitle();
-          });
-        }
-        
-        if (todayBtn) {
-          todayBtn.addEventListener('click', () => {
-            window.calendar.today();
-            updateCalendarTitle();
-          });
-        }
-        
-        // Initial setup
-        updateActiveViewButton('dayGridMonth');
-        updateCalendarTitle();
-      }
-
-      setupCalendarNavigation();
     }
 
     function updateActiveViewButton(activeId) {
