@@ -354,14 +354,25 @@ document.addEventListener("DOMContentLoaded", () => {
           {
             title: 'Test Event',
             start: '2025-07-15',
-            backgroundColor: '#3b82f6'
+            backgroundColor: '#3b82f6',
+            extendedProps: {
+              reframe: 'This is a test event to verify the calendar functionality. Consider using this time to review your weekly schedule and prepare for upcoming activities.'
+            }
           },
           {
             title: 'Another Event',
             start: '2025-07-20',
-            backgroundColor: '#10b981'
+            backgroundColor: '#10b981',
+            extendedProps: {
+              reframe: 'This event represents another sample activity. Make sure to set reminders and gather any materials you might need in advance.'
+            }
           }
         ],
+        eventClick: function(info) {
+          // Show event modal with details and reframe
+          showEventModal(info.event);
+          info.jsEvent.preventDefault();
+        },
         dateClick: function(info) {
           const title = prompt("Add an event:");
           if (title) {
@@ -585,454 +596,114 @@ document.addEventListener("DOMContentLoaded", () => {
       return 'personal'; // Default
     }
 
-    function setupAddEventButton() {
-      const addEventBtn = document.getElementById('add-event-btn');
+    // Event Modal Functions
+    function showEventModal(event) {
+      const modal = document.getElementById('eventModal');
+      const titleEl = document.getElementById('modalEventTitle');
+      const timeEl = document.getElementById('modalEventTime');
+      const reframeEl = document.getElementById('modalEventReframe');
+      
+      if (modal && titleEl && timeEl && reframeEl) {
+        // Populate modal content
+        titleEl.textContent = event.title;
+        
+        // Format date/time
+        const startDate = new Date(event.start);
+        const endDate = event.end ? new Date(event.end) : null;
+        let timeString = startDate.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        if (!event.allDay) {
+          timeString += ' at ' + startDate.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit' 
+          });
+          if (endDate) {
+            timeString += ' - ' + endDate.toLocaleTimeString('en-US', { 
+              hour: 'numeric', 
+              minute: '2-digit' 
+            });
+          }
+        }
+        
+        timeEl.textContent = timeString;
+        
+        // Set reframe content
+        const reframe = event.extendedProps?.reframe || 'No AI summary available for this event.';
+        reframeEl.textContent = reframe;
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        console.log('✅ Event modal opened for:', event.title);
+      }
+    }
+
+    function hideEventModal() {
+      const modal = document.getElementById('eventModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        console.log('✅ Event modal closed');
+      }
+    }
+
+    // Set up modal event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      const closeBtn = document.getElementById('closeModalBtn');
+      const modal = document.getElementById('eventModal');
+      
+      if (closeBtn) {
+        closeBtn.addEventListener('click', hideEventModal);
+      }
+      
+      if (modal) {
+        // Close modal when clicking outside
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) {
+            hideEventModal();
+          }
+        });
+      }
+      
+      // Add Event button functionality
+      const addEventBtn = document.getElementById('addEventBtn');
       if (addEventBtn) {
         addEventBtn.addEventListener('click', function() {
-          showAddEventModal();
-        });
-      }
-    }
-
-    function showAddEventModal() {
-      const modalHTML = `
-        <div id="add-event-modal" class="calendar-injection-overlay">
-          <div class="calendar-injection-modal">
-            <div class="calendar-injection-header">
-              <h2><i data-lucide="plus"></i> Add New Event</h2>
-              <button class="calendar-injection-close" onclick="closeAddEventModal()">×</button>
-            </div>
-            <div class="calendar-injection-content">
-              <form id="add-event-form">
-                <div class="form-group">
-                  <label for="new-event-title">Event Title</label>
-                  <input type="text" id="new-event-title" required>
-                </div>
-                
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="new-event-date">Date</label>
-                    <input type="date" id="new-event-date" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="new-event-time">Time</label>
-                    <input type="time" id="new-event-time">
-                  </div>
-                </div>
-                
-                <div class="form-group">
-                  <label for="new-event-location">Location</label>
-                  <input type="text" id="new-event-location" placeholder="Optional">
-                </div>
-                
-                <div class="form-group">
-                  <label for="new-event-description">Description</label>
-                  <textarea id="new-event-description" rows="3" placeholder="Optional"></textarea>
-                </div>
-                
-                <div class="form-group checkbox-group">
-                  <label class="checkbox-label">
-                    <input type="checkbox" id="new-event-all-day">
-                    <span class="checkmark"></span>
-                    All day event
-                  </label>
-                </div>
-                
-                <div class="calendar-injection-actions">
-                  <button type="button" class="btn-secondary" onclick="closeAddEventModal()">Cancel</button>
-                  <button type="submit" class="btn-primary">
-                    <i data-lucide="calendar-plus"></i>
-                    Add Event
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      // Add modal to body
-      document.body.insertAdjacentHTML('beforeend', modalHTML);
-      
-      // Set default date to today
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('new-event-date').value = today;
-      
-      // Add event listeners
-      document.getElementById('add-event-modal').addEventListener('click', function(e) {
-        if (e.target.id === 'add-event-modal') {
-          closeAddEventModal();
-        }
-      });
-      
-      // Handle form submission
-      document.getElementById('add-event-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        submitNewEvent();
-      });
-      
-      // Add escape key listener
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          closeAddEventModal();
-        }
-      });
-      
-      // Initialize Lucide icons
-      if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-      }
-    }
-
-    function closeAddEventModal() {
-      const modal = document.getElementById('add-event-modal');
-      if (modal) {
-        modal.remove();
-      }
-    }
-
-    async function submitNewEvent() {
-      const title = document.getElementById('new-event-title').value;
-      const date = document.getElementById('new-event-date').value;
-      const time = document.getElementById('new-event-time').value;
-      const location = document.getElementById('new-event-location').value;
-      const description = document.getElementById('new-event-description').value;
-      const allDay = document.getElementById('new-event-all-day').checked;
-      
-      // Combine date and time
-      let startDateTime = date;
-      if (!allDay && time) {
-        startDateTime = `${date}T${time}`;
-      }
-      
-      // Create event data
-      const eventData = {
-        user_id: window.userId || "test_user",
-        title: title,
-        start: startDateTime,
-        allDay: allDay,
-        location: location || null,
-        description: description || null
-      };
-      
-      // Add end time if not all day
-      if (!allDay && time) {
-        const startDate = new Date(startDateTime);
-        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour later
-        eventData.end = endDate.toISOString();
-      }
-      
-      try {
-        const response = await fetch('/api/add-event', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          closeAddEventModal();
+          const title = prompt('Event title:');
+          const date = prompt('Date (YYYY-MM-DD):');
           
-          // Refresh calendar
-          if (window.calendar && typeof window.calendar.refetchEvents === 'function') {
-            window.calendar.refetchEvents();
-          }
-          
-          // Show success message
-          if (typeof showSuccess === 'function') {
-            showSuccess('Event added to your calendar!');
-          }
-        } else {
-          if (typeof showError === 'function') {
-            showError('Failed to add event to calendar');
-          }
-        }
-      } catch (error) {
-        console.error('Error adding event:', error);
-        if (typeof showError === 'function') {
-          showError('Error adding event to calendar');
-        }
-      }
-    }
-
-    // Make functions globally available
-    window.closeAddEventModal = closeAddEventModal;
-    window.showAddEventModal = showAddEventModal;
-
-    // Initialize modern calendar features when calendar is rendered
-    const originalRenderCalendar = window.renderCalendar;
-    window.renderCalendar = function() {
-      originalRenderCalendar();
-      
-      // Setup modern features after calendar is rendered
-      setTimeout(() => {
-        updateCalendarStats();
-        setupCalendarFilters();
-        setupAddEventButton();
-        
-        // Update stats when events change
-        if (window.calendar) {
-          window.calendar.on('eventAdd', updateCalendarStats);
-          window.calendar.on('eventRemove', updateCalendarStats);
-          window.calendar.on('eventChange', updateCalendarStats);
-        }
-      }, 500);
-    };
-
-    // Event Modal System
-    function showEventModal(event) {
-      // Create modal HTML
-      const modalHTML = `
-        <div id="event-modal" class="event-modal-overlay">
-          <div class="event-modal">
-            <div class="event-modal-header">
-              <h2>${event.title}</h2>
-              <button class="event-modal-close" onclick="closeEventModal()">×</button>
-            </div>
-            <div class="event-modal-content">
-              <div class="event-details">
-                <div class="event-detail-item">
-                  <i class="lucide-calendar"></i>
-                  <span>${formatEventDate(event.start)}</span>
-                </div>
-                <div class="event-detail-item">
-                  <i class="lucide-clock"></i>
-                  <span>${formatEventTime(event.start, event.end)}</span>
-                </div>
-                ${event.extendedProps.location ? `
-                  <div class="event-detail-item">
-                    <i class="lucide-map-pin"></i>
-                    <span>${event.extendedProps.location}</span>
-                  </div>
-                ` : ''}
-                ${event.extendedProps.description ? `
-                  <div class="event-detail-item">
-                    <i class="lucide-file-text"></i>
-                    <span>${event.extendedProps.description}</span>
-                  </div>
-                ` : ''}
-              </div>
-              
-              <div class="event-reframe-section">
-                <h3>🤔 Need a reframe?</h3>
-                <p>Get a fresh perspective on this event with AI-powered reframing.</p>
-                <button class="reframe-event-btn" onclick="reframeEvent('${event.title}')">
-                  <i class="lucide-sparkles"></i>
-                  Get Reframe
-                </button>
-                <div id="event-reframe-output" class="event-reframe-output"></div>
-              </div>
-              
-              <div class="event-actions">
-                <button class="event-action-btn edit-btn" onclick="editEvent('${event.id}')">
-                  <i class="lucide-edit"></i>
-                  Edit
-                </button>
-                <button class="event-action-btn delete-btn" onclick="deleteEvent('${event.id}')">
-                  <i class="lucide-trash-2"></i>
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      // Add modal to body
-      document.body.insertAdjacentHTML('beforeend', modalHTML);
-      
-      // Add event listeners for modal interactions
-      document.getElementById('event-modal').addEventListener('click', function(e) {
-        if (e.target.id === 'event-modal') {
-          closeEventModal();
-        }
-      });
-      
-      // Add escape key listener
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          closeEventModal();
-        }
-      });
-    }
-
-    function closeEventModal() {
-      const modal = document.getElementById('event-modal');
-      if (modal) {
-        modal.remove();
-      }
-    }
-
-    function formatEventDate(date) {
-      return new Date(date).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    }
-
-    function formatEventTime(start, end) {
-      const startTime = new Date(start);
-      const endTime = end ? new Date(end) : null;
-      
-      if (endTime) {
-        return `${startTime.toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit' 
-        })} - ${endTime.toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit' 
-        })}`;
-      } else {
-        return startTime.toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit' 
-        });
-      }
-    }
-
-    async function reframeEvent(eventTitle) {
-      const reframeOutput = document.getElementById('event-reframe-output');
-      const reframeBtn = document.querySelector('.reframe-event-btn');
-      
-      reframeOutput.innerHTML = '<div class="reframe-loading"><i class="lucide-loader-2"></i> Getting your reframe...</div>';
-      reframeBtn.disabled = true;
-      
-      try {
-        const response = await fetch('/api/reframe-protocol', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            challenge: `I have an event coming up: "${eventTitle}". I'm feeling a bit anxious about it and could use a fresh perspective.` 
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to get a response from the server.');
-        }
-
-        const data = await response.json();
-        
-        reframeOutput.innerHTML = `
-          <div class="event-reframe-result">
-            <h4>${data.title}</h4>
-            <p class="reframe-core">"${data.reframe}"</p>
-            <h5>${data.action.header}</h5>
-            <ul>
-              ${data.action.steps.map(step => `<li>${step}</li>`).join('')}
-            </ul>
-            <h6>The Science Behind It</h6>
-            <p class="reframe-science">${data.science}</p>
-          </div>
-        `;
-
-      } catch (error) {
-        reframeOutput.innerHTML = `<div class="reframe-error">Sorry, something went wrong. Please try again.</div>`;
-        console.error('Event Reframe Error:', error);
-      } finally {
-        reframeBtn.disabled = false;
-      }
-    }
-
-    async function editEvent(eventId) {
-      // TODO: Implement event editing
-      alert('Event editing coming soon!');
-    }
-
-    async function deleteEvent(eventId) {
-      if (confirm('Are you sure you want to delete this event?')) {
-        try {
-          const userId = window.userId || "test_user";
-          const response = await fetch('/api/delete-event', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              user_id: userId,
-              event_id: eventId 
-            })
-          });
-          
-          if (response.ok) {
-            window.calendar.refetchEvents();
-            closeEventModal();
-          } else {
-            alert('Failed to delete event');
-          }
-        } catch (error) {
-          console.error('Error deleting event:', error);
-          alert('Error deleting event');
-        }
-      }
-    }
-
-    // Make functions globally available
-    window.closeEventModal = closeEventModal;
-    window.reframeEvent = reframeEvent;
-    window.editEvent = editEvent;
-    window.deleteEvent = deleteEvent;
-
-    // Add clear events functionality
-    const clearEventsBtn = document.getElementById('clear-events-btn');
-    if (clearEventsBtn) {
-      clearEventsBtn.addEventListener('click', async () => {
-        if (confirm('Are you sure you want to clear all calendar events? This cannot be undone.')) {
-          try {
-            const userId = window.userId || "test_user";
-            const response = await fetch('/api/events/clear', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ user_id: userId })
-            });
-            
-            if (response.ok) {
-              // Clear the calendar display
-              if (window.calendar) {
-                window.calendar.removeAllEvents();
+          if (title && date && window.calendar) {
+            window.calendar.addEvent({
+              title: title,
+              start: date,
+              allDay: true,
+              backgroundColor: '#8b5cf6',
+              extendedProps: {
+                reframe: `This is a user-created event: ${title}. Consider preparing any necessary materials and setting reminders as needed.`
               }
-              // Reset calendar state
-              window.calendarRendered = false;
-              console.log('✅ All calendar events cleared');
-            } else {
-              console.error('❌ Failed to clear events');
-            }
-          } catch (error) {
-            console.error('❌ Error clearing events:', error);
+            });
+            console.log('✅ Event added:', title);
           }
-        }
-      });
-    }
-
-    // Account dropdown menu logic
-    const accountMenu = document.getElementById('accountMenu');
-    const accountBtn = document.getElementById('accountBtn');
-    const accountDropdown = document.getElementById('accountDropdown');
-
-    if (accountBtn && accountMenu && accountDropdown) {
-      accountBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        accountMenu.classList.toggle('open');
-        accountBtn.setAttribute('aria-expanded', accountMenu.classList.contains('open'));
-        if (accountMenu.classList.contains('open')) {
-          accountDropdown.focus();
-        }
-      });
-
-      document.addEventListener('click', function(e) {
-        if (!accountMenu.contains(e.target)) {
-          accountMenu.classList.remove('open');
-          accountBtn.setAttribute('aria-expanded', 'false');
-        }
-      });
-
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          accountMenu.classList.remove('open');
-          accountBtn.setAttribute('aria-expanded', 'false');
-        }
-      });
-    }
+        });
+      }
+      
+      // Clear All button functionality
+      const clearAllBtn = document.getElementById('clearAllBtn');
+      if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', function() {
+          if (window.calendar && confirm('Are you sure you want to clear all events?')) {
+            window.calendar.removeAllEvents();
+            console.log('✅ All events cleared');
+          }
+        });
+      }
+    });
 
     // Sidebar mobile toggle logic
     const sidebar = document.getElementById('sidebar');
@@ -1165,8 +836,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     window.addEventListener('resize', enforceMobileCalendarView);
     setTimeout(enforceMobileCalendarView, 1000);
-
-    setupAddEventButton();
 
     // On DOMContentLoaded, animate logo
     window.addEventListener('DOMContentLoaded', function() {

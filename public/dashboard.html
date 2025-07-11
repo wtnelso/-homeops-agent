@@ -477,6 +477,27 @@
       min-height: 600px !important;
       height: auto !important;
     }
+    
+    /* PRIMARY COLOR SYSTEM */
+    .bg-primary {
+      background-color: #7E5EFF;
+    }
+    .bg-primary-dark {
+      background-color: #6B46C1;
+    }
+    .text-primary {
+      color: #7E5EFF;
+    }
+    
+    /* MODAL STYLES */
+    #eventModal {
+      backdrop-filter: blur(4px);
+    }
+    
+    /* NOTION-LIKE SPACING */
+    .max-w-6xl {
+      max-width: 72rem;
+    }
   </style>
   <style>
   /* NUCLEAR CALENDAR FIX FOR DEMO */
@@ -1198,34 +1219,85 @@
 
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
-    <!-- 📅 Calendar Toolbar -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-      <div class="flex items-center justify-between flex-wrap gap-4">
-        <div class="flex items-center gap-2">
-          <button class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded-md hover:bg-gray-200 transition-colors active" id="monthViewBtn">month</button>
-          <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="weekViewBtn">week</button>
-          <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="dayViewBtn">day</button>
-          <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="listViewBtn">list</button>
-        </div>
-        <span class="text-lg font-semibold text-gray-900" id="calendarTitle">July 2025</span>
-        <div class="flex items-center gap-2">
-          <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Event
+    <div class="max-w-6xl mx-auto">
+      <!-- 📅 Calendar Header -->
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-semibold text-gray-900">📅 Calendar</h1>
+        <div class="flex gap-2">
+          <button id="addEventBtn" class="bg-primary text-white rounded-md px-4 py-2 flex items-center gap-2 hover:bg-primary-dark transition-colors">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            Add Event
           </button>
-          <button class="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2">
-            <i data-lucide="x-circle" class="w-4 h-4"></i> Clear All
+          <button id="clearAllBtn" class="border border-gray-300 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            Clear All
           </button>
         </div>
       </div>
+
+      <!-- 📅 Calendar Toolbar -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div class="flex items-center gap-2">
+            <button class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded-md hover:bg-gray-200 transition-colors active" id="monthViewBtn">month</button>
+            <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="weekViewBtn">week</button>
+            <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="dayViewBtn">day</button>
+            <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="listViewBtn">list</button>
+          </div>
+          <span class="text-lg font-semibold text-gray-900" id="calendarTitle">July 2025</span>
+        </div>
+      </div>
+      
+      <!-- 📆 Calendar Grid -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div id="calendar" class="p-4" style="min-height: 600px;"></div>
+      </div>
     </div>
-    <!-- 📆 Calendar Grid -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div id="calendar" class="p-4" style="min-height: 600px;"></div>
+
+    <!-- 🎯 Event Details Modal/Panel -->
+    <div id="eventModal" class="fixed inset-0 bg-black/20 z-50 hidden">
+      <div class="flex justify-end h-full">
+        <div class="w-full max-w-md bg-white shadow-xl h-full overflow-y-auto">
+          <div class="p-6">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold text-gray-900" id="modalEventTitle">Event Details</h2>
+              <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+              </button>
+            </div>
+            
+            <!-- Event Info -->
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+                <p class="text-sm text-gray-600" id="modalEventTime">Loading...</p>
+              </div>
+              
+              <!-- AI Reframe Section -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">✨ AI Summary</label>
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <p class="text-sm text-gray-700 whitespace-pre-line" id="modalEventReframe">
+                    This event appears to be a family activity. Consider preparing any necessary items in advance.
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Actions -->
+              <div class="flex gap-2 pt-4">
+                <button id="editEventBtn" class="flex-1 bg-primary text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-primary-dark transition-colors">
+                  Edit Event
+                </button>
+                <button id="deleteEventBtn" class="px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <script>
-    // TODO: Wire up view switching, add event, clear all
-    </script>
-  </section>
 
 </main>
 </div>
