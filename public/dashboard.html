@@ -63,11 +63,34 @@
       background-color: #f9fafb;
     }
     
-    /* 📱 RESPONSIVE VIEWPORT */
+    /* 📱 RESPONSIVE VIEWPORT AND MOBILE CENTERING */
     @media (max-height: 600px) {
       .dashboard-container {
         height: 100vh;
         min-height: 600px;
+      }
+    }
+    
+    /* Mobile-specific container centering */
+    @media (max-width: 768px) {
+      .dashboard-container {
+        overflow-x: hidden !important;
+      }
+      
+      main {
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+      }
+      
+      /* Ensure all sections are properly centered on mobile */
+      .view {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
       }
     }
     
@@ -751,47 +774,112 @@
       }
     }
     
-    /* FIXED: Mobile calendar constraints */
+    /* FIXED: Mobile calendar constraints and centering */
     @media (max-width: 768px) {
       /* Header responsive */
       header {
-        padding: 1rem !important;
+        padding: 0.75rem !important;
+        margin: 0 !important;
       }
       
-      /* Content wrapper responsive */
+      /* Content wrapper responsive - better mobile centering */
       .content-wrapper {
-        padding: 1rem !important;
+        padding: 0.75rem !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
       }
       
-      /* Calendar header stack on mobile */
+      /* Calendar view container - full width on mobile */
+      #calendar-view {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      /* Calendar header stack on mobile with proper centering */
       #calendar-view .calendar-header-actions {
         flex-direction: column !important;
         gap: 1rem !important;
-        align-items: stretch !important;
+        align-items: center !important;
+        text-align: center !important;
+        width: 100% !important;
       }
       
-      /* Calendar insights bar - vertical stack on mobile */
+      /* Calendar title section centering */
+      #calendar-view .calendar-header-actions > div:first-child {
+        justify-content: center !important;
+        text-align: center !important;
+        width: 100% !important;
+      }
+      
+      /* Button container centering */
+      #calendar-view .calendar-header-actions > div:last-child {
+        justify-content: center !important;
+        width: 100% !important;
+        flex-wrap: wrap !important;
+      }
+      
+      /* Calendar insights bar - better mobile layout */
       #calendar-view .insights-bar {
         flex-direction: column !important;
-        gap: 1rem !important;
-        align-items: stretch !important;
-      }
-      
-      /* Calendar container mobile */
-      #calendar {
+        gap: 0.75rem !important;
+        align-items: center !important;
+        text-align: center !important;
+        margin: 1rem 0 !important;
         padding: 1rem !important;
+        width: calc(100% - 2rem) !important;
+        max-width: none !important;
       }
       
-      /* Force calendar to fit container */
+      /* Calendar container mobile - centered */
+      #calendar {
+        padding: 0.75rem !important;
+        margin: 0 auto !important;
+        width: calc(100% - 1.5rem) !important;
+        max-width: none !important;
+      }
+      
+      /* Calendar section container - proper mobile width */
+      #calendar-view > div:first-child {
+        max-width: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      /* Force calendar to fit container properly */
       .fc {
         max-width: 100% !important;
         overflow-x: auto !important;
+        margin: 0 auto !important;
       }
       
-      /* Calendar toolbar responsive */
+      /* Calendar toolbar responsive - centered */
       .fc-toolbar {
         flex-direction: column !important;
         gap: 0.75rem !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 0.5rem 0 !important;
+      }
+      
+      /* Calendar toolbar sections - centered */
+      .fc-toolbar-chunk {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+      }
+      
+      /* Mobile button sizing */
+      #calendar-view button {
+        font-size: 0.8rem !important;
+        padding: 0.6rem 1rem !important;
+        min-width: auto !important;
       }
     }
     
@@ -1600,8 +1688,8 @@
 
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
-    <!-- CONTAINER WITH PROPER WIDTH CONSTRAINTS -->
-    <div style="max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box;">
+    <!-- CONTAINER WITH PROPER WIDTH CONSTRAINTS AND MOBILE CENTERING -->
+    <div style="max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; padding: 0 0.75rem;">
       <!-- MODERN CALENDAR HEADER -->
       <div style="margin-bottom: 2rem;">
         <div class="calendar-header-actions" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;">
@@ -1610,8 +1698,8 @@
               <i data-lucide="calendar-days" style="width: 1.5rem; height: 1.5rem; color: white;"></i>
             </div>
             <div style="min-width: 0;">
-              <h1 style="font-size: 2rem; font-weight: 700; color: #111827; margin: 0; line-height: 1.2;">Calendar</h1>
-              <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">Organize your schedule with AI-powered insights</p>
+              <h1 style="font-size: 2rem; font-weight: 700; color: #111827; margin: 0; line-height: 1.2;">Life Intelligence Center</h1>
+              <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">Transform your schedule into intelligent life management</p>
             </div>
           </div>
           
