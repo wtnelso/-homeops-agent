@@ -472,27 +472,79 @@
       display: block;
     }
     
-    /* CALENDAR FIXES */
+    /* CALENDAR STYLING */
     #calendar {
+      padding: 20px !important;
       min-height: 600px !important;
-      height: auto !important;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
-    /* Clean calendar styling */
-    .fc-event {
-      border-radius: 6px !important;
+    /* FullCalendar toolbar styling */
+    .fc-toolbar {
+      padding: 10px 0 !important;
+      margin-bottom: 20px !important;
+    }
+    
+    .fc-toolbar-title {
+      font-size: 1.5rem !important;
+      font-weight: 600 !important;
+      color: #1f2937 !important;
+    }
+    
+    .fc-button {
+      background: #8b5cf6 !important;
       border: none !important;
-      padding: 2px 6px !important;
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      padding: 6px 12px !important;
+    }
+    
+    .fc-button:hover {
+      background: #7c3aed !important;
+    }
+    
+    .fc-button:focus {
+      box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.5) !important;
+    }
+    
+    /* Clean event styling */
+    .fc-event {
+      border-radius: 4px !important;
+      border: none !important;
       font-size: 0.875rem !important;
       font-weight: 500 !important;
+      cursor: pointer !important;
     }
     
+    .fc-event:hover {
+      opacity: 0.8 !important;
+    }
+    
+    /* Today highlighting */
     .fc-day-today {
-      background-color: #f0f9ff !important;
+      background-color: #f3f4f6 !important;
     }
     
+    /* Day hover effect */
     .fc-daygrid-day:hover {
       background-color: #f9fafb !important;
+    }
+    
+    /* Grid styling */
+    .fc-scrollgrid {
+      border: 1px solid #e5e7eb !important;
+      border-radius: 8px !important;
+    }
+    
+    .fc-col-header-cell {
+      background-color: #f9fafb !important;
+      border-color: #e5e7eb !important;
+      font-weight: 600 !important;
+      color: #374151 !important;
+    }
+    
+    .fc-daygrid-day {
+      border-color: #e5e7eb !important;
     }
     
     /* PRIMARY COLOR SYSTEM */
@@ -1236,75 +1288,71 @@
 
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
-    <div class="max-w-6xl mx-auto p-6">
-      <!-- Simple Calendar Header -->
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-          <i data-lucide="calendar-days" class="w-6 h-6"></i>
+    <div class="w-full max-w-7xl mx-auto p-6">
+      <!-- Clean Header -->
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <i data-lucide="calendar-days" class="w-8 h-8 text-purple-600"></i>
           Calendar
         </h1>
-        <div class="flex gap-2">
-          <button id="addEventBtn" class="bg-primary text-white rounded-md px-4 py-2 flex items-center gap-2 hover:bg-primary-dark transition-colors">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+        <div class="flex gap-3">
+          <button id="addEventBtn" class="bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-colors font-medium">
+            <i data-lucide="plus" class="w-4 h-4"></i>
             Add Event
           </button>
-          <button id="clearAllBtn" class="border border-gray-300 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <button id="clearAllBtn" class="border border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-gray-700 transition-colors font-medium">
             Clear All
           </button>
         </div>
       </div>
       
-      <!-- Calendar Container with FullCalendar's built-in toolbar -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div id="calendar" style="min-height: 600px; padding: 20px;"></div>
+      <!-- Calendar Container -->
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div id="calendar"></div>
       </div>
     </div>
 
-    <!-- 🎯 Event Details Modal/Panel -->
-    <div id="eventModal" class="fixed inset-0 bg-black/20 z-50 hidden">
-      <div class="flex justify-end h-full">
-        <div class="w-full max-w-md bg-white shadow-xl h-full overflow-y-auto">
-          <div class="p-6">
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-xl font-bold text-gray-900" id="modalEventTitle">Event Details</h2>
-              <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
-                <i data-lucide="x" class="w-6 h-6"></i>
-              </button>
+    <!-- Event Modal -->
+    <div id="eventModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+          <!-- Modal Header -->
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-900" id="modalEventTitle">Event Details</h2>
+            <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 p-1">
+              <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+          </div>
+          
+          <!-- Event Info -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">📅 Date & Time</label>
+              <p class="text-gray-600" id="modalEventTime">Loading...</p>
             </div>
             
-            <!-- Event Info -->
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
-                <p class="text-sm text-gray-600" id="modalEventTime">Loading...</p>
-              </div>
-              
-              <!-- AI Reframe Section -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">✨ AI Summary</label>
-                <div class="bg-gray-50 rounded-lg p-4">
-                  <p class="text-sm text-gray-700 whitespace-pre-line" id="modalEventReframe">
-                    This event appears to be a family activity. Consider preparing any necessary items in advance.
-                  </p>
-                </div>
-              </div>
-              
-              <!-- Actions -->
-              <div class="flex gap-2 pt-4">
-                <button id="editEventBtn" class="flex-1 bg-primary text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-primary-dark transition-colors">
-                  Edit Event
-                </button>
-                <button id="deleteEventBtn" class="px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors">
-                  Delete
-                </button>
-              </div>
+            <!-- AI Reframe Section -->
+            <div class="bg-purple-50 rounded-lg p-4">
+              <label class="block text-sm font-semibold text-purple-700 mb-2">✨ AI Reframe</label>
+              <p class="text-gray-700 leading-relaxed" id="modalEventReframe">
+                This event appears to be a family activity. Consider preparing any necessary items in advance.
+              </p>
+            </div>
+            
+            <!-- Actions -->
+            <div class="flex gap-3 pt-4">
+              <button id="editEventBtn" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 font-medium transition-colors">
+                Edit Event
+              </button>
+              <button id="deleteEventBtn" class="px-4 py-2 text-red-600 border border-red-200 hover:bg-red-50 rounded-lg font-medium transition-colors">
+                Delete
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
 </main>
 </div>

@@ -340,24 +340,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log("🔄 Proceeding with calendar initialization");
 
-      // Restore working FullCalendar v6 setup with built-in toolbar
+      // Clean FullCalendar setup
       window.calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        height: 'auto',
+        height: 600,
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         events: [
-          // Sample events for testing
           {
             title: 'Test Event',
             start: '2025-07-15',
-            backgroundColor: '#7E5EFF',
-            borderColor: '#7E5EFF',
+            backgroundColor: '#8b5cf6',
+            borderColor: '#8b5cf6',
             extendedProps: {
-              reframe: 'This is a test event to verify the calendar functionality. Consider using this time to review your weekly schedule and prepare for upcoming activities.'
+              reframe: 'This is a test event to verify calendar functionality. Consider reviewing your schedule and preparing for upcoming activities.'
             }
           },
           {
@@ -366,34 +365,30 @@ document.addEventListener("DOMContentLoaded", () => {
             backgroundColor: '#10b981',
             borderColor: '#10b981',
             extendedProps: {
-              reframe: 'This event represents another sample activity. Make sure to set reminders and gather any materials you might need in advance.'
+              reframe: 'This event represents another sample activity. Make sure to set reminders and gather materials needed in advance.'
             }
           }
         ],
         eventClick: function(info) {
-          // Show event modal with details and reframe
           console.log('🎯 Event clicked:', info.event.title);
-          console.log('🎯 Event data:', info.event);
           showEventModal(info.event);
           info.jsEvent.preventDefault();
         },
         dateClick: function(info) {
           const title = prompt("Add an event:");
           if (title) {
-            // Add event directly to calendar for now
             window.calendar.addEvent({
               title: title,
               start: info.dateStr,
               allDay: true,
-              backgroundColor: '#7E5EFF',
-              borderColor: '#7E5EFF'
+              backgroundColor: '#8b5cf6',
+              borderColor: '#8b5cf6',
+              extendedProps: {
+                reframe: `User-created event: ${title}. Consider preparing necessary materials and setting reminders.`
+              }
             });
           }
-        },
-        // Better styling
-        dayMaxEvents: 3,
-        moreLinkClick: 'popover',
-        eventDisplay: 'block'
+        }
       });
 
       console.log("🔄 Rendering calendar...");
@@ -607,70 +602,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Event Modal Functions
     function showEventModal(event) {
-      console.log('📅 showEventModal called with:', event);
+      console.log('📅 Opening modal for:', event.title);
       
       const modal = document.getElementById('eventModal');
       const titleEl = document.getElementById('modalEventTitle');
       const timeEl = document.getElementById('modalEventTime');
       const reframeEl = document.getElementById('modalEventReframe');
       
-      console.log('📅 Modal elements found:', {
-        modal: !!modal,
-        titleEl: !!titleEl,
-        timeEl: !!timeEl,
-        reframeEl: !!reframeEl
+      if (!modal || !titleEl || !timeEl || !reframeEl) {
+        console.error('❌ Modal elements not found');
+        return;
+      }
+      
+      // Populate modal content
+      titleEl.textContent = event.title;
+      
+      // Format date/time
+      const startDate = new Date(event.start);
+      let timeString = startDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
       });
       
-      if (modal && titleEl && timeEl && reframeEl) {
-        // Populate modal content
-        titleEl.textContent = event.title;
-        
-        // Format date/time
-        const startDate = new Date(event.start);
-        const endDate = event.end ? new Date(event.end) : null;
-        let timeString = startDate.toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
+      if (!event.allDay) {
+        timeString += ' at ' + startDate.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit' 
         });
-        
-        if (!event.allDay) {
-          timeString += ' at ' + startDate.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit' 
-          });
-          if (endDate) {
-            timeString += ' - ' + endDate.toLocaleTimeString('en-US', { 
-              hour: 'numeric', 
-              minute: '2-digit' 
-            });
-          }
-        }
-        
-        timeEl.textContent = timeString;
-        
-        // Set reframe content
-        const reframe = event.extendedProps?.reframe || 'No AI summary available for this event.';
-        reframeEl.textContent = reframe;
-        
-        // Show modal
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        modal.style.display = 'flex'; // Force display
-        
-        console.log('✅ Event modal opened for:', event.title);
-        console.log('✅ Modal classes:', modal.className);
-        console.log('✅ Modal display style:', modal.style.display);
       }
+      
+      timeEl.textContent = timeString;
+      
+      // Set reframe content
+      const reframe = event.extendedProps?.reframe || 'No AI summary available for this event.';
+      reframeEl.textContent = reframe;
+      
+      // Show modal
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+      
+      console.log('✅ Modal opened successfully');
     }
 
     function hideEventModal() {
       const modal = document.getElementById('eventModal');
       if (modal) {
         modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        console.log('✅ Event modal closed');
+        modal.style.display = 'none';
+        console.log('✅ Modal closed');
       }
     }
 
