@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>HomeOps Decoder - Transform Your Inbox</title>
 
-  <link rel="stylesheet" href="style.css?v=2024-07-10" />
-  <link rel="stylesheet" href="chat-ui.css?v=2024-07-09" />
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -29,6 +26,7 @@
       },
     }
   </script>
+  <link rel="stylesheet" href="chat-ui.css?v=2024-07-09" />
     <!-- ✅ Add Tippy.js tooltip support -->
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
   <script src="https://unpkg.com/@popperjs/core@2"></script>
@@ -550,25 +548,27 @@
       </nav>
     </aside>
 
-    <main class="main-content">
+    <main class="main-content bg-gray-50 min-h-screen p-6">
 
   <!-- Top Bar with logo + brand and hamburger -->
-  <header class="top-bar">
-    <div class="top-bar-left">
-      <button class="hamburger" id="hamburgerBtn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-      </button>
-      <a href="#" onclick="activateView('home'); return false;" class="top-bar-logo-link">
-        <div class="homeops-brand">
-          <img src="img/homeops-logo.svg" alt="HomeOps" class="homeops-logo-icon">
-          <span class="homeops-brand-text">HomeOps</span>
-        </div>
-      </a>
-    </div>
-    <div class="top-bar-right">
-      <button id="logoutBtn" class="premium-logout-btn">Logout</button>
+  <header class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <button class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" id="hamburgerBtn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+        <a href="#" onclick="activateView('home'); return false;" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <div class="flex items-center gap-3">
+            <img src="img/homeops-logo.svg" alt="HomeOps" class="w-8 h-8">
+            <span class="text-xl font-semibold text-gray-900">HomeOps</span>
+          </div>
+        </a>
+      </div>
+      <div class="flex items-center gap-4">
+        <button id="logoutBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Logout</button>
+      </div>
     </div>
   </header>
 
@@ -1204,50 +1204,33 @@
 
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
-    <!-- 🧠 Modern Insights Bar -->
-    <div class="calendar-insights-bar">
-      <i data-lucide="brain" class="insight-icon"></i>
-      <span><strong>Forecast:</strong> Busy week ahead (July 22–28)</span>
-      <i data-lucide="mail-open" class="insight-icon"></i>
-      <span>6 new schedule-related emails decoded</span>
-      <i data-lucide="calendar-clock" class="insight-icon"></i>
-      <span>3 upcoming events</span>
-    </div>
-    <!-- Modern Calendar Header -->
-    <div class="modern-calendar-header gradient-header">
-      <div class="calendar-header-left">
-        <h2 class="calendar-title">
-          <i data-lucide="calendar"></i>
-          Your Calendar
-        </h2>
-        <p class="calendar-subtitle">Manage your family's schedule</p>
-      </div>
-      <div class="calendar-header-right">
-        <div class="calendar-stats">
-          <div class="stat-item">
-            <span class="stat-number">12</span>
-            <span class="stat-label">Events</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">3</span>
-            <span class="stat-label">This Week</span>
-          </div>
+    <!-- 📅 Calendar Toolbar -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-2">
+          <button class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded-md hover:bg-gray-200 transition-colors active" id="monthViewBtn">month</button>
+          <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="weekViewBtn">week</button>
+          <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="dayViewBtn">day</button>
+          <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="listViewBtn">list</button>
         </div>
-        <div class="calendar-actions">
-          <button id="add-event-btn">
-            <i data-lucide="plus"></i>
-            <span>Add Event</span>
+        <span class="text-lg font-semibold text-gray-900" id="calendarTitle">July 2025</span>
+        <div class="flex items-center gap-2">
+          <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Event
+          </button>
+          <button class="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2">
+            <i data-lucide="x-circle" class="w-4 h-4"></i> Clear All
           </button>
         </div>
       </div>
     </div>
-    <div class="modern-calendar-container">
-      <div class="calendar-main">
-        <div class="calendar-outer">
-          <div id="calendar"></div>
-        </div>
-      </div>
+    <!-- 📆 Calendar Grid -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div id="calendar" class="p-4"></div>
     </div>
+    <script>
+    // TODO: Wire up view switching, add event, clear all
+    </script>
   </section>
 
 </main>
@@ -1257,9 +1240,9 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css" rel="stylesheet" />
 
 <!-- ✅ FullCalendar Global Build — works without import or modules -->
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
-<!-- ✅ FullCalendar List Plugin (switched to unpkg CDN for reliability) -->
-<script src="https://unpkg.com/@fullcalendar/list@6.1.9/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js" defer></script>
+<!-- ✅ FullCalendar List Plugin -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/list.global.min.js" defer></script>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
