@@ -61,13 +61,10 @@
       height: 100%;
       padding: 20px;
       overflow-y: auto;
-      opacity: 0;
-      transition: opacity 0.3s ease;
     }
     
     .mobile-view.active {
-      display: block;
-      opacity: 1;
+      display: block !important;
     }
     
     /* BOTTOM NAVIGATION */
@@ -585,7 +582,9 @@
             <div class="day-header">S</div>
             
             <!-- Calendar days (will be populated by JS) -->
-            <div id="calendar-days"></div>
+            <div id="calendar-days" style="display: contents;">
+              <!-- JS will populate calendar days here -->
+            </div>
           </div>
           
           <!-- Today's Events -->
@@ -645,12 +644,12 @@
   <script>
     // Mobile-First JavaScript
     function showView(viewId, button) {
-      // Hide all views with smooth transition
+      console.log('Switching to view:', viewId);
+      
+      // Hide all views immediately
       document.querySelectorAll('.mobile-view').forEach(view => {
-        view.style.opacity = '0';
-        setTimeout(() => {
-          view.classList.remove('active');
-        }, 150);
+        view.classList.remove('active');
+        view.style.display = 'none';
       });
       
       // Remove active from all nav buttons
@@ -658,23 +657,21 @@
         btn.classList.remove('active');
       });
       
-      // Show selected view with smooth transition
-      setTimeout(() => {
-        const targetView = document.getElementById(viewId);
+      // Show selected view immediately
+      const targetView = document.getElementById(viewId);
+      if (targetView) {
+        targetView.style.display = 'block';
         targetView.classList.add('active');
-        setTimeout(() => {
-          targetView.style.opacity = '1';
-        }, 50);
         
-        button.classList.add('active');
-        
-        // Special handling for different views
-        if (viewId === 'calendar-mobile') {
-          loadCalendarEvents();
-        } else if (viewId === 'email-mobile') {
-          focusEmailInput();
+        // Initialize view-specific content
+        if (viewId === 'email-mobile') {
+          initializeEmailView();
+        } else if (viewId === 'calendar-mobile') {
+          initializeCalendarView();
         }
-      }, 150);
+      }
+      
+      button.classList.add('active');
       
       // Haptic feedback
       if (navigator.vibrate) {
@@ -682,43 +679,18 @@
       }
     }
     
-    function loadCalendarEvents() {
-      const eventsList = document.getElementById('eventsList');
-      eventsList.innerHTML = `
-        <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">
-          <div class="typing-dots" style="margin-bottom: 10px;">
-            <span>.</span><span>.</span><span>.</span>
-          </div>
-          Loading your calendar...
-        </div>
-      `;
-      
-      // Simulate loading calendar data
-      setTimeout(() => {
-        eventsList.innerHTML = `
-          <div class="event-item">
-            <div class="event-title">Team Standup</div>
-            <div class="event-time">Today, 2:00 PM - Quick sync</div>
-          </div>
-          <div class="event-item">
-            <div class="event-title">Project Review</div>
-            <div class="event-time">Tomorrow, 10:00 AM - Final approval needed</div>
-          </div>
-          <div class="event-item">
-            <div class="event-title">Parent-Teacher Conference</div>
-            <div class="event-time">Friday, 3:30 PM - School pickup after</div>
-          </div>
-        `;
-      }, 1000);
+    function initializeEmailView() {
+      console.log('Initializing email view...');
+      if (!document.getElementById('gmail-status').querySelector('.typing-dots')) {
+        checkGmailConnection();
+      }
     }
     
-    function focusEmailInput() {
-      setTimeout(() => {
-        const emailInput = document.getElementById('emailInput');
-        if (emailInput) {
-          emailInput.focus();
-        }
-      }, 200);
+    function initializeCalendarView() {
+      console.log('Initializing calendar view...');
+      if (!document.getElementById('calendar-days').innerHTML) {
+        renderCalendar();
+      }
     }
     
     function sendMessage() {
@@ -780,15 +752,43 @@
     let currentDate = new Date();
     
     // Initialize on load
-    window.addEventListener('load', function() {
-      checkGmailConnection();
-      renderCalendar();
+    window.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Mobile app initializing...');
+      
+      // Force show chat view initially
+      const chatView = document.getElementById('chat-mobile');
+      const chatBtn = document.querySelector('.nav-btn[onclick*="chat-mobile"]');
+      
+      if (chatView && chatBtn) {
+        showView('chat-mobile', chatBtn);
+      }
+      
+      // Initialize other components
+      setTimeout(() => {
+        checkGmailConnection();
+        renderCalendar();
+      }, 500);
     });
     
     async function checkGmailConnection() {
       const statusEl = document.getElementById('connection-status');
       const connectBtn = document.getElementById('connect-gmail-mobile');
       const processBtn = document.getElementById('process-emails-mobile');
+      
+      if (!statusEl) {
+        console.warn('Gmail status element not found');
+        return;
+      }
+      
+      // Show loading state
+      statusEl.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.7);">
+          <div class="typing-dots">
+            <span>.</span><span>.</span><span>.</span>
+          </div>
+          <span>Checking Gmail connection...</span>
+        </div>
+      `;
       
       try {
         const response = await fetch('/api/auth/status');
@@ -797,33 +797,76 @@
         if (data.authenticated && data.user_id) {
           currentUserId = data.user_id;
           statusEl.innerHTML = `
-            <div style="color: rgba(34, 197, 94, 1);">
-              ✅ Gmail connected (${data.email || 'Unknown'})
+            <div style="color: rgba(34, 197, 94, 1); display: flex; align-items: center; gap: 8px;">
+              <span>✅</span>
+              <span>Gmail connected (${data.email || 'Unknown'})</span>
             </div>
           `;
-          connectBtn.style.display = 'none';
-          processBtn.style.display = 'block';
+          if (connectBtn) connectBtn.style.display = 'none';
+          if (processBtn) processBtn.style.display = 'block';
           
           // Auto-load recent emails if available
           loadRecentEmails();
         } else {
           statusEl.innerHTML = `
-            <div style="color: rgba(251, 191, 36, 1);">
-              ⚠️ Gmail not connected
+            <div style="color: rgba(251, 191, 36, 1); display: flex; align-items: center; gap: 8px;">
+              <span>⚠️</span>
+              <span>Gmail not connected - Click below to connect</span>
             </div>
           `;
-          connectBtn.style.display = 'block';
-          processBtn.style.display = 'none';
+          if (connectBtn) connectBtn.style.display = 'block';
+          if (processBtn) processBtn.style.display = 'none';
         }
       } catch (error) {
         console.error('Connection check failed:', error);
         statusEl.innerHTML = `
-          <div style="color: rgba(239, 68, 68, 1);">
-            ❌ Connection check failed
+          <div style="color: rgba(239, 68, 68, 1); display: flex; align-items: center; gap: 8px;">
+            <span>❌</span>
+            <span>Connection check failed - Using demo mode</span>
           </div>
         `;
-        connectBtn.style.display = 'block';
-        processBtn.style.display = 'none';
+        if (connectBtn) connectBtn.style.display = 'block';
+        if (processBtn) processBtn.style.display = 'none';
+        
+        // Show demo emails
+        showDemoEmails();
+      }
+    }
+    
+    function showDemoEmails() {
+      const emailCategories = document.getElementById('email-categories');
+      if (emailCategories) {
+        emailCategories.style.display = 'block';
+        
+        // Demo email data
+        decodedEmails = [
+          {
+            id: 'demo1',
+            subject: 'Soccer practice moved to 4pm',
+            sender: 'Coach Sarah',
+            category: 'family',
+            preview: 'Hi parents, due to field maintenance...',
+            summary: 'Schedule change for kids activity'
+          },
+          {
+            id: 'demo2', 
+            subject: 'URGENT: Project deadline moved up',
+            sender: 'Project Manager',
+            category: 'urgent',
+            preview: 'The client wants to move the launch date...',
+            summary: 'Work deadline change requiring immediate attention'
+          },
+          {
+            id: 'demo3',
+            subject: 'Amazon order delivered',
+            sender: 'Amazon',
+            category: 'commerce',
+            preview: 'Your package has been delivered...',
+            summary: 'Package delivery confirmation'
+          }
+        ];
+        
+        renderEmailCards();
       }
     }
     
@@ -972,6 +1015,11 @@
       const calendarDays = document.getElementById('calendar-days');
       const monthEl = document.getElementById('current-month');
       
+      if (!calendarDays || !monthEl) {
+        console.warn('Calendar elements not found');
+        return;
+      }
+      
       const months = ['January', 'February', 'March', 'April', 'May', 'June',
                      'July', 'August', 'September', 'October', 'November', 'December'];
       
@@ -991,17 +1039,18 @@
         
         const isToday = day.toDateString() === today.toDateString();
         const isCurrentMonth = day.getMonth() === currentDate.getMonth();
-        const hasEvents = Math.random() > 0.8; // Simulate some events
+        const hasEvents = Math.random() > 0.7; // Simulate some events
         
         let classes = 'calendar-day';
         if (isToday) classes += ' today';
         if (!isCurrentMonth) classes += ' other-month';
-        if (hasEvents) classes += ' has-events';
+        if (hasEvents && isCurrentMonth) classes += ' has-events';
         
         daysHtml.push(`<div class="${classes}" onclick="selectDate('${day.toISOString()}')">${day.getDate()}</div>`);
       }
       
       calendarDays.innerHTML = daysHtml.join('');
+      console.log('Calendar rendered with', daysHtml.length, 'days');
     }
     
     function changeMonth(direction) {
