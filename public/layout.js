@@ -50,6 +50,9 @@ document.addEventListener("DOMContentLoaded", () => {
         activeView.classList.add('active');
       }
       
+      // Dispatch custom event for view activation
+      window.dispatchEvent(new CustomEvent('viewActivated', { detail: { viewId } }));
+      
       // Handle HomeBase component initialization when home view is activated
       if (viewId === 'home') {
         setTimeout(() => {
@@ -91,6 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // If already rendered, just update the size
             window.calendar.updateSize();
           }
+          // Ensure modal listeners are set up for calendar view
+          setupModalEventListeners();
         }, 100);
       }
       
@@ -660,35 +665,44 @@ document.addEventListener("DOMContentLoaded", () => {
       modal.style.display = 'flex';
       
       // Add slide-in animation
-      const panel = modal.querySelector('.bg-white');
+      const panel = modal.querySelector('div[style*="background: white"]');
       if (panel) {
         panel.style.transform = 'translateX(100%)';
+        panel.style.transition = '';
         setTimeout(() => {
           panel.style.transition = 'transform 0.3s ease-out';
           panel.style.transform = 'translateX(0)';
         }, 10);
       }
       
+      // Ensure modal listeners are set up
+      setTimeout(setupModalEventListeners, 50);
+      
       console.log('✅ Slide-over opened successfully');
     }
 
     function hideEventModal() {
+      console.log('🚫 Hiding event modal');
       const modal = document.getElementById('eventModal');
       if (modal) {
-        const panel = modal.querySelector('.bg-white');
+        const panel = modal.querySelector('.bg-white, div[style*="background: white"]');
         if (panel) {
+          panel.style.transition = 'transform 0.3s ease-out';
           panel.style.transform = 'translateX(100%)';
           setTimeout(() => {
-            modal.classList.add('hidden');
             modal.style.display = 'none';
+            modal.classList.add('hidden');
             panel.style.transition = '';
             panel.style.transform = '';
+            console.log('✅ Modal hidden with animation');
           }, 300);
         } else {
-          modal.classList.add('hidden');
           modal.style.display = 'none';
+          modal.classList.add('hidden');
+          console.log('✅ Modal hidden (no animation)');
         }
-        console.log('✅ Slide-over closed');
+      } else {
+        console.warn('⚠️ Modal element not found');
       }
     }
 
@@ -696,58 +710,43 @@ document.addEventListener("DOMContentLoaded", () => {
     window.showEventModal = showEventModal;
     window.hideEventModal = hideEventModal;
 
-    // Set up modal event listeners - Updated for slide-over
-    document.addEventListener('DOMContentLoaded', function() {
+    // Set up modal event listeners - FIXED: Proper event handlers
+    function setupModalEventListeners() {
       const closeBtn = document.getElementById('closeModalBtn');
       const modal = document.getElementById('eventModal');
       
       if (closeBtn) {
-        closeBtn.addEventListener('click', hideEventModal);
+        // Remove any existing listeners first
+        closeBtn.removeEventListener('click', hideEventModal);
+        closeBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          console.log('❌ Close button clicked');
+          hideEventModal();
+        });
+        console.log('✅ Close button listener attached');
       }
       
       if (modal) {
-        // Close modal when clicking the backdrop (not the panel)
-        modal.addEventListener('click', function(e) {
-          if (e.target === modal) {
-            hideEventModal();
-          }
-        });
+        // Remove any existing listeners first
+        modal.removeEventListener('click', modalBackdropClick);
+        modal.addEventListener('click', modalBackdropClick);
+        console.log('✅ Modal backdrop listener attached');
       }
       
-      // Add Event button functionality
+      // Add Event button functionality - FIXED
       const addEventBtn = document.getElementById('addEventBtn');
       if (addEventBtn) {
-        addEventBtn.addEventListener('click', function() {
-          const title = prompt('Event title:');
-          if (!title) return;
-          
-          const date = prompt('Date (YYYY-MM-DD):') || new Date().toISOString().split('T')[0];
-          
-          if (window.calendar) {
-            window.calendar.addEvent({
-              title: title,
-              start: date,
-              allDay: true,
-              backgroundColor: '#8b5cf6',
-              borderColor: '#8b5cf6',
-              extendedProps: {
-                reframe: `User-created event: ${title}. Consider preparing any necessary materials and setting reminders as needed.`
-              }
-            });
-            console.log('✅ Event added:', title);
-          }
-        });
+        addEventBtn.removeEventListener('click', handleAddEvent);
+        addEventBtn.addEventListener('click', handleAddEvent);
+        console.log('✅ Add Event button listener attached');
       }
       
       // Clear All button functionality
       const clearAllBtn = document.getElementById('clearAllBtn');
       if (clearAllBtn) {
-        clearAllBtn.addEventListener('click', function() {
-          if (window.calendar && confirm('Are you sure you want to clear all events?')) {
-            window.calendar.removeAllEvents();
-            console.log('✅ All events cleared');
-          }
-        });
+        clearAllBtn.removeEventListener('click', handleClearAll);
+        clearAllBtn.addEventListener('click', handleClearAll);
+        console.log('✅ Clear All button listener attached');
       }
       
       // Edit and Delete button handlers
@@ -755,21 +754,76 @@ document.addEventListener("DOMContentLoaded", () => {
       const deleteEventBtn = document.getElementById('deleteEventBtn');
       
       if (editEventBtn) {
-        editEventBtn.addEventListener('click', function() {
-          // For now, just close the modal - can be expanded later
-          hideEventModal();
-          alert('Edit functionality coming soon!');
-        });
+        editEventBtn.removeEventListener('click', handleEditEvent);
+        editEventBtn.addEventListener('click', handleEditEvent);
       }
       
       if (deleteEventBtn) {
-        deleteEventBtn.addEventListener('click', function() {
-          if (confirm('Are you sure you want to delete this event?')) {
-            // Delete logic would go here
-            hideEventModal();
-            alert('Delete functionality coming soon!');
+        deleteEventBtn.removeEventListener('click', handleDeleteEvent);
+        deleteEventBtn.addEventListener('click', handleDeleteEvent);
+      }
+    }
+
+    // Modal backdrop click handler
+    function modalBackdropClick(e) {
+      if (e.target === e.currentTarget) {
+        console.log('📱 Backdrop clicked, closing modal');
+        hideEventModal();
+      }
+    }
+
+    // Event handlers for calendar actions
+    function handleAddEvent() {
+      console.log('➕ Add Event clicked');
+      const title = prompt('Event title:');
+      if (!title) return;
+      
+      const date = prompt('Date (YYYY-MM-DD):') || new Date().toISOString().split('T')[0];
+      
+      if (window.calendar) {
+        const newEvent = {
+          title: title,
+          start: date,
+          allDay: true,
+          backgroundColor: '#8b5cf6',
+          borderColor: '#8b5cf6',
+          extendedProps: {
+            reframe: `User-created event: ${title}. Consider preparing any necessary materials and setting reminders as needed.`
           }
-        });
+        };
+        window.calendar.addEvent(newEvent);
+        console.log('✅ Event added:', title);
+      }
+    }
+
+    function handleClearAll() {
+      if (window.calendar && confirm('Are you sure you want to clear all events?')) {
+        window.calendar.removeAllEvents();
+        console.log('✅ All events cleared');
+      }
+    }
+
+    function handleEditEvent() {
+      hideEventModal();
+      alert('Edit functionality coming soon!');
+    }
+
+    function handleDeleteEvent() {
+      if (confirm('Are you sure you want to delete this event?')) {
+        hideEventModal();
+        alert('Delete functionality coming soon!');
+      }
+    }
+
+    // Initialize modal listeners when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      setupModalEventListeners();
+    });
+
+    // Also set up listeners when calendar view is activated
+    window.addEventListener('viewActivated', function(e) {
+      if (e.detail.viewId === 'calendar') {
+        setTimeout(setupModalEventListeners, 100);
       }
     });
 
