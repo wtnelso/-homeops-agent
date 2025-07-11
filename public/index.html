@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeOps - Redirecting...</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .loader {
+      text-align: center;
+    }
+    .spinner {
+      border: 3px solid #333;
+      border-top: 3px solid #8b5cf6;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader">
+    <div class="spinner"></div>
+    <h2>Optimizing Experience...</h2>
+    <p>Detecting your device...</p>
+  </div>
+
+  <script>
+    function isMobile() {
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) ||
+             window.innerWidth <= 768;
+    }
+
+    function redirect() {
+      if (isMobile()) {
+        console.log('📱 Mobile device detected - redirecting to mobile version');
+        window.location.href = '/mobile.html';
+      } else {
+        console.log('💻 Desktop device detected - redirecting to desktop version');
+        window.location.href = '/dashboard.html';
+      }
+    }
+
+    // Wait a moment to show the loader, then redirect
+    setTimeout(redirect, 1000);
+  </script>
+</body>
+</html>
