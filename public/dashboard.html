@@ -713,21 +713,21 @@
 
     <main style="flex: 1; background-color: #f9fafb; min-height: 100vh; padding: 0; margin-left: 0; transition: margin-left 0.3s ease; display: flex; flex-direction: column;">
 
-  <!-- FIXED: Top Bar with proper positioning and no cut-off -->
-  <header style="background: white; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border-bottom: 1px solid #e5e7eb; padding: 1rem 1.5rem; flex-shrink: 0; z-index: 10; position: sticky; top: 0;">
-    <div style="display: flex; align-items: center; justify-content: space-between; max-width: 100%; width: 100%;">
-      <div style="display: flex; align-items: center; gap: 1rem;">
+  <!-- FIXED: Top Bar with proper positioning and width constraints -->
+  <header style="background: white; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border-bottom: 1px solid #e5e7eb; padding: 1rem 1.5rem; flex-shrink: 0; z-index: 10; position: sticky; top: 0; width: 100%; max-width: 100%; overflow: hidden;">
+    <div style="display: flex; align-items: center; justify-content: space-between; max-width: 100%; width: 100%; min-width: 0;">
+      <div style="display: flex; align-items: center; gap: 1rem; min-width: 0; overflow: hidden;">
         <!-- Mobile hamburger button -->
-        <button style="display: none; padding: 0.5rem; color: #6b7280; background: none; border: none; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.2s;" id="hamburgerBtn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+        <button style="display: none; padding: 0.5rem; color: #6b7280; background: none; border: none; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.2s; flex-shrink: 0;" id="hamburgerBtn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
           <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
         </button>
         
-        <!-- Logo and Brand - Outside sidebar with better spacing -->
-        <a href="#" onclick="activateView('home'); return false;" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; transition: opacity 0.2s; min-width: 0;">
+        <!-- Logo and Brand - Fixed width constraints -->
+        <a href="#" onclick="activateView('home'); return false;" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; transition: opacity 0.2s; min-width: 0; overflow: hidden; max-width: 300px;">
           <img src="img/homeops-logo.svg" alt="HomeOps" style="width: 2rem; height: 2rem; flex-shrink: 0;">
-          <span style="font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; white-space: nowrap;">HomeOps</span>
+          <span class="homeops-text" style="font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">HomeOps</span>
         </a>
       </div>
       
@@ -737,14 +737,65 @@
     </div>
   </header>
   
-  <!-- CONTENT WRAPPER - Takes remaining space -->
-  <div style="flex: 1; padding: 1.5rem; overflow-y: auto;">
+  <!-- CONTENT WRAPPER - Takes remaining space with proper constraints -->
+  <div class="content-wrapper" style="flex: 1; padding: 1.5rem; overflow-y: auto; max-width: 100%; width: 100%; box-sizing: border-box;">
 
   <!-- Mobile responsive styles -->
   <style>
     @media (max-width: 1024px) {
       #hamburgerBtn {
         display: block !important;
+      }
+    }
+    
+    /* FIXED: Mobile calendar constraints */
+    @media (max-width: 768px) {
+      /* Header responsive */
+      header {
+        padding: 1rem !important;
+      }
+      
+      /* Content wrapper responsive */
+      .content-wrapper {
+        padding: 1rem !important;
+      }
+      
+      /* Calendar header stack on mobile */
+      #calendar-view .calendar-header-actions {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        align-items: stretch !important;
+      }
+      
+      /* Calendar insights bar - vertical stack on mobile */
+      #calendar-view .insights-bar {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        align-items: stretch !important;
+      }
+      
+      /* Calendar container mobile */
+      #calendar {
+        padding: 1rem !important;
+      }
+      
+      /* Force calendar to fit container */
+      .fc {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+      }
+      
+      /* Calendar toolbar responsive */
+      .fc-toolbar {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+      }
+    }
+    
+    /* Logo text responsive */
+    @media (max-width: 480px) {
+      header .homeops-text {
+        font-size: 1.25rem !important;
       }
     }
   </style>
@@ -1381,68 +1432,71 @@
 
   <!-- Calendar View -->
   <section id="calendar-view" class="view">
-    <!-- MODERN CALENDAR HEADER -->
-    <div style="margin-bottom: 2rem;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-          <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 1rem; padding: 0.75rem; display: flex; align-items: center; justify-content: center;">
-            <i data-lucide="calendar-days" style="width: 1.5rem; height: 1.5rem; color: white;"></i>
+    <!-- CONTAINER WITH PROPER WIDTH CONSTRAINTS -->
+    <div style="max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box;">
+      <!-- MODERN CALENDAR HEADER -->
+      <div style="margin-bottom: 2rem;">
+        <div class="calendar-header-actions" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 1rem; min-width: 0; flex: 1;">
+            <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 1rem; padding: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="calendar-days" style="width: 1.5rem; height: 1.5rem; color: white;"></i>
+            </div>
+            <div style="min-width: 0;">
+              <h1 style="font-size: 2rem; font-weight: 700; color: #111827; margin: 0; line-height: 1.2;">Calendar</h1>
+              <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">Organize your schedule with AI-powered insights</p>
+            </div>
           </div>
-          <div>
-            <h1 style="font-size: 2rem; font-weight: 700; color: #111827; margin: 0; line-height: 1.2;">Calendar</h1>
-            <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">Organize your schedule with AI-powered insights</p>
+          
+          <div style="display: flex; gap: 0.75rem; flex-shrink: 0;">
+            <button id="addEventBtn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 0.75rem; padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25); white-space: nowrap;">
+              <i data-lucide="plus" style="width: 1rem; height: 1rem;"></i>
+              Add Event
+            </button>
+            <button id="clearAllBtn" style="border: 1px solid #e5e7eb; background: white; border-radius: 0.75rem; padding: 0.75rem 1.25rem; color: #6b7280; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; font-size: 0.875rem; transition: all 0.2s; white-space: nowrap;">
+              <i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i>
+              Clear All
+            </button>
           </div>
         </div>
-        
-        <div style="display: flex; gap: 0.75rem;">
-          <button id="addEventBtn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 0.75rem; padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);">
-            <i data-lucide="plus" style="width: 1rem; height: 1rem;"></i>
-            Add Event
-          </button>
-          <button id="clearAllBtn" style="border: 1px solid #e5e7eb; background: white; border-radius: 0.75rem; padding: 0.75rem 1.25rem; color: #6b7280; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; font-size: 0.875rem; transition: all 0.2s;">
-            <i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i>
-            Clear All
-          </button>
+
+        <!-- MODERN INSIGHTS BAR -->
+        <div class="insights-bar" style="display: flex; align-items: center; gap: 1rem; background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); border-radius: 1rem; padding: 1rem 1.5rem; border: 1px solid #e9d5ff; overflow-x: auto; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+            <div style="background: rgba(139, 92, 246, 0.1); border-radius: 0.75rem; padding: 0.5rem;">
+              <i data-lucide="brain" style="width: 1.25rem; height: 1.25rem; color: #8b5cf6;"></i>
+            </div>
+            <div>
+              <div style="font-weight: 600; color: #7c3aed; font-size: 0.875rem;">AI Forecast</div>
+              <div style="color: #6b7280; font-size: 0.75rem;">Busy week ahead</div>
+            </div>
+          </div>
+          <div style="width: 1px; height: 2rem; background: #e9d5ff;"></div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+            <div style="background: rgba(139, 92, 246, 0.1); border-radius: 0.75rem; padding: 0.5rem;">
+              <i data-lucide="mail-open" style="width: 1.25rem; height: 1.25rem; color: #8b5cf6;"></i>
+            </div>
+            <div>
+              <div style="font-weight: 600; color: #7c3aed; font-size: 0.875rem;">6 Schedule Emails</div>
+              <div style="color: #6b7280; font-size: 0.75rem;">Ready to process</div>
+            </div>
+          </div>
+          <div style="width: 1px; height: 2rem; background: #e9d5ff;"></div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+            <div style="background: rgba(139, 92, 246, 0.1); border-radius: 0.75rem; padding: 0.5rem;">
+              <i data-lucide="calendar-check" style="width: 1.25rem; height: 1.25rem; color: #8b5cf6;"></i>
+            </div>
+            <div>
+              <div style="font-weight: 600; color: #7c3aed; font-size: 0.875rem;">3 Events Today</div>
+              <div style="color: #6b7280; font-size: 0.75rem;">All on schedule</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- MODERN INSIGHTS BAR -->
-      <div style="display: flex; align-items: center; gap: 2rem; background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); border-radius: 1rem; padding: 1rem 1.5rem; border: 1px solid #e9d5ff;">
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <div style="background: rgba(139, 92, 246, 0.1); border-radius: 0.75rem; padding: 0.5rem;">
-            <i data-lucide="brain" style="width: 1.25rem; height: 1.25rem; color: #8b5cf6;"></i>
-          </div>
-          <div>
-            <div style="font-weight: 600; color: #7c3aed; font-size: 0.875rem;">AI Forecast</div>
-            <div style="color: #6b7280; font-size: 0.75rem;">Busy week ahead (July 15–21)</div>
-          </div>
-        </div>
-        <div style="width: 1px; height: 2rem; background: #e9d5ff;"></div>
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <div style="background: rgba(139, 92, 246, 0.1); border-radius: 0.75rem; padding: 0.5rem;">
-            <i data-lucide="mail-open" style="width: 1.25rem; height: 1.25rem; color: #8b5cf6;"></i>
-          </div>
-          <div>
-            <div style="font-weight: 600; color: #7c3aed; font-size: 0.875rem;">6 Schedule Emails</div>
-            <div style="color: #6b7280; font-size: 0.75rem;">Ready to process</div>
-          </div>
-        </div>
-        <div style="width: 1px; height: 2rem; background: #e9d5ff;"></div>
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <div style="background: rgba(139, 92, 246, 0.1); border-radius: 0.75rem; padding: 0.5rem;">
-            <i data-lucide="calendar-check" style="width: 1.25rem; height: 1.25rem; color: #8b5cf6;"></i>
-          </div>
-          <div>
-            <div style="font-weight: 600; color: #7c3aed; font-size: 0.875rem;">3 Events Today</div>
-            <div style="color: #6b7280; font-size: 0.75rem;">All on schedule</div>
-          </div>
-        </div>
+      <!-- CALENDAR CONTAINER -->
+      <div style="background: white; border-radius: 1rem; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); min-height: 600px; overflow: hidden; width: 100%; max-width: 100%; box-sizing: border-box;">
+        <div id="calendar" style="padding: 1.5rem; min-height: 550px; height: auto; width: 100%; max-width: 100%; box-sizing: border-box;"></div>
       </div>
-    </div>
-
-    <!-- CALENDAR CONTAINER -->
-    <div style="background: white; border-radius: 1rem; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); min-height: 600px; overflow: hidden;">
-      <div id="calendar" style="padding: 1.5rem; min-height: 550px; height: auto;"></div>
     </div>
 
     <!-- Event Panel - Right Slide-over Style -->
