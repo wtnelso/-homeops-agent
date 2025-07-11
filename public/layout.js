@@ -280,11 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Register FullCalendar List plugin if available
-    if (typeof FullCalendar !== 'undefined' && FullCalendar.listPlugin) {
-      if (FullCalendar.globalPlugins) {
-        FullCalendar.globalPlugins.push(FullCalendar.listPlugin);
-      }
-    }
+    // (No need to push to globalPlugins for global build)
 
     function getInitialCalendarView() {
       if (window.innerWidth <= 768) {
@@ -351,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
       window.calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: getInitialCalendarView(),
         plugins: [
-          ...(typeof FullCalendar !== 'undefined' && FullCalendar.listPlugin ? [FullCalendar.listPlugin] : [])
+          ...(typeof FullCalendar !== 'undefined' && FullCalendar.List ? [FullCalendar.List] : [])
         ],
         height: "auto",
         headerToolbar: {
@@ -1133,10 +1129,10 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error('❌ FullCalendar global object is not defined!');
       } else {
         console.log('✅ FullCalendar global object found.');
-        if (typeof FullCalendar.listPlugin === 'undefined') {
-          console.error('❌ FullCalendar.listPlugin is not defined! The list plugin may not be loaded.');
+        if (typeof FullCalendar.List === 'undefined') {
+          console.error('❌ FullCalendar.List is not defined! The list plugin may not be loaded.');
         } else {
-          console.log('✅ FullCalendar.listPlugin is available.');
+          console.log('✅ FullCalendar.List is available.');
         }
       }
     });
