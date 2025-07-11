@@ -478,6 +478,28 @@
       height: auto !important;
     }
     
+    /* Hide FullCalendar's default toolbar */
+    .fc-toolbar {
+      display: none !important;
+    }
+    
+    /* Clean calendar styling */
+    .fc-event {
+      border-radius: 6px !important;
+      border: none !important;
+      padding: 2px 6px !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+    }
+    
+    .fc-day-today {
+      background-color: #f0f9ff !important;
+    }
+    
+    .fc-daygrid-day:hover {
+      background-color: #f9fafb !important;
+    }
+    
     /* PRIMARY COLOR SYSTEM */
     .bg-primary {
       background-color: #7E5EFF;
@@ -1235,16 +1257,26 @@
         </div>
       </div>
 
-      <!-- 📅 Calendar Toolbar -->
+      <!-- 📅 Clean Calendar Toolbar -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-          <div class="flex items-center gap-2">
-            <button class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded-md hover:bg-gray-200 transition-colors active" id="monthViewBtn">month</button>
-            <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="weekViewBtn">week</button>
-            <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="dayViewBtn">day</button>
-            <button class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors" id="listViewBtn">list</button>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <button class="px-3 py-1.5 text-sm font-medium text-white bg-primary rounded-md transition-colors" id="monthViewBtn">Month</button>
+            <button class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" id="weekViewBtn">Week</button>
+            <button class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" id="dayViewBtn">Day</button>
           </div>
-          <span class="text-lg font-semibold text-gray-900" id="calendarTitle">July 2025</span>
+          <div class="flex items-center gap-4">
+            <button id="calendarPrevBtn" class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+              <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 min-w-[140px] text-center" id="calendarTitle">July 2025</h2>
+            <button id="calendarNextBtn" class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+              <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <button id="calendarTodayBtn" class="px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+            Today
+          </button>
         </div>
       </div>
       
