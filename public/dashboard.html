@@ -791,47 +791,71 @@
         align-items: center !important;
       }
       
-      /* Calendar view container - full width on mobile */
+      /* Calendar view container - FORCED full width centering */
       #calendar-view {
         width: 100% !important;
         max-width: 100% !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
       }
       
-      /* Calendar header stack on mobile with proper centering */
+      /* Calendar header stack on mobile with FORCED centering */
       #calendar-view .calendar-header-actions {
         flex-direction: column !important;
         gap: 1rem !important;
         align-items: center !important;
         text-align: center !important;
         width: 100% !important;
+        justify-content: center !important;
       }
       
-      /* Calendar title section centering */
+      /* Calendar title section FORCED centering */
       #calendar-view .calendar-header-actions > div:first-child {
         justify-content: center !important;
         text-align: center !important;
         width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
       }
       
-      /* Button container centering */
+      /* Title and description centering */
+      #calendar-view h1,
+      #calendar-view p {
+        text-align: center !important;
+        width: 100% !important;
+      }
+      
+      /* Button container FORCED centering */
       #calendar-view .calendar-header-actions > div:last-child {
         justify-content: center !important;
         width: 100% !important;
         flex-wrap: wrap !important;
+        display: flex !important;
+        align-items: center !important;
       }
       
-      /* Calendar insights bar - better mobile layout */
+      /* Calendar insights bar - FORCED mobile centering */
       #calendar-view .insights-bar {
         flex-direction: column !important;
         gap: 0.75rem !important;
         align-items: center !important;
         text-align: center !important;
-        margin: 1rem 0 !important;
+        margin: 1rem auto !important;
         padding: 1rem !important;
         width: calc(100% - 2rem) !important;
         max-width: none !important;
+        display: flex !important;
+        justify-content: center !important;
+      }
+      
+      /* Individual insight items centered */
+      #calendar-view .insights-bar > div {
+        justify-content: center !important;
+        text-align: center !important;
       }
       
       /* Calendar container mobile - centered */
