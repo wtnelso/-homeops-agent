@@ -80,9 +80,7 @@
       main {
         padding: 0 !important;
         margin: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
+        /* REMOVED: flex properties that were breaking view switching */
       }
       
       /* Ensure all sections are properly centered on mobile */
@@ -91,6 +89,15 @@
         max-width: 100% !important;
         margin: 0 auto !important;
         padding: 0 !important;
+        /* FIXED: Only center when view is active */
+      }
+      
+      .view.active {
+        display: block !important;
+      }
+      
+      .view:not(.active) {
+        display: none !important;
       }
     }
     
@@ -791,15 +798,13 @@
         align-items: center !important;
       }
       
-      /* Calendar view container - FORCED full width centering */
+      /* Calendar view container - FIXED to not take over other views */
       #calendar-view {
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 auto !important;
         padding: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
+        /* REMOVED: display flex that was breaking view switching */
       }
       
       /* Calendar header stack on mobile with FORCED centering */
@@ -858,27 +863,46 @@
         text-align: center !important;
       }
       
-      /* Calendar container mobile - centered */
+      /* Calendar container mobile - FIXED viewport containment */
       #calendar {
-        padding: 0.75rem !important;
+        padding: 0.5rem !important;
         margin: 0 auto !important;
-        width: calc(100% - 1.5rem) !important;
-        max-width: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
       }
       
-      /* Calendar section container - proper mobile width */
+      /* Calendar section container - FIXED mobile viewport */
       #calendar-view > div:first-child {
-        max-width: none !important;
+        max-width: 100% !important;
         width: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 0.5rem !important;
+        box-sizing: border-box !important;
       }
       
-      /* Force calendar to fit container properly */
+      /* Force calendar to fit mobile viewport properly */
       .fc {
         max-width: 100% !important;
-        overflow-x: auto !important;
+        width: 100% !important;
+        overflow-x: hidden !important;
         margin: 0 auto !important;
+        box-sizing: border-box !important;
+      }
+      
+      /* Calendar grid mobile viewport fix */
+      .fc-scrollgrid {
+        max-width: 100% !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+        box-sizing: border-box !important;
+      }
+      
+      /* Calendar days mobile sizing */
+      .fc-daygrid-day {
+        min-height: 60px !important;
+        font-size: 0.8rem !important;
       }
       
       /* Calendar toolbar responsive - centered */
