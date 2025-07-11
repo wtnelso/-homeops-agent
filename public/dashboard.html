@@ -2448,9 +2448,57 @@ function showOnboardingOnly() {
 }
 // Call showOnboardingOnly() on page load if not authenticated
 // ... existing code ...
-</script>
-</body>
-</html>
+
+<!-- EMERGENCY MOBILE NAVIGATION FIX -->
+  <script>
+    // Emergency mobile navigation fix
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚨 Emergency mobile fixes loading...');
+      
+      // Force navigation to work
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const viewName = this.getAttribute('data-view');
+          console.log('🎯 Navigation clicked:', viewName);
+          
+          // Hide all views
+          document.querySelectorAll('.view').forEach(v => {
+            v.classList.remove('active');
+            v.style.display = 'none';
+          });
+          
+          // Show target view
+          const targetView = document.getElementById(viewName + '-view');
+          if (targetView) {
+            targetView.classList.add('active');
+            targetView.style.display = 'block';
+            console.log('✅ Showing view:', viewName);
+          }
+          
+          // Update active nav
+          navItems.forEach(n => n.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+      
+      // Force chat view active by default
+      setTimeout(() => {
+        const chatView = document.getElementById('chat-view');
+        if (chatView) {
+          chatView.classList.add('active');
+          chatView.style.display = 'block';
+        }
+      }, 100);
+      
+      console.log('✅ Emergency mobile fixes loaded');
+    });
+  </script>
+
+  <div class="app-container">
 
 
 
