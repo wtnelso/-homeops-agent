@@ -372,6 +372,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ],
         eventClick: function(info) {
           // Show event modal with details and reframe
+          console.log('🎯 Event clicked:', info.event.title);
+          console.log('🎯 Event data:', info.event);
           showEventModal(info.event);
           info.jsEvent.preventDefault();
         },
@@ -605,10 +607,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Event Modal Functions
     function showEventModal(event) {
+      console.log('📅 showEventModal called with:', event);
+      
       const modal = document.getElementById('eventModal');
       const titleEl = document.getElementById('modalEventTitle');
       const timeEl = document.getElementById('modalEventTime');
       const reframeEl = document.getElementById('modalEventReframe');
+      
+      console.log('📅 Modal elements found:', {
+        modal: !!modal,
+        titleEl: !!titleEl,
+        timeEl: !!timeEl,
+        reframeEl: !!reframeEl
+      });
       
       if (modal && titleEl && timeEl && reframeEl) {
         // Populate modal content
@@ -646,8 +657,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Show modal
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        modal.style.display = 'flex'; // Force display
         
         console.log('✅ Event modal opened for:', event.title);
+        console.log('✅ Modal classes:', modal.className);
+        console.log('✅ Modal display style:', modal.style.display);
       }
     }
 
@@ -659,6 +673,10 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('✅ Event modal closed');
       }
     }
+
+    // Make showEventModal globally accessible
+    window.showEventModal = showEventModal;
+    window.hideEventModal = hideEventModal;
 
     // Set up modal event listeners
     document.addEventListener('DOMContentLoaded', function() {
