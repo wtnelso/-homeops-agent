@@ -336,7 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (window.calendarRendered) {
-        console.log("🔄 Calendar already rendered, updating size");
+        console.log("🔄 Calendar already rendered, skipping re-initialization");
         if (window.calendar) {
           window.calendar.updateSize();
         }
@@ -420,8 +420,11 @@ document.addEventListener("DOMContentLoaded", () => {
         ],
         eventClick: function(info) {
           console.log('🎯 Event clicked:', info.event.title);
-          showEventModal(info.event);
+          // Prevent any other click handlers from firing
+          info.jsEvent.stopPropagation();
           info.jsEvent.preventDefault();
+          showEventModal(info.event);
+          return false;
         },
         dateClick: function(info) {
           const title = prompt("Add an event:");
@@ -1621,7 +1624,7 @@ function safariMobileCalendarFix() {
         calendarEl.style.maxWidth = '100% !important';
         
         // Force FullCalendar to initialize if it hasn't
-        if (!window.calendar && typeof FullCalendar !== 'undefined') {
+        if (!window.calendar && !window.calendarRendered && typeof FullCalendar !== 'undefined') {
           console.log("🔧 Initializing calendar for Safari mobile...");
           renderCalendar();
         }
