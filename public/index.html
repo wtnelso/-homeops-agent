@@ -344,48 +344,107 @@
       font-size: 14px;
     }
     
-    /* MOBILE EMAIL DECODER STYLES */
-    .tab-btn-mobile {
+    /* MOBILE EMAIL INTELLIGENCE STYLES */
+    .intel-tab {
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
-      padding: 8px 16px;
+      border-radius: 25px;
+      padding: 8px 12px;
       color: rgba(255, 255, 255, 0.7);
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     
-    .tab-btn-mobile.active {
+    .intel-tab.active {
       background: rgba(255, 255, 255, 0.3);
       color: white;
       border-color: rgba(255, 255, 255, 0.4);
+      transform: scale(1.05);
     }
     
-    .decoded-emails-mobile {
+    .translated-emails-mobile {
       max-height: 400px;
       overflow-y: auto;
     }
     
-    .email-card-mobile {
+    .email-insight-card {
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
       cursor: pointer;
       transition: all 0.2s;
+      position: relative;
     }
     
-    .email-card-mobile:active {
+    .email-insight-card:active {
       transform: scale(0.98);
       background: rgba(255, 255, 255, 0.15);
     }
     
+    .insight-priority {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .priority-high {
+      background: rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+    
+    .priority-medium {
+      background: rgba(251, 191, 36, 0.3);
+      color: #fcd34d;
+    }
+    
+    .priority-low {
+      background: rgba(34, 197, 94, 0.3);
+      color: #86efac;
+    }
+    
+    .ai-translation {
+      background: rgba(139, 92, 246, 0.2);
+      border-left: 3px solid rgba(139, 92, 246, 0.8);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 12px 0;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .commerce-intel {
+      background: rgba(16, 185, 129, 0.2);
+      border-left: 3px solid rgba(16, 185, 129, 0.8);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 12px 0;
+    }
+    
+    .brand-loyalty {
+      display: inline-block;
+      background: rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 11px;
+      margin-right: 4px;
+    }
+    
     .email-subject {
       font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
       color: white;
+      font-size: 16px;
     }
     
     .email-meta {
@@ -394,7 +453,7 @@
       align-items: center;
       font-size: 12px;
       color: rgba(255, 255, 255, 0.6);
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
     
     .email-category {
@@ -533,10 +592,24 @@
       
       <!-- Email Decoder View -->
       <div id="email-mobile" class="mobile-view">
+        <!-- AI Chief of Staff Header -->
+        <div class="chief-of-staff-header" style="background: rgba(255,255,255,0.15); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2);">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">🧠</div>
+            <div>
+              <div style="font-weight: 700; font-size: 18px;">Your AI Chief of Staff</div>
+              <div style="font-size: 14px; color: rgba(255,255,255,0.8);">Translating noise into clarity</div>
+            </div>
+          </div>
+          <div id="chief-insights" style="font-style: italic; color: rgba(255,255,255,0.9); line-height: 1.4;">
+            "I'm scanning your inbox right now. Let me surface what actually matters to your family and work life."
+          </div>
+        </div>
+
         <!-- Gmail Connection Status -->
         <div id="gmail-status" class="email-section">
-          <div class="section-title">📧 Email Decoder Engine</div>
-          <div id="connection-status" style="padding: 16px; border-radius: 8px; margin-bottom: 16px; background: rgba(255,193,7,0.2); border: 1px solid rgba(255,193,7,0.3);">
+          <div class="section-title">📧 Inbox Intelligence Engine</div>
+          <div id="connection-status" style="padding: 16px; border-radius: 12px; margin-bottom: 16px; background: rgba(255,193,7,0.2); border: 1px solid rgba(255,193,7,0.3);">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
               <div class="typing-dots">
                 <span>.</span><span>.</span><span>.</span>
@@ -551,30 +624,40 @@
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
               <polyline points="22,6 12,13 2,6"></polyline>
             </svg>
-            Connect Gmail to Start
+            Connect Gmail to Start Intelligence
           </button>
           
           <!-- Process Emails Button -->
           <button id="process-emails-mobile" class="decode-btn-mobile" onclick="processEmailsMobile()" style="display: none;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
-              <path d="M9 12l2 2 4-4"></path>
-              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
             </svg>
-            Process Latest Emails
+            Scan & Translate Latest Emails
           </button>
           
-          <!-- Email Categories -->
+          <!-- Intelligence Categories -->
           <div id="email-categories" style="display: none;">
-            <div class="mobile-tabs" style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
-              <button class="tab-btn-mobile active" data-category="all" onclick="showCategoryMobile('all', this)">All</button>
-              <button class="tab-btn-mobile" data-category="urgent" onclick="showCategoryMobile('urgent', this)">Urgent</button>
-              <button class="tab-btn-mobile" data-category="schedule" onclick="showCategoryMobile('schedule', this)">Schedule</button>
-              <button class="tab-btn-mobile" data-category="family" onclick="showCategoryMobile('family', this)">Family</button>
-              <button class="tab-btn-mobile" data-category="commerce" onclick="showCategoryMobile('commerce', this)">Commerce</button>
+            <div class="intelligence-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
+              <button class="intel-tab active" data-category="all" onclick="showIntelCategory('all', this)">
+                <span>📋</span> All Insights
+              </button>
+              <button class="intel-tab" data-category="urgent" onclick="showIntelCategory('urgent', this)">
+                <span>⚡</span> Urgent
+              </button>
+              <button class="intel-tab" data-category="family" onclick="showIntelCategory('family', this)">
+                <span>👨‍👩‍👧‍👦</span> Family
+              </button>
+              <button class="intel-tab" data-category="commerce" onclick="showIntelCategory('commerce', this)">
+                <span>🛍️</span> Commerce Intel
+              </button>
+              <button class="intel-tab" data-category="schedule" onclick="showIntelCategory('schedule', this)">
+                <span>📅</span> Schedule
+              </button>
             </div>
             
-            <!-- Decoded Emails List -->
-            <div id="decoded-emails-mobile" class="decoded-emails-mobile">
+            <!-- AI-Translated Emails -->
+            <div id="translated-emails-mobile" class="translated-emails-mobile">
               <!-- Dynamic content goes here -->
             </div>
           </div>
@@ -584,7 +667,7 @@
             <div class="typing-dots" style="margin-bottom: 10px;">
               <span>.</span><span>.</span><span>.</span>
             </div>
-            <div id="processing-message">Processing your emails...</div>
+            <div id="processing-message">Your AI Chief of Staff is reading...</div>
           </div>
         </div>
       </div>
@@ -901,35 +984,75 @@
       if (emailCategories) {
         emailCategories.style.display = 'block';
         
-        // Demo email data
+        // Sophisticated demo email intelligence
         decodedEmails = [
           {
             id: 'demo1',
             subject: 'Soccer practice moved to 4pm',
             sender: 'Coach Sarah',
             category: 'family',
+            priority: 'medium',
             preview: 'Hi parents, due to field maintenance...',
-            summary: 'Schedule change for kids activity'
+            summary: 'Schedule change for kids activity',
+            ai_translation: "Your chief of staff says: This isn't just a schedule change—it's a ripple effect. The 4pm time means pickup conflicts with your Tuesday meetings. I've noted this for calendar optimization.",
+            action_items: ['Update calendar', 'Arrange carpool backup', 'Inform spouse of time change']
           },
           {
             id: 'demo2', 
             subject: 'URGENT: Project deadline moved up',
             sender: 'Project Manager',
             category: 'urgent',
+            priority: 'high',
             preview: 'The client wants to move the launch date...',
-            summary: 'Work deadline change requiring immediate attention'
+            summary: 'Work deadline change requiring immediate attention',
+            ai_translation: "Red flag detected: This 'urgent' request sounds like poor planning disguised as client demands. Your energy is being hijacked. What's the real deadline vs. their panic?",
+            action_items: ['Clarify actual vs. artificial urgency', 'Assess resource impact', 'Set boundaries on scope']
           },
           {
             id: 'demo3',
-            subject: 'Amazon order delivered',
-            sender: 'Amazon',
+            subject: 'Your Patagonia order is ready for pickup',
+            sender: 'Patagonia',
             category: 'commerce',
-            preview: 'Your package has been delivered...',
-            summary: 'Package delivery confirmation'
+            priority: 'low',
+            preview: 'Your sustainable outdoor gear awaits...',
+            summary: 'Brand purchase confirmation from trusted retailer',
+            ai_translation: "Smart purchase detected: Patagonia aligns with your values-based spending. Your loyalty score with this brand is 9/10.",
+            commerce_intel: {
+              brand_loyalty: 'High',
+              purchase_pattern: 'Seasonal outdoor gear',
+              recommendation: 'Consider their repair program instead of new purchases',
+              similar_brands: ['REI Co-op', 'Eileen Fisher', 'Allbirds']
+            }
+          },
+          {
+            id: 'demo4',
+            subject: 'Parent-Teacher Conference Available Times',
+            sender: 'Lincoln Elementary',
+            category: 'family',
+            priority: 'medium',
+            preview: 'Please select your preferred time slot...',
+            summary: 'School scheduling requiring parent response',
+            ai_translation: "Subtext: This is a bid for your attention disguised as scheduling. Your presence matters more than the specific time. Book it now before the good slots disappear.",
+            action_items: ['Choose time slot within 24hrs', 'Block calendar time', 'Prepare questions about academic progress']
           }
         ];
         
-        renderEmailCards();
+        renderEmailInsights();
+        updateChiefInsights();
+      }
+    }
+    
+    function updateChiefInsights() {
+      const insightsEl = document.getElementById('chief-insights');
+      const insights = [
+        "I've spotted 1 urgent item that's actually manufactured urgency. Your family schedule needs 2 adjustments. Your commerce patterns show strong values alignment.",
+        "3 emails require action, 1 is emotional manipulation. Your purchase behavior suggests you value sustainability over speed.",
+        "Family logistics are creating calendar conflicts. I'm tracking patterns that show you're overcommitted on Tuesdays.",
+        "Your inbox shows classic 'urgent vs important' confusion. Let me help you separate real deadlines from other people's poor planning."
+      ];
+      
+      if (insightsEl) {
+        insightsEl.textContent = `"${insights[Math.floor(Math.random() * insights.length)]}"`;
       }
     }
     
@@ -1021,23 +1144,23 @@
       }
     }
     
-    function showCategoryMobile(category, button) {
+    function showIntelCategory(category, button) {
       // Update active tab
-      document.querySelectorAll('.tab-btn-mobile').forEach(btn => {
+      document.querySelectorAll('.intel-tab').forEach(btn => {
         btn.classList.remove('active');
       });
       button.classList.add('active');
       
       currentCategory = category;
-      renderEmailCards();
+      renderEmailInsights();
       
       if (navigator.vibrate) {
         navigator.vibrate(10);
       }
     }
     
-    function renderEmailCards() {
-      const container = document.getElementById('decoded-emails-mobile');
+    function renderEmailInsights() {
+      const container = document.getElementById('translated-emails-mobile');
       
       let filteredEmails = decodedEmails;
       if (currentCategory !== 'all') {
@@ -1047,29 +1170,72 @@
       if (filteredEmails.length === 0) {
         container.innerHTML = `
           <div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.6);">
-            ${currentCategory === 'all' ? 'No emails processed yet' : `No ${currentCategory} emails found`}
+            ${currentCategory === 'all' ? 'No emails analyzed yet' : `No ${currentCategory} insights found`}
           </div>
         `;
         return;
       }
       
-      container.innerHTML = filteredEmails.map(email => `
-        <div class="email-card-mobile" onclick="openEmailDetail('${email.id}')">
-          <div class="email-subject">${email.subject || 'No Subject'}</div>
-          <div class="email-meta">
-            <span>${email.sender || 'Unknown Sender'}</span>
-            <span class="email-category">${email.category || 'General'}</span>
+      container.innerHTML = filteredEmails.map(email => {
+        const priorityClass = email.priority === 'high' ? 'priority-high' : 
+                             email.priority === 'medium' ? 'priority-medium' : 'priority-low';
+        
+        let categorySpecificContent = '';
+        
+        if (email.category === 'commerce' && email.commerce_intel) {
+          categorySpecificContent = `
+            <div class="commerce-intel">
+              <div style="font-weight: 600; margin-bottom: 8px; color: #10b981;">💰 Commerce Intelligence</div>
+              <div style="font-size: 13px; line-height: 1.4;">
+                <div>• Brand Loyalty: <span class="brand-loyalty">${email.commerce_intel.brand_loyalty}</span></div>
+                <div>• Pattern: ${email.commerce_intel.purchase_pattern}</div>
+                <div>• Recommendation: ${email.commerce_intel.recommendation}</div>
+                <div>• Similar Values-Based Brands: ${email.commerce_intel.similar_brands.join(', ')}</div>
+              </div>
+            </div>
+          `;
+        }
+        
+        return `
+          <div class="email-insight-card" onclick="openEmailInsight('${email.id}')">
+            <div class="insight-priority ${priorityClass}">${email.priority}</div>
+            <div class="email-subject">${email.subject || 'No Subject'}</div>
+            <div class="email-meta">
+              <span>${email.sender || 'Unknown Sender'}</span>
+              <span class="email-category">${email.category || 'General'}</span>
+            </div>
+            
+            ${email.ai_translation ? `
+              <div class="ai-translation">
+                <strong>🧠 AI Translation:</strong><br>
+                ${email.ai_translation}
+              </div>
+            ` : ''}
+            
+            ${categorySpecificContent}
+            
+            ${email.action_items ? `
+              <div style="margin-top: 12px;">
+                <div style="font-weight: 600; font-size: 13px; margin-bottom: 6px; color: rgba(255,255,255,0.9);">⚡ Action Items:</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.8);">
+                  ${email.action_items.map(item => `• ${item}`).join('<br>')}
+                </div>
+              </div>
+            ` : ''}
           </div>
-          <div class="email-preview">${email.preview || email.summary || 'No preview available'}</div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
     
-    function openEmailDetail(emailId) {
-      // You could open a modal or navigate to detail view
-      console.log('Opening email detail for:', emailId);
-      if (navigator.vibrate) {
-        navigator.vibrate(20);
+    function openEmailInsight(emailId) {
+      // Enhanced interaction for email insights
+      const email = decodedEmails.find(e => e.id === emailId);
+      if (email) {
+        console.log('Opening detailed insight for:', email.subject);
+        // Could open modal or detailed view
+        if (navigator.vibrate) {
+          navigator.vibrate(20);
+        }
       }
     }
     
