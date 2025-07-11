@@ -347,10 +347,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Clean FullCalendar setup - FIXED: Ensure proper height
       window.calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
+        // MOBILE-RESPONSIVE VIEW SELECTION
+        initialView: window.innerWidth <= 768 ? 'listMonth' : 'dayGridMonth',
         height: 600, // Fixed height to ensure calendar renders
         contentHeight: 550, // Ensure content area has proper height
-        headerToolbar: {
+        headerToolbar: window.innerWidth <= 768 ? {
+          left: 'prev,next',
+          center: 'title',
+          right: 'today'
+        } : {
           left: 'prev,next today',
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
