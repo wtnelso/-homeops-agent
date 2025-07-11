@@ -286,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getInitialCalendarView() {
       if (window.innerWidth <= 768) {
-        return 'dayGridMonth'; // Simplified for mobile
+        return 'listMonth'; // List view for mobile
       }
       return 'dayGridMonth';
     }
@@ -970,7 +970,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const addEventBtn = document.getElementById('addEventBtn');
       if (addEventBtn) {
         addEventBtn.removeEventListener('click', handleAddEvent);
-        addEventBtn.addEventListener('click', handleAddEvent);
+        addEventListener('click', handleAddEvent);
         console.log('✅ Add Event button listener attached');
       }
       
@@ -1233,8 +1233,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!window.calendar) return;
       const isMobile = window.innerWidth <= 768;
       const currentView = window.calendar.view.type;
-      if (isMobile && currentView !== 'listWeek') {
-        window.calendar.changeView('listWeek');
+      if (isMobile && currentView !== 'listMonth') {
+        window.calendar.changeView('listMonth');
       } else if (!isMobile && currentView !== 'dayGridMonth') {
         window.calendar.changeView('dayGridMonth');
       }
@@ -1265,8 +1265,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function enforceMobileCalendarView() {
       if (!window.calendar) return;
       const isMobile = window.innerWidth <= 768;
-      if (isMobile && window.calendar.view.type !== 'listWeek') {
-        window.calendar.changeView('listWeek');
+      if (isMobile && window.calendar.view.type !== 'listMonth') {
+        window.calendar.changeView('listMonth');
       } else if (!isMobile && window.calendar.view.type !== 'dayGridMonth') {
         window.calendar.changeView('dayGridMonth');
       }
@@ -1570,4 +1570,34 @@ if (document.readyState === 'loading') {
 } else {
   initializeCalendarIntegration();
 }
+
+// MOBILE CALENDAR FIX: Force calendar to render on mobile
+function forceMobileCalendarRender() {
+  if (window.innerWidth <= 768 && window.calendar) {
+    console.log("🔧 Forcing mobile calendar render...");
+    
+    // Force calendar to be visible
+    const calendarEl = document.getElementById('calendar');
+    if (calendarEl) {
+      calendarEl.style.display = 'block';
+      calendarEl.style.visibility = 'visible';
+      calendarEl.style.opacity = '1';
+    }
+    
+    // Force list view
+    if (window.calendar.view.type !== 'listMonth') {
+      window.calendar.changeView('listMonth');
+    }
+    
+    // Force render
+    window.calendar.render();
+    window.calendar.updateSize();
+    
+    console.log("✅ Mobile calendar render complete");
+  }
+}
+
+// Run mobile fix on load and resize
+setTimeout(forceMobileCalendarRender, 1000);
+window.addEventListener('resize', forceMobileCalendarRender);
 
