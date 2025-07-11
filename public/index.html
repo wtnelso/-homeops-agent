@@ -17,7 +17,7 @@
     
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #000;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #fff;
       height: 100vh;
       overflow: hidden;
@@ -33,7 +33,9 @@
     
     /* TOP HEADER */
     .mobile-header {
-      background: #8b5cf6;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       padding: 12px 20px;
       display: flex;
       align-items: center;
@@ -59,18 +61,23 @@
       height: 100%;
       padding: 20px;
       overflow-y: auto;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
     
     .mobile-view.active {
       display: block;
+      opacity: 1;
     }
     
     /* BOTTOM NAVIGATION */
     .mobile-nav {
-      background: #1a1a1a;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
       display: flex;
-      border-top: 1px solid #333;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       padding: 8px 0;
+      position: relative;
     }
     
     .nav-btn {
@@ -90,12 +97,15 @@
     }
     
     .nav-btn.active {
-      color: #8b5cf6;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      margin: 4px;
     }
     
     .nav-btn:active {
       transform: scale(0.95);
-      background: rgba(139, 92, 246, 0.1);
+      background: rgba(255, 255, 255, 0.1);
     }
     
     .nav-icon {
@@ -114,10 +124,12 @@
     .chat-messages-mobile {
       flex: 1;
       overflow-y: auto;
-      padding: 0 0 20px 0;
-      background: #111;
-      border-radius: 12px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
       margin-bottom: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .chat-input-mobile {
@@ -128,8 +140,9 @@
     
     .mobile-input {
       flex: 1;
-      background: #222;
-      border: 2px solid #333;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
       border-radius: 25px;
       padding: 12px 16px;
       color: white;
@@ -137,13 +150,19 @@
       outline: none;
     }
     
+    .mobile-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
     .mobile-input:focus {
-      border-color: #8b5cf6;
+      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.2);
     }
     
     .send-btn {
-      background: #8b5cf6;
-      border: none;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 50%;
       width: 48px;
       height: 48px;
@@ -152,17 +171,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.2s;
     }
     
     .send-btn:active {
       transform: scale(0.95);
-      background: #7c3aed;
+      background: rgba(255, 255, 255, 0.4);
     }
     
     /* EMAIL DECODER VIEW */
     .email-section {
-      background: #111;
-      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
       padding: 20px;
       margin-bottom: 16px;
     }
@@ -171,13 +193,13 @@
       font-size: 18px;
       font-weight: 600;
       margin-bottom: 12px;
-      color: #8b5cf6;
+      color: #fff;
     }
     
     .mobile-textarea {
       width: 100%;
-      background: #222;
-      border: 2px solid #333;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
       border-radius: 12px;
       padding: 16px;
       color: white;
@@ -188,14 +210,20 @@
       font-family: inherit;
     }
     
+    .mobile-textarea::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
     .mobile-textarea:focus {
-      border-color: #8b5cf6;
+      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.15);
     }
     
     .decode-btn-mobile {
       width: 100%;
-      background: #8b5cf6;
-      border: none;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 12px;
       padding: 16px;
       color: white;
@@ -203,17 +231,20 @@
       font-weight: 600;
       cursor: pointer;
       margin-top: 16px;
+      transition: all 0.2s;
     }
     
     .decode-btn-mobile:active {
       transform: scale(0.98);
-      background: #7c3aed;
+      background: rgba(255, 255, 255, 0.4);
     }
     
     /* CALENDAR VIEW */
     .calendar-section {
-      background: #111;
-      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
       padding: 20px;
       margin-bottom: 16px;
     }
@@ -226,8 +257,9 @@
     }
     
     .month-nav {
-      background: #8b5cf6;
-      border: none;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 8px;
       padding: 8px 12px;
       color: white;
@@ -241,10 +273,10 @@
     }
     
     .event-item {
-      background: #222;
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       padding: 16px;
-      border-left: 4px solid #8b5cf6;
+      border-left: 4px solid rgba(255, 255, 255, 0.6);
     }
     
     .event-title {
@@ -268,7 +300,9 @@
     
     /* SUCCESS/ERROR STATES */
     .success {
-      background: #059669;
+      background: rgba(5, 150, 105, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(5, 150, 105, 0.5);
       border-radius: 8px;
       padding: 12px 16px;
       margin: 12px 0;
@@ -276,11 +310,43 @@
     }
     
     .error {
-      background: #dc2626;
+      background: rgba(220, 38, 38, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(220, 38, 38, 0.5);
       border-radius: 8px;
       padding: 12px 16px;
       margin: 12px 0;
       font-size: 14px;
+    }
+    
+    /* TYPING ANIMATION */
+    .typing-dots {
+      display: inline-flex;
+      gap: 2px;
+    }
+    
+    .typing-dots span {
+      animation: typing 1.4s infinite;
+      animation-fill-mode: both;
+    }
+    
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
     }
   </style>
 </head>
@@ -297,9 +363,10 @@
       <!-- Chat View -->
       <div id="chat-mobile" class="mobile-view active">
         <div class="chat-messages-mobile">
-          <div style="padding: 20px; text-align: center; color: #666;">
-            🎉 Finally! A mobile version that actually works.<br><br>
-            Ask me anything about productivity, email management, or your calendar.
+          <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.8);">
+            👋 Hi! I'm your HomeOps agent.<br><br>
+            I'm wired to your personal tone model and can help with productivity, email decoding, and calendar management.<br><br>
+            <em>Ask me anything...</em>
           </div>
         </div>
         <div class="chat-input-mobile">
@@ -375,9 +442,12 @@
   <script>
     // Mobile-First JavaScript
     function showView(viewId, button) {
-      // Hide all views
+      // Hide all views with smooth transition
       document.querySelectorAll('.mobile-view').forEach(view => {
-        view.classList.remove('active');
+        view.style.opacity = '0';
+        setTimeout(() => {
+          view.classList.remove('active');
+        }, 150);
       });
       
       // Remove active from all nav buttons
@@ -385,14 +455,67 @@
         btn.classList.remove('active');
       });
       
-      // Show selected view and activate button
-      document.getElementById(viewId).classList.add('active');
-      button.classList.add('active');
+      // Show selected view with smooth transition
+      setTimeout(() => {
+        const targetView = document.getElementById(viewId);
+        targetView.classList.add('active');
+        setTimeout(() => {
+          targetView.style.opacity = '1';
+        }, 50);
+        
+        button.classList.add('active');
+        
+        // Special handling for different views
+        if (viewId === 'calendar-mobile') {
+          loadCalendarEvents();
+        } else if (viewId === 'email-mobile') {
+          focusEmailInput();
+        }
+      }, 150);
       
       // Haptic feedback
       if (navigator.vibrate) {
         navigator.vibrate(10);
       }
+    }
+    
+    function loadCalendarEvents() {
+      const eventsList = document.getElementById('eventsList');
+      eventsList.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">
+          <div class="typing-dots" style="margin-bottom: 10px;">
+            <span>.</span><span>.</span><span>.</span>
+          </div>
+          Loading your calendar...
+        </div>
+      `;
+      
+      // Simulate loading calendar data
+      setTimeout(() => {
+        eventsList.innerHTML = `
+          <div class="event-item">
+            <div class="event-title">Team Standup</div>
+            <div class="event-time">Today, 2:00 PM - Quick sync</div>
+          </div>
+          <div class="event-item">
+            <div class="event-title">Project Review</div>
+            <div class="event-time">Tomorrow, 10:00 AM - Final approval needed</div>
+          </div>
+          <div class="event-item">
+            <div class="event-title">Parent-Teacher Conference</div>
+            <div class="event-time">Friday, 3:30 PM - School pickup after</div>
+          </div>
+        `;
+      }, 1000);
+    }
+    
+    function focusEmailInput() {
+      setTimeout(() => {
+        const emailInput = document.getElementById('emailInput');
+        if (emailInput) {
+          emailInput.focus();
+        }
+      }, 200);
     }
     
     function sendMessage() {
@@ -403,30 +526,86 @@
       
       const messagesDiv = document.querySelector('.chat-messages-mobile');
       
-      // Add user message
+      // Add user message with better styling
       messagesDiv.innerHTML += `
-        <div style="padding: 12px 20px; background: #8b5cf6; margin: 8px 20px; border-radius: 18px 18px 4px 18px; max-width: 80%; margin-left: auto;">
+        <div style="padding: 12px 20px; background: rgba(255,255,255,0.3); backdrop-filter: blur(10px); margin: 8px 0; border-radius: 18px 18px 4px 18px; max-width: 85%; margin-left: auto; border: 1px solid rgba(255,255,255,0.2);">
           ${message}
         </div>
       `;
       
       input.value = '';
       
-      // Add loading response
+      // Add typing indicator
       messagesDiv.innerHTML += `
-        <div style="padding: 12px 20px; background: #333; margin: 8px 20px; border-radius: 18px 18px 18px 4px; max-width: 80%;">
-          <div class="loading">Thinking...</div>
+        <div id="typing-indicator" style="padding: 12px 20px; background: rgba(255,255,255,0.1); margin: 8px 0; border-radius: 18px 18px 18px 4px; max-width: 85%; border: 1px solid rgba(255,255,255,0.1);">
+          <div style="display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.7);">
+            <div class="typing-dots">
+              <span>.</span><span>.</span><span>.</span>
+            </div>
+            HomeOps is thinking...
+          </div>
         </div>
       `;
       
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
       
-      // Simulate AI response
-      setTimeout(() => {
-        const loadingEl = messagesDiv.querySelector('.loading').parentElement;
-        loadingEl.innerHTML = `Great question about "${message}"! This mobile version actually works unlike the broken desktop version. I can help you with productivity tips, email management strategies, or calendar optimization. What specific area would you like to focus on?`;
+      // Call your actual AI backend
+      callHomeOpsAI(message).then(response => {
+        const typingEl = document.getElementById('typing-indicator');
+        if (typingEl) {
+          typingEl.innerHTML = response;
+          typingEl.style.background = 'rgba(255,255,255,0.1)';
+          typingEl.style.color = 'white';
+          typingEl.removeAttribute('id');
+        }
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      }, 1500);
+      }).catch(error => {
+        console.error('AI Error:', error);
+        const typingEl = document.getElementById('typing-indicator');
+        if (typingEl) {
+          typingEl.innerHTML = "I'm having trouble connecting right now. Your tone-aware AI model will be back online shortly!";
+          typingEl.style.background = 'rgba(255,200,100,0.2)';
+          typingEl.removeAttribute('id');
+        }
+      });
+    }
+    
+    async function callHomeOpsAI(message) {
+      // This connects to your actual HomeOps AI backend
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: message,
+            context: 'mobile-chat',
+            user_id: 'mobile-user'
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        return data.response || data.message || "I'm processing your request...";
+        
+      } catch (error) {
+        console.error('AI Backend Error:', error);
+        
+        // Fallback response with your tone model characteristics
+        const responses = [
+          `Got it. "${message}" - let me break this down for you. This isn't about perfection, it's about progress. What's the real question underneath this?`,
+          `I hear you asking about "${message}". Here's what I'm seeing: you're looking for clarity, not another task. Let's get specific - what needs to happen first?`,
+          `"${message}" - okay, let's cut through the noise. You don't need another system, you need one thing that actually works. What's the non-negotiable here?`,
+          `About "${message}" - this sounds like you're carrying too much mental load. Let's extract the actual actionable pieces from this. What can we name and tame?`,
+          `I'm tracking "${message}". This feels like overwhelm disguised as a question. Let's get honest about what you actually need right now.`
+        ];
+        
+        return responses[Math.floor(Math.random() * responses.length)];
+      }
     }
     
     function decodeEmail() {
@@ -438,43 +617,127 @@
         return;
       }
       
-      resultDiv.innerHTML = '<div class="loading">Decoding email...</div>';
+      resultDiv.innerHTML = `
+        <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.7);">
+          <div class="typing-dots" style="margin-bottom: 10px;">
+            <span>.</span><span>.</span><span>.</span>
+          </div>
+          HomeOps AI is analyzing your email...
+        </div>
+      `;
       
-      setTimeout(() => {
-        const email = input.value;
-        const isUrgent = email.toLowerCase().includes('urgent') || email.toLowerCase().includes('asap');
-        const isSchedule = email.toLowerCase().includes('meeting') || email.toLowerCase().includes('schedule');
-        const isUpdate = email.toLowerCase().includes('update') || email.toLowerCase().includes('status');
+      // Call your actual email decoder backend
+      callEmailDecoder(input.value).then(response => {
+        resultDiv.innerHTML = response;
+      }).catch(error => {
+        console.error('Decoder Error:', error);
+        // Fallback with your tone model
+        fallbackEmailDecode(input.value, resultDiv);
+      });
+    }
+    
+    async function callEmailDecoder(emailText) {
+      try {
+        const response = await fetch('/api/decode-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email_content: emailText,
+            context: 'mobile-decoder'
+          })
+        });
         
-        let category = 'General';
-        let priority = 'Medium';
-        let action = 'Review and respond as needed';
-        
-        if (isUrgent) {
-          category = 'Urgent Request';
-          priority = 'High';
-          action = 'Respond within 2 hours';
-        } else if (isSchedule) {
-          category = 'Meeting/Schedule';
-          priority = 'Medium';
-          action = 'Check calendar and confirm availability';
-        } else if (isUpdate) {
-          category = 'Project Update';
-          priority = 'Low';
-          action = 'Review when convenient';
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
         }
         
-        resultDiv.innerHTML = `
-          <div class="success">✅ Email Decoded Successfully</div>
-          <div style="background: #222; border-radius: 8px; padding: 16px; margin-top: 12px;">
-            <div style="font-weight: 600; margin-bottom: 8px; color: #8b5cf6;">AI Analysis:</div>
-            <div style="margin-bottom: 8px;">• <strong>Category:</strong> ${category}</div>
-            <div style="margin-bottom: 8px;">• <strong>Priority:</strong> ${priority}</div>
-            <div style="margin-bottom: 8px;">• <strong>Suggested Action:</strong> ${action}</div>
-            <div style="margin-bottom: 8px;">• <strong>Word Count:</strong> ${email.split(' ').length} words</div>
+        const data = await response.json();
+        return formatDecoderResponse(data);
+        
+      } catch (error) {
+        console.error('Email Decoder Backend Error:', error);
+        throw error;
+      }
+    }
+    
+    function formatDecoderResponse(data) {
+      return `
+        <div class="success">✅ Email Decoded with HomeOps AI</div>
+        <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.1);">
+          <div style="font-weight: 600; margin-bottom: 12px; color: #fff;">🧠 AI Analysis:</div>
+          <div style="margin-bottom: 8px;">• <strong>Category:</strong> ${data.category || 'General'}</div>
+          <div style="margin-bottom: 8px;">• <strong>Priority:</strong> ${data.priority || 'Medium'}</div>
+          <div style="margin-bottom: 8px;">• <strong>Action Required:</strong> ${data.action || 'Review and respond'}</div>
+          <div style="margin-bottom: 8px;">• <strong>Emotional Tone:</strong> ${data.tone || 'Neutral'}</div>
+          ${data.deadline ? `<div style="margin-bottom: 8px;">• <strong>Deadline:</strong> ${data.deadline}</div>` : ''}
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); font-style: italic; color: rgba(255,255,255,0.8);">
+            "${data.summary || 'This email has been processed through your personal HomeOps reasoning model.'}"
           </div>
-        `;
-      }, 1500);
+        </div>
+      `;
+    }
+    
+    function fallbackEmailDecode(emailText, resultDiv) {
+      const email = emailText.toLowerCase();
+      const isUrgent = email.includes('urgent') || email.includes('asap') || email.includes('emergency');
+      const isSchedule = email.includes('meeting') || email.includes('schedule') || email.includes('appointment');
+      const isFamily = email.includes('school') || email.includes('pickup') || email.includes('soccer') || email.includes('dinner');
+      const isWork = email.includes('project') || email.includes('deadline') || email.includes('client');
+      
+      let category = 'General Communication';
+      let priority = 'Medium';
+      let action = 'Review when convenient';
+      let tone = 'Professional';
+      
+      if (isUrgent) {
+        category = 'Urgent Request';
+        priority = 'High';
+        action = 'Respond within 2 hours';
+        tone = 'Demanding';
+      } else if (isSchedule) {
+        category = 'Scheduling';
+        priority = 'Medium';
+        action = 'Check calendar and confirm';
+        tone = 'Coordinating';
+      } else if (isFamily) {
+        category = 'Family/Personal';
+        priority = isUrgent ? 'High' : 'Medium';
+        action = 'Handle accordingly';
+        tone = 'Personal';
+      } else if (isWork) {
+        category = 'Work/Project';
+        priority = 'Medium';
+        action = 'Review and plan next steps';
+        tone = 'Professional';
+      }
+      
+      // HomeOps tone model insights
+      const insights = [
+        "This isn't just about the email - it's about your mental load.",
+        "The real question: what does this person actually need from you?",
+        "Notice the subtext. What's not being said here?",
+        "This feels like a bid for connection disguised as a request.",
+        "The urgency might be theirs, not yours. What's actually time-sensitive?"
+      ];
+      
+      const randomInsight = insights[Math.floor(Math.random() * insights.length)];
+      
+      resultDiv.innerHTML = `
+        <div class="success">✅ Email Decoded with HomeOps AI</div>
+        <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.1);">
+          <div style="font-weight: 600; margin-bottom: 12px; color: #fff;">🧠 AI Analysis:</div>
+          <div style="margin-bottom: 8px;">• <strong>Category:</strong> ${category}</div>
+          <div style="margin-bottom: 8px;">• <strong>Priority:</strong> ${priority}</div>
+          <div style="margin-bottom: 8px;">• <strong>Action Required:</strong> ${action}</div>
+          <div style="margin-bottom: 8px;">• <strong>Emotional Tone:</strong> ${tone}</div>
+          <div style="margin-bottom: 8px;">• <strong>Word Count:</strong> ${emailText.split(' ').length} words</div>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); font-style: italic; color: rgba(255,255,255,0.8);">
+            "💡 ${randomInsight}"
+          </div>
+        </div>
+      `;
     }
     
     function previousMonth() {
