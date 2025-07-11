@@ -1597,7 +1597,64 @@ function forceMobileCalendarRender() {
   }
 }
 
+// SAFARI MOBILE FIX: Additional checks for Safari
+function safariMobileCalendarFix() {
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+  if (isSafari && isMobile) {
+    console.log("🍎 Safari mobile detected, applying fixes...");
+    
+    // Ensure calendar view is active and visible
+    const calendarView = document.getElementById('calendar-view');
+    const calendarEl = document.getElementById('calendar');
+    
+    if (calendarView && calendarView.classList.contains('active')) {
+      if (calendarEl) {
+        // Force display and layout
+        calendarEl.style.display = 'block !important';
+        calendarEl.style.visibility = 'visible !important';
+        calendarEl.style.opacity = '1 !important';
+        calendarEl.style.height = 'auto !important';
+        calendarEl.style.minHeight = '400px !important';
+        calendarEl.style.width = '100% !important';
+        calendarEl.style.maxWidth = '100% !important';
+        
+        // Force FullCalendar to initialize if it hasn't
+        if (!window.calendar && typeof FullCalendar !== 'undefined') {
+          console.log("🔧 Initializing calendar for Safari mobile...");
+          renderCalendar();
+        }
+        
+        // Force list view for mobile
+        if (window.calendar) {
+          setTimeout(() => {
+            if (window.calendar.view.type !== 'listMonth') {
+              window.calendar.changeView('listMonth');
+            }
+            window.calendar.render();
+            window.calendar.updateSize();
+          }, 500);
+        }
+      }
+    }
+  }
+}
+
 // Run mobile fix on load and resize
 setTimeout(forceMobileCalendarRender, 1000);
+setTimeout(safariMobileCalendarFix, 1500);
 window.addEventListener('resize', forceMobileCalendarRender);
+window.addEventListener('resize', safariMobileCalendarFix);
+
+// Also run when calendar view is activated
+const originalActivateView = window.activateView;
+if (originalActivateView) {
+  window.activateView = function(viewId) {
+    originalActivateView(viewId);
+    if (viewId === 'calendar') {
+      setTimeout(safariMobileCalendarFix, 300);
+    }
+  };
+}
 

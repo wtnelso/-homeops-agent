@@ -710,6 +710,21 @@
       opacity: 1 !important;
       height: auto !important;
       min-height: 400px !important;
+      -webkit-transform: translateZ(0) !important;
+      transform: translateZ(0) !important;
+    }
+    
+    /* SAFARI MOBILE SPECIFIC FIXES */
+    @supports (-webkit-appearance: none) {
+      #calendar {
+        -webkit-overflow-scrolling: touch !important;
+        will-change: transform !important;
+      }
+      
+      #calendar-view {
+        -webkit-transform: translate3d(0,0,0) !important;
+        transform: translate3d(0,0,0) !important;
+      }
     }
     
     /* FORCE CALENDAR TO USE LIST VIEW ON MOBILE */
@@ -731,21 +746,62 @@
       padding: 0.75rem !important;
       border-bottom: 1px solid #e5e7eb !important;
       background: white !important;
+      position: relative !important;
+      overflow: visible !important;
+      min-height: 60px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
     }
     
     .fc-list-event:hover {
       background: #f9fafb !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    }
+    
+    /* Fix text bleeding and visibility issues */
+    .fc-list-event-graphic,
+    .fc-list-event-dot {
+      display: none !important;
+    }
+    
+    .fc-list-event .fc-list-event-title a {
+      color: #111827 !important;
+      text-decoration: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      border: none !important;
+      text-shadow: none !important;
+      font-weight: 600 !important;
     }
     
     .fc-list-event-title {
       font-size: 0.9rem !important;
       font-weight: 600 !important;
       color: #111827 !important;
+      background: white !important;
+      padding: 2px 4px !important;
+      border-radius: 3px !important;
+      position: relative !important;
+      z-index: 10 !important;
+      text-shadow: none !important;
+      box-shadow: none !important;
     }
     
     .fc-list-event-time {
       font-size: 0.8rem !important;
       color: #6b7280 !important;
+      background: #f8fafc !important;
+      padding: 4px 8px !important;
+      border-radius: 4px !important;
+      border: 1px solid #e2e8f0 !important;
+      display: inline-block !important;
+      min-width: 70px !important;
+      text-align: center !important;
+      font-weight: 500 !important;
+      position: relative !important;
+      z-index: 10 !important;
+      margin-right: 8px !important;
     }
     
     /* CALENDAR TOOLBAR - MOBILE OPTIMIZED */
