@@ -280,15 +280,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Register FullCalendar List plugin if available
-    if (typeof FullCalendar !== 'undefined' && FullCalendar.ListWeek) {
+    if (typeof FullCalendar !== 'undefined' && FullCalendar.listPlugin) {
       if (FullCalendar.globalPlugins) {
-        FullCalendar.globalPlugins.push(FullCalendar.ListWeek);
+        FullCalendar.globalPlugins.push(FullCalendar.listPlugin);
       }
     }
 
     function getInitialCalendarView() {
       if (window.innerWidth <= 768) {
-        return 'listWeek';
+        return 'list';
       }
       return 'dayGridMonth';
     }
@@ -351,13 +351,13 @@ document.addEventListener("DOMContentLoaded", () => {
       window.calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: getInitialCalendarView(),
         plugins: [
-          ...(typeof FullCalendar !== 'undefined' && FullCalendar.ListWeek ? [FullCalendar.ListWeek] : [])
+          ...(typeof FullCalendar !== 'undefined' && FullCalendar.listPlugin ? [FullCalendar.listPlugin] : [])
         ],
         height: "auto",
         headerToolbar: {
           left: "prev,next today",
           center: "title",
-          right: window.innerWidth <= 768 ? '' : "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
+          right: window.innerWidth <= 768 ? '' : "dayGridMonth,timeGridWeek,timeGridDay,list"
         },
         events: function(fetchInfo, successCallback, failureCallback) {
           const userId = window.userId || "test_user";
@@ -446,9 +446,9 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("🔄 Calendar dimensions after updateSize:", newRect.width, "x", newRect.height);
       }, 200);
 
-      // Force listWeek view on mobile after render
+      // Force list view on mobile after render
       if (window.innerWidth <= 768) {
-        window.calendar.changeView('listWeek');
+        window.calendar.changeView('list');
       }
     }
 
@@ -1117,8 +1117,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!window.calendar) return;
       const isMobile = window.innerWidth <= 768;
       const currentView = window.calendar.view.type;
-      if (isMobile && currentView !== 'listWeek') {
-        window.calendar.changeView('listWeek');
+      if (isMobile && currentView !== 'list') {
+        window.calendar.changeView('list');
       } else if (!isMobile && currentView !== 'dayGridMonth') {
         window.calendar.changeView('dayGridMonth');
       }
@@ -1133,10 +1133,10 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error('❌ FullCalendar global object is not defined!');
       } else {
         console.log('✅ FullCalendar global object found.');
-        if (typeof FullCalendar.ListWeek === 'undefined') {
-          console.error('❌ FullCalendar.ListWeek is not defined! The list plugin may not be loaded.');
+        if (typeof FullCalendar.listPlugin === 'undefined') {
+          console.error('❌ FullCalendar.listPlugin is not defined! The list plugin may not be loaded.');
         } else {
-          console.log('✅ FullCalendar.ListWeek is available.');
+          console.log('✅ FullCalendar.listPlugin is available.');
         }
       }
     });
@@ -1149,8 +1149,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function enforceMobileCalendarView() {
       if (!window.calendar) return;
       const isMobile = window.innerWidth <= 768;
-      if (isMobile && window.calendar.view.type !== 'listWeek') {
-        window.calendar.changeView('listWeek');
+      if (isMobile && window.calendar.view.type !== 'list') {
+        window.calendar.changeView('list');
       } else if (!isMobile && window.calendar.view.type !== 'dayGridMonth') {
         window.calendar.changeView('dayGridMonth');
       }
