@@ -439,17 +439,42 @@
       
       resultDiv.innerHTML = '<div class="loading">Decoding email...</div>';
       
+      // Simulate realistic email decoding
       setTimeout(() => {
+        const email = input.value;
+        const isUrgent = email.toLowerCase().includes('urgent') || email.toLowerCase().includes('asap');
+        const isSchedule = email.toLowerCase().includes('meeting') || email.toLowerCase().includes('schedule');
+        const isUpdate = email.toLowerCase().includes('update') || email.toLowerCase().includes('status');
+        
+        let category = 'General';
+        let priority = 'Medium';
+        let action = 'Review and respond as needed';
+        
+        if (isUrgent) {
+          category = 'Urgent Request';
+          priority = 'High';
+          action = 'Respond within 2 hours';
+        } else if (isSchedule) {
+          category = 'Meeting/Schedule';
+          priority = 'Medium';
+          action = 'Check calendar and confirm availability';
+        } else if (isUpdate) {
+          category = 'Project Update';
+          priority = 'Low';
+          action = 'Review when convenient';
+        }
+        
         resultDiv.innerHTML = `
           <div class="success">✅ Email Decoded Successfully</div>
           <div style="background: #222; border-radius: 8px; padding: 16px; margin-top: 12px;">
-            <div style="font-weight: 600; margin-bottom: 8px; color: #8b5cf6;">Key Insights:</div>
-            <div style="margin-bottom: 8px;">• This email appears to be a ${Math.random() > 0.5 ? 'meeting request' : 'project update'}</div>
-            <div style="margin-bottom: 8px;">• Priority: ${Math.random() > 0.5 ? 'High' : 'Medium'}</div>
-            <div>• Suggested action: ${Math.random() > 0.5 ? 'Respond within 24 hours' : 'Review and file'}</div>
+            <div style="font-weight: 600; margin-bottom: 8px; color: #8b5cf6;">AI Analysis:</div>
+            <div style="margin-bottom: 8px;">• <strong>Category:</strong> ${category}</div>
+            <div style="margin-bottom: 8px;">• <strong>Priority:</strong> ${priority}</div>
+            <div style="margin-bottom: 8px;">• <strong>Suggested Action:</strong> ${action}</div>
+            <div style="margin-bottom: 8px;">• <strong>Key Terms:</strong> ${email.split(' ').slice(0, 3).join(', ')}...</div>
           </div>
         `;
-      }, 2000);
+      }, 1500);
     }
     
     function previousMonth() {

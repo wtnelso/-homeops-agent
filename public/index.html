@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HomeOps - Redirecting...</title>
+  <title>HomeOps - Loading...</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -36,29 +36,45 @@
 <body>
   <div class="loader">
     <div class="spinner"></div>
-    <h2>Optimizing Experience...</h2>
-    <p>Detecting your device...</p>
+    <h2>Loading HomeOps...</h2>
+    <p>Optimizing for your device...</p>
   </div>
 
   <script>
+    // Disable service worker that's causing redirect issues
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+
     function isMobile() {
       const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) ||
-             window.innerWidth <= 768;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 768;
+      return isMobileUA || isSmallScreen;
     }
 
     function redirect() {
-      if (isMobile()) {
-        console.log('📱 Mobile device detected - redirecting to mobile version');
-        window.location.href = '/mobile.html';
-      } else {
-        console.log('💻 Desktop device detected - redirecting to desktop version');
-        window.location.href = '/dashboard.html';
+      try {
+        if (isMobile()) {
+          console.log('📱 Mobile detected - redirecting to mobile version');
+          window.location.replace('/mobile.html');
+        } else {
+          console.log('💻 Desktop detected - redirecting to dashboard');
+          window.location.replace('/dashboard.html');
+        }
+      } catch (error) {
+        console.error('Redirect error:', error);
+        // Fallback - just go to dashboard
+        window.location.replace('/dashboard.html');
       }
     }
 
-    // Wait a moment to show the loader, then redirect
-    setTimeout(redirect, 1000);
+    // Wait a moment then redirect
+    setTimeout(redirect, 500);
   </script>
 </body>
 </html>
