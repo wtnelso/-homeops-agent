@@ -2,11 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<title>HomeOps Decoder - LIVE TEST 2025.07.11.15:20 - AI Calendar Intelligence</title>
+
+<!-- PWA Meta Tags -->
+<meta name="application-name" content="HomeOps Agent">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HomeOps">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#8b5cf6">
+<meta name="msapplication-TileColor" content="#8b5cf6">
+<meta name="msapplication-tap-highlight" content="no">
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="/manifest.json">
+
+<!-- iOS PWA Icons -->
+<link rel="apple-touch-icon" href="/img/homeops-logo.svg">
+<link rel="apple-touch-icon" sizes="152x152" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%238b5cf6'/%3E%3Ctext y='55' x='50' text-anchor='middle' font-size='50' fill='white' font-family='system-ui'%3EH%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%238b5cf6'/%3E%3Ctext y='55' x='50' text-anchor='middle' font-size='50' fill='white' font-family='system-ui'%3EH%3C/text%3E%3C/svg%3E">
+
+<title>HomeOps Agent - AI Productivity Assistant</title>
 
   <link rel="stylesheet" href="style.css?v=2025-07-11" />
   <script>
@@ -19,18 +38,177 @@
   <script src="https://unpkg.com/tippy.js@6"></script>
   <!-- API Configuration -->
   <script src="config.js"></script>
+  <!-- PWA Support -->
+  <script src="pwa.js"></script>
   <link rel="stylesheet" href="dashboard.css?v=2025-07-11" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* 🚫 FIXED VIEWPORT - NO SCROLLING */
+    /* 🚫 FIXED VIEWPORT - NO SCROLLING + PWA MOBILE-FIRST */
     html, body {
       height: 100vh;
       overflow: hidden;
       margin: 0;
       padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #f3f4f6;
+      /* PWA Touch Optimizations */
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    /* Touch Target Optimization - Minimum 44px */
+    button, .button, [role="button"], .clickable {
+      min-height: 44px !important;
+      min-width: 44px !important;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border-radius: 8px;
+    }
+
+    /* Touch Feedback */
+    button:active, .button:active, [role="button"]:active {
+      transform: scale(0.98);
+      opacity: 0.8;
+    }
+
+    /* Enhanced Input Styles for Mobile */
+    input, textarea, select {
+      font-size: 16px !important; /* Prevents zoom on iOS */
+      min-height: 44px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+    }
+
+    /* PWA Mobile-First Styles */
+    * {
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Touch Target Optimization - Minimum 44px */
+    button, .button, [role="button"], .clickable {
+      min-height: 44px !important;
+      min-width: 44px !important;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border-radius: 8px;
+    }
+
+    /* Touch Feedback */
+    button:active, .button:active, [role="button"]:active {
+      transform: scale(0.98);
+      opacity: 0.8;
+    }
+
+    /* Pull-to-refresh indicator */
+    #pull-indicator {
+      position: fixed;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #8b5cf6;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 0 0 12px 12px;
+      font-size: 14px;
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.2s ease;
+    }
+
+    /* Mobile Navigation Improvements */
+    .nav-tabs {
+      padding: 8px 16px;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-tab {
+      min-height: 44px;
+      padding: 12px 16px;
+      font-size: 16px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    /* Mobile Calendar Optimizations */
+    @media (max-width: 768px) {
+      .fc-toolbar {
+        padding: 8px !important;
+        gap: 8px !important;
+      }
+      
+      .fc-toolbar-chunk button {
+        min-height: 44px !important;
+        min-width: 44px !important;
+        padding: 8px 12px !important;
+        font-size: 14px !important;
+      }
+      
+      .fc-list-event {
+        min-height: 44px !important;
+        padding: 12px !important;
+      }
+      
+      .fc-list-event-title {
+        font-size: 16px !important;
+        line-height: 1.4 !important;
+      }
+    }
+
+    /* iOS Safe Area Support */
+    @supports (padding: max(0px)) {
+      .nav-tabs {
+        padding-top: max(8px, env(safe-area-inset-top));
+      }
+      
+      body {
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+      }
+    }
+
+    /* Swipe Indicators */
+    .swipe-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      animation: fadeInOut 3s infinite;
+    }
+
+    @keyframes fadeInOut {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    /* Enhanced Input Styles for Mobile */
+    input, textarea, select {
+      font-size: 16px !important; /* Prevents zoom on iOS */
+      min-height: 44px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: 2px solid #8b5cf6;
+      outline-offset: 2px;
     }
     
     /* 🎯 MAIN CONTAINER - FIXED HEIGHT */
@@ -835,6 +1013,9 @@
   </style>
 </head>
 <body>
+  <!-- Pull-to-refresh indicator -->
+  <div id="pull-indicator">Pull to refresh</div>
+  
   <div class="app-container">
 
     <!-- Sidebar -->
@@ -1727,138 +1908,7 @@
                   <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
                     Help us learn your preferences by giving thumbs up/down to email categorizations. This makes the decoder smarter for you.
                   </p>
-                  <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
-                      <button class="wizard-btn secondary" style="
-                        background: #f1f5f9;
-                        color: #64748b;
-                        border: 1px solid #e2e8f0;
-                        padding: 0.75rem 1.5rem;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                      ">
-                        <svg style="width: 1em; height: 1em;" viewBox="0 0 24 24" fill="none">
-                          <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" fill="#64748b"/>
-                        </svg>
-                        Thumbs Up
-                      </button>
-                      <button class="wizard-btn secondary" style="
-                        background: #f1f5f9;
-                        color: #64748b;
-                        border: 1px solid #e2e8f0;
-                        padding: 0.75rem 1.5rem;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                      ">
-                        <svg style="width: 1em; height: 1em;" viewBox="0 0 24 24" fill="none">
-                          <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" fill="#64748b"/>
-                        </svg>
-                        Thumbs Down
-                      </button>
-                    </div>
-                    <p style="font-size: 0.9rem; color: #64748b; margin: 0;">
-                      Click the buttons above to rate email categorizations
-                    </p>
-                  </div>
-                  <button onclick="completeOnboarding()" class="wizard-btn primary" style="
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                    color: white;
-                    border: none;
-                    padding: 1rem 2rem;
-                    border-radius: 12px;
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.5rem;
-                    margin: 0 auto;
-                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-                    transition: all 0.2s;
-                  ">
-                    <svg style="width: 1.2em; height: 1.2em;" viewBox="0 0 24 24" fill="none">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="#fff"/>
-                    </svg>
-                    Complete Setup
-                  </button>
-                </div>
-
-                <!-- Step 5: Add to Calendar -->
-                <div id="step-5" class="wizard-step" style="display: none;">
-                  <div class="step-number">5</div>
-                  <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Add Events to Calendar</h2>
-                  <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.6;">
-                    Found events in your emails? Add them directly to your calendar with one click.
-                  </p>
-                  <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
-                      <button class="wizard-btn secondary" style="
-                        background: #f1f5f9;
-                        color: #64748b;
-                        border: 1px solid #e2e8f0;
-                        padding: 0.75rem 1.5rem;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                      ">
-                        <svg style="width: 1em; height: 1em;" viewBox="0 0 24 24" fill="none">
-                          <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" fill="#64748b"/>
-                        </svg>
-                        Add to Calendar
-                      </button>
-                    </div>
-                    <p style="font-size: 0.9rem; color: #64748b; margin: 0;">
-                      Click to add detected events to your calendar
-                    </p>
-                  </div>
-                  <button onclick="finishOnboarding()" class="wizard-btn primary" style="
-                    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-                    color: white;
-                    border: none;
-                    padding: 1rem 2rem;
-                    border-radius: 12px;
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.5rem;
-                    margin: 0 auto;
-                    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-                    transition: all 0.2s;
-                  ">
-                    <svg style="width: 1.2em; height: 1.2em;" viewBox="0 0 24 24" fill="none">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="#fff"/>
-                    </svg>
-                    You're All Set!
-                  </button>
-                </div>
-
-                <!-- Progress Bar -->
-                <div class="wizard-progress" style="
-                  margin-top: 3rem;
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                  gap: 1rem;
-                ">
-                  <div class="progress-step active" data-step="1">1</div>
-                  <div class="progress-line"></div>
-                  <div class="progress-step" data-step="2">2</div>
-                  <div class="progress-line"></div>
+                  <div style="background: #f8fafc; border-radius
                   <div class="progress-step" data-step="3">3</div>
                   <div class="progress-line"></div>
                   <div class="progress-step" data-step="4">4</div>
