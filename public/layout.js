@@ -321,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Ensure calendar element is visible and properly sized
       calendarEl.style.display = "block";
-      calendarEl.style.height = "600px";
+      calendarEl.style.height = "auto";
       calendarEl.style.minHeight = "600px";
       calendarEl.style.width = "100%";
       calendarEl.style.visibility = "visible";
@@ -350,9 +350,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Create calendar with proper event fetching
       window.calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: getInitialCalendarView(),
-        plugins: [
-          ...(typeof FullCalendar !== 'undefined' && FullCalendar.ListWeek ? [FullCalendar.ListWeek] : [])
-        ],
+        plugins: ['dayGrid', 'timeGrid', 'list'],
         height: "auto",
         headerToolbar: {
           left: "prev,next today",
