@@ -38,6 +38,28 @@
       overflow: hidden;
     }
     
+    /* APP CONTAINER - Flexbox layout for sidebar + main content */
+    .app-container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    /* SIDEBAR - Fixed width */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: #7c3aed;
+      transition: transform 0.3s ease;
+    }
+    
+    /* MAIN CONTENT - Takes remaining space */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      background-color: #f9fafb;
+    }
+    
     /* 📱 RESPONSIVE VIEWPORT */
     @media (max-height: 600px) {
       .dashboard-container {
@@ -689,29 +711,40 @@
       </nav>
     </aside>
 
-    <main class="main-content bg-gray-50 min-h-screen p-6">
+    <main style="flex: 1; background-color: #f9fafb; min-height: 100vh; padding: 1.5rem; margin-left: 0; transition: margin-left 0.3s ease;">
 
-  <!-- Top Bar with logo + brand and hamburger -->
-  <header class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <button class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" id="hamburgerBtn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <!-- Top Bar with logo + brand positioned outside sidebar -->
+  <header style="background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb; padding: 1rem 1.5rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <!-- Mobile hamburger button -->
+        <button style="display: none; padding: 0.5rem; color: #6b7280; background: none; border: none; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.2s;" id="hamburgerBtn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+          <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
         </button>
-        <a href="#" onclick="activateView('home'); return false;" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div class="flex items-center gap-3">
-            <img src="img/homeops-logo.svg" alt="HomeOps" class="w-8 h-8">
-            <span class="text-xl font-semibold text-gray-900">HomeOps</span>
-          </div>
+        
+        <!-- Logo and Brand - Outside sidebar -->
+        <a href="#" onclick="activateView('home'); return false;" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; transition: opacity 0.2s;">
+          <img src="img/homeops-logo.svg" alt="HomeOps" style="width: 2rem; height: 2rem;">
+          <span style="font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">HomeOps</span>
         </a>
       </div>
-      <div class="flex items-center gap-4">
-        <button id="logoutBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Logout</button>
+      
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button id="logoutBtn" style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: #374151; background: white; border: 1px solid #d1d5db; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.2s;">Logout</button>
       </div>
     </div>
   </header>
+
+  <!-- Mobile responsive styles -->
+  <style>
+    @media (max-width: 1024px) {
+      #hamburgerBtn {
+        display: block !important;
+      }
+    }
+  </style>
 
   <!-- Home View -->
   <section id="home-view" class="view">
