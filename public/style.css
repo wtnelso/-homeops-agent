@@ -6812,10 +6812,13 @@ body > i,
 
 #calendar {
   width: 100%;
-  min-height: 500px !important;
-  height: auto !important;
-  max-height: 100%;
-  overflow: auto;
+  min-width: 0;
+  max-width: 100%;
+  background: none;
+  box-shadow: none;
+  border: none;
+  border-radius: 16px;
+  overflow: visible;
 }
 
 /* Remove sidebar rules */
@@ -7426,4 +7429,14 @@ body, html {
   #calendar-view .calendar-stats {
     gap: 16px !important;
   }
+}
+
+#calendar-view,
+.modern-calendar-container,
+.calendar-main,
+.calendar-outer {
+  min-height: 500px !important;
+  height: auto !important;
+  display: block !important;
+  overflow: visible !important;
 }
