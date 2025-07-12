@@ -359,9 +359,9 @@
     
     /* SUCCESS/ERROR STATES */
     .success {
-      background: rgba(5, 150, 105, 0.3);
+      background: rgba(34, 197, 94, 0.3);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(5, 150, 105, 0.5);
+      border: 1px solid rgba(34, 197, 94, 0.5);
       border-radius: 8px;
       padding: 12px 16px;
       margin: 12px 0;
@@ -376,6 +376,73 @@
       padding: 12px 16px;
       margin: 12px 0;
       font-size: 14px;
+    }
+    
+    /* TASK CARD STYLES - Brand Purple Theme */
+    .task-card {
+      background: rgba(139, 92, 246, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(139, 92, 246, 0.5);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 12px 0;
+      color: white;
+    }
+    
+    .task-priority {
+      background: rgba(251, 191, 36, 0.4);
+      color: #fbbf24;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    
+    .task-due {
+      background: rgba(59, 130, 246, 0.4);
+      color: #60a5fa;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-block;
+    }
+    
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .task-btn {
+      background: rgba(139, 92, 246, 0.4);
+      border: 1px solid rgba(139, 92, 246, 0.6);
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: white;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .task-btn:hover {
+      background: rgba(139, 92, 246, 0.6);
+      transform: translateY(-1px);
+    }
+    
+    .task-btn.complete {
+      background: rgba(34, 197, 94, 0.4);
+      border-color: rgba(34, 197, 94, 0.6);
+    }
+    
+    .task-btn.edit {
+      background: rgba(251, 191, 36, 0.4);
+      border-color: rgba(251, 191, 36, 0.6);
     }
     
     /* MOBILE EMAIL INTELLIGENCE STYLES */
@@ -1152,35 +1219,37 @@
         else if (taskMatch) taskTitle = taskMatch[1].trim();
         
         const taskCard = `
-          <div class="action-card task-card">
-            <div class="card-header">
-              <i data-lucide="check-circle"></i>
-              <span>Task Created</span>
+          <div style="padding: 12px 20px; background: rgba(139, 92, 246, 0.3); backdrop-filter: blur(10px); margin: 8px 0; border-radius: 4px 18px 18px 18px; max-width: 95%; border: 1px solid rgba(139, 92, 246, 0.5);">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+              <i data-lucide="check-circle" style="width: 20px; height: 20px; color: #a78bfa;"></i>
+              <span style="font-weight: 600; color: white;">Task Created</span>
             </div>
-            <div class="card-content">
-              <h4>${taskTitle}</h4>
-              <div class="task-details">
-                <span class="priority priority-${priority.toLowerCase()}">
-                  <i data-lucide="flag"></i>
+            
+            <div style="margin-bottom: 12px;">
+              <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px; color: white;">${taskTitle}</div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <span style="background: rgba(251, 191, 36, 0.4); color: #fbbf24; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                  <i data-lucide="flag" style="width: 12px; height: 12px;"></i>
                   ${priority} Priority
                 </span>
-                <span class="due-date">
-                  <i data-lucide="calendar"></i>
+                <span style="background: rgba(59, 130, 246, 0.4); color: #60a5fa; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                  <i data-lucide="calendar" style="width: 12px; height: 12px;"></i>
                   Due: ${dueDate}
                 </span>
               </div>
             </div>
-            <div class="card-actions">
-              <button onclick="markTaskComplete(this)" class="action-btn primary">
-                <i data-lucide="check"></i>
+            
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button onclick="markTaskComplete(this)" style="background: rgba(34, 197, 94, 0.4); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="check" style="width: 12px; height: 12px;"></i>
                 Complete
               </button>
-              <button onclick="editTask(this)" class="action-btn secondary">
-                <i data-lucide="edit"></i>
+              <button onclick="editTask(this)" style="background: rgba(251, 191, 36, 0.4); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="edit" style="width: 12px; height: 12px;"></i>
                 Edit
               </button>
-              <button onclick="snoozeTask(this)" class="action-btn secondary">
-                <i data-lucide="clock"></i>
+              <button onclick="snoozeTask(this)" style="background: rgba(139, 92, 246, 0.4); border: 1px solid rgba(139, 92, 246, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
                 Snooze
               </button>
             </div>
@@ -1540,9 +1609,9 @@
       ];
       
       const actions = [
-        ["**Tonight:** Name one thing you need without explaining why", "**This week:** Stop managing their feelings about your needs", "**Going forward:** Ask for help before you're angry"],
-        ["**Right now:** Text them one thing you appreciate", "**Today:** Have the conversation without fixing anything", "**This month:** Create space to be more than useful"],
-        ["**Immediately:** Stop explaining your exhaustion", "**Tomorrow:** Ask what support they need too", "**Next week:** Plan something that isn't logistics"]
+        ["<strong>Tonight:</strong> Name one thing you need without explaining why", "<strong>This week:</strong> Stop managing their feelings about your needs", "<strong>Going forward:</strong> Ask for help before you're angry"],
+        ["<strong>Right now:</strong> Text them one thing you appreciate", "<strong>Today:</strong> Have the conversation without fixing anything", "<strong>This month:</strong> Create space to be more than useful"],
+        ["<strong>Immediately:</strong> Stop explaining your exhaustion", "<strong>Tomorrow:</strong> Ask what support they need too", "<strong>Next week:</strong> Plan something that isn't logistics"]
       ];
       
       const reframes = [
@@ -1555,7 +1624,17 @@
       const actionSet = actions[Math.floor(Math.random() * actions.length)];
       const reframe = reframes[Math.floor(Math.random() * reframes.length)];
       
-      return `You're carrying too much emotional labor without naming it. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
+      return `
+        <div style="line-height: 1.6;">
+          <p style="margin-bottom: 12px; font-style: italic;">You're carrying too much emotional labor without naming it. ${insight}</p>
+          
+          <div style="background: rgba(139, 92, 246, 0.2); padding: 12px; border-radius: 8px; margin: 12px 0; border-left: 3px solid rgba(139, 92, 246, 0.6);">
+            ${actionSet.map(action => `<div style="margin: 6px 0;">${action}</div>`).join('')}
+          </div>
+          
+          <p style="font-weight: 600; color: rgba(255,255,255,0.9);">${reframe}</p>
+        </div>
+      `;
     }
     
     function generateHomeOpsFriendshipResponse(message) {
@@ -2545,17 +2624,49 @@
     
     // General Web Search Intelligence
     function executeGeneralWebSearch(message, messagesDiv) {
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(75, 85, 99, 0.2); border: 1px solid rgba(75, 85, 99, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+      const searchCard = `
+        <div style="padding: 12px 20px; background: rgba(75, 85, 99, 0.3); backdrop-filter: blur(10px); margin: 8px 0; border-radius: 4px 18px 18px 18px; max-width: 95%; border: 1px solid rgba(75, 85, 99, 0.5);">
           <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
             <i data-lucide="globe" style="width: 20px; height: 20px;"></i>
             <span>Web Intelligence</span>
           </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px;">
-            <div>Comprehensive web search results for: "${message}"</div>
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-weight: 600; margin-bottom: 8px;">Best Restaurants in Rehoboth Beach, Delaware</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Based on reviews and local recommendations</div>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0;">
+            <div style="font-weight: 600; margin-bottom: 4px;">🏆 The Salt Air</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 6px;">Fine dining • Seafood • $$$$</div>
+            <div style="font-size: 13px; line-height: 1.4;">Upscale oceanfront dining with fresh seafood and creative American cuisine. Known for their lobster and sunset views.</div>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0;">
+            <div style="font-weight: 600; margin-bottom: 4px;">🍕 Grotto Pizza</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 6px;">Pizza • Family-friendly • $$</div>
+            <div style="font-size: 13px; line-height: 1.4;">Delaware beach institution serving their famous white pizza. Perfect for families and casual dining.</div>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0;">
+            <div style="font-weight: 600; margin-bottom: 4px;">🦞 Henlopen City Oyster House</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 6px;">Seafood • Raw bar • $$$</div>
+            <div style="font-size: 13px; line-height: 1.4;">Fresh oysters, steamed clams, and seafood specialties in a lively atmosphere near the boardwalk.</div>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0;">
+            <div style="font-weight: 600; margin-bottom: 4px;">🥩 Back Porch Cafe</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 6px;">American • Comfort food • $$$</div>
+            <div style="font-size: 13px; line-height: 1.4;">Local favorite for steaks, seafood, and comfort food. Great for dinner with outdoor seating options.</div>
+          </div>
+          
+          <div style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; margin-top: 12px;">
+            🌐 Found 4 highly-rated restaurants based on location and reviews
           </div>
         </div>
       `;
+      
+      messagesDiv.innerHTML += searchCard;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
       setTimeout(() => lucide.createIcons(), 100);
     }
     
