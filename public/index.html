@@ -604,12 +604,13 @@
         <div class="chat-messages-mobile">
           <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.8);">
             🧠 <strong>Your HomeOps Chief of Staff</strong><br><br>
-            I can inject events in your calendar, surface urgent emails, highlight deals, plan your week, and help with gift recommendations.<br><br>
+            I can inject events in your calendar, surface urgent emails, highlight deals, plan your week, summarize your inbox, and help with gift recommendations.<br><br>
             <strong>Try asking me:</strong><br>
             • "Add golf to my calendar tomorrow"<br>
+            • "Are there any good deals today?"<br>
+            • "Summarize my recent emails"<br>
             • "What's urgent in my inbox?"<br>
-            • "Help me plan this week"<br>
-            • "Find deals I should know about"<br><br>
+            • "Help me plan this week"<br><br>
             <em>I'm built to execute, not just empathize...</em>
           </div>
         </div>
@@ -883,6 +884,8 @@
       const msg = message.toLowerCase();
       const messagesDiv = document.querySelector('.chat-messages-mobile');
       
+      // Enhanced detection patterns
+      
       // Calendar injection commands - Enhanced detection
       if ((msg.includes('add') || msg.includes('create') || msg.includes('schedule') || msg.includes('i have') || msg.includes('meeting') || msg.includes('appointment')) && 
           (msg.includes('calendar') || msg.includes('event') || msg.includes('meeting') || msg.includes('at ') || msg.includes('pm') || msg.includes('am')) ||
@@ -890,6 +893,71 @@
           (msg.includes('sunday') || msg.includes('monday') || msg.includes('tuesday') || msg.includes('wednesday') || msg.includes('thursday') || msg.includes('friday') || msg.includes('saturday')) && (msg.includes('at ') || msg.includes('pm') || msg.includes('am'))) {
         
         executeCalendarInjection(message, messagesDiv);
+        return true;
+      }
+      
+      // Calendar viewing/checking commands
+      if ((msg.includes('do i have') || msg.includes('what do i have') || msg.includes('whats on my') || msg.includes('check my') || msg.includes('show my')) && 
+          (msg.includes('calendar') || msg.includes('schedule') || msg.includes('going on'))) {
+        executeCalendarView(messagesDiv);
+        return true;
+      }
+      
+      // Task management commands
+      if ((msg.includes('remind me') || msg.includes('set reminder') || msg.includes('dont forget')) ||
+          (msg.includes('add') && (msg.includes('task') || msg.includes('todo') || msg.includes('reminder')))) {
+        executeTaskManagement(message, messagesDiv);
+        return true;
+      }
+      
+      // Travel planning commands
+      if ((msg.includes('travel') || msg.includes('trip') || msg.includes('vacation') || msg.includes('flight')) && 
+          (msg.includes('plan') || msg.includes('book') || msg.includes('need') || msg.includes('help'))) {
+        executeTravelPlanning(message, messagesDiv);
+        return true;
+      }
+      
+      // Shopping/purchase commands
+      if ((msg.includes('buy') || msg.includes('purchase') || msg.includes('order') || msg.includes('need to get')) ||
+          (msg.includes('shopping') && (msg.includes('list') || msg.includes('help')))) {
+        executeShoppingAssistant(message, messagesDiv);
+        return true;
+      }
+      
+      // Contact/communication commands
+      if ((msg.includes('call') || msg.includes('text') || msg.includes('email') || msg.includes('contact')) && 
+          (msg.includes('remind me') || msg.includes('need to') || msg.includes('should'))) {
+        executeCommunicationReminder(message, messagesDiv);
+        return true;
+      }
+      
+      // Health/wellness tracking
+      if (msg.includes('water') || msg.includes('exercise') || msg.includes('workout') || 
+          (msg.includes('track') && (msg.includes('health') || msg.includes('wellness')))) {
+        executeWellnessTracking(message, messagesDiv);
+        return true;
+      }
+      
+      // Financial tracking
+      if ((msg.includes('budget') || msg.includes('expense') || msg.includes('spending')) ||
+          (msg.includes('how much') && (msg.includes('spent') || msg.includes('cost')))) {
+        executeFinancialTracking(message, messagesDiv);
+        return true;
+      }
+      
+      // Deal intelligence (RCS-style)
+      if (msg.includes('deals') || msg.includes('offers') || msg.includes('sales') || msg.includes('discounts') || 
+          msg.includes('good deal') || msg.includes('bargain') || msg.includes('cheap') || 
+          (msg.includes('find') && (msg.includes('deal') || msg.includes('offer')))) {
+        executeDealIntelligence(message, messagesDiv);
+        return true;
+      }
+      
+      // Email summary functionality
+      if (msg.includes('email summary') || msg.includes('recent emails') || msg.includes('inbox summary') || 
+          msg.includes('summarize emails') || msg.includes('latest emails') || msg.includes('what emails') ||
+          (msg.includes('summary') && msg.includes('email'))) {
+        executeEmailSummary(message, messagesDiv);
         return true;
       }
       
@@ -946,6 +1014,12 @@
       else if (msg.includes('call')) eventDetails.title = 'Call';
       else if (msg.includes('lunch')) eventDetails.title = 'Lunch';
       else if (msg.includes('dinner')) eventDetails.title = 'Dinner';
+      else if (msg.includes('flight')) eventDetails.title = 'Flight';
+      else if (msg.includes('conference')) eventDetails.title = 'Conference';
+      else if (msg.includes('pickup')) eventDetails.title = 'Pickup';
+      else if (msg.includes('dropoff')) eventDetails.title = 'Drop-off';
+      else if (msg.includes('doctor')) eventDetails.title = 'Doctor Appointment';
+      else if (msg.includes('dentist')) eventDetails.title = 'Dentist Appointment';
       
       // Extract day
       if (msg.includes('sunday')) eventDetails.date = 'Sunday';
@@ -1760,7 +1834,7 @@
           <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
             🛍️ <span>Deal Alert</span>
           </div>
-          <div style="font-size: 14px; margin-bottom: 12px;">
+          <div style="font-size:  14px; margin-bottom: 12px;">
             <strong>${dealData.item}</strong><br>
             ${dealData.discount} off - ${dealData.timeLeft} left
           </div>
@@ -1951,69 +2025,259 @@ I heard: "${message}"
 What action should I take for you?`;
     }
     
-    console.log('🚀 Mobile-First HomeOps Loaded Successfully - NO REDIRECTS!');
-    
-    function checkCalendarConflicts(date, time) {
-      // Simulate conflict detection - in real app, this would check actual calendar
-      const conflicts = {
-        'Sunday': { '2:00 PM': 'Family lunch usually at 1:30 PM' },
-        'Monday': { '9:00 AM': 'Weekly team standup' },
-        'Tuesday': { '2:00 PM': 'School pickup time' }
-      };
+    // Deal Intelligence (RCS-style) - Smart deal detection with one-click actions
+    function executeDealIntelligence(message, messagesDiv) {
+      const msg = message.toLowerCase();
       
-      const conflictKey = conflicts[date]?.[time];
-      
-      return {
-        hasConflict: !!conflictKey,
-        conflictDetails: conflictKey || 'No conflicts detected'
-      };
-    }
-    
-    function editEventDetails(title, date, time) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      // Smart deal categories based on current context
+      const smartDeals = [
+        {
+          category: 'Tech & Electronics',
+          merchant: 'Best Buy',
+          offer: '30% off MacBook Air M3',
+          originalPrice: '$1,299',
+          dealPrice: '$909',
+          savings: '$390',
+          urgency: 'Ends Tonight',
+          link: 'https://bestbuy.com/macbook-deal',
+          icon: 'laptop'
+        },
+        {
+          category: 'Home & Garden',
+          merchant: 'Home Depot',
+          offer: 'Summer Tool Sale',
+          originalPrice: '$249',
+          dealPrice: '$149',
+          savings: '$100',
+          urgency: '3 days left',
+          link: 'https://homedepot.com/tool-sale',
+          icon: 'hammer'
+        },
+        {
+          category: 'Fashion',
+          merchant: 'Nike',
+          offer: 'Air Max Collection',
+          originalPrice: '$150',
+          dealPrice: '$89',
+          savings: '$61',
+          urgency: 'Limited sizes',
+          link: 'https://nike.com/air-max-sale',
+          icon: 'shirt'
+        }
+      ];
       
       messagesDiv.innerHTML += `
-        <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+        <div style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
           <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="edit" style="width: 20px; height: 20px;"></i>
-            <span>Edit Event Details</span>
+            <i data-lucide="zap" style="width: 20px; height: 20px;"></i>
+            <span>Deal Intelligence</span>
+            <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">RCS POWERED</span>
           </div>
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            <input type="text" value="${title}" placeholder="Event title" 
-                   id="edit-title" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px; color: white; font-size: 14px;">
-            <input type="text" value="${date}" placeholder="Date" 
-                   id="edit-date" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px; color: white; font-size: 14px;">
-            <input type="text" value="${time}" placeholder="Time" 
-                   id="edit-time" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px; color: white; font-size: 14px;">
+          
+          <div style="margin-bottom: 12px;">
+            ${smartDeals.map(deal => `
+              <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; border-left: 3px solid rgba(251, 191, 36, 0.6);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                  <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                      <i data-lucide="${deal.icon}" style="width: 16px; height: 16px;"></i>
+                      <span style="font-weight: 600; font-size: 14px;">${deal.offer}</span>
+                    </div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.7);">${deal.merchant} • ${deal.category}</div>
+                    <div style="margin-top: 4px;">
+                      <span style="text-decoration: line-through; color: rgba(255,255,255,0.5); font-size: 13px;">${deal.originalPrice}</span>
+                      <span style="font-weight: 700; font-size: 16px; margin-left: 8px; color: #4ade80;">${deal.dealPrice}</span>
+                      <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 4px; border-radius: 3px; font-size: 10px; margin-left: 6px;">Save ${deal.savings}</span>
+                    </div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="background: rgba(239, 68, 68, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-bottom: 4px;">${deal.urgency}</div>
+                  </div>
+                </div>
+                
+                <div style="display: flex; gap: 6px; margin-top: 8px;">
+                  <button onclick="browseDeals('${deal.category}')" style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; flex: 1;">
+                    <i data-lucide="external-link" style="width: 12px; height: 12px; margin-right: 4px;"></i>
+                    Browse
+                  </button>
+                  <button onclick="quickBuy('${deal.offer}', '${deal.dealPrice}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; flex: 1;">
+                    <i data-lucide="shopping-cart" style="width: 12px; height: 12px; margin-right: 4px;"></i>
+                    Quick Buy
+                  </button>
+                </div>
+              </div>
+            `).join('')}
           </div>
-          <div style="display: flex; gap: 8px; margin-top: 12px;">
-            <button onclick="saveEditedEvent()" 
-                    style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; flex: 1;">
-              <i data-lucide="save" style="width: 16px; height: 16px; margin-right: 4px;"></i>
-              Save & Add
-            </button>
-            <button onclick="this.parentElement.parentElement.remove()" 
-                    style="background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
-              <i data-lucide="x" style="width: 16px; height: 16px;"></i>
-            </button>
+          
+          <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 8px;">
+            <i data-lucide="info" style="width: 14px; height: 14px; margin-right: 4px;"></i>
+            Deals curated from your email intelligence and shopping patterns
           </div>
         </div>
       `;
-      
       setTimeout(() => lucide.createIcons(), 100);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
     
-    function saveEditedEvent() {
-      const title = document.getElementById('edit-title').value;
-      const date = document.getElementById('edit-date').value;
-      const time = document.getElementById('edit-time').value;
+    // Email Summary - Intelligent email digest
+    function executeEmailSummary(message, messagesDiv) {
+      // Show loading state first
+      messagesDiv.innerHTML += `
+        <div id="email-summary-loading" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0; text-align: center;">
+          <div class="typing-dots" style="margin-bottom: 8px;">
+            <span>.</span><span>.</span><span>.</span>
+          </div>
+          <div>Scanning your inbox with AI intelligence...</div>
+        </div>
+      `;
       
-      executeCalendarAdd(title, date, time);
-      
-      // Remove edit interface
-      document.getElementById('edit-title').closest('div[style*="rgba(59, 130, 246"]').remove();
+      // Simulate processing time
+      setTimeout(() => {
+        document.getElementById('email-summary-loading').remove();
+        
+        // Use realistic email data (would connect to actual email decoder in production)
+        const emailSummary = {
+          totalEmails: 47,
+          todayCount: 8,
+          unreadCount: 12,
+          urgentCount: 3,
+          categories: {
+            urgent: [
+              { subject: 'Project deadline moved to Monday - URGENT', from: 'sarah@company.com', importance: 'high', time: '2:30 PM' },
+              { subject: 'Security alert: New device login detected', from: 'security@chase.com', importance: 'high', time: '10:55 AM' },
+              { subject: 'Kids soccer practice moved to 4pm Saturday', from: 'coach.martinez@soccerclub.org', importance: 'high', time: '12:45 PM' }
+            ],
+            deals: [
+              { subject: '70% off Summer Collection - Ends Tonight!', from: 'deals@nordstrom.com', savings: 'Up to 70%', urgency: 'Tonight' },
+              { subject: 'Amazon Prime Day Preview - Up to 50% off Tech', from: 'no-reply@amazon.com', savings: 'Up to 50%', urgency: 'Tomorrow' },
+              { subject: 'Home Depot Tool Sale - 40% off Power Tools', from: 'deals@homedepot.com', savings: '40% off', urgency: '3 days' }
+            ],
+            family: [
+              { subject: 'Birthday party invitation - Emma turns 8!', from: 'jenny.mom@gmail.com', time: '8:15 AM' },
+              { subject: 'Kids soccer practice moved to 4pm Saturday', from: 'coach.martinez@soccerclub.org', time: '12:45 PM' }
+            ],
+            work: [
+              { subject: 'Q3 Performance Review Scheduled', from: 'hr@company.com', time: '7:45 AM' },
+              { subject: 'Project deadline moved to Monday - URGENT', from: 'sarah@company.com', time: '2:30 PM' }
+            ]
+          }
+        };
+        
+        messagesDiv.innerHTML += `
+          <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+            <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="mail-open" style="width: 20px; height: 20px;"></i>
+              <span>Email Intelligence Summary</span>
+              <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">LIVE</span>
+            </div>
+            
+            <!-- Email Stats -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 16px;">
+              <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; text-align: center;">
+                <div style="font-weight: 700; font-size: 16px;">${emailSummary.todayCount}</div>
+                <div style="font-size: 10px; color: rgba(255,255,255,0.7);">Today</div>
+              </div>
+              <div style="background: rgba(251, 191, 36, 0.3); padding: 8px; border-radius: 6px; text-align: center;">
+                <div style="font-weight: 700; font-size: 16px;">${emailSummary.unreadCount}</div>
+                <div style="font-size: 10px; color: rgba(255,255,255,0.7);">Unread</div>
+              </div>
+              <div style="background: rgba(239, 68, 68, 0.3); padding: 8px; border-radius: 6px; text-align: center;">
+                <div style="font-weight: 700; font-size: 16px;">${emailSummary.urgentCount}</div>
+                <div style="font-size: 10px; color: rgba(255,255,255,0.7);">Urgent</div>
+              </div>
+              <div style="background: rgba(34, 197, 94, 0.3); padding: 8px; border-radius: 6px; text-align: center;">
+                <div style="font-weight: 700; font-size: 16px;">${emailSummary.categories.deals.length}</div>
+                <div style="font-size: 10px; color: rgba(255,255,255,0.7);">Deals</div>
+              </div>
+            </div>
+            
+            <!-- Priority Emails -->
+            <div style="margin-bottom: 12px;">
+              <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i>
+                Needs Immediate Attention
+              </div>
+              ${emailSummary.categories.urgent.map(email => `
+                <div style="background: rgba(239, 68, 68, 0.2); padding: 10px; border-radius: 6px; margin: 6px 0; border-left: 3px solid rgba(239, 68, 68, 0.6);">
+                  <div style="font-weight: 600; font-size: 13px; margin-bottom: 2px;">${email.subject}</div>
+                  <div style="font-size: 11px; color: rgba(255,255,255,0.7); display: flex; justify-content: space-between;">
+                    <span>From: ${email.from}</span>
+                    <span>${email.time}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            
+            <!-- Deal Highlights -->
+            <div style="margin-bottom: 12px;">
+              <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="tag" style="width: 16px; height: 16px;"></i>
+                Deal Highlights
+              </div>
+              ${emailSummary.categories.deals.map(email => `
+                <div style="background: rgba(34, 197, 94, 0.2); padding: 10px; border-radius: 6px; margin: 6px 0; border-left: 3px solid rgba(34, 197, 94, 0.6);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <div style="font-weight: 600; font-size: 13px;">${email.subject}</div>
+                      <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${email.from}</div>
+                    </div>
+                    <div>
+                      <div style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">${email.savings}</div>
+                      <div style="font-size: 10px; color: rgba(255,255,255,0.7); text-align: center; margin-top: 2px;">${email.urgency}</div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            
+            <div style="display: flex; gap: 8px;">
+              <button onclick="openFullInbox()" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; flex: 1;">
+                <i data-lucide="external-link" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+                Open Gmail
+              </button>
+              <button onclick="processLatestEmails()" style="background: rgba(16, 185, 129, 0.3); border: 1px solid rgba(16, 185, 129, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
+                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        setTimeout(() => lucide.createIcons(), 100);
+      }, 1500);
     }
+    
+    // Helper functions for new RCS-style functionality
+    function browseDeals(category) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      addSystemMessage(messagesDiv, `🛍️ Opening ${category} deals in browser...`);
+      setTimeout(() => {
+        window.open('https://deals.homeops.ai/' + category.toLowerCase().replace(/\s+/g, '-'), '_blank');
+      }, 500);
+    }
+    
+    function quickBuy(item, price) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      addSystemMessage(messagesDiv, `⚡ Quick Buy: "${item}" for ${price}. Redirecting to secure checkout...`);
+      // In production, this would integrate with payment APIs
+    }
+    
+    function openFullInbox() {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      addSystemMessage(messagesDiv, `📧 Opening Gmail in new tab...`);
+      setTimeout(() => {
+        window.open('https://mail.google.com', '_blank');
+      }, 500);
+    }
+    
+    function processLatestEmails() {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      addSystemMessage(messagesDiv, `🔄 Refreshing email intelligence... This may take a moment.`);
+      
+      // Simulate processing
+      setTimeout(() => {
+        addSystemMessage(messagesDiv, `✅ Email scan complete! Found 3 new urgent emails and 2 new deals.`);
+      }, 2000);
+    }
+    
+    // ...existing code...
   </script>
 </body>
 </html>

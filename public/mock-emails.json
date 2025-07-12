@@ -1,0 +1,133 @@
+{
+  "emails": [
+    {
+      "id": "email_001",
+      "subject": "Project deadline moved to Monday - URGENT",
+      "from": "sarah@company.com",
+      "fromName": "Sarah Chen",
+      "timestamp": "2025-07-11T14:30:00Z",
+      "category": "urgent",
+      "importance": "high",
+      "snippet": "Hi team, due to client feedback we need to move the project deadline to Monday. Please confirm your availability for weekend work.",
+      "hasAttachment": false,
+      "dealInfo": null
+    },
+    {
+      "id": "email_002", 
+      "subject": "70% off Summer Collection - Ends Tonight!",
+      "from": "deals@nordstrom.com",
+      "fromName": "Nordstrom Deals",
+      "timestamp": "2025-07-11T13:15:00Z",
+      "category": "deals",
+      "importance": "medium",
+      "snippet": "Don't miss out! Save up to 70% on designer summer pieces. Limited time offer ends at midnight.",
+      "hasAttachment": false,
+      "dealInfo": {
+        "discount": "70%",
+        "originalPrice": "$200-500",
+        "dealPrice": "$60-150",
+        "merchant": "Nordstrom",
+        "category": "Fashion",
+        "urgency": "Ends Tonight",
+        "link": "https://nordstrom.com/summer-sale"
+      }
+    },
+    {
+      "id": "email_003",
+      "subject": "Kids soccer practice moved to 4pm Saturday",
+      "from": "coach.martinez@soccerclub.org", 
+      "fromName": "Coach Martinez",
+      "timestamp": "2025-07-11T12:45:00Z",
+      "category": "family",
+      "importance": "high",
+      "snippet": "Parents, due to field maintenance, Saturday's practice is moved from 2pm to 4pm. Please confirm receipt.",
+      "hasAttachment": false,
+      "dealInfo": null
+    },
+    {
+      "id": "email_004",
+      "subject": "Amazon Prime Day Preview - Up to 50% off Tech",
+      "from": "no-reply@amazon.com",
+      "fromName": "Amazon Deals",
+      "timestamp": "2025-07-11T11:20:00Z",
+      "category": "deals", 
+      "importance": "medium",
+      "snippet": "Prime Day starts tomorrow! Preview deals now including MacBooks, iPads, and smart home devices.",
+      "hasAttachment": false,
+      "dealInfo": {
+        "discount": "50%",
+        "originalPrice": "$999-2499",
+        "dealPrice": "$499-1249", 
+        "merchant": "Amazon",
+        "category": "Tech & Electronics",
+        "urgency": "Prime Day Tomorrow",
+        "link": "https://amazon.com/prime-day"
+      }
+    },
+    {
+      "id": "email_005",
+      "subject": "Security alert: New device login detected",
+      "from": "security@chase.com",
+      "fromName": "Chase Security",
+      "timestamp": "2025-07-11T10:55:00Z",
+      "category": "urgent",
+      "importance": "high", 
+      "snippet": "We detected a login from a new device. If this wasn't you, please secure your account immediately.",
+      "hasAttachment": false,
+      "dealInfo": null
+    },
+    {
+      "id": "email_006",
+      "subject": "Home Depot Tool Sale - 40% off Power Tools",
+      "from": "deals@homedepot.com",
+      "fromName": "Home Depot",
+      "timestamp": "2025-07-11T09:30:00Z",
+      "category": "deals",
+      "importance": "low",
+      "snippet": "Summer tool sale! Save 40% on DeWalt, Milwaukee, and Ryobi power tools. Perfect for home projects.",
+      "hasAttachment": false,
+      "dealInfo": {
+        "discount": "40%",
+        "originalPrice": "$149-399",
+        "dealPrice": "$89-239",
+        "merchant": "Home Depot", 
+        "category": "Home & Garden",
+        "urgency": "3 days left",
+        "link": "https://homedepot.com/tool-sale"
+      }
+    },
+    {
+      "id": "email_007",
+      "subject": "Birthday party invitation - Emma turns 8!",
+      "from": "jenny.mom@gmail.com",
+      "fromName": "Jenny's Mom",
+      "timestamp": "2025-07-11T08:15:00Z",
+      "category": "family",
+      "importance": "medium",
+      "snippet": "You're invited to Emma's 8th birthday party this Sunday at 2pm. Pizza, cake, and pool party!",
+      "hasAttachment": true,
+      "dealInfo": null
+    },
+    {
+      "id": "email_008",
+      "subject": "Q3 Performance Review Scheduled",
+      "from": "hr@company.com",
+      "fromName": "HR Department", 
+      "timestamp": "2025-07-11T07:45:00Z",
+      "category": "work",
+      "importance": "medium",
+      "snippet": "Your Q3 performance review has been scheduled for July 18th at 3pm with your manager.",
+      "hasAttachment": false,
+      "dealInfo": null
+    }
+  ],
+  "summary": {
+    "totalEmails": 47,
+    "todayCount": 8,
+    "unreadCount": 12,
+    "urgentCount": 3,
+    "dealCount": 3,
+    "familyCount": 2,
+    "workCount": 2
+  }
+}
