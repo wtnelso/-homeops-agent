@@ -2105,7 +2105,7 @@
           displayFlightResults(flightResults, destination, budget, dates, messagesDiv);
         } else {
           // Fallback to intelligent mock data
-          const mockResults = generateIntelligentFlightMock(origin, destination, budget);
+          const mockResults = generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate);
           displayFlightResults(mockResults, destination, budget, dates, messagesDiv);
         }
         
@@ -2117,7 +2117,7 @@
         if (loadingElement) loadingElement.remove();
         
         // Generate intelligent mock data based on real patterns
-        const mockResults = generateIntelligentFlightMock(origin, destination, budget);
+        const mockResults = generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate);
         displayFlightResults(mockResults, destination, budget, dates, messagesDiv);
       }
     }
@@ -2161,7 +2161,33 @@
       return null;
     }
     
-    function generateIntelligentFlightMock(origin, destination, budget) {
+    
+    // Create a proper Google Flights booking URL with specific dates and airports
+    function createFlightBookingUrl(origin, destination, departureDate, returnDate) {
+      // Get airport codes
+      const originCode = getAirportCode(origin);
+      const destCode = getAirportCode(destination);
+      
+      // Use current date logic if specific dates weren't parsed
+      if (!departureDate) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        departureDate = tomorrow.toISOString().split('T')[0];
+      }
+      
+      if (!returnDate) {
+        returnDate = '2025-08-15'; // Default return date from user's query
+      }
+      
+      // Create a Google Flights URL that includes the specific search criteria
+      // This format works more reliably than the complex encoded URLs
+      const baseUrl = 'https://www.google.com/flights';
+      const searchQuery = `${originCode} to ${destCode} on ${departureDate} returning ${returnDate}`;
+      
+      return `${baseUrl}?q=${encodeURIComponent(searchQuery)}&hl=en`;
+    }
+
+    function generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate) {
       // Intelligent mock data generator based on real flight patterns
       const routes = {
         'San Francisco': {
@@ -2210,7 +2236,7 @@
           stops: index === 0 ? 'Nonstop' : (Math.random() > 0.7 ? '1 stop' : 'Nonstop'),
           rating: `${(8.5 + Math.random() * 1.3).toFixed(1)}`,
           withinBudget,
-          bookingUrl: `https://www.google.com/flights?q=${origin}+to+${destination}`
+          bookingUrl: createFlightBookingUrl(origin, destination, departureDate, returnDate)
         };
       }).sort((a, b) => parseInt(a.price.replace('$', '')) - parseInt(b.price.replace('$', '')));
     }
