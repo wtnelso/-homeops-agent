@@ -947,7 +947,7 @@
       }
     }
     
-    function sendMessage() {
+    async function sendMessage() {
       const input = document.getElementById('chatInput');
       const message = input.value.trim();
       
@@ -993,71 +993,66 @@
         
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
         
-        // Call your actual AI backend
-        callHomeOpsAI(message).then(response => {
-          const typingEl = document.getElementById('typing-indicator');
-          if (typingEl) {
-            typingEl.innerHTML = response;
-            typingEl.style.background = 'rgba(255,255,255,0.1)';
-            typingEl.style.color = 'white';
-            typingEl.removeAttribute('id');
-          }
-          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        // Call real AI backend
+        try {
+          console.log('📡 Sending to AI backend:', message);
           
-          // Initialize Lucide icons after adding new content
-          lucide.createIcons();
-        }).catch(error => {
-          console.error('AI Error:', error);
+          const response = await fetch('/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: message,
+              context: 'mobile_chat'
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          // Replace typing indicator with AI response
           const typingEl = document.getElementById('typing-indicator');
-          if (typingEl) {
-            typingEl.innerHTML = "I'm having trouble connecting right now. Your tone-aware AI model will be back online shortly!";
-            typingEl.style.background = 'rgba(255,200,100,0.2)';
+          if (typingEl && data.response) {
+            typingEl.innerHTML = `
+              <div style="color: white; line-height: 1.4;">
+                ${data.response}
+              </div>
+            `;
+            typingEl.style.background = 'rgba(139, 92, 246, 0.2)';
+            typingEl.style.borderColor = 'rgba(139, 92, 246, 0.4)';
             typingEl.removeAttribute('id');
           }
-        });
+          
+        } catch (error) {
+          console.error('❌ AI Backend Error:', error);
+          const typingEl = document.getElementById('typing-indicator');
+          if (typingEl) {
+            typingEl.innerHTML = `
+              <div style="color: rgba(255,200,100,0.9);">
+                I'm having trouble connecting to my AI brain right now. Can you try rephrasing your request? I can still help with calendar events, flights, and other specific tasks.
+              </div>
+            `;
+            typingEl.style.background = 'rgba(255,200,100,0.2)';
+            typingEl.style.borderColor = 'rgba(255,200,100,0.4)';
+            typingEl.removeAttribute('id');
+          }
+        }
+        
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        
+        // Initialize Lucide icons after adding new content
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
       }
       
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
-    
-    // Main AI function that handles all chat requests
-    async function callHomeOpsAI(message) {
-      console.log('🤖 Calling HomeOps AI with:', message);
-      
-      try {
-        // First try to detect and execute actions
-        const actionResult = await detectAndExecuteActions(message);
-        if (actionResult.executed) {
-          return actionResult.response;
-        }
-        
-        // If no action detected, generate contextual HomeOps response
-        const lowerMessage = message.toLowerCase();
-        
-        if (lowerMessage.includes('relationship') || lowerMessage.includes('partner') || lowerMessage.includes('marriage') || 
-            lowerMessage.includes('mother in law') || lowerMessage.includes('mother-in-law') || lowerMessage.includes('in-laws') ||
-            lowerMessage.includes('family drama') || lowerMessage.includes('spouse') || lowerMessage.includes('husband') || 
-            lowerMessage.includes('wife') || lowerMessage.includes('couple')) {
-          return generateHomeOpsRelationshipResponse(message);
-        } else if (lowerMessage.includes('kid') || lowerMessage.includes('child') || lowerMessage.includes('parent')) {
-          return generateHomeOpsParentingResponse(message);
-        } else if (lowerMessage.includes('stress') || lowerMessage.includes('overwhelmed') || lowerMessage.includes('busy')) {
-          return generateHomeOpsStressResponse(message);
-        } else if (lowerMessage.includes('schedule') || lowerMessage.includes('time') || lowerMessage.includes('calendar')) {
-          return generateHomeOpsProductivityResponse(message);
-        } else if (lowerMessage.includes('friend') || lowerMessage.includes('social')) {
-          return generateHomeOpsFriendshipResponse(message);
-        } else {
-          return generateHomeOpsGeneralResponse(message);
-        }
-        
-      } catch (error) {
-        console.error('❌ HomeOps AI error:', error);
-        return "I'm having trouble processing that right now. Can you try rephrasing your request?";
-      }
-    }
-    
-    // Smart action detection and execution
+     // Smart action detection and execution
     function detectAndExecuteActions(message) {
       const msg = message.toLowerCase();
       const messagesDiv = document.querySelector('.chat-messages-mobile');
