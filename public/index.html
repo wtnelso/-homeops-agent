@@ -875,6 +875,13 @@
       // Smart action detection BEFORE sending to AI
       const actionDetected = detectAndExecuteActions(message);
       
+      if (actionDetected) {
+        // Action was detected and executed, no need for AI response
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        return;
+      }
+      
+      // Only proceed with AI if no action was detected
       if (!actionDetected) {
         // Add typing indicator
         messagesDiv.innerHTML += `
@@ -941,10 +948,11 @@
         return true;
       }
       
-      // Task management commands
-      if ((msg.includes('remind me') || msg.includes('set reminder') || msg.includes('dont forget')) ||
+      // Task management commands - Enhanced detection
+      if (msg.includes('remind me') || msg.includes('set reminder') || msg.includes('dont forget') || msg.includes("don't forget") ||
           (msg.includes('add') && (msg.includes('task') || msg.includes('todo') || msg.includes('reminder')))) {
         executeTaskManagement(message, messagesDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
         return true;
       }
       
