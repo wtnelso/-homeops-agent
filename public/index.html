@@ -202,6 +202,12 @@
       color: white;
       font-size: 16px;
       outline: none;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-family: inherit;
+      line-height: 1.4;
     }
     
     .mobile-input::placeholder {
@@ -729,7 +735,7 @@
           </div>
         </div>
         <div class="chat-input-mobile">
-          <input type="text" class="mobile-input" placeholder="Type your message..." id="chatInput">
+          <textarea class="mobile-input" placeholder="Type your message..." id="chatInput" rows="1"></textarea>
           <button class="send-btn" onclick="sendMessage()">
             <i data-lucide="send" style="width: 20px; height: 20px;"></i>
           </button>
@@ -957,6 +963,10 @@
       `;
       
       input.value = '';
+      
+      // Reset textarea height
+      input.style.height = 'auto';
+      input.style.height = '44px';
       
       // Smart action detection BEFORE sending to AI
       const actionDetected = detectAndExecuteActions(message);
@@ -2979,6 +2989,31 @@
       
       // Set initial view
       showView('chat-mobile');
+      
+      // Setup textarea auto-resize and Enter key handling
+      const chatInput = document.getElementById('chatInput');
+      if (chatInput) {
+        // Auto-resize functionality
+        function autoResize() {
+          chatInput.style.height = 'auto';
+          chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+        }
+        
+        // Handle input events for auto-resize
+        chatInput.addEventListener('input', autoResize);
+        chatInput.addEventListener('paste', () => setTimeout(autoResize, 0));
+        
+        // Handle Enter key (Enter sends, Shift+Enter for new line)
+        chatInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+          }
+        });
+        
+        // Initial resize
+        autoResize();
+      }
     });
     
     // Also initialize icons when window loads (backup)
