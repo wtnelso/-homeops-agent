@@ -921,7 +921,9 @@
         }
       }
       
-      button.classList.add('active');
+      if (button) {
+        button.classList.add('active');
+      }
       
       // Haptic feedback
       if (navigator.vibrate) {
@@ -2680,18 +2682,29 @@
       }
       
       // Restaurant/Food search
-      else if (lowerMessage.includes('restaurant') || lowerMessage.includes('food') || lowerMessage.includes('eat') ||
-               lowerMessage.includes('dining') || lowerMessage.includes('lunch') || lowerMessage.includes('dinner')) {
+      else if (lowerMessage.includes('restaurant') || lowerMessage.includes('resturant') || lowerMessage.includes('food') || lowerMessage.includes('eat') ||
+               lowerMessage.includes('dining') || lowerMessage.includes('lunch') || lowerMessage.includes('dinner') || lowerMessage.includes('best') && (lowerMessage.includes('place') || lowerMessage.includes('spot'))) {
         searchCategory = 'dining';
-        searchTitle = lowerMessage.includes('washington') || lowerMessage.includes('dc') ? 
-          'Best Restaurants in Washington DC' : 'Restaurant Recommendations';
+        searchTitle = lowerMessage.includes('bethesda') ? 'Best Restaurants in Bethesda, Maryland' :
+                     lowerMessage.includes('washington') || lowerMessage.includes('dc') ? 
+                     'Best Restaurants in Washington DC' : 'Restaurant Recommendations';
         searchIcon = 'utensils';
-        results = [
-          { title: '🏆 The Inn at Little Washington', type: 'Fine dining • Michelin starred • $$$$', desc: 'World-renowned culinary destination with seasonal American cuisine and impeccable service.' },
-          { title: '🦞 The Oceanaire', type: 'Seafood • Upscale • $$$', desc: 'Fresh seafood flown in daily, raw bar, and classic preparations in elegant downtown setting.' },
-          { title: '🍝 Fiola Mare', type: 'Italian • Seafood • $$$', desc: 'Sophisticated Italian coastal cuisine with harbor views. Known for house-made pasta and fresh fish.' },
-          { title: '🥩 The Capital Grille', type: 'Steakhouse • Business dining • $$$$', desc: 'Premium dry-aged steaks, extensive wine list, and classic American fare in refined atmosphere.' }
-        ];
+        
+        if (lowerMessage.includes('bethesda')) {
+          results = [
+            { title: '🏆 Julii', type: 'Mediterranean • Fine dining • $$$$', desc: 'Upscale Mediterranean cuisine with creative presentations and seasonal ingredients. Consistently rated among Bethesda\'s best.' },
+            { title: '🍝 Il Canale', type: 'Italian • Neapolitan pizza • $$$', desc: 'Authentic Neapolitan pizzas in wood-fired oven, fresh pasta, and Italian wines in cozy atmosphere.' },
+            { title: '🥩 Morton\'s The Steakhouse', type: 'Steakhouse • Prime cuts • $$$$', desc: 'Premium aged steaks, fresh seafood, and classic sides in elegant steakhouse setting.' },
+            { title: '🦞 Blacksalt', type: 'Seafood • Raw bar • $$$', desc: 'Fresh seafood market and restaurant with daily catches, raw bar, and coastal-inspired dishes.' }
+          ];
+        } else {
+          results = [
+            { title: '🏆 The Inn at Little Washington', type: 'Fine dining • Michelin starred • $$$$', desc: 'World-renowned culinary destination with seasonal American cuisine and impeccable service.' },
+            { title: '🦞 The Oceanaire', type: 'Seafood • Upscale • $$$', desc: 'Fresh seafood flown in daily, raw bar, and classic preparations in elegant downtown setting.' },
+            { title: '🍝 Fiola Mare', type: 'Italian • Seafood • $$$', desc: 'Sophisticated Italian coastal cuisine with harbor views. Known for house-made pasta and fresh fish.' },
+            { title: '🥩 The Capital Grille', type: 'Steakhouse • Business dining • $$$$', desc: 'Premium dry-aged steaks, extensive wine list, and classic American fare in refined atmosphere.' }
+          ];
+        }
       }
       
       // Travel/Tourism
