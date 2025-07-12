@@ -959,7 +959,10 @@
         // If no action detected, generate contextual HomeOps response
         const lowerMessage = message.toLowerCase();
         
-        if (lowerMessage.includes('relationship') || lowerMessage.includes('partner') || lowerMessage.includes('marriage')) {
+        if (lowerMessage.includes('relationship') || lowerMessage.includes('partner') || lowerMessage.includes('marriage') || 
+            lowerMessage.includes('mother in law') || lowerMessage.includes('mother-in-law') || lowerMessage.includes('in-laws') ||
+            lowerMessage.includes('family drama') || lowerMessage.includes('spouse') || lowerMessage.includes('husband') || 
+            lowerMessage.includes('wife') || lowerMessage.includes('couple')) {
           return generateHomeOpsRelationshipResponse(message);
         } else if (lowerMessage.includes('kid') || lowerMessage.includes('child') || lowerMessage.includes('parent')) {
           return generateHomeOpsParentingResponse(message);
@@ -1088,7 +1091,7 @@
       
       // Deal detection commands
       if (msg.includes('deal') || msg.includes('sale') || (msg.includes('find') && msg.includes('buy'))) {
-        executeDealDetection(messagesDiv);
+        executeDealIntelligence(message, messagesDiv);
         return true;
       }
       
@@ -1873,25 +1876,41 @@
           destination = routeMatch[2].trim();
         }
       } else if (msg.includes('to ')) {
-        const destMatch = msg.match(/to ([a-zA-Z\s]+?)(?:\s+(?:tomorrow|today|next week|under|below|$))/i);
+        // Better destination parsing - look for "to LAX", "to Los Angeles", etc.
+        const destMatch = msg.match(/to\s+([a-zA-Z\s]{2,20})(?:\s+(?:tomorrow|today|next week|under|below|\d|$))/i);
         if (destMatch) {
           destination = destMatch[1].trim();
         }
       }
       
-      // Convert common abbreviations to full city names
+      // Convert common abbreviations and airport codes to full city names
       const cityMappings = {
         'la': 'Los Angeles',
-        'sf': 'San Francisco',
+        'lax': 'Los Angeles',
+        'sf': 'San Francisco', 
+        'sfo': 'San Francisco',
         'nyc': 'New York',
-        'ny': 'New York', 
+        'ny': 'New York',
+        'jfk': 'New York',
+        'lga': 'New York',
         'chi': 'Chicago',
+        'ord': 'Chicago',
         'vegas': 'Las Vegas',
+        'las': 'Las Vegas',
         'miami': 'Miami',
+        'mia': 'Miami',
         'boston': 'Boston',
+        'bos': 'Boston',
         'seattle': 'Seattle',
+        'sea': 'Seattle',
         'denver': 'Denver',
-        'atlanta': 'Atlanta'
+        'den': 'Denver',
+        'atlanta': 'Atlanta',
+        'atl': 'Atlanta',
+        'dc': 'Washington DC',
+        'dca': 'Washington DC',
+        'iad': 'Washington DC',
+        'bwi': 'Washington DC'
       };
       
       const destLower = destination.toLowerCase();
