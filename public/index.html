@@ -883,10 +883,11 @@
       const msg = message.toLowerCase();
       const messagesDiv = document.querySelector('.chat-messages-mobile');
       
-      // Calendar injection commands
-      if ((msg.includes('add') || msg.includes('create') || msg.includes('schedule')) && 
-          (msg.includes('calendar') || msg.includes('event')) ||
-          (msg.includes('golf') && (msg.includes('tomorrow') || msg.includes('1pm')))) {
+      // Calendar injection commands - Enhanced detection
+      if ((msg.includes('add') || msg.includes('create') || msg.includes('schedule') || msg.includes('i have') || msg.includes('meeting') || msg.includes('appointment')) && 
+          (msg.includes('calendar') || msg.includes('event') || msg.includes('meeting') || msg.includes('at ') || msg.includes('pm') || msg.includes('am')) ||
+          (msg.includes('golf') && (msg.includes('tomorrow') || msg.includes('1pm'))) ||
+          (msg.includes('sunday') || msg.includes('monday') || msg.includes('tuesday') || msg.includes('wednesday') || msg.includes('thursday') || msg.includes('friday') || msg.includes('saturday')) && (msg.includes('at ') || msg.includes('pm') || msg.includes('am'))) {
         
         executeCalendarInjection(message, messagesDiv);
         return true;
@@ -933,34 +934,97 @@
       const msg = message.toLowerCase();
       let eventDetails = {
         title: 'New Event',
-        date: 'Tomorrow',
-        time: '1:00 PM',
-        duration: '2 hours'
+        date: 'Today',
+        time: '12:00 PM',
+        duration: '1 hour'
       };
       
-      // Extract details from message
+      // Extract event type
       if (msg.includes('golf')) eventDetails.title = 'Golf';
-      if (msg.includes('meeting')) eventDetails.title = 'Meeting';
-      if (msg.includes('1pm') || msg.includes('1:00')) eventDetails.time = '1:00 PM';
-      if (msg.includes('2pm') || msg.includes('2:00')) eventDetails.time = '2:00 PM';
+      else if (msg.includes('meeting')) eventDetails.title = 'Meeting';
+      else if (msg.includes('appointment')) eventDetails.title = 'Appointment';
+      else if (msg.includes('call')) eventDetails.title = 'Call';
+      else if (msg.includes('lunch')) eventDetails.title = 'Lunch';
+      else if (msg.includes('dinner')) eventDetails.title = 'Dinner';
+      
+      // Extract day
+      if (msg.includes('sunday')) eventDetails.date = 'Sunday';
+      else if (msg.includes('monday')) eventDetails.date = 'Monday';
+      else if (msg.includes('tuesday')) eventDetails.date = 'Tuesday';
+      else if (msg.includes('wednesday')) eventDetails.date = 'Wednesday';
+      else if (msg.includes('thursday')) eventDetails.date = 'Thursday';
+      else if (msg.includes('friday')) eventDetails.date = 'Friday';
+      else if (msg.includes('saturday')) eventDetails.date = 'Saturday';
+      else if (msg.includes('tomorrow')) eventDetails.date = 'Tomorrow';
+      else if (msg.includes('today')) eventDetails.date = 'Today';
+      
+      // Extract time with better patterns
+      const timePatterns = [
+        /(\d{1,2})\s*pm/i,
+        /(\d{1,2})\s*am/i,
+        /(\d{1,2}):(\d{2})\s*pm/i,
+        /(\d{1,2}):(\d{2})\s*am/i,
+        /at\s+(\d{1,2})\s*pm/i,
+        /at\s+(\d{1,2})\s*am/i,
+        /at\s+(\d{1,2}):(\d{2})\s*pm/i,
+        /at\s+(\d{1,2}):(\d{2})\s*am/i
+      ];
+      
+      for (const pattern of timePatterns) {
+        const match = message.match(pattern);
+        if (match) {
+          if (match[2]) {
+            // Has minutes
+            const hour = parseInt(match[1]);
+            const minute = match[2];
+            const period = message.toLowerCase().includes('pm') ? 'PM' : 'AM';
+            eventDetails.time = `${hour}:${minute} ${period}`;
+          } else {
+            // Just hour
+            const hour = parseInt(match[1]);
+            const period = message.toLowerCase().includes('pm') ? 'PM' : 'AM';
+            eventDetails.time = `${hour}:00 ${period}`;
+          }
+          break;
+        }
+      }
+      
+      // Smart duration estimation
+      if (msg.includes('meeting')) eventDetails.duration = '1 hour';
+      else if (msg.includes('golf')) eventDetails.duration = '4 hours';
+      else if (msg.includes('lunch') || msg.includes('dinner')) eventDetails.duration = '1.5 hours';
+      else if (msg.includes('call')) eventDetails.duration = '30 minutes';
       
       messagesDiv.innerHTML += `
         <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
           <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
             <i data-lucide="calendar-plus" style="width: 20px; height: 20px;"></i>
-            <span>Calendar Event Ready</span>
+            <span>Calendar Event Detected</span>
           </div>
-          <div style="font-size: 14px; margin-bottom: 12px;">
-            <strong>${eventDetails.title}</strong><br>
-            ${eventDetails.date} at ${eventDetails.time}
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
+            <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">${eventDetails.title}</div>
+            <div style="font-size: 14px; color: rgba(255,255,255,0.8);">
+              📅 ${eventDetails.date}<br>
+              ⏰ ${eventDetails.time}<br>
+              ⌛ Duration: ${eventDetails.duration}
+            </div>
           </div>
-          <button onclick="executeCalendarAdd('${eventDetails.title}', '${eventDetails.date}', '${eventDetails.time}')" 
-                  style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
-            <i data-lucide="plus" style="width: 16px; height: 16px; margin-right: 4px;"></i>
-            Add to Calendar
-          </button>
+          <div style="display: flex; gap: 8px; margin-top: 12px;">
+            <button onclick="executeCalendarAdd('${eventDetails.title}', '${eventDetails.date}', '${eventDetails.time}')" 
+                    style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; flex: 1;">
+              <i data-lucide="plus" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+              Add to Calendar
+            </button>
+            <button onclick="editEventDetails('${eventDetails.title}', '${eventDetails.date}', '${eventDetails.time}')" 
+                    style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
+              <i data-lucide="edit" style="width: 16px; height: 16px;"></i>
+            </button>
+          </div>
         </div>
       `;
+      
+      // Re-initialize Lucide icons for new content
+      setTimeout(() => lucide.createIcons(), 100);
     }
     
     function executeEmailSurfacing(messagesDiv) {
@@ -1872,29 +1936,84 @@ What's your first mission for me?`;
       }
       
       // Default action-oriented response
-      return `🎯 **Chief of Staff Analysis:**
+      return `🎯 **Ready to Execute**
       
-I hear "${message}" - let me break this down operationally:
+I heard: "${message}"
       
-**Available Actions:**
-• Calendar injection (events, conflicts, travel time)
-• Email surfacing (priority, family, commerce)
-• Deal detection (brand loyalty, purchase patterns)
-• Gift recommendations (age-appropriate, values-aligned)
-• Week planning (optimization, conflict resolution)
+**Quick Actions Available:**
+• Say "Add [event] on [day] at [time]" for calendar injection
+• Say "Show urgent emails" for inbox intelligence  
+• Say "Find deals" for commerce opportunities
+• Say "Plan my week" for schedule optimization
       
-**Next Steps**: Give me a concrete task to execute.
+**Example**: "I have a doctor appointment Tuesday at 3pm"
       
-**Examples**:
-• "Block time for X on Y day"
-• "What's urgent in my inbox?"
-• "Find me a good deal on Z"
-• "Plan my week around priority X"
-      
-I'm built to execute, not just empathize. What do you need done?`;
+What action should I take for you?`;
     }
     
     console.log('🚀 Mobile-First HomeOps Loaded Successfully - NO REDIRECTS!');
+    
+    function checkCalendarConflicts(date, time) {
+      // Simulate conflict detection - in real app, this would check actual calendar
+      const conflicts = {
+        'Sunday': { '2:00 PM': 'Family lunch usually at 1:30 PM' },
+        'Monday': { '9:00 AM': 'Weekly team standup' },
+        'Tuesday': { '2:00 PM': 'School pickup time' }
+      };
+      
+      const conflictKey = conflicts[date]?.[time];
+      
+      return {
+        hasConflict: !!conflictKey,
+        conflictDetails: conflictKey || 'No conflicts detected'
+      };
+    }
+    
+    function editEventDetails(title, date, time) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      
+      messagesDiv.innerHTML += `
+        <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="edit" style="width: 20px; height: 20px;"></i>
+            <span>Edit Event Details</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" value="${title}" placeholder="Event title" 
+                   id="edit-title" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px; color: white; font-size: 14px;">
+            <input type="text" value="${date}" placeholder="Date" 
+                   id="edit-date" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px; color: white; font-size: 14px;">
+            <input type="text" value="${time}" placeholder="Time" 
+                   id="edit-time" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px; color: white; font-size: 14px;">
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 12px;">
+            <button onclick="saveEditedEvent()" 
+                    style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; flex: 1;">
+              <i data-lucide="save" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+              Save & Add
+            </button>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
+              <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+            </button>
+          </div>
+        </div>
+      `;
+      
+      setTimeout(() => lucide.createIcons(), 100);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+    
+    function saveEditedEvent() {
+      const title = document.getElementById('edit-title').value;
+      const date = document.getElementById('edit-date').value;
+      const time = document.getElementById('edit-time').value;
+      
+      executeCalendarAdd(title, date, time);
+      
+      // Remove edit interface
+      document.getElementById('edit-title').closest('div[style*="rgba(59, 130, 246"]').remove();
+    }
   </script>
 </body>
 </html>
