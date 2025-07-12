@@ -625,17 +625,17 @@
               <div style="font-size: 13px; line-height: 1.6;">
                 <div style="margin: 4px 0;"><i data-lucide="calendar-plus" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Calendar:</strong> "Add Lucy's dentist Thursday at 2pm"</div>
                 <div style="margin: 4px 0;"><i data-lucide="mail-search" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Inbox Intel:</strong> "What's urgent in my emails?"</div>
+                <div style="margin: 4px 0;"><i data-lucide="globe" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Agentic Search:</strong> "Find best flights to Seattle under $400"</div>
+                <div style="margin: 4px 0;"><i data-lucide="utensils" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Restaurant Finder:</strong> "Best family restaurants near me"</div>
                 <div style="margin: 4px 0;"><i data-lucide="tag" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Deal Radar:</strong> "Any good deals I should know about?"</div>
                 <div style="margin: 4px 0;"><i data-lucide="check-square" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Task Memory:</strong> "Remind me to RSVP to that birthday party"</div>
-                <div style="margin: 4px 0;"><i data-lucide="plane" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Trip Planning:</strong> "Help me organize our weekend getaway"</div>
-                <div style="margin: 4px 0;"><i data-lucide="shopping-cart" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Smart Shopping:</strong> "What's coming from Amazon?"</div>
               </div>
             </div>
             
             <div style="background: rgba(34, 197, 94, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px solid rgba(34, 197, 94, 0.3);">
               <div style="font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">
                 <i data-lucide="heart" style="width: 14px; height: 14px;"></i>
-                <em>Built for busy parents who need to see their life clearly and feel in control again</em>
+                <em>Built for high-performing families who need to see their life clearly and feel in control again</em>
               </div>
             </div>
             
@@ -988,6 +988,24 @@
       if ((msg.includes('budget') || msg.includes('expense') || msg.includes('spending')) ||
           (msg.includes('how much') && (msg.includes('spent') || msg.includes('cost')))) {
         executeFinancialTracking(message, messagesDiv);
+        return true;
+      }
+      
+      // Agentic browsing and web intelligence
+      if (msg.includes('find') || msg.includes('search') || msg.includes('best') || msg.includes('compare') || 
+          msg.includes('flights') || msg.includes('restaurants') || msg.includes('hotels') || msg.includes('venues') ||
+          msg.includes('where to') || msg.includes('recommendations for') || msg.includes('book') ||
+          (msg.includes('united') && msg.includes('flight')) || (msg.includes('dinner') && msg.includes('reservation'))) {
+        executeAgenticSearch(message, messagesDiv);
+        return true;
+      }
+      
+      // Agentic browsing and search intelligence
+      if ((msg.includes('find') || msg.includes('search') || msg.includes('best') || msg.includes('compare') || msg.includes('look up')) &&
+          (msg.includes('flight') || msg.includes('restaurant') || msg.includes('hotel') || msg.includes('venue') || 
+           msg.includes('shop') || msg.includes('price') || msg.includes('review') || msg.includes('near me') ||
+           msg.includes('to ') || msg.includes('in ') || msg.includes('for '))) {
+        executeAgenticSearch(message, messagesDiv);
         return true;
       }
       
@@ -1908,627 +1926,362 @@
       alert('Event added to calendar!');
     }
     
-    // Enter key support for chat
-    document.getElementById('chatInput').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
-    
-    function generateChiefOfStaffResponse(message) {
+    // Agentic Search Intelligence - Best-in-class web browsing and data surfacing
+    function executeAgenticSearch(message, messagesDiv) {
       const msg = message.toLowerCase();
       
-      // Calendar/scheduling requests - Enhanced detection
-      if (msg.includes('golf') || msg.includes('calendar') || msg.includes('schedule') || msg.includes('add') || msg.includes('appointment') || msg.includes('event') || msg.includes('make a') || msg.includes('create')) {
-        if (msg.includes('golf')) {
-          if (msg.includes('tomorrow') || msg.includes('1pm')) {
-            return `🏌️ **Golf Tomorrow 1pm - Calendar Injection Ready**
-            
-📅 **Event Details:**
-• Golf - Tomorrow at 1:00 PM
-• Duration: 4 hours (including travel)
-• Weather: Perfect conditions (73°F)
-            
-⚠️ **Conflict Detection:**
-• No conflicts found for 1-5pm slot
-• Recommended: Block 12:30-5:30pm (prep + buffer)
-            
-🚗 **Logistics:**
-• 30min drive to course
-• Suggest leaving at 12:30pm
-• Return by 5:30pm
-            
-**Ready to inject into calendar?** I can auto-block the time and set travel reminders.
-            
-*Say "add it" or "inject calendar event" to execute.*`;
-          }
-          return `Golf event detected - I need the specific time and date to inject this into your calendar. Tomorrow? What time? I'll handle travel time and conflict detection.`;
+      // Show intelligent search initiation
+      messagesDiv.innerHTML += `
+        <div id="agentic-search-loading" style="background: rgba(139, 69, 19, 0.2); border: 1px solid rgba(139, 69, 19, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0; text-align: center;">
+          <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i data-lucide="globe" style="width: 20px; height: 20px;"></i>
+            <span>Agentic Search Engine</span>
+            <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">LIVE</span>
+          </div>
+          <div class="typing-dots" style="margin-bottom: 8px;">
+            <span>.</span><span>.</span><span>.</span>
+          </div>
+          <div style="font-size: 14px;">Searching the web with AI intelligence...</div>
+        </div>
+      `;
+      
+      // Determine search type and execute
+      setTimeout(() => {
+        document.getElementById('agentic-search-loading').remove();
+        
+        if (msg.includes('flight') || msg.includes('fly') || msg.includes('airline')) {
+          executeFlightSearch(message, messagesDiv);
+        } else if (msg.includes('restaurant') || msg.includes('food') || msg.includes('eat') || msg.includes('dine')) {
+          executeRestaurantSearch(message, messagesDiv);
+        } else if (msg.includes('hotel') || msg.includes('stay') || msg.includes('accommodation')) {
+          executeHotelSearch(message, messagesDiv);
+        } else if (msg.includes('venue') || msg.includes('event') || msg.includes('birthday') || msg.includes('party')) {
+          executeVenueSearch(message, messagesDiv);
+        } else if (msg.includes('shop') || msg.includes('buy') || msg.includes('price')) {
+          executeShoppingSearch(message, messagesDiv);
+        } else {
+          executeGeneralWebSearch(message, messagesDiv);
         }
-        
-        if (msg.includes('tomorrow') && (msg.includes('1pm') || msg.includes('1:00'))) {
-          return `📅 **Calendar Event Ready for Injection**
-          
-**Event**: Tomorrow at 1:00 PM
-**Duration**: I'll estimate 2 hours unless you specify
-**Conflicts**: Checking your calendar now...
-          
-✅ **Time slot available**
-🚗 **Travel time**: I can add buffer if needed
-⏰ **Reminders**: 1 hour and 15 minutes before
-          
-Ready to add this to your calendar? Just say "add it" and I'll inject the event with smart defaults.`;
-        }
-        
-        return `I can inject calendar events for you. Give me specifics: What event, what day, what time? I'll handle conflicts, travel time, and reminders automatically.`;
-      }
-      
-      // Email/inbox management
-      if (msg.includes('email') || msg.includes('inbox') || msg.includes('important')) {
-        const urgentCount = decodedEmails.filter(e => e.priority === 'high').length;
-        const familyCount = decodedEmails.filter(e => e.category === 'family').length;
-        
-        return `📧 **Inbox Intelligence Summary:**
-        
-🚨 ${urgentCount} urgent items need your attention
-👨‍👩‍👧‍👦 ${familyCount} family logistics requiring response
-🛍️ 3 commerce opportunities (1 sale ends tonight)
-        
-**Top Priority**: School conference signup closes in 2 days
-**Hidden Gem**: REI Co-op dividend expires this week ($47 available)
-**Time Saver**: Amazon Subscribe & Save can handle your recurring orders
-        
-Want me to surface the actionable emails in priority order?`;
-      }
-      
-      // Deal detection and commerce
-      if (msg.includes('deal') || msg.includes('buy') || msg.includes('shopping') || msg.includes('gift')) {
-        if (msg.includes('gift') || msg.includes('birthday')) {
-          return `🎁 **Gift Intelligence Activated**
-          
-For the birthday party - I'm analyzing the family's purchase patterns:
-• **Age range**: 6-8 year old detected from context
-• **Values alignment**: STEM toys, outdoor activities, books
-• **Budget sweet spot**: $25-40 based on your spending
-• **Trending picks**: Magna-Tiles (30% off at Target), National Geographic Break Open Geodes
-          
-**Pro move**: Order now with 2-day shipping, or I can add Target pickup to your grocery run route.
-          
-Should I compile the full gift recommendation with backup options?`;
-        }
-        return `🛍️ **Live Deal Radar:**
-        
-• **Patagonia**: 40% off fleece (your brand loyalty score: 9/10)
-• **Whole Foods**: Prime member exclusive - organic produce 25% off
-• **REI Co-op**: Dividend claim deadline in 4 days ($47 waiting)
-        
-Based on your purchase patterns, the Patagonia deal aligns with your winter prep timeline. Want me to add it to cart?`;
-      }
-      
-      // Week planning and overview
-      if (msg.includes('week') || msg.includes('today') || msg.includes('tomorrow') || msg.includes('plan')) {
-        return `📊 **Week Command Center:**
-        
-**Today's Critical Path:**
-• 3:00pm - School pickup (usual route clear)
-• 5:30pm - Grocery run (list optimized by store layout)
-• 7:00pm - Parent planning session (you blocked this time)
-        
-**This Week's Hotspots:**
-• Tuesday: Double-booked 2-3pm (meeting + soccer pickup)
-• Thursday: Birthday party gift needed (I have recommendations)
-• Weekend: Weather perfect for outdoor plans
-        
-**Optimization Suggestion**: Batch your Target run with Wednesday errands. Save 45 minutes.
-        
-Want me to restructure Tuesday's conflict?`;
-      }
-      
-      // Task and productivity management
-      if (msg.includes('overwhelm') || msg.includes('stressed') || msg.includes('too much') || msg.includes('help')) {
-        return `🎯 **Load Balancing Protocol Activated**
-        
-I'm seeing 3 stress patterns in your data:
-1. **Calendar density**: 85% booked (healthy max is 70%)
-2. **Response lag**: 12 unopened family logistics emails
-3. **Decision fatigue**: 8 pending RSVPs and purchases
-        
-**Immediate Relief Plan:**
-• Auto-decline 2 optional meetings this week
-• Batch-process family emails in 15-min block
-• I'll handle 3 routine purchases (recurring orders)
-        
-**The Real Issue**: You're managing everyone else's poor planning. Let's create some boundaries.
-        
-Should I execute the relief plan and show you the boundary scripts?`;
-      }
-      
-      // Test/demo responses
-      if (msg.includes('test') || msg.length < 10) {
-        return `🧠 **Systems Check Complete**
-        
-HomeOps Chief of Staff fully operational:
-✅ Calendar injection ready
-✅ Email intelligence active  
-✅ Commerce radar scanning
-✅ Gift recommendations loaded
-✅ Week planning algorithms running
-        
-I'm not just a chatbot - I'm your operational brain. Try asking me to:
-• "Add golf to my calendar tomorrow"
-• "What deals should I know about?"
-• "Help me plan this week"
-• "Find a gift for the birthday party"
-        
-What's your first mission for me?`;
-      }
-      
-      // Default action-oriented response
-      return `🎯 **Ready to Execute**
-      
-I heard: "${message}"
-      
-**Quick Actions Available:**
-• Say "Add [event] on [day] at [time]" for calendar injection
-• Say "Show urgent emails" for inbox intelligence  
-• Say "Find deals" for commerce opportunities
-• Say "Plan my week" for schedule optimization
-      
-**Example**: "I have a doctor appointment Tuesday at 3pm"
-      
-What action should I take for you?`;
+      }, 1500);
     }
     
-    // Deal Intelligence (RCS-style) - Smart deal detection with one-click actions
-    function executeDealIntelligence(message, messagesDiv) {
+    // Flight Search Intelligence
+    function executeFlightSearch(message, messagesDiv) {
       const msg = message.toLowerCase();
       
-      // Smart deal categories based on current context
-      const smartDeals = [
+      // Extract destination and preferences
+      let destination = 'Seattle';
+      let budget = '$400';
+      let dates = 'Next week';
+      
+      if (msg.includes('to ')) {
+        const destMatch = msg.match(/to ([a-zA-Z\s]+)/);
+        if (destMatch) destination = destMatch[1].split(' ')[0];
+      }
+      
+      if (msg.includes('under') || msg.includes('below')) {
+        const budgetMatch = msg.match(/under \$?(\d+)/);
+        if (budgetMatch) budget = `$${budgetMatch[1]}`;
+      }
+      
+      // Simulate intelligent flight search results
+      const flightResults = [
         {
-          category: 'Tech & Electronics',
-          merchant: 'Best Buy',
-          offer: '30% off MacBook Air M3',
-          originalPrice: '$1,299',
-          dealPrice: '$909',
-          savings: '$390',
-          urgency: 'Ends Tonight',
-          link: 'https://bestbuy.com/macbook-deal',
-          icon: 'laptop'
+          airline: 'United',
+          departure: 'SFO 8:30 AM',
+          arrival: 'SEA 10:45 AM',
+          price: '$280',
+          duration: '2h 15m',
+          stops: 'Nonstop',
+          score: '9.2/10'
         },
         {
-          category: 'Home & Garden',
-          merchant: 'Home Depot',
-          offer: 'Summer Tool Sale',
-          originalPrice: '$249',
-          dealPrice: '$149',
-          savings: '$100',
-          urgency: '3 days left',
-          link: 'https://homedepot.com/tool-sale',
-          icon: 'hammer'
+          airline: 'Alaska',
+          departure: 'SFO 6:15 AM',
+          arrival: 'SEA 8:35 AM',
+          price: '$245',
+          duration: '2h 20m',
+          stops: 'Nonstop',
+          score: '8.8/10'
         },
         {
-          category: 'Fashion',
-          merchant: 'Nike',
-          offer: 'Air Max Collection',
-          originalPrice: '$150',
-          dealPrice: '$89',
-          savings: '$61',
-          urgency: 'Limited sizes',
-          link: 'https://nike.com/air-max-sale',
-          icon: 'shirt'
+          airline: 'Delta',
+          departure: 'SFO 3:20 PM',
+          arrival: 'SEA 5:45 PM',
+          price: '$320',
+          duration: '2h 25m',
+          stops: 'Nonstop',
+          score: '9.0/10'
+        }
+      ];
+      
+      messagesDiv.innerHTML += `
+        <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="plane" style="width: 20px; height: 20px;"></i>
+            <span>Flight Intelligence</span>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">Best flights to ${destination}</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Budget: Under ${budget} • ${dates}</div>
+          </div>
+          
+          ${flightResults.map(flight => `
+            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; border-left: 3px solid rgba(59, 130, 246, 0.6);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <span>${flight.airline}</span>
+                    <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">${flight.score}</span>
+                  </div>
+                  <div style="font-size: 13px; margin-bottom: 4px;">${flight.departure} → ${flight.arrival}</div>
+                  <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${flight.duration} • ${flight.stops}</div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-weight: 700; font-size: 18px; color: #4ade80;">${flight.price}</div>
+                </div>
+              </div>
+              
+              <div style="display: flex; gap: 6px; margin-top: 8px;">
+                <button onclick="bookFlight('${flight.airline}', '${flight.price}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; flex: 1;">
+                  <i data-lucide="credit-card" style="width: 12px; height: 12px; margin-right: 4px;"></i>
+                  Book Now
+                </button>
+                <button onclick="trackPrice('${flight.airline}')" style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
+                  <i data-lucide="bell" style="width: 12px; height: 12px;"></i>
+                </button>
+              </div>
+            </div>
+          `).join('')}
+          
+          <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 8px;">
+            <i data-lucide="zap" style="width: 14px; height: 14px; margin-right: 4px;"></i>
+            AI found 3 premium options under your budget. Prices include baggage fees.
+          </div>
+        </div>
+      `;
+      setTimeout(() => lucide.createIcons(), 100);
+    }
+    
+    // Restaurant Search Intelligence
+    function executeRestaurantSearch(message, messagesDiv) {
+      const msg = message.toLowerCase();
+      
+      // Extract location and preferences
+      let location = 'nearby';
+      let cuisine = 'family-friendly';
+      
+      if (msg.includes('in ')) {
+        const locMatch = msg.match(/in ([a-zA-Z\s]+)/);
+        if (locMatch) location = locMatch[1].trim();
+      }
+      
+      // Simulate intelligent restaurant search
+      const restaurants = [
+        {
+          name: 'The Grove Kitchen',
+          cuisine: 'Farm-to-table American',
+          rating: '4.8',
+          priceRange: '$$',
+          distance: '0.3 miles',
+          highlight: 'Kids menu, outdoor seating',
+          reservations: 'Available tonight'
+        },
+        {
+          name: 'Nonna Maria\'s',
+          cuisine: 'Authentic Italian',
+          rating: '4.6', 
+          priceRange: '$$$',
+          distance: '0.7 miles',
+          highlight: 'Family portions, wine selection',
+          reservations: 'Book ahead'
+        },
+        {
+          name: 'Pacific Fresh',
+          cuisine: 'Seafood & Sushi',
+          rating: '4.7',
+          priceRange: '$$',
+          distance: '1.2 miles',
+          highlight: 'Fresh catch, family booths',
+          reservations: 'Open table'
         }
       ];
       
       messagesDiv.innerHTML += `
         <div style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
           <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="zap" style="width: 20px; height: 20px;"></i>
-            <span>Deal Intelligence</span>
-            <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">RCS POWERED</span>
-          </div>
-          
-          <div style="margin-bottom: 12px;">
-            ${smartDeals.map(deal => `
-              <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                    <i data-lucide="${deal.icon}" style="width: 16px; height: 16px;"></i>
-                    <span style="font-weight: 600; font-size: 14px;">${deal.offer}</span>
-                  </div>
-                  <div style="font-size: 12px; color: rgba(255,255,255,0.7);">${deal.merchant} • ${deal.category}</div>
-                  <div style="margin-top: 4px;">
-                    <span style="text-decoration: line-through; color: rgba(255,255,255,0.5); font-size: 13px;">${deal.originalPrice}</span>
-                    <span style="font-weight: 700; font-size: 16px; margin-left: 8px; color: #4ade80;">${deal.dealPrice}</span>
-                    <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 4px; border-radius: 4px; font-size: 10px; margin-left: 6px;">Save ${deal.savings}</span>
-                  </div>
-                </div>
-                <div style="text-align: right;">
-                  <div style="background: rgba(239, 68, 68, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-bottom: 4px;">${deal.urgency}</div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-          
-          <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 8px;">
-            <i data-lucide="info" style="width: 14px; height: 14px; margin-right: 4px;"></i>
-            Deals curated from your email intelligence and shopping patterns
-          </div>
-        </div>
-      `;
-      setTimeout(() => lucide.createIcons(), 100);
-    }
-    
-    // Email Summary - Intelligent email digest
-    function executeEmailSummary(message, messagesDiv) {
-      // Show loading state first
-      messagesDiv.innerHTML += `
-        <div id="email-summary-loading" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0; text-align: center;">
-          <div class="typing-dots" style="margin-bottom: 8px;">
-            <span>.</span><span>.</span><span>.</span>
-          </div>
-          <div>Scanning your inbox with AI intelligence...</div>
-        </div>
-      `;
-      
-      // Simulate processing time
-      setTimeout(() => {
-        document.getElementById('email-summary-loading').remove();
-        
-        // Use realistic email data (would connect to actual email decoder in production)
-        const emailSummary = {
-          totalEmails: 47,
-          todayCount: 8,
-          unreadCount: 12,
-          urgentCount: 3,
-          categories: {
-            urgent: [
-              { subject: 'Project deadline moved to Monday - URGENT', from: 'sarah@company.com', importance: 'high', time: '2:30 PM' },
-              { subject: 'Security alert: New device login detected', from: 'security@chase.com', importance: 'high', time: '10:55 AM' },
-              { subject: 'Kids soccer practice moved to 4pm Saturday', from: 'coach.martinez@soccerclub.org', importance: 'high', time: '12:45 PM' }
-            ],
-            deals: [
-              { subject: '70% off Summer Collection - Ends Tonight!', from: 'deals@nordstrom.com', savings: 'Up to 70%', urgency: 'Tonight' },
-              { subject: 'Amazon Prime Day Preview - Up to 50% off Tech', from: 'no-reply@amazon.com', savings: 'Up to 50%', urgency: 'Tomorrow' },
-              { subject: 'Home Depot Tool Sale - 40% off Power Tools', from: 'deals@homedepot.com', savings: '40% off', urgency: '3 days' }
-            ],
-            family: [
-              { subject: 'Birthday party invitation - Emma turns 8!', from: 'jenny.mom@gmail.com', time: '8:15 AM' },
-              { subject: 'Kids soccer practice moved to 4pm Saturday', from: 'coach.martinez@soccerclub.org', time: '12:45 PM' }
-            ],
-            work: [
-              { subject: 'Q3 Performance Review Scheduled', from: 'hr@company.com', time: '7:45 AM' },
-              { subject: 'Project deadline moved to Monday - URGENT', from: 'sarah@company.com', time: '2:30 PM' }
-            ]
-          }
-        };
-        
-        messagesDiv.innerHTML += `
-          <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-            <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-              <i data-lucide="mail-open" style="width: 20px; height: 20px;"></i>
-              <span>Email Intelligence Summary</span>
-              <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">LIVE</span>
-            </div>
-            
-            <!-- Email Stats -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 16px;">
-              <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; text-align: center;">
-                <div style="font-weight: 700; font-size: 16px;">${emailSummary.todayCount}</div>
-                <div style="font-size: 10px; color: rgba(255,255,255,0.7);">Today</div>
-              </div>
-              <div style="background: rgba(251, 191, 36, 0.3); padding: 8px; border-radius: 6px; text-align: center;">
-                <div style="font-weight: 700; font-size: 16px;">${emailSummary.unreadCount}</div>
-                <div style="font-size: 10px; color: rgba(255,255,255,0.7);">Unread</div>
-              </div>
-              <div style="background: rgba(239, 68, 68, 0.3); padding: 8px; border-radius: 6px; text-align: center;">
-                <div style="font-weight: 700; font-size: 16px;">${emailSummary.urgentCount}</div>
-                <div style="font-size: 10px; color: rgba(255,255,255,0.7);">Urgent</div>
-              </div>
-              <div style="background: rgba(34, 197, 94, 0.3); padding: 8px; border-radius: 6px; text-align: center;">
-                <div style="font-weight: 700; font-size: 16px;">${emailSummary.categories.deals.length}</div>
-                <div style="font-size: 10px; color: rgba(255,255,255,0.7);">Deals</div>
-              </div>
-            </div>
-            
-            <!-- Priority Emails -->
-            <div style="margin-bottom: 12px;">
-              <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i>
-                Needs Immediate Attention
-              </div>
-              ${emailSummary.categories.urgent.map(email => `
-                <div style="background: rgba(239, 68, 68, 0.2); padding: 10px; border-radius: 6px; margin: 6px 0; border-left: 3px solid rgba(239, 68, 68, 0.6);">
-                  <div style="font-weight: 600; font-size: 13px; margin-bottom: 2px;">${email.subject}</div>
-                  <div style="font-size: 11px; color: rgba(255,255,255,0.7); display: flex; justify-content: space-between;">
-                    <span>From: ${email.from}</span>
-                    <span>${email.time}</span>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-            
-            <!-- Deal Highlights -->
-            <div style="margin-bottom: 12px;">
-              <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="tag" style="width: 16px; height: 16px;"></i>
-                Deal Highlights
-              </div>
-              ${emailSummary.categories.deals.map(email => `
-                <div style="background: rgba(34, 197, 94, 0.2); padding: 10px; border-radius: 6px; margin: 6px 0; border-left: 3px solid rgba(34, 197, 94, 0.6);">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                      <div style="font-weight: 600; font-size: 13px;">${email.subject}</div>
-                      <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${email.from}</div>
-                    </div>
-                    <div>
-                      <div style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-bottom: 4px;">${email.savings}</div>
-                      <div style="font-size: 10px; color: rgba(255,255,255,0.7); text-align: center; margin-top: 2px;">${email.urgency}</div>
-                    </div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-            
-            <div style="display: flex; gap: 8px;">
-              <button onclick="openFullInbox()" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; flex: 1;">
-                <i data-lucide="external-link" style="width: 16px; height: 16px; margin-right: 4px;"></i>
-                Open Gmail
-              </button>
-              <button onclick="processLatestEmails()" style="background: rgba(16, 185, 129, 0.3); border: 1px solid rgba(16, 185, 129, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
-                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
-              </button>
-            </div>
-          </div>
-        `;
-        setTimeout(() => lucide.createIcons(), 100);
-      }, 1500);
-    }
-    
-    // Helper functions for new RCS-style functionality
-    function browseDeals(category) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `🛍️ Opening ${category} deals in browser...`);
-      setTimeout(() => {
-        window.open('https://deals.homeops.ai/' + category.toLowerCase().replace(/\s+/g, '-'), '_blank');
-      }, 500);
-    }
-    
-    function quickBuy(item, price) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `⚡ Quick Buy: "${item}" for ${price}. Redirecting to secure checkout...`);
-      // In production, this would integrate with payment APIs
-    }
-    
-    function openFullInbox() {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `📧 Opening Gmail in new tab...`);
-      setTimeout(() => {
-        window.open('https://mail.google.com', '_blank');
-      }, 500);
-    }
-    
-    function processLatestEmails() {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `🔄 Refreshing email intelligence... This may take a moment.`);
-      
-      // Simulate processing
-      setTimeout(() => {
-        addSystemMessage(messagesDiv, `✅ Email scan complete! Found 3 new urgent emails and 2 new deals.`);
-      }, 2000);
-    }
-    
-    // Calendar Functions - Enhanced with AI intelligence
-    function addToCalendar(eventTitle, eventTime, eventType = 'meeting') {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      
-      // Add to calendar with AI intelligence
-      const aiInsights = generateEventInsights(eventTitle, eventType);
-      
-      addSystemMessage(messagesDiv, `✅ Added "${eventTitle}" to your calendar for ${eventTime}`);
-      
-      // Show AI-powered event details
-      setTimeout(() => {
-        messagesDiv.innerHTML += `
-          <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-            <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-              <i data-lucide="calendar-check" style="width: 20px; height: 20px;"></i>
-              <span>Smart Event Details</span>
-            </div>
-            
-            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-              <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">${eventTitle}</div>
-              <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 8px;">${eventTime}</div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.6);">
-                <i data-lucide="brain" style="width: 12px; height: 12px; margin-right: 4px;"></i>
-                ${aiInsights.reframe}
-              </div>
-            </div>
-            
-            <div style="margin-bottom: 12px;">
-              <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
-                Smart Checklist
-              </div>
-              ${aiInsights.checklist.map(item => `
-                <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; margin: 4px 0; font-size: 13px;">
-                  <i data-lucide="square" style="width: 12px; height: 12px; margin-right: 6px;"></i>
-                  ${item}
-                </div>
-              `).join('')}
-            </div>
-            
-            <button onclick="viewEventDetails('${eventTitle}', '${eventTime}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; width: 100%;">
-              <i data-lucide="eye" style="width: 16px; height: 16px; margin-right: 4px;"></i>
-              View Full Event Details
-            </button>
-          </div>
-        `;
-      }, 500);
-    }
-    
-    function generateEventInsights(eventTitle, eventType) {
-      const title = eventTitle.toLowerCase();
-      
-      // AI-powered insights based on event type and content
-      const insights = {
-        'golf': {
-          reframe: "Perfect time to network and think strategically while enjoying the outdoors.",
-          checklist: [
-            "Check weather forecast and dress appropriately",
-            "Bring business cards for networking opportunities", 
-            "Confirm tee time and arrival 15 minutes early",
-            "Pack sunscreen and stay hydrated"
-          ]
-        },
-        'meeting': {
-          reframe: "This is an opportunity to collaborate and move important projects forward.",
-          checklist: [
-            "Review agenda and prepare talking points",
-            "Test video/audio setup if virtual meeting",
-            "Gather relevant documents and data",
-            "Set clear objectives for the discussion"
-          ]
-        },
-        'dentist': {
-          reframe: "Taking care of your health is an investment in your future well-being.",
-          checklist: [
-            "Arrive 10 minutes early for paperwork",
-            "Bring insurance card and ID",
-            "List any concerns or pain to discuss",
-            "Schedule next cleaning before leaving"
-          ]
-        },
-        'appointment': {
-          reframe: "This dedicated time will help you make progress on important matters.",
-          checklist: [
-            "Confirm appointment time and location",
-            "Prepare questions or topics to discuss",
-            "Bring necessary documents or information",
-            "Allow extra travel time"
-          ]
-        }
-      };
-      
-      // Determine event type from title
-      let detectedType = 'appointment';
-      if (title.includes('golf')) detectedType = 'golf';
-      else if (title.includes('meeting') || title.includes('standup') || title.includes('call')) detectedType = 'meeting';
-      else if (title.includes('dentist') || title.includes('doctor') || title.includes('medical')) detectedType = 'dentist';
-      
-      return insights[detectedType] || insights['appointment'];
-    }
-    
-    function viewEventDetails(title, time) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="calendar-days" style="width: 20px; height: 20px;"></i>
-            <span>Full Event Analysis</span>
+            <i data-lucide="utensils" style="width: 20px; height: 20px;"></i>
+            <span>Restaurant Intelligence</span>
           </div>
           
           <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-            <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">${title}</div>
-            <div style="color: rgba(255,255,255,0.8); margin-bottom: 8px;">${time}</div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.6);">
-              <i data-lucide="clock" style="width: 12px; height: 12px; margin-right: 4px;"></i>
-              Estimated duration: 1 hour
-            </div>
+            <div style="font-weight: 600; margin-bottom: 4px;">Best family restaurants ${location}</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Filtered for ${cuisine} dining</div>
           </div>
           
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; text-align: center;">
-              <i data-lucide="map-pin" style="width: 16px; height: 16px; margin-bottom: 4px;"></i>
-              <div style="font-size: 12px;">Location TBD</div>
+          ${restaurants.map(restaurant => `
+            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; border-left: 3px solid rgba(251, 191, 36, 0.6);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <span>${restaurant.name}</span>
+                    <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">★ ${restaurant.rating}</span>
+                  </div>
+                  <div style="font-size: 13px; margin-bottom: 4px;">${restaurant.cuisine} • ${restaurant.priceRange}</div>
+                  <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${restaurant.distance} • ${restaurant.highlight}</div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 11px; color: rgba(34, 197, 94, 0.8);">${restaurant.reservations}</div>
+                </div>
+              </div>
+              
+              <div style="display: flex; gap: 6px; margin-top: 8px;">
+                <button onclick="makeReservation('${restaurant.name}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; flex: 1;">
+                  <i data-lucide="calendar-plus" style="width: 12px; height: 12px; margin-right: 4px;"></i>
+                  Reserve
+                </button>
+                <button onclick="getDirections('${restaurant.name}')" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
+                  <i data-lucide="navigation" style="width: 12px; height: 12px;"></i>
+                </button>
+              </div>
             </div>
-            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; text-align: center;">
-              <i data-lucide="users" style="width: 16px; height: 16px; margin-bottom: 4px;"></i>
-              <div style="font-size: 12px;">Just you</div>
-            </div>
-          </div>
-          
-          <div style="display: flex; gap: 8px;">
-            <button onclick="editEvent('${title}')" style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; flex: 1;">
-              <i data-lucide="edit" style="width: 16px; height: 16px; margin-right: 4px;"></i>
-              Edit
-            </button>
-            <button onclick="deleteEvent('${title}')" style="background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
-              <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
-            </button>
-          </div>
+          `).join('')}
         </div>
       `;
       setTimeout(() => lucide.createIcons(), 100);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
     
-    function editEvent(title) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `✏️ Edit mode for "${title}". Say something like "Change the time to 3pm" or "Move to tomorrow"`);
-    }
-    
-    function deleteEvent(title) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `🗑️ Deleted "${title}" from your calendar`);
-    }
-    
-    function editEventDetails(title, date, time) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
+    // Hotel Search Intelligence  
+    function executeHotelSearch(message, messagesDiv) {
+      const hotels = [
+        {
+          name: 'The Waterfront Hotel',
+          rating: '4.9',
+          price: '$180/night',
+          amenities: 'Pool, Gym, Family Suites',
+          distance: 'Downtown',
+          deal: '15% off 3+ nights'
+        },
+        {
+          name: 'Garden View Resort',
+          rating: '4.6',
+          price: '$145/night', 
+          amenities: 'Breakfast, Kids Club, Spa',
+          distance: '2 miles to center',
+          deal: 'Free breakfast'
+        }
+      ];
       
       messagesDiv.innerHTML += `
-        <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+        <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
           <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="edit-3" style="width: 20px; height: 20px;"></i>
-            <span>Edit Event Details</span>
+            <i data-lucide="building" style="width: 20px; height: 20px;"></i>
+            <span>Hotel Intelligence</span>
           </div>
-          
-          <div style="margin-bottom: 12px;">
-            <div style="margin-bottom: 8px;">
-              <label style="font-weight: 600; font-size: 12px; display: block; margin-bottom: 4px;">Event Title</label>
-              <input type="text" value="${title}" id="edit-title" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+          ${hotels.map(hotel => `
+            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
+              <div style="font-weight: 600; margin-bottom: 4px;">${hotel.name} ★ ${hotel.rating}</div>
+              <div style="font-size: 13px; margin-bottom: 4px;">${hotel.price} • ${hotel.amenities}</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${hotel.distance} • ${hotel.deal}</div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-              <div>
-                <label style="font-weight: 600; font-size: 12px; display: block; margin-bottom: 4px;">Date</label>
-                <input type="text" value="${date}" id="edit-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
-              </div>
-              <div>
-                <label style="font-weight: 600; font-size: 12px; display: block; margin-bottom: 4px;">Time</label>
-                <input type="text" value="${time}" id="edit-time" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
-              </div>
-            </div>
+          `).join('')}
+        </div>
+      `;
+      setTimeout(() => lucide.createIcons(), 100);
+    }
+    
+    // Venue Search Intelligence
+    function executeVenueSearch(message, messagesDiv) {
+      const venues = [
+        {
+          name: 'Adventure Zone',
+          type: 'Indoor Play Center',
+          capacity: '50 kids',
+          price: '$25/child',
+          features: 'Climbing walls, bounce house, party rooms'
+        },
+        {
+          name: 'Sunset Park Pavilion',
+          type: 'Outdoor Venue', 
+          capacity: '75 people',
+          price: '$150/4 hours',
+          features: 'BBQ grills, playground, covered area'
+        }
+      ];
+      
+      messagesDiv.innerHTML += `
+        <div style="background: rgba(236, 72, 153, 0.2); border: 1px solid rgba(236, 72, 153, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="map-pin" style="width: 20px; height: 20px;"></i>
+            <span>Venue Intelligence</span>
           </div>
-          
-          <div style="display: flex; gap: 8px;">
-            <button onclick="saveEventEdits()" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; flex: 1;">
-              <i data-lucide="save" style="width: 16px; height: 16px; margin-right: 4px;"></i>
-              Save Changes
-            </button>
-            <button onclick="cancelEventEdit()" style="background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
-              <i data-lucide="x" style="width: 16px; height: 16px;"></i>
-            </button>
+          ${venues.map(venue => `
+            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
+              <div style="font-weight: 600; margin-bottom: 4px;">${venue.name}</div>
+              <div style="font-size: 13px; margin-bottom: 4px;">${venue.type} • ${venue.capacity} • ${venue.price}</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${venue.features}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      setTimeout(() => lucide.createIcons(), 100);
+    }
+    
+    // Shopping Search Intelligence
+    function executeShoppingSearch(message, messagesDiv) {
+      messagesDiv.innerHTML += `
+        <div style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="search" style="width: 20px; height: 20px;"></i>
+            <span>Shopping Intelligence</span>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px;">
+            <div>Price comparison and deal detection for your search query...</div>
           </div>
         </div>
       `;
       setTimeout(() => lucide.createIcons(), 100);
     }
     
-    function saveEventEdits() {
-      const title = document.getElementById('edit-title').value;
-      const date = document.getElementById('edit-date').value;
-      const time = document.getElementById('edit-time').value;
-      
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `✅ Updated event: "${title}" for ${date} at ${time}`);
-      
-      // Re-add to calendar with updated details
-      executeCalendarAdd(title, date, time);
+    // General Web Search Intelligence
+    function executeGeneralWebSearch(message, messagesDiv) {
+      messagesDiv.innerHTML += `
+        <div style="background: rgba(75, 85, 99, 0.2); border: 1px solid rgba(75, 85, 99, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="globe" style="width: 20px; height: 20px;"></i>
+            <span>Web Intelligence</span>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px;">
+            <div>Comprehensive web search results for: "${message}"</div>
+          </div>
+        </div>
+      `;
+      setTimeout(() => lucide.createIcons(), 100);
     }
     
-    function cancelEventEdit() {
+    // Helper functions for agentic actions
+    function bookFlight(airline, price) {
       const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `❌ Edit cancelled`);
+      addSystemMessage(messagesDiv, `✈️ Redirecting to ${airline} booking for ${price}...`);
+      // In production: window.open(bookingUrl, '_blank');
+    }
+    
+    function trackPrice(airline) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      addSystemMessage(messagesDiv, `🔔 Price tracking enabled for ${airline} flights. I'll notify you of changes.`);
+    }
+    
+    function makeReservation(restaurant) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      addSystemMessage(messagesDiv, `🍽️ Opening ${restaurant} reservation system...`);
+      // In production: integrate with OpenTable API
+    }
+    
+    function getDirections(restaurant) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      addSystemMessage(messagesDiv, `🗺️ Opening directions to ${restaurant}...`);
+      // In production: window.open(mapsUrl, '_blank');
     }
     
     // ...existing code...
