@@ -333,6 +333,11 @@
       border-left: 4px solid rgba(255, 255, 255, 0.6);
     }
     
+    .event-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+    
     .event-title {
       font-weight: 600;
       margin-bottom: 4px;
@@ -753,13 +758,21 @@
           <div class="today-events">
             <div style="font-weight: 600; margin-bottom: 12px; color: #fff;">Today's Schedule</div>
             <div class="events-list" id="today-events-list">
-              <div class="event-item">
+              <div class="event-item" onclick="viewEventDetails('Team Standup', 'Today 2:00 PM - 2:30 PM')" style="cursor: pointer; transition: background 0.2s;">
                 <div class="event-title">Team Standup</div>
                 <div class="event-time">2:00 PM - 2:30 PM</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px;">
+                  <i data-lucide="brain" style="width: 10px; height: 10px; margin-right: 4px;"></i>
+                  Tap for AI insights
+                </div>
               </div>
-              <div class="event-item">
+              <div class="event-item" onclick="viewEventDetails('Pick up groceries', 'Today 5:00 PM')" style="cursor: pointer; transition: background 0.2s;">
                 <div class="event-title">Pick up groceries</div>
                 <div class="event-time">5:00 PM</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px;">
+                  <i data-lucide="brain" style="width: 10px; height: 10px; margin-right: 4px;"></i>
+                  Tap for AI insights
+                </div>
               </div>
             </div>
           </div>
@@ -1100,7 +1113,7 @@
             <i data-lucide="calendar-plus" style="width: 20px; height: 20px;"></i>
             <span>Calendar Event Detected</span>
           </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 20px;">
             <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">${eventDetails.title}</div>
             <div style="font-size: 14px; color: rgba(255,255,255,0.8);">
               📅 ${eventDetails.date}<br>
@@ -1225,25 +1238,26 @@
       `;
     }
     
-    // Calendar execution functions
     function executeCalendarAdd(title, date, time) {
+      // Use the advanced addToCalendar function with AI insights
       const eventTime = `${date} at ${time}`;
-      const eventType = detectEventType(title);
+      
+      // Determine event type from title for better AI insights
+      let eventType = 'appointment';
+      if (title.toLowerCase().includes('golf')) eventType = 'golf';
+      else if (title.toLowerCase().includes('meeting')) eventType = 'meeting';
+      else if (title.toLowerCase().includes('dentist') || title.toLowerCase().includes('doctor')) eventType = 'dentist';
+      
+      // Call the advanced calendar function
       addToCalendar(title, eventTime, eventType);
-    }
-    
-    function detectEventType(title) {
-      const lowerTitle = title.toLowerCase();
-      if (lowerTitle.includes('golf')) return 'golf';
-      if (lowerTitle.includes('meeting') || lowerTitle.includes('standup')) return 'meeting';
-      if (lowerTitle.includes('dentist') || lowerTitle.includes('doctor')) return 'dentist';
-      if (lowerTitle.includes('appointment')) return 'appointment';
-      return 'meeting'; // default
-    }
-    
-    function editEventDetails(title, date, time) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `✏️ Edit "${title}" - just tell me what to change (time, date, location, etc.)`);
+      
+      // Show success feedback and switch to calendar view
+      setTimeout(() => {
+        const calendarBtn = document.querySelector('.nav-btn[onclick*="calendar-mobile"]');
+        if (calendarBtn) {
+          showView('calendar-mobile', calendarBtn);
+        }
+      }, 2000); // Give time to see the AI insights first
     }
     
     // Mobile Email Decoder Functions
@@ -2314,8 +2328,8 @@ What action should I take for you?`;
             </div>
             
             <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-              <div style="font-weight: 600; margin-bottom: 8px;">${eventTitle}</div>
-              <div style="color: rgba(255,255,255,0.8); margin-bottom: 8px;">${eventTime}</div>
+              <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">${eventTitle}</div>
+              <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 8px;">${eventTime}</div>
               <div style="font-size: 12px; color: rgba(255,255,255,0.6);">
                 <i data-lucide="brain" style="width: 12px; height: 12px; margin-right: 4px;"></i>
                 ${aiInsights.reframe}
@@ -2341,8 +2355,6 @@ What action should I take for you?`;
             </button>
           </div>
         `;
-        setTimeout(() => lucide.createIcons(), 100);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
       }, 500);
     }
     
@@ -2451,6 +2463,64 @@ What action should I take for you?`;
     function deleteEvent(title) {
       const messagesDiv = document.querySelector('.chat-messages-mobile');
       addSystemMessage(messagesDiv, `🗑️ Deleted "${title}" from your calendar`);
+    }
+    
+    function editEventDetails(title, date, time) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      
+      messagesDiv.innerHTML += `
+        <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="edit-3" style="width: 20px; height: 20px;"></i>
+            <span>Edit Event Details</span>
+          </div>
+          
+          <div style="margin-bottom: 12px;">
+            <div style="margin-bottom: 8px;">
+              <label style="font-weight: 600; font-size: 12px; display: block; margin-bottom: 4px;">Event Title</label>
+              <input type="text" value="${title}" id="edit-title" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div>
+                <label style="font-weight: 600; font-size: 12px; display: block; margin-bottom: 4px;">Date</label>
+                <input type="text" value="${date}" id="edit-date" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+              </div>
+              <div>
+                <label style="font-weight: 600; font-size: 12px; display: block; margin-bottom: 4px;">Time</label>
+                <input type="text" value="${time}" id="edit-time" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+              </div>
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 8px;">
+            <button onclick="saveEventEdits()" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; flex: 1;">
+              <i data-lucide="save" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+              Save Changes
+            </button>
+            <button onclick="cancelEventEdit()" style="background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
+              <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+            </button>
+          </div>
+        </div>
+      `;
+      setTimeout(() => lucide.createIcons(), 100);
+    }
+    
+    function saveEventEdits() {
+      const title = document.getElementById('edit-title').value;
+      const date = document.getElementById('edit-date').value;
+      const time = document.getElementById('edit-time').value;
+      
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      addSystemMessage(messagesDiv, `✅ Updated event: "${title}" for ${date} at ${time}`);
+      
+      // Re-add to calendar with updated details
+      executeCalendarAdd(title, date, time);
+    }
+    
+    function cancelEventEdit() {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      addSystemMessage(messagesDiv, `❌ Edit cancelled`);
     }
     
     // ...existing code...
