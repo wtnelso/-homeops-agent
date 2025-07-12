@@ -614,21 +614,37 @@
             </div>
             
             <div style="margin-bottom: 20px; font-size: 14px; line-height: 1.5;">
-              I'm your <strong>Life Intelligence AI</strong> — built to turn the invisible mental load of modern parenting into visible, actionable clarity.
+              I'm your <strong>Life Intelligence AI</strong> — ready to execute tasks, search the web, and organize your family's operations in real-time.
             </div>
             
             <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: left;">
               <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
                 <i data-lucide="zap" style="width: 16px; height: 16px;"></i>
-                I can delegate these tasks for you:
+                Try these exact commands right now:
               </div>
-              <div style="font-size: 13px; line-height: 1.6;">
-                <div style="margin: 4px 0;"><i data-lucide="calendar-plus" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Calendar:</strong> "Add Lucy's dentist Thursday at 2pm"</div>
-                <div style="margin: 4px 0;"><i data-lucide="mail-search" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Inbox Intel:</strong> "What's urgent in my emails?"</div>
-                <div style="margin: 4px 0;"><i data-lucide="globe" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Agentic Search:</strong> "Find best flights to Seattle under $400"</div>
-                <div style="margin: 4px 0;"><i data-lucide="utensils" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Restaurant Finder:</strong> "Best family restaurants near me"</div>
-                <div style="margin: 4px 0;"><i data-lucide="tag" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Deal Radar:</strong> "Any good deals I should know about?"</div>
-                <div style="margin: 4px 0;"><i data-lucide="check-square" style="width: 12px; height: 12px; margin-right: 6px;"></i><strong>Task Memory:</strong> "Remind me to RSVP to that birthday party"</div>
+              
+              <div style="background: rgba(59, 130, 246, 0.2); padding: 10px; border-radius: 6px; margin: 8px 0; border-left: 3px solid rgba(59, 130, 246, 0.6);">
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">📅 CALENDAR MAGIC</div>
+                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Add dentist appointment Thursday at 2pm"</div>
+                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"I have a golf game tomorrow at 1pm"</div>
+              </div>
+              
+              <div style="background: rgba(16, 185, 129, 0.2); padding: 10px; border-radius: 6px; margin: 8px 0; border-left: 3px solid rgba(16, 185, 129, 0.6);">
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">🌐 AGENTIC SEARCH</div>
+                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Find best flights to Seattle under $400"</div>
+                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Best family restaurants near me"</div>
+              </div>
+              
+              <div style="background: rgba(251, 191, 36, 0.2); padding: 10px; border-radius: 6px; margin: 8px 0; border-left: 3px solid rgba(251, 191, 36, 0.6);">
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">📧 EMAIL INTELLIGENCE</div>
+                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Summarize my recent emails"</div>
+                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Any good deals today?"</div>
+              </div>
+              
+              <div style="background: rgba(236, 72, 153, 0.2); padding: 10px; border-radius: 6px; margin: 8px 0; border-left: 3px solid rgba(236, 72, 153, 0.6);">
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">✅ TASK AUTOMATION</div>
+                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Remind me to call mom tomorrow"</div>
+                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Don't forget Lucy's soccer practice"</div>
               </div>
             </div>
             
@@ -640,7 +656,7 @@
             </div>
             
             <div style="font-size: 13px; color: rgba(255,255,255,0.7);">
-              Just type naturally — I understand context and execute actions, not just empathize.
+              <strong>Just copy and paste any command above</strong> — I understand natural language and execute actions immediately.
             </div>
           </div>
         </div>
@@ -1165,125 +1181,118 @@
       setTimeout(() => lucide.createIcons(), 100);
     }
     
-    function executeEmailSurfacing(messagesDiv) {
-      const urgentEmails = decodedEmails.filter(e => e.priority === 'high').slice(0, 3);
+    // Enhanced Calendar Integration Function
+    function addToCalendar(eventTitle, eventTime, eventType = 'meeting') {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
       
-      if (urgentEmails.length === 0) {
-        addSystemMessage(messagesDiv, "📧 No urgent emails found. Your inbox is under control!");
-        return;
-      }
+      // Add to calendar with AI intelligence
+      const aiInsights = generateEventInsights(eventTitle, eventType);
       
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="mail-open" style="width: 20px; height: 20px;"></i>
-            <span>Urgent Emails Surfaced</span>
-          </div>
-          ${urgentEmails.map(email => `
-            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
-              <div style="font-weight: 600; font-size: 14px;">${email.subject || 'No Subject'}</div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.7);">${email.sender || 'Unknown'}</div>
-              <div style="font-size: 13px; margin-top: 4px;">${email.ai_translation || email.summary || 'No summary available'}</div>
-            </div>
-          `).join('')}
-          <button onclick="showView('email-mobile', document.querySelector('.nav-btn[onclick*=\"email-mobile\"]'))" 
-                  style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; margin-top: 8px;">
-            <i data-lucide="arrow-right" style="width: 16px; height: 16px; margin-right: 4px;"></i>
-            View All Emails
-          </button>
-        </div>
-      `;
-    }
-    
-    function executeDealDetection(messagesDiv) {
-      const deals = [
-        { item: 'Patagonia Fleece', discount: '40% off', timeLeft: '2 days', link: '#', brand: 'Patagonia' },
-        { item: 'REI Co-op Dividend', discount: '$47 available', timeLeft: '4 days', link: '#', brand: 'REI' },
-        { item: 'Whole Foods Organic', discount: '25% off', timeLeft: '1 week', link: '#', brand: 'Whole Foods' }
-      ];
+      addSystemMessage(messagesDiv, `✅ Added "${eventTitle}" to your calendar for ${eventTime}`);
       
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(251,191,36,0.2); border: 1px solid rgba(251,191,36,0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="tag" style="width: 20px; height: 20px;"></i>
-            <span>Live Deal Radar</span>
-          </div>
-          ${deals.map(deal => `
-            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">${deal.item}</div>
-                <div style="font-size: 12px; color: rgba(255,255,255,0.7);">${deal.discount} • ${deal.timeLeft} left</div>
-              </div>
-              <button onclick="window.open('${deal.link}', '_blank')" 
-                      style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-              </button>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }
-    
-    function executeWeekPlanning(messagesDiv) {
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="calendar-days" style="width: 20px; height: 20px;"></i>
-            <span>Week Command Center</span>
-          </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-            <div style="font-weight: 600; margin-bottom: 8px;">Today's Critical Path</div>
-            <div style="font-size: 13px; line-height: 1.4;">
-              • 3:00pm - School pickup (route clear)<br>
-              • 5:30pm - Grocery run (optimized list)<br>
-              • 7:00pm - Planning session (protected time)
-            </div>
-          </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
-            <div style="font-weight: 600; margin-bottom: 8px;">This Week's Conflicts</div>
-            <div style="font-size: 13px; line-height: 1.4;">
-              • Tuesday: Double-booked 2-3pm<br>
-              • Thursday: Birthday party gift needed<br>
-              • Weekend: Weather perfect for outdoor plans
-            </div>
-          </div>
-          <button onclick="showView('calendar-mobile', document.querySelector('.nav-btn[onclick*=\"calendar-mobile\"]'))" 
-                  style="background: rgba(139, 92, 246, 0.3); border: 1px solid rgba(139, 92, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
-            <i data-lucide="calendar" style="width: 16px; height: 16px; margin-right: 4px;"></i>
-            Open Calendar
-          </button>
-        </div>
-      `;
-    }
-    
-    function addSystemMessage(messagesDiv, message) {
-      messagesDiv.innerHTML += `
-        <div style="padding: 12px 20px; background: rgba(34, 197, 94, 0.2); margin: 8px 0; border-radius: 18px 18px 18px 4px; max-width: 85%; border: 1px solid rgba(34, 197, 94, 0.3);">
-          ${message}
-        </div>
-      `;
-    }
-    
-    function executeCalendarAdd(title, date, time) {
-      // Use the advanced addToCalendar function with AI insights
-      const eventTime = `${date} at ${time}`;
-      
-      // Determine event type from title for better AI insights
-      let eventType = 'appointment';
-      if (title.toLowerCase().includes('golf')) eventType = 'golf';
-      else if (title.toLowerCase().includes('meeting')) eventType = 'meeting';
-      else if (title.toLowerCase().includes('dentist') || title.toLowerCase().includes('doctor')) eventType = 'dentist';
-      
-      // Call the advanced calendar function
-      addToCalendar(title, eventTime, eventType);
-      
-      // Show success feedback and switch to calendar view
+      // Show AI-powered event details
       setTimeout(() => {
-        const calendarBtn = document.querySelector('.nav-btn[onclick*="calendar-mobile"]');
-        if (calendarBtn) {
-          showView('calendar-mobile', calendarBtn);
+        messagesDiv.innerHTML += `
+          <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+            <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="calendar-check" style="width: 20px; height: 20px;"></i>
+              <span>Smart Event Details</span>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+              <div style="font-weight: 600; margin-bottom: 8px;">${eventTitle}</div>
+              <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 8px;">${eventTime}</div>
+              <div style="font-size: 12px; color: rgba(255,255,255,0.6);">
+                <i data-lucide="brain" style="width: 12px; height: 12px; margin-right: 4px;"></i>
+                ${aiInsights.reframe}
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 12px;">
+              <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                Smart Checklist
+              </div>
+              ${aiInsights.checklist.map(item => `
+                <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; margin: 4px 0; font-size: 13px;">
+                  <i data-lucide="square" style="width: 12px; height: 12px; margin-right: 6px;"></i>
+                  ${item}
+                </div>
+              `).join('')}
+            </div>
+            
+            <button onclick="viewEventDetails('${eventTitle}', '${eventTime}')" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
+              <i data-lucide="eye" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+              View Full Details
+            </button>
+          </div>
+        `;
+        setTimeout(() => lucide.createIcons(), 100);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }, 500);
+    }
+    
+    // Enhanced Event Insights Generator
+    function generateEventInsights(eventTitle, eventType) {
+      const title = eventTitle.toLowerCase();
+      
+      // AI-powered insights based on event type and content
+      const insights = {
+        'golf': {
+          reframe: "Perfect time to network and think strategically while enjoying the outdoors.",
+          checklist: [
+            "Check weather forecast and dress appropriately",
+            "Bring business cards for networking opportunities", 
+            "Confirm tee time and arrival 15 minutes early",
+            "Pack sunscreen and stay hydrated"
+          ]
+        },
+        'meeting': {
+          reframe: "This is an opportunity to collaborate and move important projects forward.",
+          checklist: [
+            "Review agenda and prepare talking points",
+            "Test video/audio setup if virtual meeting",
+            "Gather relevant documents and data",
+            "Set clear objectives for the discussion"
+          ]
+        },
+        'dentist': {
+          reframe: "Taking care of your health is an investment in your future well-being.",
+          checklist: [
+            "Arrive 10 minutes early for paperwork",
+            "Bring insurance card and ID",
+            "List any concerns or pain to discuss",
+            "Schedule next cleaning before leaving"
+          ]
+        },
+        'appointment': {
+          reframe: "This dedicated time will help you make progress on important matters.",
+          checklist: [
+            "Confirm appointment time and location",
+            "Prepare questions or topics to discuss",
+            "Bring necessary documents or information",
+            "Allow extra travel time"
+          ]
+        },
+        'soccer': {
+          reframe: "Great opportunity for the kids to stay active and build teamwork skills.",
+          checklist: [
+            "Pack water bottles and healthy snacks",
+            "Check if shin guards and cleats fit properly",
+            "Arrive 15 minutes early for warm-up",
+            "Bring folding chairs for parents"
+          ]
         }
-      }, 2000); // Give time to see the AI insights first
+      };
+      
+      // Determine event type from title
+      let detectedType = 'appointment';
+      if (title.includes('golf')) detectedType = 'golf';
+      else if (title.includes('meeting') || title.includes('standup') || title.includes('call')) detectedType = 'meeting';
+      else if (title.includes('dentist') || title.includes('doctor') || title.includes('medical')) detectedType = 'dentist';
+      else if (title.includes('soccer') || title.includes('practice') || title.includes('sport')) detectedType = 'soccer';
+      
+      return insights[detectedType] || insights['appointment'];
     }
     
     // Mobile Email Decoder Functions
