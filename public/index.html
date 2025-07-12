@@ -728,7 +728,7 @@
             </div>
             
             <div style="font-size: 13px; color: rgba(255,255,255,0.7);">
-              <strong>Just copy and paste any command above</strong> — I understand natural language and execute actions immediately.
+              <strong>🚀 LET ME HELP YOU!</strong> — Start typing to reduce your mental load and feel in control again.
             </div>
           </div>
         </div>
@@ -1055,6 +1055,14 @@
       const messagesDiv = document.querySelector('.chat-messages-mobile');
       
       // Enhanced detection patterns
+      
+      // Flight search detection - PRIORITY CHECK
+      if (msg.includes('flight') || msg.includes('fly') || msg.includes('cheapest flight') || 
+          (msg.includes('from') && msg.includes('to') && (msg.includes('dc') || msg.includes('washington') || msg.includes('london'))) ||
+          (msg.includes('to london') || msg.includes('to paris') || msg.includes('to seattle') || msg.includes('to lax'))) {
+        executeFlightSearch(message, messagesDiv);
+        return true;
+      }
       
       // Calendar injection commands - Enhanced detection
       if ((msg.includes('add') || msg.includes('create') || msg.includes('schedule') || msg.includes('i have') || msg.includes('meeting') || msg.includes('appointment')) && 
@@ -2696,6 +2704,29 @@
       setTimeout(() => {
         addSystemMessage(messagesDiv, `📊 I'll check prices daily and alert you to savings of $50+`);
       }, 1500);
+    }
+    
+    // Deal Intelligence Function
+    function executeDealIntelligence(message, messagesDiv) {
+      const dealCard = `
+        <div style="padding: 12px 20px; background: rgba(16, 185, 129, 0.3); backdrop-filter: blur(10px); margin: 8px 0; border-radius: 4px 18px 18px 18px; max-width: 95%; border: 1px solid rgba(16, 185, 129, 0.5);">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="shopping-bag" style="width: 20px; height: 20px;"></i>
+            <span>Deal Intelligence</span>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-weight: 600; margin-bottom: 8px;">Smart Deal Detection</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">I'll scan for the best offers and savings</div>
+          </div>
+          <div style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center;">
+            💰 Deal detection coming soon - I'll help you find the best prices!
+          </div>
+        </div>
+      `;
+      
+      messagesDiv.innerHTML += dealCard;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      setTimeout(() => lucide.createIcons(), 100);
     }
     
     function addFlightToCalendar(airline, departure, destination) {
