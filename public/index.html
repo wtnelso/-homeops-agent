@@ -1967,7 +1967,7 @@
       let departureDate = '';
       let returnDate = '';
       
-      // Enhanced date parsing for specific dates
+      // Enhanced date parsing for mixed specific and relative dates
       const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
                          'july', 'august', 'september', 'october', 'november', 'december'];
       const monthNumbers = {'january': '01', 'february': '02', 'march': '03', 'april': '04', 
@@ -1978,7 +1978,20 @@
       const datePattern = /(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(?:st|nd|rd|th)?/gi;
       const dateMatches = [...message.matchAll(datePattern)];
       
-      if (dateMatches.length >= 1) {
+      // Handle mixed departure/return scenarios: "departing tomorrow and returning July 30th"
+      if (msg.includes('departing tomorrow') && dateMatches.length >= 1) {
+        // Tomorrow for departure
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        departureDate = tomorrow.toISOString().split('T')[0];
+        
+        // Specific date for return
+        const retMonth = monthNumbers[dateMatches[0][1].toLowerCase()];
+        const retDay = dateMatches[0][2].padStart(2, '0');
+        returnDate = `2025-${retMonth}-${retDay}`;
+        dates = `Tomorrow - ${dateMatches[0][1]} ${dateMatches[0][2]}`;
+      } else if (dateMatches.length >= 1) {
+        // Standard specific date parsing
         const depMonth = monthNumbers[dateMatches[0][1].toLowerCase()];
         const depDay = dateMatches[0][2].padStart(2, '0');
         departureDate = `2025-${depMonth}-${depDay}`;
@@ -1990,6 +2003,27 @@
           returnDate = `2025-${retMonth}-${retDay}`;
           dates += ` - ${dateMatches[1][1]} ${dateMatches[1][2]}`;
         }
+      } else {
+        // Only use general date terms if no specific dates were found
+        if (msg.includes('tomorrow')) {
+          dates = 'Tomorrow';
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          departureDate = tomorrow.toISOString().split('T')[0];
+        } else if (msg.includes('today')) {
+          dates = 'Today';
+          departureDate = new Date().toISOString().split('T')[0];
+        } else if (msg.includes('next week')) {
+          dates = 'Next week';
+          const nextWeek = new Date();
+          nextWeek.setDate(nextWeek.getDate() + 7);
+          departureDate = nextWeek.toISOString().split('T')[0];
+        } else if (msg.includes('this week')) {
+          dates = 'This week';
+          const thisWeek = new Date();
+          thisWeek.setDate(thisWeek.getDate() + 3);
+          departureDate = thisWeek.toISOString().split('T')[0];
+        }
       }
       
       // Better extraction logic with smarter origin detection
@@ -2000,8 +2034,8 @@
           destination = routeMatch[2].trim();
         }
       } else if (msg.includes('to ')) {
-        // Better destination parsing - look for "to LAX", "to Los Angeles", etc.
-        const destMatch = msg.match(/to\s+([a-zA-Z\s]{2,20})(?:\s+(?:on|tomorrow|today|next week|under|below|\d|$))/i);
+        // Better destination parsing - look for "to Austin Texas", "to LAX", etc.
+        const destMatch = msg.match(/to\s+([a-zA-Z\s]{2,25})(?:\s+(?:departing|on|tomorrow|today|next week|under|below|\d|$))/i);
         if (destMatch) {
           destination = destMatch[1].trim();
         }
@@ -2019,34 +2053,14 @@
         }
       }
       
-      // Convert common abbreviations and airport codes to full city names
+      // Simple city name normalization - keep minimal for common variations
       const cityMappings = {
         'la': 'Los Angeles',
-        'lax': 'Los Angeles',
         'sf': 'San Francisco', 
-        'sfo': 'San Francisco',
         'nyc': 'New York',
         'ny': 'New York',
-        'jfk': 'New York',
-        'lga': 'New York',
-        'chi': 'Chicago',
-        'ord': 'Chicago',
-        'vegas': 'Las Vegas',
-        'las': 'Las Vegas',
-        'miami': 'Miami',
-        'mia': 'Miami',
-        'boston': 'Boston',
-        'bos': 'Boston',
-        'seattle': 'Seattle',
-        'sea': 'Seattle',
-        'denver': 'Denver',
-        'den': 'Denver',
-        'atlanta': 'Atlanta',
-        'atl': 'Atlanta',
         'dc': 'Washington DC',
-        'dca': 'Washington DC',
-        'iad': 'Washington DC',
-        'bwi': 'Washington DC'
+        'austin texas': 'Austin'
       };
       
       const destLower = destination.toLowerCase();
@@ -2055,18 +2069,15 @@
       }
       
       // Debug logging
-      console.log('Flight search parsing:', { originalMessage: message, parsedDestination: destination, parsedOrigin: origin, parsedDates: dates });
-      
-      // Better date parsing
-      if (msg.includes('tomorrow')) {
-        dates = 'Tomorrow';
-      } else if (msg.includes('today')) {
-        dates = 'Today';
-      } else if (msg.includes('next week')) {
-        dates = 'Next week';
-      } else if (msg.includes('this week')) {
-        dates = 'This week';
-      }
+      console.log('Flight search parsing:', { 
+        originalMessage: message, 
+        parsedDestination: destination, 
+        parsedOrigin: origin, 
+        parsedDates: dates,
+        departureDate: departureDate,
+        returnDate: returnDate,
+        dateMatches: dateMatches
+      });
       
       if (msg.includes('under') || msg.includes('below')) {
         const budgetMatch = msg.match(/under \$?(\d+)/);
@@ -2102,11 +2113,11 @@
         document.getElementById('flight-loading').remove();
         
         if (flightResults && flightResults.length > 0) {
-          displayFlightResults(flightResults, destination, budget, dates, messagesDiv);
+          displayFlightResults(flightResults, destination, budget, dates, messagesDiv, origin);
         } else {
           // Fallback to intelligent mock data
-          const mockResults = generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate);
-          displayFlightResults(mockResults, destination, budget, dates, messagesDiv);
+          const mockResults = await generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate);
+          displayFlightResults(mockResults, destination, budget, dates, messagesDiv, origin);
         }
         
       } catch (error) {
@@ -2117,37 +2128,45 @@
         if (loadingElement) loadingElement.remove();
         
         // Generate intelligent mock data based on real patterns
-        const mockResults = generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate);
-        displayFlightResults(mockResults, destination, budget, dates, messagesDiv);
+        const mockResults = await generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate);
+        displayFlightResults(mockResults, destination, budget, dates, messagesDiv, origin);
       }
     }
     
     async function searchRealFlights(origin, destination, dates) {
       // Try multiple real flight APIs in order of preference
       
-      // Option 1: Try Amadeus API (most comprehensive)
-      try {
-        const response = await fetch(`https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode=${getAirportCode(origin)}&destinationLocationCode=${getAirportCode(destination)}&departureDate=${getDateString(dates)}&adults=1`, {
-          headers: {
-            'Authorization': 'Bearer YOUR_AMADEUS_TOKEN' // User would need to add this
+      // Get airport codes first
+      const originCode = await getAirportCode(origin);
+      const destCode = await getAirportCode(destination);
+      const dateString = getDateString(dates);
+      
+      // Option 1: Try Amadeus API (most comprehensive) if key available
+      if (CONFIG.AMADEUS_TOKEN) {
+        try {
+          const response = await fetch(`https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode=${originCode}&destinationLocationCode=${destCode}&departureDate=${dateString}&adults=1`, {
+            headers: {
+              'Authorization': `Bearer ${CONFIG.AMADEUS_TOKEN}`
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            return parseAmadeusFlights(data);
           }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          return parseAmadeusFlights(data);
+        } catch (e) {
+          console.log('Amadeus API not available');
         }
-      } catch (e) {
-        console.log('Amadeus API not available');
       }
       
-      // Option 2: Try Skyscanner API
-      try {
-        const response = await fetch(`https://partners.api.skyscanner.net/apiservices/browsequotes/v1.0/US/USD/en-US/${getAirportCode(origin)}/${getAirportCode(destination)}/${getDateString(dates)}`, {
-          headers: {
-            'X-RapidAPI-Key': 'YOUR_RAPIDAPI_KEY' // User would need to add this
-          }
-        });
+      // Option 2: Try Skyscanner API if key available
+      if (CONFIG.RAPIDAPI_KEY) {
+        try {
+          const response = await fetch(`https://partners.api.skyscanner.net/apiservices/browsequotes/v1.0/US/USD/en-US/${originCode}/${destCode}/${dateString}`, {
+            headers: {
+              'X-RapidAPI-Key': CONFIG.RAPIDAPI_KEY
+            }
+          });
         
         if (response.ok) {
           const data = await response.json();
@@ -2163,10 +2182,10 @@
     
     
     // Create a proper Google Flights booking URL with specific dates and airports
-    function createFlightBookingUrl(origin, destination, departureDate, returnDate) {
-      // Get airport codes
-      const originCode = getAirportCode(origin);
-      const destCode = getAirportCode(destination);
+    async function createFlightBookingUrl(origin, destination, departureDate, returnDate) {
+      // Get airport codes asynchronously
+      const originCode = await getAirportCode(origin);
+      const destCode = await getAirportCode(destination);
       
       // Use current date logic if specific dates weren't parsed
       if (!departureDate) {
@@ -2176,7 +2195,10 @@
       }
       
       if (!returnDate) {
-        returnDate = '2025-08-15'; // Default return date from user's query
+        // If no return date specified, default to a week after departure
+        const depDate = new Date(departureDate);
+        depDate.setDate(depDate.getDate() + 7);
+        returnDate = depDate.toISOString().split('T')[0];
       }
       
       // Create a Google Flights URL that includes the specific search criteria
@@ -2187,113 +2209,175 @@
       return `${baseUrl}?q=${encodeURIComponent(searchQuery)}&hl=en`;
     }
 
-    function generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate) {
-      // Intelligent mock data generator based on real flight patterns
-      const routes = {
-        'San Francisco': {
-          'Seattle': { duration: '2h 20m', basePrice: 250, airlines: ['United', 'Alaska', 'Delta'] },
-          'Los Angeles': { duration: '1h 30m', basePrice: 180, airlines: ['United', 'American', 'JetBlue'] },
-          'New York': { duration: '5h 45m', basePrice: 420, airlines: ['United', 'American', 'JetBlue'] },
-          'Chicago': { duration: '4h 30m', basePrice: 380, airlines: ['United', 'American', 'Southwest'] },
-          'Miami': { duration: '5h 30m', basePrice: 450, airlines: ['United', 'American', 'Delta'] },
-          'Washington DC': { duration: '5h 15m', basePrice: 380, airlines: ['United', 'American', 'Delta'] }
-        },
-        'Los Angeles': {
-          'San Francisco': { duration: '1h 30m', basePrice: 180, airlines: ['United', 'American', 'JetBlue'] },
-          'Seattle': { duration: '2h 45m', basePrice: 280, airlines: ['Alaska', 'United', 'Delta'] },
-          'New York': { duration: '5h 30m', basePrice: 440, airlines: ['American', 'JetBlue', 'United'] },
-          'Washington DC': { duration: '4h 45m', basePrice: 350, airlines: ['American', 'United', 'Delta'] }
-        },
-        'Washington DC': {
-          'San Francisco': { duration: '5h 45m', basePrice: 380, airlines: ['United', 'American', 'Delta'] },
-          'Los Angeles': { duration: '5h 15m', basePrice: 350, airlines: ['American', 'United', 'JetBlue'] },
-          'New York': { duration: '1h 20m', basePrice: 200, airlines: ['American', 'United', 'Delta'] },
-          'Seattle': { duration: '5h 30m', basePrice: 420, airlines: ['United', 'Alaska', 'Delta'] },
-          'Chicago': { duration: '2h 15m', basePrice: 280, airlines: ['United', 'American', 'Southwest'] },
-          'Miami': { duration: '2h 45m', basePrice: 320, airlines: ['American', 'United', 'JetBlue'] }
-        },
-        'New York': {
-          'San Francisco': { duration: '6h 15m', basePrice: 450, airlines: ['United', 'American', 'JetBlue'] },
-          'Los Angeles': { duration: '5h 45m', basePrice: 420, airlines: ['American', 'JetBlue', 'United'] },
-          'Washington DC': { duration: '1h 15m', basePrice: 180, airlines: ['American', 'United', 'Delta'] }
-        }
-      };
+    async function generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate) {
+      // Simple mock data without hardcoded routes
+      const airlines = ['United', 'American', 'Delta', 'Southwest', 'JetBlue', 'Alaska'];
+      const budgetNum = parseInt((budget || '$500').replace(/[\$,]/g, ''));
       
-      const route = routes[origin]?.[destination] || { duration: '5h 00m', basePrice: 380, airlines: ['United', 'American', 'Delta'] };
-      const budgetNum = parseInt(budget.replace('$', '')) || 500;
+      // Generate 3-5 flight options with realistic pricing
+      const numFlights = 3 + Math.floor(Math.random() * 3);
+      const basePrice = 150 + Math.random() * 200; // $150-$350 base
       
-      return route.airlines.map((airline, index) => {
-        const priceVariation = (Math.random() - 0.5) * 100;
-        const price = Math.max(150, route.basePrice + priceVariation);
-        const withinBudget = price <= budgetNum;
-        
-        return {
-          airline,
-          departure: generateDepartureTime(index, origin),
-          arrival: generateArrivalTime(index, route.duration, destination),
-          price: `$${Math.round(price)}`,
-          duration: route.duration,
-          stops: index === 0 ? 'Nonstop' : (Math.random() > 0.7 ? '1 stop' : 'Nonstop'),
-          rating: `${(8.5 + Math.random() * 1.3).toFixed(1)}`,
-          withinBudget,
-          bookingUrl: createFlightBookingUrl(origin, destination, departureDate, returnDate)
-        };
-      }).sort((a, b) => parseInt(a.price.replace('$', '')) - parseInt(b.price.replace('$', '')));
+      const flightResults = await Promise.all(
+        Array.from({ length: numFlights }, async (_, index) => {
+          const airline = airlines[index % airlines.length];
+          const priceVariation = (Math.random() - 0.5) * 100;
+          const price = Math.max(100, basePrice + priceVariation);
+          const withinBudget = price <= budgetNum;
+          
+          // Generate realistic duration based on distance approximation
+          const baseDuration = 2 + Math.random() * 4; // 2-6 hours
+          const hours = Math.floor(baseDuration);
+          const minutes = Math.floor((baseDuration - hours) * 60);
+          const duration = `${hours}h ${minutes.toString().padStart(2, '0')}m`;
+          
+          const bookingUrl = await createFlightBookingUrl(origin, destination, departureDate, returnDate);
+          const departure = await generateDepartureTime(index, origin);
+          const arrival = await generateArrivalTime(index, duration, destination);
+          
+          return {
+            airline,
+            departure,
+            arrival,
+            price: `$${Math.round(price)}`,
+            duration,
+            stops: Math.random() > 0.6 ? 'Nonstop' : '1 stop',
+            rating: `${(8.0 + Math.random() * 1.5).toFixed(1)}`,
+            withinBudget,
+            bookingUrl
+          };
+        })
+      );
+      
+      return flightResults.sort((a, b) => parseInt(a.price.replace('$', '')) - parseInt(b.price.replace('$', '')));
     }
     
-    // Flight API utilities
-    function getAirportCode(city) {
-      const codes = {
-        'San Francisco': 'SFO',
-        'Los Angeles': 'LAX',
-        'New York': 'JFK',
-        'Seattle': 'SEA',
-        'Chicago': 'ORD',
-        'Miami': 'MIA',
-        'Boston': 'BOS',
-        'Denver': 'DEN',
-        'Atlanta': 'ATL',
-        'Dallas': 'DFW',
-        'Las Vegas': 'LAS',
-        'Washington DC': 'DCA'
-      };
-      return codes[city] || 'DCA';
+    // Configuration for external APIs (set these in your environment)
+    const CONFIG = {
+      API_NINJAS_KEY: localStorage.getItem('api_ninjas_key') || null,
+      AMADEUS_TOKEN: localStorage.getItem('amadeus_token') || null,
+      RAPIDAPI_KEY: localStorage.getItem('rapidapi_key') || null
+    };
+
+    // Flight API utilities - Dynamic airport code lookup
+    async function getAirportCode(city) {
+      try {
+        // First try a simple lookup for major cities to avoid API calls
+        const majorCities = {
+          'San Francisco': 'SFO',
+          'Los Angeles': 'LAX', 
+          'New York': 'JFK',
+          'Washington DC': 'DCA',
+          'Austin': 'AUS',
+          'Chicago': 'ORD',
+          'Miami': 'MIA'
+        };
+        
+        if (majorCities[city]) {
+          return majorCities[city];
+        }
+        
+        // For other cities, use API Ninjas Airport API (free tier) if available
+        if (CONFIG.API_NINJAS_KEY) {
+          const response = await fetch(`https://api.api-ninjas.com/v1/airports?city=${encodeURIComponent(city)}`, {
+            headers: {
+              'X-Api-Key': CONFIG.API_NINJAS_KEY
+            }
+          });
+          
+          if (response.ok) {
+            const airports = await response.json();
+            if (airports.length > 0) {
+              return airports[0].iata; // Return the first airport's IATA code
+            }
+          }
+        }
+        
+        // Fallback to DCA if API fails or no key available
+        return 'DCA';
+      } catch (error) {
+        console.log('Airport lookup failed, using fallback:', error);
+        return 'DCA';
+      }
     }
     
     function getDateString(dateText) {
       const today = new Date();
-      if (dateText.includes('tomorrow') || dateText === 'Tomorrow') {
+      
+      // Handle specific date formats first
+      if (dateText.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
+        // MM/DD/YYYY format
+        return new Date(dateText).toISOString().split('T')[0];
+      }
+      
+      if (dateText.match(/\d{4}-\d{2}-\d{2}/)) {
+        // YYYY-MM-DD format
+        return dateText;
+      }
+      
+      // Handle relative dates
+      const lowerText = dateText.toLowerCase();
+      
+      if (lowerText.includes('tomorrow')) {
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
         return tomorrow.toISOString().split('T')[0];
-      } else if (dateText.includes('today') || dateText === 'Today') {
+      }
+      
+      if (lowerText.includes('today')) {
         return today.toISOString().split('T')[0];
-      } else if (dateText.includes('next week') || dateText === 'Next week') {
+      }
+      
+      if (lowerText.includes('next week')) {
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
         return nextWeek.toISOString().split('T')[0];
       }
-      // Default to next week
+      
+      // Handle month names (e.g., "July 30")
+      const monthMatch = dateText.match(/(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})/i);
+      if (monthMatch) {
+        const month = monthMatch[1].toLowerCase();
+        const day = parseInt(monthMatch[2]);
+        const currentYear = today.getFullYear();
+        
+        const months = {
+          'january': 0, 'february': 1, 'march': 2, 'april': 3,
+          'may': 4, 'june': 5, 'july': 6, 'august': 7,
+          'september': 8, 'october': 9, 'november': 10, 'december': 11
+        };
+        
+        const targetDate = new Date(currentYear, months[month], day);
+        
+        // If the date has passed this year, assume next year
+        if (targetDate < today) {
+          targetDate.setFullYear(currentYear + 1);
+        }
+        
+        return targetDate.toISOString().split('T')[0];
+      }
+      
+      // Default to next week if we can't parse
       const nextWeek = new Date(today);
       nextWeek.setDate(today.getDate() + 7);
       return nextWeek.toISOString().split('T')[0];
     }
     
     // Flight time generation utilities
-    function generateDepartureTime(index, origin) {
+    async function generateDepartureTime(index, origin) {
       const times = ['6:15 AM', '8:30 AM', '11:45 AM', '3:20 PM', '6:45 PM', '9:15 PM'];
-      const originCode = getAirportCode(origin);
+      const originCode = await getAirportCode(origin);
       return `${originCode} ${times[index] || times[0]}`;
     }
     
-    function generateArrivalTime(index, duration, destination) {
+    async function generateArrivalTime(index, duration, destination) {
       const departureTimes = ['6:15 AM', '8:30 AM', '11:45 AM', '3:20 PM', '6:45 PM', '9:15 PM'];
       const arrivalTimes = ['8:35 AM', '10:45 AM', '2:05 PM', '5:45 PM', '9:05 PM', '11:35 PM'];
-      const destinationCode = getAirportCode(destination);
+      const destinationCode = await getAirportCode(destination);
       return `${destinationCode} ${arrivalTimes[index] || arrivalTimes[0]}`;
     }
     
-    async function displayFlightResults(flightResults, destination, budget, dates, messagesDiv) {
+    async function displayFlightResults(flightResults, destination, budget, dates, messagesDiv, origin = 'Current Location') {
       // Add AI response as a chat card (don't clear the chat!)
       const flightCard = `
         <div style="padding: 12px 20px; background: rgba(59, 130, 246, 0.2); backdrop-filter: blur(10px); margin: 8px 0; border-radius: 4px 18px 18px 18px; max-width: 95%; border: 1px solid rgba(59, 130, 246, 0.4);">
@@ -2317,7 +2401,7 @@
               <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">${flight.duration} • ${flight.stops}</div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div style="font-weight: 600; color: #86efac; font-size: 18px;">${flight.price}</div>
-                <button onclick="bookFlight('${flight.airline}', '${flight.price}', '${flight.bookingUrl || `https://www.google.com/flights?q=${destination}`}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
+                <button onclick="window.open('${flight.bookingUrl || `https://www.google.com/flights?q=${destination}`}', '_blank')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
                   📱 Book Now
                 </button>
               </div>
@@ -2332,36 +2416,7 @@
       
       // Append to chat instead of replacing
       messagesDiv.innerHTML += flightCard;
-        messagesDiv.innerHTML += `
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; border-left: 3px solid rgba(59, 130, 246, 0.6);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-              <div style="flex: 1;">
-                <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                  <span>${flight.airline}</span>
-                  <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">${flight.score}</span>
-                </div>
-                <div style="font-size: 13px; margin-bottom: 4px;">${flight.departure} → ${flight.arrival}</div>
-                <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${flight.duration} • ${flight.stops}</div>
-              </div>
-              <div style="text-align: right;">
-                <div style="font-weight: 700; font-size: 18px; color: #4ade80;">${flight.price}</div>
-              </div>
-            </div>
-            
-            <div style="display: flex; gap: 6px; margin-top: 8px;">
-              <button onclick="bookFlight('${flight.airline}', '${flight.price}', '${flight.bookingUrl || `https://www.google.com/flights?q=${destination}`}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; flex: 1;">
-                <i data-lucide="credit-card" style="width: 12px; height: 12px; margin-right: 4px;"></i>
-                Book Now
-              </button>
-              <button onclick="trackPrice('${flight.airline}', '${destination}')" style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                <i data-lucide="bell" style="width: 12px; height: 12px;"></i>
-              </button>
-              <button onclick="addFlightToCalendar('${flight.airline}', '${flight.departure}', '${destination}')" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                <i data-lucide="calendar-plus" style="width: 12px; height: 12px;"></i>
-              </button>
-            </div>
-          </div>
-        `;
+      
       // Scroll to bottom and initialize icons
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
       setTimeout(() => lucide.createIcons(), 100);
