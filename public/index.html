@@ -1446,563 +1446,259 @@
       return insights[detectedType] || insights['appointment'];
     }
     
-    // Mobile Email Decoder Functions
-    let currentUserId = null;
-    let currentCategory = 'all';
-    let decodedEmails = [];
-    let currentDate = new Date();
-    
-    // Initialize on load
-    window.addEventListener('DOMContentLoaded', function() {
-      console.log('🚀 Mobile app initializing...');
+    // HomeOps Chief of Staff conversational intelligence with authentic tone
+    function generateChiefOfStaffResponse(message) {
+      const msg = message.toLowerCase();
       
-      // Initialize Lucide icons
-      lucide.createIcons();
-      
-      // Force show chat view initially
-      const chatView = document.getElementById('chat-mobile');
-      const chatBtn = document.querySelector('.nav-btn[onclick*="chat-mobile"]');
-      
-      if (chatView && chatBtn) {
-        showView('chat-mobile', chatBtn);
+      // Relationship/Partnership Issues
+      if (msg.includes('spouse') || msg.includes('husband') || msg.includes('wife') || 
+          msg.includes('marriage') || msg.includes('relationship') || msg.includes('partner')) {
+        return generateHomeOpsRelationshipResponse(message);
       }
       
-      // Handle virtual keyboard visibility
-      setupKeyboardHandling();
-      
-      // Initialize other components
-      setTimeout(() => {
-        checkGmailConnection();
-        renderCalendar();
-        // Re-initialize icons after dynamic content loads
-        lucide.createIcons();
-      }, 500);
-    });
-    
-    function setupKeyboardHandling() {
-      const nav = document.querySelector('.mobile-nav');
-      const chatInput = document.getElementById('chatInput');
-      let initialHeight = window.innerHeight;
-      let keyboardOpen = false;
-      
-      // More reliable keyboard detection
-      function detectKeyboard() {
-        const currentHeight = window.innerHeight;
-        const heightDiff = initialHeight - currentHeight;
-        const threshold = window.innerHeight * 0.25; // 25% height change
-        
-        const shouldHideNav = heightDiff > threshold;
-        
-        if (shouldHideNav !== keyboardOpen) {
-          keyboardOpen = shouldHideNav;
-          
-          if (keyboardOpen) {
-            nav.classList.add('keyboard-open');
-            document.body.style.paddingBottom = '0px';
-            // Ensure input stays visible
-            setTimeout(() => {
-              if (chatInput === document.activeElement) {
-                chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }
-            }, 100);
-          } else {
-            nav.classList.remove('keyboard-open');
-            document.body.style.paddingBottom = '90px';
-          }
-        }
+      // Friend/Social Dynamics  
+      if (msg.includes('friend') || msg.includes('friendship') || msg.includes('social') || 
+          msg.includes('awkward') || msg.includes('conflict')) {
+        return generateHomeOpsFriendshipResponse(message);
       }
       
-      // iOS viewport height adjustment
-      function setViewportHeight() {
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-        detectKeyboard();
+      // Work/Career Challenges
+      if (msg.includes('work') || msg.includes('boss') || msg.includes('career') || 
+          msg.includes('job') || msg.includes('meeting') || msg.includes('deadline')) {
+        return generateHomeOpsWorkResponse(message);
       }
       
-      // Initial setup
-      setViewportHeight();
-      
-      // Event listeners with debouncing
-      let resizeTimer;
-      window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(setViewportHeight, 100);
-      });
-      
-      window.addEventListener('orientationchange', () => {
-        setTimeout(() => {
-          initialHeight = window.innerHeight;
-          setViewportHeight();
-        }, 500);
-      });
-      
-      // Input focus handling
-      if (chatInput) {
-        chatInput.addEventListener('focus', function() {
-          setTimeout(() => {
-            nav.classList.add('keyboard-open');
-            keyboardOpen = true;
-            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 200);
-        });
-        
-        chatInput.addEventListener('blur', function() {
-          setTimeout(() => {
-            if (document.activeElement !== this) {
-              nav.classList.remove('keyboard-open');
-              keyboardOpen = false;
-              document.body.style.paddingBottom = '90px';
-            }
-          }, 200);
-        });
+      // Parenting/Family Dynamics
+      if (msg.includes('kids') || msg.includes('children') || msg.includes('parenting') || 
+          msg.includes('family') || msg.includes('teenager')) {
+        return generateHomeOpsParentingResponse(message);
       }
+      
+      // Overwhelm/Burnout/Stress
+      if (msg.includes('stress') || msg.includes('anxiety') || msg.includes('overwhelmed') || 
+          msg.includes('tired') || msg.includes('burned out') || msg.includes('exhausted')) {
+        return generateHomeOpsOverwhelmResponse(message);
+      }
+      
+      // Decision Making Support
+      if (msg.includes('should i') || msg.includes('what do you think') || 
+          msg.includes('decision') || msg.includes('choice') || msg.includes('advice')) {
+        return generateHomeOpsDecisionResponse(message);
+      }
+      
+      // General conversation with HomeOps tone
+      return generateHomeOpsGeneralResponse(message);
     }
     
-    async function checkGmailConnection() {
-      const statusEl = document.getElementById('connection-status');
-      const connectBtn = document.getElementById('connect-gmail-mobile');
-      const processBtn = document.getElementById('process-emails-mobile');
-      
-      if (!statusEl) {
-        console.warn('Gmail status element not found');
-        return;
-      }
-      
-      // Show loading state
-      statusEl.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.7);">
-          <div class="typing-dots">
-            <span>.</span><span>.</span><span>.</span>
-          </div>
-          <span>Checking Gmail connection...</span>
-        </div>
-      `;
-      
-      try {
-        const response = await fetch('/api/auth/status');
-        const data = await response.json();
-        
-        if (data.authenticated && data.user_id) {
-          currentUserId = data.user_id;
-          statusEl.innerHTML = `
-            <div style="color: rgba(34, 197, 94, 1); display: flex; align-items: center; gap: 8px;">
-              <span>✅</span>
-              <span>Gmail connected (${data.email || 'Unknown'})</span>
-            </div>
-          `;
-          if (connectBtn) connectBtn.style.display = 'none';
-          if (processBtn) processBtn.style.display = 'block';
-          
-          // Auto-load recent emails if available
-          loadRecentEmails();
-        } else {
-          statusEl.innerHTML = `
-            <div style="color: rgba(251, 191, 36, 1); display: flex; align-items: center; gap: 8px;">
-              <span>⚠️</span>
-              <span>Gmail not connected - Click below to connect</span>
-            </div>
-          `;
-          if (connectBtn) connectBtn.style.display = 'block';
-          if (processBtn) processBtn.style.display = 'none';
-        }
-      } catch (error) {
-        console.error('Connection check failed:', error);
-        statusEl.innerHTML = `
-          <div style="color: rgba(239, 68, 68, 1); display: flex; align-items: center; gap: 8px;">
-            <span>❌</span>
-            <span>Connection check failed - Using demo mode</span>
-          </div>
-        `;
-        if (connectBtn) connectBtn.style.display = 'block';
-        if (processBtn) processBtn.style.display = 'none';
-        
-        // Show demo emails
-        showDemoEmails();
-      }
-    }
-    
-    function showDemoEmails() {
-      const emailCategories = document.getElementById('email-categories');
-      if (emailCategories) {
-        emailCategories.style.display = 'block';
-        
-        // Sophisticated demo email intelligence
-        decodedEmails = [
-          {
-            id: 'demo1',
-            subject: 'Soccer practice moved to 4pm',
-            sender: 'Coach Sarah',
-            category: 'family',
-            priority: 'medium',
-            preview: 'Hi parents, due to field maintenance...',
-            summary: 'Schedule change for kids activity',
-            ai_translation: "Your chief of staff says: This isn't just a schedule change—it's a ripple effect. The 4pm time means pickup conflicts with your Tuesday meetings. I've noted this for calendar optimization.",
-            action_items: ['Update calendar', 'Arrange carpool backup', 'Inform spouse of time change']
-          },
-          {
-            id: 'demo2', 
-            subject: 'URGENT: Project deadline moved up',
-            sender: 'Project Manager',
-            category: 'urgent',
-            priority: 'high',
-            preview: 'The client wants to move the launch date...',
-            summary: 'Work deadline change requiring immediate attention',
-            ai_translation: "Red flag detected: This 'urgent' request sounds like poor planning disguised as client demands. Your energy is being hijacked. What's the real deadline vs. their panic?",
-            action_items: ['Clarify actual vs. artificial urgency', 'Assess resource impact', 'Set boundaries on scope']
-          },
-          {
-            id: 'demo3',
-            subject: 'Your Patagonia order is ready for pickup',
-            sender: 'Patagonia',
-            category: 'commerce',
-            priority: 'low',
-            preview: 'Your sustainable outdoor gear awaits...',
-            summary: 'Brand purchase confirmation from trusted retailer',
-            ai_translation: "Smart purchase detected: Patagonia aligns with your values-based spending. Your loyalty score with this brand is 9/10.",
-            commerce_intel: {
-              brand_loyalty: 'High',
-              purchase_pattern: 'Seasonal outdoor gear',
-              recommendation: 'Consider their repair program instead of new purchases',
-              similar_brands: ['REI Co-op', 'Eileen Fisher', 'Allbirds']
-            }
-          },
-          {
-            id: 'demo4',
-            subject: 'Parent-Teacher Conference Available Times',
-            sender: 'Lincoln Elementary',
-            category: 'family',
-            priority: 'medium',
-            preview: 'Please select your preferred time slot...',
-            summary: 'School scheduling requiring parent response',
-            ai_translation: "Subtext: This is a bid for your attention disguised as scheduling. Your presence matters more than the specific time. Book it now before the good slots disappear.",
-            action_items: ['Choose time slot within 24hrs', 'Block calendar time', 'Prepare questions about academic progress']
-          }
-        ];
-        
-        renderEmailInsights();
-        updateChiefInsights();
-      }
-    }
-    
-    function updateChiefInsights() {
-      const insightsEl = document.getElementById('chief-insights');
+    function generateHomeOpsRelationshipResponse(message) {
+      // Using Esther Perel, Gottmans, and grounded relationship intelligence
       const insights = [
-        "I've spotted 1 urgent item that's actually manufactured urgency. Your family schedule needs 2 adjustments. Your commerce patterns show strong values alignment.",
-        "3 emails require action, 1 is emotional manipulation. Your purchase behavior suggests you value sustainability over speed.",
-        "Family logistics are creating calendar conflicts. I'm tracking patterns that show you're overcommitted on Tuesdays.",
-        "Your inbox shows classic 'urgent vs important' confusion. Let me help you separate real deadlines from other people's poor planning."
+        "That wasn't about the dishes. That was about feeling unseen.",
+        "When partnership becomes logistics, desire becomes memory.",
+        "You're not just tired. You're living inside a role that forgot you exist.",
+        "A complaint is often just a bid for connection with bad timing.",
+        "You can't connect while managing. One of you has to stop performing.",
+        "The silence isn't peace. It's disconnection.",
+        "The resentment? That's unspoken overload begging to be named."
       ];
       
-      if (insightsEl) {
-        insightsEl.textContent = `"${insights[Math.floor(Math.random() * insights.length)]}"`;
-      }
-    }
-    
-    async function connectGmailMobile() {
-      try {
-        window.location.href = '/api/auth/gmail';
-      } catch (error) {
-        console.error('Gmail connection failed:', error);
-      }
-    }
-    
-    async function processEmailsMobile() {
-      const processBtn = document.getElementById('process-emails-mobile');
-      const processingStatus = document.getElementById('processing-status');
-      const emailCategories = document.getElementById('email-categories');
-      
-      processBtn.style.display = 'none';
-      processingStatus.style.display = 'block';
-      emailCategories.style.display = 'none';
-      
-      const messages = [
-        'Scanning your inbox...',
-        'Detecting calendar invites, receipts, school messages...',
-        'Learning your communication patterns...',
-        'Organizing by priority...'
+      const actions = [
+        ["**Tonight:** Name one thing you need without explaining why", "**This week:** Stop managing their feelings about your needs", "**Going forward:** Ask for help before you're angry"],
+        ["**Right now:** Text them one thing you appreciate", "**Today:** Have the conversation without fixing anything", "**This month:** Create space to be more than useful"],
+        ["**Immediately:** Stop explaining your exhaustion", "**Tomorrow:** Ask what support they need too", "**Next week:** Plan something that isn't logistics"]
       ];
       
-      let messageIndex = 0;
-      const messageEl = document.getElementById('processing-message');
-      const messageInterval = setInterval(() => {
-        if (messageIndex < messages.length) {
-          messageEl.textContent = messages[messageIndex];
-          messageIndex++;
-        }
-      }, 2000);
+      const reframes = [
+        "You're not asking for too much. You're asking too quietly.",
+        "This isn't about them not caring. It's about systems that don't work.",
+        "Partnership isn't automatic — it's built when you both feel seen."
+      ];
       
-      try {
-        const response = await fetch('/api/email-decoder/process', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: currentUserId })
-        });
-        
-        clearInterval(messageInterval);
-        
-        if (!response.ok) {
-          throw new Error('Processing failed');
-        }
-        
-        const result = await response.json();
-        decodedEmails = result.decoded_emails || [];
-        
-        processingStatus.style.display = 'none';
-        emailCategories.style.display = 'block';
-        processBtn.style.display = 'block';
-        
-        renderEmailCards();
-        
-      } catch (error) {
-        clearInterval(messageInterval);
-        console.error('Email processing failed:', error);
-        
-        processingStatus.innerHTML = `
-          <div style="color: rgba(239, 68, 68, 1); padding: 16px;">
-            ❌ Processing failed. Please check your connection and try again.
-          </div>
-        `;
-        
-        setTimeout(() => {
-          processingStatus.style.display = 'none';
-          processBtn.style.display = 'block';
-        }, 3000);
-      }
+      const insight = insights[Math.floor(Math.random() * insights.length)];
+      const actionSet = actions[Math.floor(Math.random() * actions.length)];
+      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
+      
+      return `You're carrying too much emotional labor without naming it. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
     }
     
-    async function loadRecentEmails() {
-      try {
-        const response = await fetch(`/api/email-decoder/recent?user_id=${currentUserId}`);
-        if (response.ok) {
-          const data = await response.json();
-          decodedEmails = data.decoded_emails || [];
-          if (decodedEmails.length > 0) {
-            document.getElementById('email-categories').style.display = 'block';
-            renderEmailCards();
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load recent emails:', error);
-      }
+    function generateHomeOpsFriendshipResponse(message) {
+      // Using Amy Schumer observational + Cal Newport boundaries
+      const insights = [
+        "You've been available for everyone except yourself. That's not friendship — that's performance.",
+        "You can't be the emotional manager for every relationship. Some people need to carry their own stuff.",
+        "Behind every draining friendship is someone who stopped setting boundaries.",
+        "You're not responsible for their reaction to your honesty.",
+        "Sometimes distance isn't rejection. It's self-preservation.",
+        "The friendship changed because you changed. That's allowed."
+      ];
+      
+      const actions = [
+        ["**Today:** Stop explaining why you need space", "**This week:** Let them be disappointed", "**Going forward:** Respond when you want to, not when you should"],
+        ["**Right now:** Name what you actually want from this", "**Tomorrow:** Stop managing their emotions", "**Next month:** Be honest about your capacity"],
+        ["**Immediately:** Send the text or don't. Stop drafting", "**This week:** Show up as yourself, not who they need", "**Going forward:** Let the friendship be what it is"]
+      ];
+      
+      const reframes = [
+        "You don't owe anyone access to your energy.",
+        "Real friends can handle your boundaries.",
+        "You're not responsible for keeping everyone comfortable."
+      ];
+      
+      const insight = insights[Math.floor(Math.random() * insights.length)];
+      const actionSet = actions[Math.floor(Math.random() * actions.length)];
+      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
+      
+      return `You're giving more than you're getting and calling it loyalty. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
     }
     
-    function showIntelCategory(category, button) {
-      // Update active tab
-      document.querySelectorAll('.intel-tab').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      button.classList.add('active');
+    function generateHomeOpsWorkResponse(message) {
+      // Using Cal Newport focus + Mel Robbins directness
+      const insights = [
+        "You're not disorganized. You're under siege by shallow work.",
+        "You don't need willpower. You need one repeatable protocol.",
+        "Saying yes to everything means you remember nothing.",
+        "Your brain isn't broken — it's fragmented by open loops.",
+        "You booked a 10am meeting and forgot you have a body and children.",
+        "You're not failing at work. You're succeeding at too many things."
+      ];
       
-      currentCategory = category;
-      renderEmailInsights();
+      const actions = [
+        ["**This morning:** Close three tabs you don't need", "**Today:** Say no to one non-essential request", "**This week:** Block two hours for deep work"],
+        ["**Right now:** Write down the one thing that matters most", "**Tomorrow:** Do that thing first", "**Going forward:** Stop checking email before 9am"],
+        ["**Immediately:** Set an end time for this project", "**Today:** Delegate one thing you shouldn't be doing", "**This month:** Have the conversation about capacity"]
+      ];
       
-      if (navigator.vibrate) {
-        navigator.vibrate(10);
-      }
+      const reframes = [
+        "The most strategic thing you can do right now is say no.",
+        "Constraint creates clarity. Let's define the edge.",
+        "You're not behind. You're just carrying too much."
+      ];
+      
+      const insight = insights[Math.floor(Math.random() * insights.length)];
+      const actionSet = actions[Math.floor(Math.random() * actions.length)];
+      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
+      
+      return `You're managing everything and completing nothing. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
     }
     
-    function renderEmailInsights() {
-      const container = document.getElementById('translated-emails-mobile');
+    function generateHomeOpsParentingResponse(message) {
+      // Using Amy Schumer + Jerry Seinfeld observational + grounded parenting wisdom
+      const insights = [
+        "You've said 'put your shoes on' 37 times. You're basically a broken Alexa.",
+        "Motherhood is just one long game of 'whose poop is this?'",
+        "You ran out of time. But made snacks for school shaped like dinosaurs. Iconic.",
+        "Why do kids always need to poop right after you buckle the car seat?",
+        "Your house has three open containers of goldfish and no matching lids. Just vibes.",
+        "You canceled a meeting and called it spiritual. That's peak parenting."
+      ];
       
-      let filteredEmails = decodedEmails;
-      if (currentCategory !== 'all') {
-        filteredEmails = decodedEmails.filter(email => email.category === currentCategory);
-      }
+      const actions = [
+        ["**Right now:** Lower one expectation about today", "**This week:** Buy the easy dinner twice", "**Going forward:** Stop making elaborate snacks"],
+        ["**Today:** Let them be bored for 20 minutes", "**Tomorrow:** Say no to one extra thing", "**This month:** Ask for help without explaining why"],
+        ["**Immediately:** Put your phone in another room", "**Tonight:** Order pizza without guilt", "**This week:** Let someone else handle one school thing"]
+      ];
       
-      if (filteredEmails.length === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.6);">
-            ${currentCategory === 'all' ? 'No emails analyzed yet' : `No ${currentCategory} insights found`}
-          </div>
-        `;
-        return;
-      }
+      const reframes = [
+        "You're not raising perfect kids. You're raising humans.",
+        "Good enough parenting is actually excellent parenting.",
+        "You don't need to optimize childhood. You need to survive it."
+      ];
       
-      container.innerHTML = filteredEmails.map(email => {
-        const priorityClass = email.priority === 'high' ? 'priority-high' : 
-                             email.priority === 'medium' ? 'priority-medium' : 'priority-low';
-        
-        let categorySpecificContent = '';
-        
-        if (email.category === 'commerce' && email.commerce_intel) {
-          categorySpecificContent = `
-            <div class="commerce-intel">
-              <div style="font-weight: 600; margin-bottom: 8px; color: #10b981;">💰 Commerce Intelligence</div>
-              <div style="font-size: 13px; line-height: 1.4;">
-                <div>• Brand Loyalty: <span class="brand-loyalty">${email.commerce_intel.brand_loyalty}</span></div>
-                <div>• Pattern: ${email.commerce_intel.purchase_pattern}</div>
-                <div>• Recommendation: ${email.commerce_intel.recommendation}</div>
-                <div>• Similar Values-Based Brands: ${email.commerce_intel.similar_brands.join(', ')}</div>
-              </div>
-            </div>
-          `;
-        }
-        
-        return `
-          <div class="email-insight-card" onclick="openEmailInsight('${email.id}')">
-            <div class="insight-priority ${priorityClass}">${email.priority}</div>
-            <div class="email-subject">${email.subject || 'No Subject'}</div>
-            <div class="email-meta">
-              <span>${email.sender || 'Unknown Sender'}</span>
-              <span class="email-category">${email.category || 'General'}</span>
-            </div>
-            
-            ${email.ai_translation ? `
-              <div class="ai-translation">
-                <strong>🧠 AI Translation:</strong><br>
-                ${email.ai_translation}
-              </div>
-            ` : ''}
-            
-            ${categorySpecificContent}
-            
-            ${email.action_items ? `
-              <div style="margin-top: 12px;">
-                <div style="font-weight: 600; font-size: 13px; margin-bottom: 6px; color: rgba(255,255,255,0.9);">⚡ Action Items:</div>
-                <div style="font-size: 12px; color: rgba(255,255,255,0.8);">
-                  ${email.action_items.map(item => `• ${item}`).join('<br>')}
-                </div>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join('');
+      const insight = insights[Math.floor(Math.random() * insights.length)];
+      const actionSet = actions[Math.floor(Math.random() * actions.length)];
+      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
+      
+      return `You're performing parenthood instead of just doing it. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
     }
     
-    function openEmailInsight(emailId) {
-      // Enhanced interaction for email insights
-      const email = decodedEmails.find(e => e.id === emailId);
-      if (email) {
-        console.log('Opening detailed insight for:', email.subject);
-        // Could open modal or detailed view
-        if (navigator.vibrate) {
-          navigator.vibrate(20);
-        }
-      }
+    function generateHomeOpsOverwhelmResponse(message) {
+      // Using Andrew Huberman nervous system + Mel Robbins action + Pema Chodron grounding
+      const insights = [
+        "You're not lazy. You're cognitively saturated.",
+        "Decision fatigue isn't weakness. It's your brain asking for fewer tabs.",
+        "You're not broken. You're signaling.",
+        "The nervous system speaks before the mind does. Let's listen.",
+        "Stress is signal. Without structure, it becomes noise.",
+        "You don't have capacity issues. You have boundary issues."
+      ];
+      
+      const actions = [
+        ["**Right now:** Name three things you can stop doing", "**Today:** Take 10 minutes outside without your phone", "**This week:** Say no to one good opportunity"],
+        ["**Immediately:** Close your eyes for 30 seconds", "**Tonight:** Go to bed 30 minutes earlier", "**Tomorrow:** Do one less thing than planned"],
+        ["**This moment:** Stop trying to fix everything", "**Today:** Let something be imperfect", "**This month:** Ask someone else to handle one recurring task"]
+      ];
+      
+      const reframes = [
+        "This isn't about doing more. It's about carrying less.",
+        "You're not failing. You're just overloaded.",
+        "The body craves rhythm. Predictability is therapy."
+      ];
+      
+      const insight = insights[Math.floor(Math.random() * insights.length)];
+      const actionSet = actions[Math.floor(Math.random() * actions.length)];
+      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
+      
+      return `You're running on empty and calling it productivity. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
     }
     
-    // Calendar Functions
-    function renderCalendar() {
-      const calendarDays = document.getElementById('calendar-days');
-      const monthEl = document.getElementById('current-month');
+    function generateHomeOpsDecisionResponse(message) {
+      // Using Guy Raz reflection + Cal Newport constraints + Cheryl Strayed clarity
+      const insights = [
+        "Sometimes insight starts by saying: this isn't working anymore.",
+        "You don't have to know the next step. Just move toward the light.",
+        "Behind every overloaded schedule is someone who stopped asking for help.",
+        "This isn't about getting better. It's about getting clear.",
+        "Let yourself be a beginner at something hard.",
+        "You've been carrying a lot. No wonder it feels blurry."
+      ];
       
-      if (!calendarDays || !monthEl) {
-        console.warn('Calendar elements not found');
-        return;
-      }
+      const actions = [
+        ["**Right now:** Write down what you actually want", "**Today:** Eliminate one option that drains energy", "**This week:** Try the thing that scares you less"],
+        ["**Immediately:** Stop asking everyone else what they think", "**Tomorrow:** Make the decision with available information", "**Going forward:** Trust your gut over your guilt"],
+        ["**This moment:** Name what you're really optimizing for", "**Today:** Choose the option that gives you energy", "**Next month:** Evaluate based on outcomes, not effort"]
+      ];
       
-      const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                     'July', 'August', 'September', 'October', 'November', 'December'];
+      const reframes = [
+        "You don't need more information. You need courage to act.",
+        "The right decision is the one you can live with.",
+        "Sometimes the best choice is the one you can change later."
+      ];
       
-      monthEl.textContent = `📅 ${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+      const insight = insights[Math.floor(Math.random() * insights.length)];
+      const actionSet = actions[Math.floor(Math.random() * actions.length)];
+      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
       
-      const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-      const startDate = new Date(firstDay);
-      startDate.setDate(startDate.getDate() - firstDay.getDay());
-      
-      const today = new Date();
-      const daysHtml = [];
-      
-      for (let i = 0; i < 42; i++) {
-        const day = new Date(startDate);
-        day.setDate(startDate.getDate() + i);
-        
-        const isToday = day.toDateString() === today.toDateString();
-        const isCurrentMonth = day.getMonth() === currentDate.getMonth();
-        const hasEvents = Math.random() > 0.7; // Simulate some events
-        
-        let classes = 'calendar-day';
-        if (isToday) classes += ' today';
-        if (!isCurrentMonth) classes += ' other-month';
-        if (hasEvents && isCurrentMonth) classes += ' has-events';
-        
-        daysHtml.push(`<div class="${classes}" onclick="selectDate('${day.toISOString()}')">${day.getDate()}</div>`);
-      }
-      
-      calendarDays.innerHTML = daysHtml.join('');
-      console.log('Calendar rendered with', daysHtml.length, 'days');
+      return `You're overthinking because you're trying to optimize for everyone else. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
     }
     
-    function changeMonth(direction) {
-      currentDate.setMonth(currentDate.getMonth() + direction);
-      renderCalendar();
+    function generateHomeOpsGeneralResponse(message) {
+      // Core HomeOps voice - calm, grounded, moves things forward
+      const openings = [
+        "You're tracking everything — kids, logistics, emotions — without a pause. That's not forgetfulness. That's overload.",
+        "You've been available for everyone except yourself. Let's change that.",
+        "You're managing everything and completing nothing. Time to get tactical.",
+        "Behind every perfect family schedule is someone who stopped sleeping. Let's fix this.",
+        "You don't need another system. You need to use the one you have.",
+        "You're not disorganized. You're just carrying too much, too quietly."
+      ];
       
-      if (navigator.vibrate) {
-        navigator.vibrate(10);
-      }
-    }
-    
-    function selectDate(dateString) {
-      console.log('Selected date:', dateString);
-      if (navigator.vibrate) {
-        navigator.vibrate(10);
-      }
-    }
-    
-    function addEventMobile() {
-      const eventTitle = prompt('Event title:');
-      if (eventTitle) {
-        const todayList = document.getElementById('today-events-list');
-        todayList.innerHTML += `
-          <div class="event-item">
-            <div class="event-title">${eventTitle}</div>
-            <div class="event-time">Added just now</div>
-          </div>
-        `;
-      }
-    }
-    
-    async function callHomeOpsAI(message) {
-      // Connect to your actual HomeOps AI with full capabilities
-      try {
-        const response = await fetch('/api/homeops-agent', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: message,
-            context: {
-              platform: 'mobile-chat',
-              user_id: currentUserId || 'mobile-user',
-              capabilities: ['calendar', 'email', 'commerce', 'scheduling', 'gift-recommendations'],
-              current_view: document.querySelector('.mobile-view.active')?.id || 'chat-mobile',
-              has_gmail_access: currentUserId ? true : false,
-              decoded_emails: decodedEmails.length > 0 ? decodedEmails.slice(0, 5) : null
-            },
-            tone_model: 'homeops-chief-of-staff-v2',
-            enable_actions: true,
-            capabilities: [
-              'calendar_injection',
-              'email_surfacing', 
-              'deal_detection',
-              'gift_recommendations',
-              'week_planning',
-              'task_management'
-            ]
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Backend error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Handle AI-suggested actions
-        if (data.suggested_actions) {
-          handleAISuggestedActions(data.suggested_actions);
-        }
-        
-        return data.response || data.message || "I'm analyzing your request...";
-        
-      } catch (error) {
-        console.error('HomeOps AI Backend Error:', error);
-        
-        // Use the action-oriented Chief of Staff responses
-        return generateChiefOfStaffResponse(message);
-      }
+      const actions = [
+        ["**Right now:** Name the one thing that actually matters today", "**This week:** Stop doing one thing that doesn't", "**Going forward:** Ask for help before you need it"],
+        ["**Today:** Set one boundary without explaining it", "**Tomorrow:** Do something just for you", "**This month:** Let someone else handle one regular task"],
+        ["**Immediately:** Close three things you don't need open", "**Tonight:** Plan tomorrow in five minutes", "**This week:** Say no to one good opportunity"]
+      ];
+      
+      const closings = [
+        "You're not behind. You're just trying to do everything.",
+        "This isn't about perfection. It's about sustainability.",
+        "You don't need to optimize everything. Just the things that matter."
+      ];
+      
+      const opening = openings[Math.floor(Math.random() * openings.length)];
+      const actionSet = actions[Math.floor(Math.random() * actions.length)];
+      const closing = closings[Math.floor(Math.random() * closings.length)];
+      
+      return `${opening}\n\n${actionSet.join('\n')}\n\n${closing}`;
     }
     
     // Handle AI-suggested actions from backend
@@ -2143,8 +1839,44 @@
           destination = routeMatch[2].trim();
         }
       } else if (msg.includes('to ')) {
-        const destMatch = msg.match(/to ([a-zA-Z\s]+)/);
-        if (destMatch) destination = destMatch[1].split(' ')[0];
+        const destMatch = msg.match(/to ([a-zA-Z\s]+?)(?:\s+(?:tomorrow|today|next week|under|below|$))/i);
+        if (destMatch) {
+          destination = destMatch[1].trim();
+        }
+      }
+      
+      // Convert common abbreviations to full city names
+      const cityMappings = {
+        'la': 'Los Angeles',
+        'sf': 'San Francisco',
+        'nyc': 'New York',
+        'ny': 'New York', 
+        'chi': 'Chicago',
+        'vegas': 'Las Vegas',
+        'miami': 'Miami',
+        'boston': 'Boston',
+        'seattle': 'Seattle',
+        'denver': 'Denver',
+        'atlanta': 'Atlanta'
+      };
+      
+      const destLower = destination.toLowerCase();
+      if (cityMappings[destLower]) {
+        destination = cityMappings[destLower];
+      }
+      
+      // Debug logging
+      console.log('Flight search parsing:', { originalMessage: message, parsedDestination: destination, parsedOrigin: origin, parsedDates: dates });
+      
+      // Better date parsing
+      if (msg.includes('tomorrow')) {
+        dates = 'Tomorrow';
+      } else if (msg.includes('today')) {
+        dates = 'Today';
+      } else if (msg.includes('next week')) {
+        dates = 'Next week';
+      } else if (msg.includes('this week')) {
+        dates = 'This week';
       }
       
       if (msg.includes('under') || msg.includes('below')) {
@@ -2267,8 +1999,8 @@
         
         return {
           airline,
-          departure: generateDepartureTime(index),
-          arrival: generateArrivalTime(index, route.duration),
+          departure: generateDepartureTime(index, origin),
+          arrival: generateArrivalTime(index, route.duration, destination),
           price: `$${Math.round(price)}`,
           duration: route.duration,
           stops: index === 0 ? 'Nonstop' : (Math.random() > 0.7 ? '1 stop' : 'Nonstop'),
@@ -2291,18 +2023,21 @@
         'Boston': 'BOS',
         'Denver': 'DEN',
         'Atlanta': 'ATL',
-        'Dallas': 'DFW'
+        'Dallas': 'DFW',
+        'Las Vegas': 'LAS'
       };
       return codes[city] || 'SFO';
     }
     
     function getDateString(dateText) {
       const today = new Date();
-      if (dateText.includes('tomorrow')) {
+      if (dateText.includes('tomorrow') || dateText === 'Tomorrow') {
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
         return tomorrow.toISOString().split('T')[0];
-      } else if (dateText.includes('next week')) {
+      } else if (dateText.includes('today') || dateText === 'Today') {
+        return today.toISOString().split('T')[0];
+      } else if (dateText.includes('next week') || dateText === 'Next week') {
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
         return nextWeek.toISOString().split('T')[0];
@@ -2313,51 +2048,25 @@
       return nextWeek.toISOString().split('T')[0];
     }
     
-    function generateDepartureTime(index) {
+    // Flight time generation utilities
+    function generateDepartureTime(index, origin) {
       const times = ['6:15 AM', '8:30 AM', '11:45 AM', '3:20 PM', '6:45 PM', '9:15 PM'];
-      return `SFO ${times[index] || times[0]}`;
+      const originCode = getAirportCode(origin);
+      return `${originCode} ${times[index] || times[0]}`;
     }
     
-    function generateArrivalTime(index, duration) {
+    function generateArrivalTime(index, duration, destination) {
       const departureTimes = ['6:15 AM', '8:30 AM', '11:45 AM', '3:20 PM', '6:45 PM', '9:15 PM'];
       const arrivalTimes = ['8:35 AM', '10:45 AM', '2:05 PM', '5:45 PM', '9:05 PM', '11:35 PM'];
-      return `SEA ${arrivalTimes[index] || arrivalTimes[0]}`;
+      const destinationCode = getAirportCode(destination);
+      return `${destinationCode} ${arrivalTimes[index] || arrivalTimes[0]}`;
     }
     
-    function parseAmadeusFlights(data) {
-      // Parse Amadeus API response
-      if (!data.data) return null;
+    async function displayFlightResults(flightResults, destination, budget, dates, messagesDiv) {
+      // Clear previous results
+      messagesDiv.innerHTML = '';
       
-      return data.data.slice(0, 3).map(offer => ({
-        airline: offer.validatingAirlineCodes[0] || 'Unknown',
-        departure: `${offer.itineraries[0].segments[0].departure.iataCode} ${offer.itineraries[0].segments[0].departure.at.split('T')[1].substring(0, 5)}`,
-        arrival: `${offer.itineraries[0].segments[0].arrival.iataCode} ${offer.itineraries[0].segments[0].arrival.at.split('T')[1].substring(0, 5)}`,
-        price: `$${Math.round(parseFloat(offer.price.total))}`,
-        duration: offer.itineraries[0].duration.replace('PT', '').replace('H', 'h ').replace('M', 'm'),
-        stops: offer.itineraries[0].segments.length === 1 ? 'Nonstop' : `${offer.itineraries[0].segments.length - 1} stop(s)`,
-        score: '9.0/10',
-        bookingUrl: `https://www.amadeus.com/book/${offer.id}`
-      }));
-    }
-    
-    function parseSkyscannerFlights(data) {
-      // Parse Skyscanner API response
-      if (!data.Quotes) return null;
-      
-      return data.Quotes.slice(0, 3).map(quote => ({
-        airline: data.Carriers.find(c => c.CarrierId === quote.OutboundLeg.CarrierIds[0])?.Name || 'Unknown',
-        departure: `${quote.OutboundLeg.OriginId} ${quote.OutboundLeg.DepartureDate.split('T')[1].substring(0, 5)}`,
-        arrival: `${quote.OutboundLeg.DestinationId} ${quote.OutboundLeg.DepartureDate.split('T')[1].substring(0, 5)}`,
-        price: `$${Math.round(quote.MinPrice)}`,
-        duration: '2h 30m', // Skyscanner doesn't provide duration in quotes
-        stops: quote.OutboundLeg.Stops.length === 0 ? 'Nonstop' : `${quote.OutboundLeg.Stops.length} stop(s)`,
-        score: '8.8/10',
-        bookingUrl: `https://www.skyscanner.com/transport/flights/${quote.OutboundLeg.OriginId}/${quote.OutboundLeg.DestinationId}`
-      }));
-    }
-    
-    function displayFlightResults(flightResults, destination, budget, dates, messagesDiv) {
-      
+      // Show results header
       messagesDiv.innerHTML += `
         <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
           <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
@@ -2369,44 +2078,51 @@
             <div style="font-weight: 600; margin-bottom: 4px;">Best flights to ${destination}</div>
             <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Budget: Under ${budget} • ${dates}</div>
           </div>
-          
-          ${flightResults.map(flight => `
-            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; border-left: 3px solid rgba(59, 130, 246, 0.6);">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                <div style="flex: 1;">
-                  <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                    <span>${flight.airline}</span>
-                    <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">${flight.score}</span>
-                  </div>
-                  <div style="font-size: 13px; margin-bottom: 4px;">${flight.departure} → ${flight.arrival}</div>
-                  <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${flight.duration} • ${flight.stops}</div>
-                </div>
-                <div style="text-align: right;">
-                  <div style="font-weight: 700; font-size: 18px; color: #4ade80;">${flight.price}</div>
-                </div>
-              </div>
-              
-              <div style="display: flex; gap: 6px; margin-top: 8px;">
-                <button onclick="bookFlight('${flight.airline}', '${flight.price}', '${flight.bookingUrl || `https://www.google.com/flights?q=${destination}`}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; flex: 1;">
-                  <i data-lucide="credit-card" style="width: 12px; height: 12px; margin-right: 4px;"></i>
-                  Book Now
-                </button>
-                <button onclick="trackPrice('${flight.airline}', '${destination}')" style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                  <i data-lucide="bell" style="width: 12px; height: 12px;"></i>
-                </button>
-                <button onclick="addFlightToCalendar('${flight.airline}', '${flight.departure}', '${destination}')" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                  <i data-lucide="calendar-plus" style="width: 12px; height: 12px;"></i>
-                </button>
-              </div>
-            </div>
-          `).join('')}
-          
-          <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 8px;">
-            <i data-lucide="zap" style="width: 14px; height: 14px; margin-right: 4px;"></i>
-            AI found 3 premium options under your budget. Prices include baggage fees.
-          </div>
         </div>
       `;
+      
+      // Display each flight result
+      flightResults.forEach(flight => {
+        messagesDiv.innerHTML += `
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; border-left: 3px solid rgba(59, 130, 246, 0.6);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                  <span>${flight.airline}</span>
+                  <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">${flight.score}</span>
+                </div>
+                <div style="font-size: 13px; margin-bottom: 4px;">${flight.departure} → ${flight.arrival}</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${flight.duration} • ${flight.stops}</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-weight: 700; font-size: 18px; color: #4ade80;">${flight.price}</div>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              <button onclick="bookFlight('${flight.airline}', '${flight.price}', '${flight.bookingUrl || `https://www.google.com/flights?q=${destination}`}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; flex: 1;">
+                <i data-lucide="credit-card" style="width: 12px; height: 12px; margin-right: 4px;"></i>
+                Book Now
+              </button>
+              <button onclick="trackPrice('${flight.airline}', '${destination}')" style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
+                <i data-lucide="bell" style="width: 12px; height: 12px;"></i>
+              </button>
+              <button onclick="addFlightToCalendar('${flight.airline}', '${flight.departure}', '${destination}')" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
+                <i data-lucide="calendar-plus" style="width: 12px; height: 12px;"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      
+      // Show summary of results
+      messagesDiv.innerHTML += `
+        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 8px;">
+          <i data-lucide="zap" style="width: 14px; height: 14px; margin-right: 4px;"></i>
+          AI found ${flightResults.length} premium options under your budget. Prices include baggage fees.
+        </div>
+      `;
+      
       setTimeout(() => lucide.createIcons(), 100);
     }
     
@@ -2898,6 +2614,50 @@
     
     function filterTasks() {
       addMessage('assistant', '🔍 How would you like to filter your tasks? By priority (high/medium/low), due date, or category?');
+    }
+    
+    // Missing utility functions
+    function addSystemMessage(messagesDiv, message) {
+      if (!messagesDiv) {
+        messagesDiv = document.querySelector('.chat-messages-mobile');
+      }
+      addMessage('assistant', message, messagesDiv);
+    }
+    
+    function viewEventDetails(eventTitle, eventDate) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      addMessage('assistant', `📅 Event Details: ${eventTitle} on ${eventDate}`);
+      
+      // Switch to chat view to show the message
+      showView('chat-mobile');
+    }
+    
+    // Add a proper addMessage function for different containers
+    function addMessage(type, content, container) {
+      if (!container) {
+        container = document.querySelector('.chat-messages-mobile');
+      }
+      
+      if (container) {
+        const messageDiv = document.createElement('div');
+        messageDiv.style.cssText = `
+          padding: 12px 20px; 
+          background: rgba(255,255,255,0.1); 
+          margin: 8px 0; 
+          border-radius: 18px 18px 18px 4px; 
+          max-width: 85%; 
+          border: 1px solid rgba(255,255,255,0.1);
+          color: white;
+        `;
+        messageDiv.innerHTML = content;
+        container.appendChild(messageDiv);
+        container.scrollTop = container.scrollHeight;
+        
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      }
     }
     
     // ...existing code...
