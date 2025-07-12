@@ -945,6 +945,40 @@
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
     
+    // Main AI function that handles all chat requests
+    async function callHomeOpsAI(message) {
+      console.log('🤖 Calling HomeOps AI with:', message);
+      
+      try {
+        // First try to detect and execute actions
+        const actionResult = await detectAndExecuteActions(message);
+        if (actionResult.executed) {
+          return actionResult.response;
+        }
+        
+        // If no action detected, generate contextual HomeOps response
+        const lowerMessage = message.toLowerCase();
+        
+        if (lowerMessage.includes('relationship') || lowerMessage.includes('partner') || lowerMessage.includes('marriage')) {
+          return generateHomeOpsRelationshipResponse(message);
+        } else if (lowerMessage.includes('kid') || lowerMessage.includes('child') || lowerMessage.includes('parent')) {
+          return generateHomeOpsParentingResponse(message);
+        } else if (lowerMessage.includes('stress') || lowerMessage.includes('overwhelmed') || lowerMessage.includes('busy')) {
+          return generateHomeOpsStressResponse(message);
+        } else if (lowerMessage.includes('schedule') || lowerMessage.includes('time') || lowerMessage.includes('calendar')) {
+          return generateHomeOpsProductivityResponse(message);
+        } else if (lowerMessage.includes('friend') || lowerMessage.includes('social')) {
+          return generateHomeOpsFriendshipResponse(message);
+        } else {
+          return generateHomeOpsGeneralResponse(message);
+        }
+        
+      } catch (error) {
+        console.error('❌ HomeOps AI error:', error);
+        return "I'm having trouble processing that right now. Can you try rephrasing your request?";
+      }
+    }
+    
     // Smart action detection and execution
     function detectAndExecuteActions(message) {
       const msg = message.toLowerCase();
@@ -2659,6 +2693,36 @@
         }
       }
     }
+    
+    // Initialize app when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Mobile app initializing...');
+      
+      // Initialize Lucide icons on page load
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+        console.log('✅ Lucide icons initialized');
+      } else {
+        console.warn('⚠️ Lucide not loaded, retrying...');
+        // Retry after a short delay if Lucide isn't loaded yet
+        setTimeout(() => {
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+            console.log('✅ Lucide icons initialized (retry)');
+          }
+        }, 500);
+      }
+      
+      // Set initial view
+      showView('chat-mobile');
+    });
+    
+    // Also initialize icons when window loads (backup)
+    window.addEventListener('load', function() {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    });
     
     // ...existing code...
   </script>

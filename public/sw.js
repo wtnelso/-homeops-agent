@@ -17,7 +17,106 @@ const ESSENTIAL_CACHE = [
   '/manifest.json'
 ];
 
-// Calendar and API cache
+// Install event - cache essential files
+self.addEventListener('install', event => {
+  console.log('🔧 Service Worker installing...');
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('✅ Cache opened');
+        return cache.addAll(ESSENTIAL_CACHE);
+      })
+      .then(() => {
+        console.log('✅ Essential files cached');
+        self.skipWaiting();
+      })
+      .catch(error => {
+        console.error('❌ Cache installation failed:', error);
+      })
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', event => {
+  console.log('🚀 Service Worker activating...');
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('🗑️ Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      console.log('✅ Service Worker activated');
+      self.clients.claim();
+    })
+  );
+});
+
+// Fetch event - handle network requests with proper redirect handling
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+  
+  // Skip chrome-extension and other non-http requests
+  if (!request.url.startsWith('http')) {
+    return;
+  }
+  
+  event.respondWith(
+    fetch(request, { 
+      redirect: 'follow',  // Allow redirects
+      credentials: 'same-origin' 
+    })
+    .then(response => {
+      // Don't cache redirected responses that might cause issues
+      if (response.redirected && response.type === 'opaqueredirect') {
+        return response;
+      }
+      
+      // Clone response for caching
+      const responseToCache = response.clone();
+      
+      // Only cache successful responses
+      if (response.status === 200) {
+        caches.open(CACHE_NAME)
+          .then(cache => {
+            cache.put(request, responseToCache);
+          })
+          .catch(error => {
+            console.warn('Cache put failed:', error);
+          });
+      }
+      
+      return response;
+    })
+    .catch(error => {
+      console.warn('Fetch failed, trying cache:', error);
+      
+      // Try to serve from cache
+      return caches.match(request)
+        .then(cachedResponse => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          
+          // If offline and no cache, return offline page
+          if (request.destination === 'document') {
+            return caches.match(OFFLINE_URL);
+          }
+          
+          throw error;
+        });
+    })
+  );
+});
 const DYNAMIC_CACHE = 'homeops-dynamic-v1';
 
 // Install event - cache essential files
