@@ -1862,13 +1862,13 @@
     async function executeFlightSearch(message, messagesDiv) {
       const msg = message.toLowerCase();
       
-      // Extract destination and preferences
-      let destination = 'Seattle';
-      let origin = 'San Francisco';
+      // Extract destination and preferences - Better defaults
+      let destination = 'Los Angeles';
+      let origin = 'Current Location'; // Will be detected from user input
       let budget = '$400';
-      let dates = 'Next week';
+      let dates = 'Tomorrow';
       
-      // Better extraction logic
+      // Better extraction logic with smarter origin detection
       if (msg.includes('from ') && msg.includes(' to ')) {
         const routeMatch = msg.match(/from ([a-zA-Z\s]+) to ([a-zA-Z\s]+)/);
         if (routeMatch) {
@@ -1880,6 +1880,18 @@
         const destMatch = msg.match(/to\s+([a-zA-Z\s]{2,20})(?:\s+(?:tomorrow|today|next week|under|below|\d|$))/i);
         if (destMatch) {
           destination = destMatch[1].trim();
+        }
+        // Try to detect origin from context
+        if (msg.includes('dc') || msg.includes('washington')) {
+          origin = 'Washington DC';
+        } else if (msg.includes('ny') || msg.includes('new york')) {
+          origin = 'New York';
+        } else if (msg.includes('sf') || msg.includes('san francisco')) {
+          origin = 'San Francisco';
+        } else if (msg.includes('la') || msg.includes('los angeles')) {
+          origin = 'Los Angeles';
+        } else {
+          origin = 'San Francisco'; // Default if not detected
         }
       }
       
@@ -2116,12 +2128,9 @@
     }
     
     async function displayFlightResults(flightResults, destination, budget, dates, messagesDiv) {
-      // Clear previous results
-      messagesDiv.innerHTML = '';
-      
-      // Show results header
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+      // Add AI response as a chat card (don't clear the chat!)
+      const flightCard = `
+        <div style="padding: 12px 20px; background: rgba(59, 130, 246, 0.2); backdrop-filter: blur(10px); margin: 8px 0; border-radius: 4px 18px 18px 18px; max-width: 95%; border: 1px solid rgba(59, 130, 246, 0.4);">
           <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
             <i data-lucide="plane" style="width: 20px; height: 20px;"></i>
             <span>Flight Intelligence</span>
@@ -2131,11 +2140,32 @@
             <div style="font-weight: 600; margin-bottom: 4px;">Best flights to ${destination}</div>
             <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Budget: Under ${budget} • ${dates}</div>
           </div>
+          
+          ${flightResults.map(flight => `
+            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0; border: 1px solid rgba(255,255,255,0.1);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-weight: 600;">${flight.airline}</div>
+                <div style="background: rgba(34, 197, 94, 0.3); color: #86efac; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${flight.rating}/10</div>
+              </div>
+              <div style="font-size: 14px; margin-bottom: 4px;">${flight.departure} → ${flight.arrival}</div>
+              <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">${flight.duration} • ${flight.stops}</div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: 600; color: #86efac; font-size: 18px;">${flight.price}</div>
+                <button onclick="bookFlight('${flight.airline}', '${flight.price}', '${flight.bookingUrl || `https://www.google.com/flights?q=${destination}`}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
+                  📱 Book Now
+                </button>
+              </div>
+            </div>
+          `).join('')}
+          
+          <div style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; margin-top: 12px;">
+            ✈️ AI found ${flightResults.length} premium options under your budget. Prices include baggage fees.
+          </div>
         </div>
       `;
       
-      // Display each flight result
-      flightResults.forEach(flight => {
+      // Append to chat instead of replacing
+      messagesDiv.innerHTML += flightCard;
         messagesDiv.innerHTML += `
           <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; border-left: 3px solid rgba(59, 130, 246, 0.6);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
@@ -2166,16 +2196,8 @@
             </div>
           </div>
         `;
-      });
-      
-      // Show summary of results
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 8px;">
-          <i data-lucide="zap" style="width: 14px; height: 14px; margin-right: 4px;"></i>
-          AI found ${flightResults.length} premium options under your budget. Prices include baggage fees.
-        </div>
-      `;
-      
+      // Scroll to bottom and initialize icons
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
       setTimeout(() => lucide.createIcons(), 100);
     }
     
