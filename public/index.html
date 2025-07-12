@@ -997,14 +997,21 @@
         try {
           console.log('📡 Sending to AI backend:', message);
           
+          // Get or create user ID for this session
+          let userId = localStorage.getItem('homeops_user_id');
+          if (!userId) {
+            userId = 'mobile_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('homeops_user_id', userId);
+          }
+          
           const response = await fetch('/chat', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              message: message,
-              context: 'mobile_chat'
+              user_id: userId,
+              message: message
             })
           });
           
@@ -1016,10 +1023,10 @@
           
           // Replace typing indicator with AI response
           const typingEl = document.getElementById('typing-indicator');
-          if (typingEl && data.response) {
+          if (typingEl && data.reply) {
             typingEl.innerHTML = `
               <div style="color: white; line-height: 1.4;">
-                ${data.response}
+                ${data.reply}
               </div>
             `;
             typingEl.style.background = 'rgba(139, 92, 246, 0.2)';
