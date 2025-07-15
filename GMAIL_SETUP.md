@@ -1,12 +1,94 @@
-# Gmail OAuth Setup for Email Decoder Engine
+# Gmail API Setup Guide - Email Intelligence Integration
 
-This guide will help you set up Gmail OAuth credentials for the HomeOps Email Decoder Engine.
+## 1. Create Google Cloud Project
 
-## Prerequisites
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing one
+3. Name it "HomeOps Email Intelligence"
 
-- Google account
-- Access to Google Cloud Console
-- HomeOps backend running locally or deployed
+## 2. Enable Gmail API
+
+1. Go to "APIs & Services" > "Library"
+2. Search for "Gmail API"
+3. Click "Enable"
+
+## 3. Create OAuth 2.0 Credentials
+
+1. Go to "APIs & Services" > "Credentials"
+2. Click "Create Credentials" > "OAuth client ID"
+3. If prompted, configure OAuth consent screen:
+   - User Type: External (for testing)
+   - App name: "HomeOps"
+   - User support email: your email
+   - Developer contact: your email
+4. Choose "Web application"
+5. Name: "HomeOps Web Client"
+6. Authorized redirect URIs:
+   - `http://localhost:3000/auth/gmail/callback`
+   - `https://your-domain.com/auth/gmail/callback` (for production)
+
+## 4. Download Credentials
+
+1. Click the download button next to your OAuth client
+2. You'll get a JSON file with `client_id` and `client_secret`
+
+## 5. Update .env File
+
+Copy `.env.example` to `.env` and fill in:
+
+```bash
+GMAIL_CLIENT_ID=your-client-id-here.apps.googleusercontent.com
+GMAIL_CLIENT_SECRET=your-client-secret-here
+GMAIL_REDIRECT_URI=http://localhost:3000/auth/gmail/callback
+OPENAI_API_KEY=your-openai-key-here
+```
+
+## 6. Test the Integration
+
+1. Start the server: `node server.js`
+2. Go to http://localhost:3000
+3. Click "Email Intelligence" tab
+4. Click "Connect Gmail to Start Intelligence"
+5. Authorize the app
+6. Click "Scan & Translate Latest Emails"
+
+## Features
+
+### Email Intelligence System:
+- **Parses promotional emails** automatically 
+- **Extracts real product value** from marketing noise
+- **Detects manipulation tactics** (fake urgency, inflated prices)
+- **Shows "signal vs noise" scoring** for each email
+- **Cross-references with search queries** for relevant promotions
+
+### Commerce Intelligence Enhanced:
+- **Multi-source product comparisons** 
+- **Email promotion integration** - finds relevant deals in your inbox
+- **Loyalty scoring** based on your preferences
+- **"Only 3 options" philosophy** to reduce choice paralysis
+
+## Privacy & Security
+
+- **Read-only Gmail access** - we never send emails or modify your inbox
+- **Local processing** - emails are analyzed locally, not stored
+- **OAuth 2.0 secure authentication** - Google handles all login security
+- **No email storage** - we only extract product intelligence, not email content
+
+## Troubleshooting
+
+**"Gmail not connected"**: Check your OAuth credentials and redirect URI
+**"No emails found"**: Make sure you have promotional emails in Gmail
+**"AI parsing failed"**: Check your OpenAI API key and quota
+
+## Next Steps
+
+Once email intelligence is working:
+1. Add SMS intelligence for text promotions
+2. Implement price alert notifications  
+3. Build user preference learning
+4. Add brand partnership integrations
+
+The goal: **Turn your inbox chaos into useful product intelligence**
 
 ## Step 1: Google Cloud Console Setup
 

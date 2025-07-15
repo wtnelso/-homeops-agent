@@ -477,194 +477,79 @@
       max-height: 400px;
       overflow-y: auto;
     }
-    
-    .email-insight-card {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 16px;
+
+    /* ANTI-INBOX CATEGORY STYLES */
+    .category-tab {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.7);
       cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
+      transition: all 0.3s ease;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     
-    .email-insight-card:active {
-      transform: scale(0.98);
-      background: rgba(255, 255, 255, 0.15);
-    }
-    
-    .insight-priority {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    
-    .priority-high {
-      background: rgba(239, 68, 68, 0.3);
-      color: #fca5a5;
-    }
-    
-    .priority-medium {
-      background: rgba(251, 191, 36, 0.3);
-      color: #fcd34d;
-    }
-    
-    .priority-low {
-      background: rgba(34, 197, 94, 0.3);
-      color: #86efac;
-    }
-    
-    .ai-translation {
-      background: rgba(139, 92, 246, 0.2);
-      border-left: 3px solid rgba(139, 92, 246, 0.8);
-      border-radius: 8px;
-      padding: 12px;
-      margin: 12px 0;
-      font-style: italic;
-      color: rgba(255, 255, 255, 0.9);
-    }
-    
-    .commerce-intel {
-      background: rgba(16, 185, 129, 0.2);
-      border-left: 3px solid rgba(16, 185, 129, 0.8);
-      border-radius: 8px;
-      padding: 12px;
-      margin: 12px 0;
-    }
-    
-    .brand-loyalty {
-      display: inline-block;
-      background: rgba(59, 130, 246, 0.3);
-      color: #93c5fd;
-      padding: 2px 6px;
-      border-radius: 8px;
-      font-size: 11px;
-      margin-right: 4px;
-    }
-    
-    .email-subject {
-      font-weight: 600;
-      margin-bottom: 8px;
+    .category-tab.active {
+      background: rgba(139, 92, 246, 0.4);
       color: white;
-      font-size: 16px;
+      border: 1px solid rgba(139, 92, 246, 0.6);
     }
-    
-    .email-meta {
+
+    .email-card {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .email-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.6);
       margin-bottom: 12px;
     }
-    
+
     .email-category {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-    }
-    
-    .email-preview {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.8);
-      line-height: 1.4;
-    }
-    
-    /* CALENDAR STYLES */
-    .day-header {
-      background: rgba(255, 255, 255, 0.2);
-      color: rgba(255, 255, 255, 0.8);
-      text-align: center;
-      padding: 12px 4px;
-      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 10px;
       font-weight: 600;
+      text-transform: uppercase;
     }
-    
-    .calendar-day {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      aspect-ratio: 1;
+
+    .category-family { background: rgba(34, 197, 94, 0.3); color: #22c55e; }
+    .category-commerce { background: rgba(251, 146, 60, 0.3); color: #fb923c; }
+    .category-priority { background: rgba(239, 68, 68, 0.3); color: #ef4444; }
+    .category-work { background: rgba(59, 130, 246, 0.3); color: #3b82f6; }
+    .category-noise { background: rgba(107, 114, 128, 0.3); color: #6b7280; }
+
+    .manipulation-score {
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
+      gap: 4px;
+      font-size: 11px;
     }
-    
-    .calendar-day:hover {
-      background: rgba(255, 255, 255, 0.1);
+
+    .score-low { color: #22c55e; }
+    .score-medium { color: #fb923c; }
+    .score-high { color: #ef4444; }
+
+    .loyalty-badge {
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: 600;
     }
-    
-    .calendar-day.today {
-      background: rgba(255, 255, 255, 0.3);
-      font-weight: bold;
-      color: #fff;
-    }
-    
-    .calendar-day.other-month {
-      color: rgba(255, 255, 255, 0.3);
-    }
-    
-    .calendar-day.has-events {
-      background: rgba(255, 255, 255, 0.2);
-      position: relative;
-    }
-    
-    .calendar-day.has-events::after {
-      content: '';
-      position: absolute;
-      bottom: 2px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 4px;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.8);
-      border-radius: 50%;
-    }
-    
-    .today-events {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    /* TYPING ANIMATION */
-    .typing-dots {
-      display: inline-flex;
-      gap: 2px;
-    }
-    
-    .typing-dots span {
-      animation: typing 1.4s infinite;
-      animation-fill-mode: both;
-    }
-    
-    .typing-dots span:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    
-    .typing-dots span:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-    
-    @keyframes typing {
-      0%, 60%, 100% {
-        transform: translateY(0);
-        opacity: 0.4;
-      }
-      30% {
-        transform: translateY(-10px);
-        opacity: 1;
-      }
-    }
+
+    .loyalty-earned { background: rgba(34, 197, 94, 0.3); color: #22c55e; }
+    .loyalty-manipulative { background: rgba(239, 68, 68, 0.3); color: #ef4444; }
     
     @keyframes spin {
       0% { transform: rotate(0deg); }
@@ -685,55 +570,44 @@
       <!-- Chat View -->
       <div id="chat-mobile" class="mobile-view active">
         <div class="chat-messages-mobile">
-          <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.8);">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px;">
-              <i data-lucide="brain-circuit" style="width: 28px; height: 28px;"></i>
-              <strong style="font-size: 18px;">Your Mental Load Operating System</strong>
-            </div>
-            
-            <div style="margin-bottom: 20px; font-size: 14px; line-height: 1.5;">
-              I'm your <strong>Life Intelligence AI</strong> — built for high-performing families who need to execute tasks, search the web, and organize operations in real-time.
-            </div>
-            
-            <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: left;">
-              <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="zap" style="width: 16px; height: 16px;"></i>
-                Try these exact commands right now:
+          <!-- Welcome Message -->
+          <div style="padding: 20px; background: rgba(255,255,255,0.1); margin: 8px 0; border-radius: 18px 18px 18px 4px; max-width: 85%; border: 1px solid rgba(255,255,255,0.1);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #8B5CF6, #06B6D4); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="home" style="width: 20px; height: 20px; color: white;"></i>
               </div>
-              
-              <div style="background: rgba(59, 130, 246, 0.2); padding: 10px; border-radius: 6px; margin: 8px 0; border-left: 3px solid rgba(59, 130, 246, 0.6);">
-                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">📅 CALENDAR MAGIC</div>
-                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Add dentist appointment Thursday at 2pm"</div>
-                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"I have a golf game tomorrow at 1pm"</div>
-              </div>
-              
-              <div style="background: rgba(16, 185, 129, 0.2); padding: 10px; border-radius: 6px; margin: 8px 0; border-left: 3px solid rgba(16, 185, 129, 0.6);">
-                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">🌐 AGENTIC SEARCH</div>
-                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Find best flights to Seattle under $400"</div>
-                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Best family restaurants near me"</div>
-              </div>
-              
-              <div style="background: rgba(251, 191, 36, 0.2); padding: 10px; border-radius: 6px; margin: 8px 0; border-left: 3px solid rgba(251, 191, 36, 0.6);">
-                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">📧 EMAIL INTELLIGENCE</div>
-                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Summarize my recent emails"</div>
-                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Any good deals today?"</div>
-              </div>
-              
-              <div style="background: rgba(236, 72, 153, 0.2); padding: 10px; border-radius: 6px; margin: 8px 0; border-left: 3px solid rgba(236, 72, 153, 0.6);">
-                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">✅ TASK AUTOMATION</div>
-                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Remind me to call mom tomorrow"</div>
-                <div style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 3px; margin: 2px 0;">"Don't forget Lucy's soccer practice"</div>
+              <div>
+                <div style="font-weight: 600; margin-bottom: 2px;">HomeOps Agent</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Your Life Intelligence Assistant</div>
               </div>
             </div>
             
+            <div style="line-height: 1.5; margin-bottom: 12px;">
+              Hey! I'm your HomeOps Agent with multiple intelligence systems:
             </div>
             
-            <div style="font-size: 13px; color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <i data-lucide="zap" style="width: 16px; height: 16px;"></i>
-              <strong>Start here. Take control.</strong>
+            <div style="display: grid; gap: 8px; margin-bottom: 16px;">
+              <div style="background: rgba(139, 92, 246, 0.2); padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                <strong>🧠 Life Intelligence:</strong> "How can I be less anxious?" - Evidence-based frameworks
+              </div>
+              <div style="background: rgba(34, 197, 94, 0.2); padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                <strong>✈️ Travel Intelligence:</strong> "Flight from NYC to London next week" - Real flight search
+              </div>
+              <div style="background: rgba(251, 191, 36, 0.2); padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                <strong>🛍️ Commerce Intelligence:</strong> "Find a laptop under $1000" - Product research
+              </div>
+              <div style="background: rgba(59, 130, 246, 0.2); padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                <strong>📧 Email Intelligence:</strong> Decode inbox manipulation & categorize signal vs noise
+              </div>
+            </div>
+            
+            <div style="font-size: 14px; color: rgba(255,255,255,0.9);">
+              Try any question or explore the sections below!
             </div>
           </div>
         </div>
+        
+        <!-- Chat Input -->
         <div class="chat-input-mobile">
           <textarea class="mobile-input" placeholder="Type your message..." id="chatInput" rows="1"></textarea>
           <button class="send-btn" onclick="sendMessage()">
@@ -744,67 +618,111 @@
       
       <!-- Email Decoder View -->
       <div id="email-mobile" class="mobile-view">
-        <!-- AI Chief of Staff Header -->
-        <div class="chief-of-staff-header" style="background: rgba(255,255,255,0.15); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2);">
+        <!-- Mental Load Assistant Header -->
+        <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">🧠</div>
+            <div style="width: 48px; height: 48px; background: rgba(34, 197, 94, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">🧠</div>
             <div>
-              <div style="font-weight: 700; font-size: 18px;">Your AI Chief of Staff</div>
-              <div style="font-size: 14px; color: rgba(255,255,255,0.8);">Translating noise into clarity</div>
+              <div style="font-weight: 700; font-size: 18px; color: white;">Mental Load Assistant</div>
+              <div style="font-size: 14px; color: rgba(255,255,255,0.8);">Your intelligent co-parent & logistics whisperer</div>
             </div>
           </div>
-          <div id="chief-insights" style="font-style: italic; color: rgba(255,255,255,0.9); line-height: 1.4;">
-            "I'm scanning your inbox right now. Let me surface what actually matters to your family and work life."
+          <div style="font-style: italic; color: rgba(255,255,255,0.9); line-height: 1.4; font-size: 14px;">
+            "I extract the invisible labor hiding in your emails. No more buried birthday invites or missed permission slips."
           </div>
         </div>
 
-        <!-- Gmail Connection Status -->
-        <div id="gmail-status" class="email-section">
-          <div class="section-title">📧 Inbox Intelligence Engine</div>
-          <div id="connection-status" style="padding: 16px; border-radius: 12px; margin-bottom: 16px; background: rgba(255,193,7,0.2); border: 1px solid rgba(255,193,7,0.3);">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-              <div class="typing-dots">
-                <span>.</span><span>.</span><span>.</span>
-              </div>
-              <span>Checking Gmail connection...</span>
+        <!-- Quick Intelligence Status -->
+        <div style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="activity" style="width: 20px; height: 20px;"></i>
+              <span>Intelligence Status</span>
+            </div>
+            <div id="gmail-connection-indicator" style="width: 12px; height: 12px; background: rgba(255, 193, 7, 0.8); border-radius: 50%;"></div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; text-align: center;">
+              <div style="font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">Tasks</div>
+              <div style="font-weight: 600; font-size: 18px;" id="extracted-tasks-count">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; text-align: center;">
+              <div style="font-size: 11px, text-transform: uppercase; margin-bottom: 2px;">Events</div>
+              <div style="font-weight: 600; font-size: 18px;" id="extracted-events-count">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; text-align: center;">
+              <div style="font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">Urgent</div>
+              <div style="font-weight: 600; font-size: 18px;" id="urgent-items-count">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; text-align: center;">
+              <div style="font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">Hidden</div>
+              <div style="font-weight: 600; font-size: 18px;" id="hidden-labor-count">0</div>
             </div>
           </div>
-          
-          <!-- Connect Gmail Button -->
-          <button id="connect-gmail-mobile" class="decode-btn-mobile" onclick="connectGmailMobile()" style="display: none;">
-            <i data-lucide="mail-plus" style="width: 20px; height: 20px; margin-right: 8px;"></i>
-            Connect Gmail to Start Intelligence
+        </div>
+
+        <!-- Connection & Actions -->
+        <div style="margin-bottom: 20px;">
+          <button id="connect-gmail-mobile" onclick="connectGmailMobile()" 
+                  style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 12px; padding: 16px; color: white; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i data-lucide="mail-plus" style="width: 24px; height: 24px;"></i>
+            <span>Connect Gmail & Start Intelligence</span>
           </button>
           
-          <!-- Process Emails Button -->
-          <button id="process-emails-mobile" class="decode-btn-mobile" onclick="processEmailsMobile()" style="display: none;">
-            <i data-lucide="brain-circuit" style="width: 20px; height: 20px; margin-right: 8px;"></i>
-            Scan & Translate Latest Emails
-          </button>
+          <div style="display: flex; gap: 8px;">
+            <button id="process-emails-mobile" onclick="processEmailsMobile()" 
+                    style="background: rgba(139, 92, 246, 0.3); border: 1px solid rgba(139, 92, 246, 0.6); border-radius: 8px; padding: 12px; color: white; font-size: 14px; cursor: pointer; flex: 1; display: none; align-items: center; justify-content: center; gap: 6px;">
+              <i data-lucide="brain-circuit" style="width: 18px; height: 18px;"></i>
+              <span>Decode Inbox</span>
+            </button>
+            
+            <button onclick="testSampleParentEmail()" 
+                    style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 8px; padding: 12px; color: white; font-size: 14px; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i data-lucide="test-tube" style="width: 18px; height: 18px;"></i>
+              <span>Demo: School Email</span>
+            </button>
+          </div>
+        </div>
           
-          <!-- Intelligence Categories -->
-          <div id="email-categories" style="display: none;">
-            <div class="intelligence-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
-              <button class="intel-tab active" data-category="all" onclick="showIntelCategory('all', this)">
-                <span>📋</span> All Insights
+        <!-- Intelligent Email Categories -->
+        <div style="margin-bottom: 20px;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+            <span>Mental Load Categories</span>
+          </div>
+            
+            <!-- Category Tabs -->
+            <div class="category-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; overflow-x: auto;">
+              <button class="category-tab active" data-category="all" onclick="showEmailCategory('all', this)">
+                <span>📋</span> All
               </button>
-              <button class="intel-tab" data-category="urgent" onclick="showIntelCategory('urgent', this)">
-                <span>⚡</span> Urgent
-              </button>
-              <button class="intel-tab" data-category="family" onclick="showIntelCategory('family', this)">
+              <button class="category-tab" data-category="family" onclick="showEmailCategory('family', this)">
                 <span>👨‍👩‍👧‍👦</span> Family
               </button>
-              <button class="intel-tab" data-category="commerce" onclick="showIntelCategory('commerce', this)">
-                <span>🛍️</span> Commerce Intel
+              <button class="category-tab" data-category="commerce" onclick="showEmailCategory('commerce', this)">
+                <span>💳</span> Commerce
               </button>
-              <button class="intel-tab" data-category="schedule" onclick="showIntelCategory('schedule', this)">
-                <span>📅</span> Schedule
+              <button class="category-tab" data-category="priority" onclick="showEmailCategory('priority', this)">
+                <span>�</span> Priority
+              </button>
+              <button class="category-tab" data-category="work" onclick="showEmailCategory('work', this)">
+                <span>�</span> Work
+              </button>
+              <button class="category-tab" data-category="noise" onclick="showEmailCategory('noise', this)">
+                <span>�</span> Noise
               </button>
             </div>
-            
-            <!-- AI-Translated Emails -->
-            <div id="translated-emails-mobile" class="translated-emails-mobile">
-              <!-- Dynamic content goes here -->
+          </div>
+
+          <!-- Intelligent Email Results -->
+          <div id="intelligent-email-results">
+            <!-- Placeholder for no emails yet -->
+            <div id="no-emails-placeholder" style="text-align: center; padding: 40px 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2);">
+              <div style="font-size: 48px; margin-bottom: 16px;">📧</div>
+              <div style="font-weight: 600; margin-bottom: 8px; color: white;">No Mental Load Extracted Yet</div>
+              <div style="font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.4;">
+                Connect Gmail or try the demo to see how I extract hidden tasks, events, and emotional labor from your emails.
+              </div>
             </div>
           </div>
           
@@ -813,7 +731,7 @@
             <div class="typing-dots" style="margin-bottom: 10px;">
               <span>.</span><span>.</span><span>.</span>
             </div>
-            <div id="processing-message">Your AI Chief of Staff is reading...</div>
+            <div id="processing-message">Your AI Chief of Staff is decoding...</div>
           </div>
         </div>
       </div>
@@ -821,22 +739,40 @@
       <!-- Calendar View -->
       <div id="calendar-mobile" class="mobile-view">
         <div class="calendar-section">
+          <!-- Enhanced Calendar Header with AI Status -->
           <div class="calendar-header">
             <button class="month-nav" onclick="changeMonth(-1)">‹</button>
             <div class="section-title" id="current-month">📅 July 2025</div>
             <button class="month-nav" onclick="changeMonth(1)">›</button>
           </div>
           
-          <!-- Calendar Grid -->
+          <!-- AI Intelligence Status -->
+          <div style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <i data-lucide="brain" style="width: 16px; height: 16px;"></i>
+              <span style="font-weight: 600; font-size: 14px;">Calendar AI Center</span>
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <span style="background: rgba(34, 197, 94, 0.4); color: #22c55e; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">🧠 Life Intelligence</span>
+              <span style="background: rgba(251, 191, 36, 0.4); color: #fbbf24; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">🛒 Commerce</span>
+              <span style="background: rgba(59, 130, 246, 0.4); color: #3b82f6; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">✈️ Travel</span>
+              <span style="background: rgba(168, 85, 247, 0.4); color: #a855f7; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">📋 Logistics</span>
+            </div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 6px;">
+              💡 Smart events get contextual AI assistance
+            </div>
+          </div>
+          
+          <!-- Enhanced Calendar Grid -->
           <div class="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
             <!-- Day headers -->
-            <div class="day-header">S</div>
-            <div class="day-header">M</div>
-            <div class="day-header">T</div>
-            <div class="day-header">W</div>
-            <div class="day-header">T</div>
-            <div class="day-header">F</div>
-            <div class="day-header">S</div>
+            <div class="day-header" style="background: rgba(255,255,255,0.1); padding: 8px 4px; text-align: center; font-size: 12px; font-weight: 600;">S</div>
+            <div class="day-header" style="background: rgba(255,255,255,0.1); padding: 8px 4px; text-align: center; font-size: 12px; font-weight: 600;">M</div>
+            <div class="day-header" style="background: rgba(255,255,255,0.1); padding: 8px 4px; text-align: center; font-size: 12px; font-weight: 600;">T</div>
+            <div class="day-header" style="background: rgba(255,255,255,0.1); padding: 8px 4px; text-align: center; font-size: 12px; font-weight: 600;">W</div>
+            <div class="day-header" style="background: rgba(255,255,255,0.1); padding: 8px 4px; text-align: center; font-size: 12px; font-weight: 600;">T</div>
+            <div class="day-header" style="background: rgba(255,255,255,0.1); padding: 8px 4px; text-align: center; font-size: 12px; font-weight: 600;">F</div>
+            <div class="day-header" style="background: rgba(255,255,255,0.1); padding: 8px 4px; text-align: center; font-size: 12px; font-weight: 600;">S</div>
             
             <!-- Calendar days (will be populated by JS) -->
             <div id="calendar-days" style="display: contents;">
@@ -844,33 +780,50 @@
             </div>
           </div>
           
-          <!-- Today's Events -->
+          <!-- Smart Today's Events -->
           <div class="today-events">
-            <div style="font-weight: 600; margin-bottom: 12px; color: #fff;">Today's Schedule</div>
-            <div class="events-list" id="today-events-list">
-              <div class="event-item" onclick="viewEventDetails('Team Standup', 'Today 2:00 PM - 2:30 PM')" style="cursor: pointer; transition: background 0.2s;">
-                <div class="event-title">Team Standup</div>
-                <div class="event-time">2:00 PM - 2:30 PM</div>
-                <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px;">
-                  <i data-lucide="brain" style="width: 10px; height: 10px; margin-right: 4px;"></i>
-                  Tap for AI insights
-                </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <div style="font-weight: 600; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="calendar-days" style="width: 16px; height: 16px;"></i>
+                Today's Smart Events
               </div>
-              <div class="event-item" onclick="viewEventDetails('Pick up groceries', 'Today 5:00 PM')" style="cursor: pointer; transition: background 0.2s;">
-                <div class="event-title">Pick up groceries</div>
-                <div class="event-time">5:00 PM</div>
-                <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px;">
-                  <i data-lucide="brain" style="width: 10px; height: 10px; margin-right: 4px;"></i>
-                  Tap for AI insights
-                </div>
+              <button onclick="syncWithGmailCalendar()" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 4px 8px; color: white; font-size: 11px; cursor: pointer;">
+                <i data-lucide="refresh-cw" style="width: 12px; height: 12px; margin-right: 2px;"></i>
+                Sync Gmail
+              </button>
+            </div>
+            <div class="events-list" id="today-events-list">
+              <!-- Smart events will be populated by renderSmartCalendar() -->
+            </div>
+            
+            <!-- Quick Event Templates -->
+            <div style="margin-top: 16px;">
+              <div style="font-weight: 600; margin-bottom: 8px; color: #fff; font-size: 14px;">Quick Add Templates</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button onclick="addQuickEvent('meeting')" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 8px; padding: 8px; color: white; font-size: 12px; cursor: pointer;">
+                  <i data-lucide="users" style="width: 14px; height: 14px; margin-bottom: 4px;"></i><br>
+                  Meeting
+                </button>
+                <button onclick="addQuickEvent('appointment')" style="background: rgba(168, 85, 247, 0.3); border: 1px solid rgba(168, 85, 247, 0.6); border-radius: 8px; padding: 8px; color: white; font-size: 12px; cursor: pointer;">
+                  <i data-lucide="calendar-check" style="width: 14px; height: 14px; margin-bottom: 4px;"></i><br>
+                  Appointment
+                </button>
+                <button onclick="addQuickEvent('travel')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px; color: white; font-size: 12px; cursor: pointer;">
+                  <i data-lucide="plane" style="width: 14px; height: 14px; margin-bottom: 4px;"></i><br>
+                  Travel
+                </button>
+                <button onclick="addQuickEvent('personal')" style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 8px; padding: 8px; color: white; font-size: 12px; cursor: pointer;">
+                  <i data-lucide="heart" style="width: 14px; height: 14px; margin-bottom: 4px;"></i><br>
+                  Personal
+                </button>
               </div>
             </div>
           </div>
           
-          <!-- Add Event Quick Button -->
-          <button class="decode-btn-mobile" onclick="addEventMobile()" style="margin-top: 16px;">
+          <!-- Enhanced Add Event Button -->
+          <button class="decode-btn-mobile" onclick="addSmartEventMobile()" style="margin-top: 16px;">
             <i data-lucide="plus" style="width: 20px; height: 20px; margin-right: 8px;"></i>
-            Quick Add Event
+            Add Smart Event with AI
           </button>
         </div>
       </div>
@@ -894,8 +847,8 @@
   </div>
   
   <script>
-    // Mobile-First JavaScript
-    function showView(viewId, button) {
+    // Mobile-First JavaScript - Define functions immediately
+    window.showView = function(viewId, button) {
       console.log('Switching to view:', viewId);
       
       // Hide all views immediately
@@ -933,11 +886,13 @@
       }
     }
     
+    // Create global alias for compatibility
+    window.showView = window.showView || function() { console.error('showView not loaded yet'); };
+    
     function initializeEmailView() {
       console.log('Initializing email view...');
-      if (!document.getElementById('gmail-status').querySelector('.typing-dots')) {
-        checkGmailConnection();
-      }
+      console.log('🔄 Calling checkGmailConnection from initializeEmailView');
+      checkGmailConnection();
     }
     
     function initializeCalendarView() {
@@ -1010,8 +965,8 @@
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              user_id: userId,
-              message: message
+              message: message,
+              userId: userId
             })
           });
           
@@ -1094,6 +1049,64 @@
                   </div>
                 `;
               }
+            } else if (data.reply.startsWith('EMAIL_INTELLIGENCE_SUMMARY:')) {
+              // Handle Email Intelligence Summary
+              try {
+                const emailData = JSON.parse(data.reply.replace('EMAIL_INTELLIGENCE_SUMMARY:', ''));
+                
+                typingEl.innerHTML = `
+                  <div style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.5); border-radius: 12px; padding: 16px; margin: 8px 0;">
+                    <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                      <i data-lucide="mail-search" style="width: 20px; height: 20px;"></i>
+                      <span>📧 Email Intelligence Summary</span>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                      <div style="font-weight: 600; margin-bottom: 8px;">📊 Weekly Overview</div>
+                      <div style="font-size: 14px; line-height: 1.4; margin-bottom: 8px;">${emailData.summary}</div>
+                      <div style="font-size: 12px; color: rgba(255,255,255,0.7);">
+                        📧 ${emailData.emailCount} emails analyzed from the last week
+                      </div>
+                    </div>
+                    
+                    ${emailData.categories ? `
+                      <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="font-weight: 600; margin-bottom: 8px;">📂 Category Breakdown</div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                          ${Object.entries(emailData.categories).filter(([category, emails]) => emails.length > 0).map(([category, emails]) => `
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; text-align: center;">
+                              <div style="font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">${category}</div>
+                              <div style="font-weight: 600; font-size: 18px;">${emails.length}</div>
+                            </div>
+                          `).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
+                    
+                    <button onclick="showView('email-mobile', document.querySelector('.nav-btn[onclick*=\"email-mobile\"]'))" 
+                            style="background: rgba(34, 197, 94, 0.4); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; width: 100%;">
+                      <i data-lucide="arrow-right" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+                      View Full Email Intelligence
+                    </button>
+                  </div>
+                `;
+                
+                // Initialize Lucide icons
+                setTimeout(() => {
+                  if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                  }
+                }, 100);
+                
+              } catch (error) {
+                console.error('Error parsing Email Intelligence summary:', error);
+                // Fallback to regular display
+                typingEl.innerHTML = `
+                  <div style="color: white; line-height: 1.4;">
+                    📧 ${data.reply.replace('EMAIL_INTELLIGENCE_SUMMARY:', '')}
+                  </div>
+                `;
+              }
             } else {
               // Regular response display
               typingEl.innerHTML = `
@@ -1133,32 +1146,50 @@
       
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
+
+    // Helper function to add messages
+    function addMessage(type, content) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      messagesDiv.innerHTML += content;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function addSystemMessage(messagesDiv, message) {
+      messagesDiv.innerHTML += `
+        <div style="padding: 8px 16px; background: rgba(34, 197, 94, 0.2); margin: 8px 0; border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.4); font-size: 14px;">
+          ${message}
+        </div>
+      `;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
      // Smart action detection and execution
     function detectAndExecuteActions(message) {
       const msg = message.toLowerCase();
       const messagesDiv = document.querySelector('.chat-messages-mobile');
       
-      // Enhanced detection patterns
+      // Enhanced detection patterns - FLIGHT SEARCH FIRST PRIORITY
       
-      // Commerce/Shopping search detection - PRIORITY CHECK
+      // Flight search detection - HIGHEST PRIORITY CHECK
+      if (msg.includes('flight') || msg.includes('flights') || msg.includes('fly') || msg.includes('plane') || 
+          msg.includes('cheapest flight') || msg.includes('book flight') ||
+          (msg.includes('from') && msg.includes('to') && (msg.includes('nyc') || msg.includes('new york') || msg.includes('boston') || msg.includes('dc') || msg.includes('washington') || msg.includes('london') || msg.includes('lax') || msg.includes('seattle'))) ||
+          (msg.includes('to ') && (msg.includes('london') || msg.includes('paris') || msg.includes('seattle') || msg.includes('boston') || msg.includes('lax')))) {
+        executeFlightSearch(message, messagesDiv);
+        return true;
+      }
+      
+      // Commerce/Shopping search detection - SECOND PRIORITY
       if (msg.includes('gift') || msg.includes('present') || msg.includes('birthday') || 
           msg.includes('need to buy') || msg.includes('looking for') || msg.includes('shopping for') ||
+          msg.includes('laptop') || msg.includes('computer') || msg.includes('phone') ||
           (msg.includes('need') && (msg.includes('for my') || msg.includes('daughter') || msg.includes('son') || msg.includes('kid')))) {
         executeShoppingSearch(message, messagesDiv);
         return true;
       }
       
-      // Flight search detection - PRIORITY CHECK
-      if (msg.includes('flight') || msg.includes('fly') || msg.includes('cheapest flight') || 
-          (msg.includes('from') && msg.includes('to') && (msg.includes('dc') || msg.includes('washington') || msg.includes('london'))) ||
-          (msg.includes('to london') || msg.includes('to paris') || msg.includes('to seattle') || msg.includes('to lax'))) {
-        executeFlightSearch(message, messagesDiv);
-        return true;
-      }
-      
-      // Calendar injection commands - Enhanced detection
-      if ((msg.includes('add') || msg.includes('create') || msg.includes('schedule') || msg.includes('i have') || msg.includes('meeting') || msg.includes('appointment')) && 
-          (msg.includes('calendar') || msg.includes('event') || msg.includes('meeting') || msg.includes('at ') || msg.includes('pm') || msg.includes('am')) ||
+      // Calendar injection commands - Enhanced detection (PRIORITY - includes dentist appointment)
+      if ((msg.includes('add') || msg.includes('create') || msg.includes('schedule') || msg.includes('i have') || msg.includes('meeting') || msg.includes('appointment') || msg.includes('dentist')) && 
+          (msg.includes('calendar') || msg.includes('event') || msg.includes('meeting') || msg.includes('at ') || msg.includes('pm') || msg.includes('am') || msg.includes('tomorrow') || msg.includes('appointment')) ||
           (msg.includes('golf') && (msg.includes('tomorrow') || msg.includes('1pm'))) ||
           (msg.includes('sunday') || msg.includes('monday') || msg.includes('tuesday') || msg.includes('wednesday') || msg.includes('thursday') || msg.includes('friday') || msg.includes('saturday')) && (msg.includes('at ') || msg.includes('pm') || msg.includes('am'))) {
         
@@ -1356,8 +1387,6 @@
           </div>
         `;
         
-        addMessage('assistant', taskCard);
-        
         // Initialize Lucide icons for the new card
         setTimeout(() => {
           if (typeof lucide !== 'undefined') {
@@ -1444,7 +1473,7 @@
         duration: '1 hour'
       };
       
-      // Extract event type
+      // Extract event type with enhanced detection
       if (msg.includes('golf')) eventDetails.title = 'Golf';
       else if (msg.includes('meeting')) eventDetails.title = 'Meeting';
       else if (msg.includes('appointment')) eventDetails.title = 'Appointment';
@@ -1457,6 +1486,10 @@
       else if (msg.includes('dropoff')) eventDetails.title = 'Drop-off';
       else if (msg.includes('doctor')) eventDetails.title = 'Doctor Appointment';
       else if (msg.includes('dentist')) eventDetails.title = 'Dentist Appointment';
+      else if (msg.includes('birthday')) eventDetails.title = 'Birthday Party';
+      else if (msg.includes('party')) eventDetails.title = 'Party';
+      else if (msg.includes('thanksgiving') || msg.includes('parents coming')) eventDetails.title = 'Family Visit';
+      else if (msg.includes('travel') || msg.includes('trip')) eventDetails.title = 'Travel';
       
       // Extract day
       if (msg.includes('sunday')) eventDetails.date = 'Sunday';
@@ -1500,31 +1533,57 @@
         }
       }
       
-      // Smart duration estimation
+      // Smart duration estimation with AI intelligence integration
       if (msg.includes('meeting')) eventDetails.duration = '1 hour';
       else if (msg.includes('golf')) eventDetails.duration = '4 hours';
       else if (msg.includes('lunch') || msg.includes('dinner')) eventDetails.duration = '1.5 hours';
       else if (msg.includes('call')) eventDetails.duration = '30 minutes';
+      else if (msg.includes('dentist') || msg.includes('doctor')) eventDetails.duration = '1 hour';
+      else if (msg.includes('party') || msg.includes('birthday')) eventDetails.duration = '3 hours';
+      else if (msg.includes('family') || msg.includes('thanksgiving')) eventDetails.duration = '4 hours';
+      
+      // AI Intelligence Integration - determine which engines to surface
+      const aiEngines = determineEventIntelligence(eventDetails.title, msg);
       
       messagesDiv.innerHTML += `
         <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
           <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
             <i data-lucide="calendar-plus" style="width: 20px; height: 20px;"></i>
-            <span>Calendar Event Detected</span>
+            <span>📅 Smart Calendar Event</span>
           </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
             <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">${eventDetails.title}</div>
-            <div style="font-size: 14px; color: rgba(255,255,255,0.8);">
+            <div style="font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 8px;">
               📅 ${eventDetails.date}<br>
               ⏰ ${eventDetails.time}<br>
               ⌛ Duration: ${eventDetails.duration}
             </div>
           </div>
+          
+          ${aiEngines.length > 0 ? `
+            <div style="background: rgba(139, 92, 246, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+              <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="brain" style="width: 16px; height: 16px;"></i>
+                AI Intelligence Available
+              </div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                ${aiEngines.map(engine => `
+                  <span style="background: ${engine.color}; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                    ${engine.icon} ${engine.name}
+                  </span>
+                `).join('')}
+              </div>
+              <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 6px;">
+                💡 Click event after adding to access contextual AI assistance
+              </div>
+            </div>
+          ` : ''}
+          
           <div style="display: flex; gap: 8px; margin-top: 12px;">
-            <button onclick="executeCalendarAdd('${eventDetails.title}', '${eventDetails.date}', '${eventDetails.time}')" 
+            <button onclick="executeSmartCalendarAdd('${eventDetails.title}', '${eventDetails.date}', '${eventDetails.time}', '${eventDetails.duration}', '${JSON.stringify(aiEngines).replace(/'/g, "\\'")}'" 
                     style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; flex: 1;">
               <i data-lucide="plus" style="width: 16px; height: 16px; margin-right: 4px;"></i>
-              Add to Calendar
+              Add with AI Intelligence
             </button>
             <button onclick="editEventDetails('${eventDetails.title}', '${eventDetails.date}', '${eventDetails.time}')" 
                     style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
@@ -1538,1899 +1597,619 @@
       setTimeout(() => lucide.createIcons(), 100);
     }
     
-    // Enhanced Calendar Integration Function
-    function addToCalendar(eventTitle, eventTime, eventType = 'meeting') {
+    function executeSmartCalendarAdd(title, date, time, duration, aiEnginesJson) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      let aiEngines = [];
+      
+      try {
+        aiEngines = JSON.parse(aiEnginesJson);
+      } catch (e) {
+        aiEngines = [];
+      }
+      
+      // Add event with integrated intelligence
+      addSmartEventToCalendar(title, date, time, duration, aiEngines);
+      
+      addSystemMessage(messagesDiv, `✅ Added "${title}" to calendar with AI intelligence`);
+      
+      // Show contextual intelligence preview
+      setTimeout(() => {
+        showEventIntelligencePreview(title, aiEngines, messagesDiv);
+      }, 500);
+    }
+    
+    function addSmartEventToCalendar(title, date, time, duration, aiEngines) {
+      // Store event with AI engines in localStorage or send to backend
+      const events = JSON.parse(localStorage.getItem('homeops_smart_events') || '[]');
+      const eventId = 'event_' + Date.now();
+      
+      events.push({
+        id: eventId,
+        title,
+        date,
+        time,
+        duration,
+        aiEngines,
+        created: new Date().toISOString()
+      });
+      
+      localStorage.setItem('homeops_smart_events', JSON.stringify(events));
+      
+      // Refresh calendar view if visible
+      const calendarView = document.getElementById('calendar-mobile');
+      if (calendarView && calendarView.classList.contains('active')) {
+        renderSmartCalendar();
+      }
+    }
+    
+    function showEventIntelligencePreview(title, aiEngines, messagesDiv) {
+      if (aiEngines.length === 0) return;
+      
+      const previewCard = `
+        <div style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="sparkles" style="width: 20px; height: 20px;"></i>
+            <span>✨ AI Intelligence Preview</span>
+          </div>
+          
+          ${aiEngines.map(engine => generateEnginePreview(engine, title)).join('')}
+          
+          <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button onclick="showView('calendar-mobile', document.querySelector('.nav-btn[onclick*=\"calendar-mobile\"]'))" 
+                    style="background: rgba(139, 92, 246, 0.3); border: 1px solid rgba(139, 92, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer; flex: 1;">
+              <i data-lucide="calendar" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+              View in Calendar
+            </button>
+            <button onclick="activateEventIntelligence('${title}')" 
+                    style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
+              <i data-lucide="brain" style="width: 16px; height: 16px;"></i>
+              Full AI
+            </button>
+          </div>
+        </div>
+      `;
+      
+      messagesDiv.innerHTML += previewCard;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      
+      setTimeout(() => {
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      }, 100);
+    }
+    
+    function generateEnginePreview(engine, title) {
+      switch (engine.type) {
+        case 'commerce':
+          return `
+            <div style="background: rgba(251, 191, 36, 0.2); padding: 12px; border-radius: 8px; margin: 8px 0;">
+              <div style="font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <span>${engine.icon}</span>
+                <span>Commerce Intelligence</span>
+              </div>
+              <div style="font-size: 13px; line-height: 1.4;">
+                🎁 Smart gift recommendations ready<br>
+                💳 One-click purchasing available<br>
+                📊 Based on purchase patterns & event context
+              </div>
+            </div>
+          `;
+        case 'life':
+          return `
+            <div style="background: rgba(139, 92, 246, 0.2); padding: 12px; border-radius: 8px; margin: 8px 0;">
+              <div style="font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <span>${engine.icon}</span>
+                <span>Life Intelligence</span>
+              </div>
+              <div style="font-size: 13px; line-height: 1.4;">
+                🎯 Evidence-based frameworks ready<br>
+                💡 Relationship & family guidance<br>
+                ✅ Action protocols for complex situations
+              </div>
+            </div>
+          `;
+        case 'travel':
+          return `
+            <div style="background: rgba(59, 130, 246, 0.2); padding: 12px; border-radius: 8px; margin: 8px 0;">
+              <div style="font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <span>${engine.icon}</span>
+                <span>Travel Intelligence</span>
+              </div>
+              <div style="font-size: 13px; line-height: 1.4;">
+                ✈️ Flight optimization & deals<br>
+                🏨 Accommodation recommendations<br>
+                📱 Real-time travel assistance
+              </div>
+            </div>
+          `;
+        case 'email':
+          return `
+            <div style="background: rgba(34, 197, 94, 0.2); padding: 12px; border-radius: 8px; margin: 8px 0;">
+              <div style="font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <span>${engine.icon}</span>
+                <span>Email Intelligence</span>
+              </div>
+              <div style="font-size: 13px; line-height: 1.4;">
+                📧 Meeting prep from email context<br>
+                🔍 Related communications surfaced<br>
+                📊 Relationship & priority insights
+              </div>
+            </div>
+          `;
+        default:
+          return '';
+      }
+    }
+    
+    function renderSmartCalendar() {
+      const calendarDays = document.getElementById('calendar-days');
+      if (!calendarDays) return;
+      
+      const events = JSON.parse(localStorage.getItem('homeops_smart_events') || '[]');
+      const todayEventsList = document.getElementById('today-events-list');
+      
+      if (todayEventsList) {
+        // Clear existing events
+        todayEventsList.innerHTML = '';
+        
+        // Add smart events
+        events.forEach(event => {
+          const eventItem = document.createElement('div');
+          eventItem.className = 'event-item';
+          eventItem.style.cursor = 'pointer';
+          eventItem.style.transition = 'background 0.2s';
+          eventItem.onclick = () => viewSmartEventDetails(event);
+          
+          eventItem.innerHTML = `
+            <div class="event-title">${event.title}</div>
+            <div class="event-time">${event.date} ${event.time}</div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 2px;">
+                <i data-lucide="brain" style="width: 10px; height: 10px;"></i>
+                <span>AI Ready</span>
+              </div>
+              ${event.aiEngines ? event.aiEngines.map(engine => `<span>${engine.icon}</span>`).join('') : ''}
+            </div>
+          `;
+          
+          todayEventsList.appendChild(eventItem);
+        });
+        
+        // Initialize Lucide icons
+        setTimeout(() => {
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+        }, 100);
+      }
+    }
+    
+    function viewSmartEventDetails(event) {
       const messagesDiv = document.querySelector('.chat-messages-mobile');
       
-      // Add to calendar with AI intelligence
-      const aiInsights = generateEventInsights(eventTitle, eventType);
+      messagesDiv.innerHTML += `
+        <div style="background: rgba(139, 92, 246, 0.3); border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 12px; padding: 16px; margin: 12px 0;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="calendar-check" style="width: 20px; height: 20px;"></i>
+            <span>📅 ${event.title}</span>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+            <div style="font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 8px;">
+              📅 ${event.date} at ${event.time}<br>
+              ⌛ ${event.duration}
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 16px;">
+            <div style="font-weight: 600; margin-bottom: 8px;">🤖 Available AI Intelligence</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              ${event.aiEngines ? event.aiEngines.map(engine => `
+                <button onclick="activateEngineForEvent('${event.id}', '${engine.type}', '${event.title}')" 
+                        style="background: ${engine.color}; border: 1px solid ${engine.color.replace('0.4', '0.6')}; border-radius: 8px; padding: 8px 12px; color: white; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                  <span>${engine.icon}</span>
+                  <span>${engine.name}</span>
+                </button>
+              `).join('') : ''}
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 8px;">
+            <button onclick="editSmartEvent('${event.id}')" 
+                    style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
+              <i data-lucide="edit" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+              Edit Event
+            </button>
+            <button onclick="deleteSmartEvent('${event.id}')" 
+                    style="background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
+              <i data-lucide="trash" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+              Delete
+            </button>
+          </div>
+        </div>
+      `;
       
-      addSystemMessage(messagesDiv, `✅ Added "${eventTitle}" to your calendar for ${eventTime}`);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
       
-      // Show AI-powered event details
+      setTimeout(() => {
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      }, 100);
+    }
+    
+    function activateEngineForEvent(eventId, engineType, eventTitle) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      
+      switch (engineType) {
+        case 'commerce':
+          executeEventCommerceIntelligence(eventTitle, messagesDiv);
+          break;
+        case 'life':
+          executeEventLifeIntelligence(eventTitle, messagesDiv);
+          break;
+        case 'travel':
+          executeEventTravelIntelligence(eventTitle, messagesDiv);
+          break;
+        case 'email':
+          executeEventEmailIntelligence(eventTitle, messagesDiv);
+          break;
+      }
+    }
+    
+    function executeEventCommerceIntelligence(eventTitle, messagesDiv) {
+      // Trigger commerce intelligence based on event context
+      if (eventTitle.toLowerCase().includes('birthday')) {
+        executeShoppingSearch(`gift for birthday party`, messagesDiv);
+      } else if (eventTitle.toLowerCase().includes('anniversary')) {
+        executeShoppingSearch(`$10k anniversary gift`, messagesDiv);
+      } else {
+        executeShoppingSearch(`gift for ${eventTitle}`, messagesDiv);
+      }
+    }
+    
+    function executeEventLifeIntelligence(eventTitle, messagesDiv) {
+      // Generate contextual life intelligence
+      const lifeIntelligenceCard = {
+        analysis: `This ${eventTitle.toLowerCase()} represents an opportunity for deeper connection and meaningful presence.`,
+        framework: "Attachment Theory + Family Systems",
+        insights: [
+          "Family dynamics often intensify during planned gatherings",
+          "Your presence and attention matter more than perfect logistics",
+          "Setting boundaries early prevents overwhelm later"
+        ],
+        action_steps: [
+          "Clarify your role and expectations beforehand",
+          "Plan transition time before and after the event",
+          "Communicate your needs without over-explaining"
+        ],
+        reframe: "This isn't about managing everyone else's experience. It's about showing up authentically.",
+        next_step: "Text or call to confirm one specific detail today"
+      };
+      
+      messagesDiv.innerHTML += `
+        <div style="background: rgba(139, 92, 246, 0.3); border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 12px; padding: 16px; margin: 8px 0;">
+          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="brain" style="width: 20px; height: 20px;"></i>
+            <span>🧠 Life Intelligence for ${eventTitle}</span>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-weight: 600; margin-bottom: 6px;">📊 Analysis</div>
+            <div style="font-size: 14px; line-height: 1.4;">${lifeIntelligenceCard.analysis}</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; font-style: italic;">Framework: ${lifeIntelligenceCard.framework}</div>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-weight: 600; margin-bottom: 8px;">🎯 Evidence-Based Insights</div>
+            ${lifeIntelligenceCard.insights.map(insight => `
+              <div style="margin: 6px 0; font-size: 13px; line-height: 1.4; padding-left: 12px; border-left: 2px solid rgba(139, 92, 246, 0.6);">
+                ${insight}
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-weight: 600; margin-bottom: 8px;">✅ Action Protocol</div>
+            ${lifeIntelligenceCard.action_steps.map((step, index) => `
+              <div style="margin: 8px 0; font-size: 13px; line-height: 1.4; display: flex; gap: 8px;">
+                <span style="background: rgba(139, 92, 246, 0.6); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0;">${index + 1}</span>
+                <span>${step}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-weight: 600; margin-bottom: 6px;">🔄 Reframe</div>
+            <div style="font-size: 14px; line-height: 1.4; font-style: italic;">${lifeIntelligenceCard.reframe}</div>
+          </div>
+          
+          <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); padding: 12px; border-radius: 8px; margin-top: 12px;">
+            <div style="font-weight: 600; margin-bottom: 6px;">🚀 Next Step (Today)</div>
+            <div style="font-size: 14px; line-height: 1.4;">${lifeIntelligenceCard.next_step}</div>
+          </div>
+        </div>
+      `;
+      
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      setTimeout(() => {
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      }, 100);
+    }
+    
+    function executeEventTravelIntelligence(eventTitle, messagesDiv) {
+      executeFlightSearch(`flight for ${eventTitle}`, messagesDiv);
+    }
+    
+    function executeEventEmailIntelligence(eventTitle, messagesDiv) {
+      executeEmailSummary(`emails about ${eventTitle}`, messagesDiv);
+    }
+    
+    // Missing functions that are being called
+    function renderCalendar() {
+      renderSmartCalendar();
+      populateCalendarDays();
+    }
+    
+    function populateCalendarDays() {
+      const calendarDays = document.getElementById('calendar-days');
+      if (!calendarDays) return;
+      
+      // Simple calendar population for July 2025
+      const daysInMonth = 31;
+      const startDay = 2; // July 1, 2025 starts on Tuesday
+      
+      calendarDays.innerHTML = '';
+      
+      // Add empty cells for days before month starts
+      for (let i = 0; i < startDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.style.padding = '12px 4px';
+        emptyDay.style.background = 'rgba(255,255,255,0.05)';
+        calendarDays.appendChild(emptyDay);
+      }
+      
+      // Add actual days
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.style.padding = '12px 4px';
+        dayElement.style.background = 'rgba(255,255,255,0.05)';
+        dayElement.style.textAlign = 'center';
+        dayElement.style.cursor = 'pointer';
+        dayElement.style.transition = 'background 0.2s';
+        dayElement.style.fontSize = '14px';
+        dayElement.textContent = day;
+        
+        // Highlight today (July 15)
+        if (day === 15) {
+          dayElement.style.background = 'rgba(59, 130, 246, 0.4)';
+          dayElement.style.fontWeight = '600';
+        }
+        
+        dayElement.onclick = () => selectCalendarDay(day);
+        
+        calendarDays.appendChild(dayElement);
+      }
+    }
+    
+    function selectCalendarDay(day) {
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      showView('chat-mobile', document.querySelector('.nav-btn[onclick*="chat-mobile"]'));
+      
       setTimeout(() => {
         messagesDiv.innerHTML += `
-          <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-            <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-              <i data-lucide="calendar-check" style="width: 20px; height: 20px;"></i>
-              <span>Smart Event Details</span>
-            </div>
-            
-            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-              <div style="font-weight: 600; margin-bottom: 8px;">${eventTitle}</div>
-              <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 8px;">${eventTime}</div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.6);">
-                <i data-lucide="brain" style="width: 12px; height: 12px; margin-right: 4px;"></i>
-                ${aiInsights.reframe}
-              </div>
-            </div>
-            
-            <div style="margin-bottom: 12px;">
-              <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
-                Smart Checklist
-              </div>
-              ${aiInsights.checklist.map(item => `
-                <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; margin: 4px 0; font-size: 13px;">
-                  <i data-lucide="square" style="width: 12px; height: 12px; margin-right: 6px;"></i>
-                  ${item}
-                </div>
-              `).join('')}
-            </div>
-            
-            <button onclick="viewEventDetails('${eventTitle}', '${eventTime}')" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
-              <i data-lucide="eye" style="width: 16px; height: 16px; margin-right: 4px;"></i>
-              View Full Details
+          <div style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.5); border-radius: 12px; padding: 16px; margin: 12px 0;">
+            <div style="font-weight: 600; margin-bottom: 12px;">📅 Quick Add Event - July ${day}</div>
+            <input type="text" placeholder="What's happening on July ${day}?" 
+                   style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white;"
+                   onkeypress="if(event.key==='Enter') addEventFromInput(this.value, 'July ${day}')">
+            <button onclick="addEventFromInput(document.querySelector('input[placeholder*=\"July ${day}\"]').value, 'July ${day}')" 
+                    style="background: rgba(34, 197, 94, 0.4); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; margin-top: 8px; cursor: pointer;">
+              Add Event
             </button>
           </div>
         `;
-        setTimeout(() => lucide.createIcons(), 100);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }, 100);
+    }
+    
+    function addEventFromInput(eventText, date) {
+      if (!eventText.trim()) return;
+      executeCalendarInjection(`I have ${eventText} on ${date}`, document.querySelector('.chat-messages-mobile'));
+    }
+    
+    function executeCalendarView(messagesDiv) {
+      const events = JSON.parse(localStorage.getItem('homeops_smart_events') || '[]');
+      
+      messagesDiv.innerHTML += `
+        <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+          <div style="font-weight: 600; margin-bottom: 12px;">📅 Your Schedule</div>
+          ${events.length > 0 ? events.map(event => `
+            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; margin: 6px 0;">
+              <div style="font-weight: 600;">${event.title}</div>
+              <div style="font-size: 12px; color: rgba(255,255,255,0.7);">${event.date} at ${event.time}</div>
+            </div>
+          `).join('') : '<div style="color: rgba(255,255,255,0.7);">No events scheduled</div>'}
+          <button onclick="showView('calendar-mobile', document.querySelector('.nav-btn[onclick*=\"calendar-mobile\"]'))" 
+                  style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; margin-top: 8px; cursor: pointer;">
+            View Full Calendar
+          </button>
+        </div>
+      `;
+      
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+    
+    function executeEmailSummary(message, messagesDiv) {
+      addSystemMessage(messagesDiv, "📧 Analyzing your emails...");
+      
+      setTimeout(() => {
+        messagesDiv.innerHTML += `
+          <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+            <div style="font-weight: 600; margin-bottom: 12px;">📧 Email Intelligence Summary</div>
+            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+              <div style="font-weight: 600; margin-bottom: 8px;">This Week's Mental Load</div>
+              <div style="font-size: 14px; line-height: 1.4;">
+                Found 3 school emails requiring action, 1 urgent birthday party RSVP, and 2 subscription renewals to review.
+                The Jefferson Elementary spirit week email needs pajama prep for tomorrow.
+              </div>
+            </div>
+            <button onclick="showView('email-mobile', document.querySelector('.nav-btn[onclick*=\"email-mobile\"]'))" 
+                    style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; cursor: pointer;">
+              View Full Email Intelligence
+            </button>
+          </div>
+        `;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }, 1500);
+    }
+    
+    function executeEmailSurfacing(messagesDiv) {
+      executeEmailSummary("show emails", messagesDiv);
+    }
+    
+    function executeDealIntelligence(message, messagesDiv) {
+      addSystemMessage(messagesDiv, "💰 Scanning for real deals...");
+      
+      setTimeout(() => {
+        messagesDiv.innerHTML += `
+          <div style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+            <div style="font-weight: 600; margin-bottom: 12px;">💰 Deal Intelligence</div>
+            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+              <div style="font-weight: 600; margin-bottom: 8px;">Real Deals Found</div>
+              <div style="margin: 6px 0;">
+                <div style="font-weight: 600;">Target: 25% off kids clothes</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Actually good deal - back to school season</div>
+              </div>
+            </div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-style: italic;">
+              🧠 HomeOps filters out 89% of "deals" as marketing manipulation
+            </div>
+          </div>
+        `;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }, 1000);
+    }
+    
+    function executeWeekPlanning(messagesDiv) {
+      addSystemMessage(messagesDiv, "📋 Planning your week...");
+      
+      setTimeout(() => {
+        messagesDiv.innerHTML += `
+          <div style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+            <div style="font-weight: 600; margin-bottom: 12px;">📋 Week Planning</div>
+            <div style="font-size: 14px; line-height: 1.4;">
+              This week: RSVP for Emma's birthday party (due Thursday), prep for Pajama Day (tomorrow), 
+              and schedule that dentist appointment you've been putting off.
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+              <button onclick="showView('calendar-mobile', document.querySelector('.nav-btn[onclick*=\"calendar-mobile\"]'))" 
+                      style="background: rgba(139, 92, 246, 0.3); border: 1px solid rgba(139, 92, 246, 0.6); border-radius: 8px; padding: 8px 16px; color: white; cursor: pointer; flex: 1;">
+                View Calendar
+              </button>
+              <button onclick="showView('email-mobile', document.querySelector('.nav-btn[onclick*=\"email-mobile\"]'))" 
+                      style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; cursor: pointer; flex: 1;">
+                Check Emails
+              </button>
+            </div>
+          </div>
+        `;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }, 1000);
+    }
+    
+    function executeShoppingAssistant(message, messagesDiv) {
+      executeShoppingSearch(message, messagesDiv);
+    }
+    
+    function executeCommunicationReminder(message, messagesDiv) {
+      addSystemMessage(messagesDiv, "📞 Setting communication reminder...");
+      
+      setTimeout(() => {
+        messagesDiv.innerHTML += `
+          <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+            <div style="font-weight: 600; margin-bottom: 8px;">📞 Communication Reminder Set</div>
+            <div style="font-size: 14px;">I'll remind you to make that call. Check your tasks.</div>
+          </div>
+        `;
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
       }, 500);
     }
     
-    // Enhanced Event Insights Generator
-    function generateEventInsights(eventTitle, eventType) {
-      const title = eventTitle.toLowerCase();
+    function executeWellnessTracking(message, messagesDiv) {
+      addSystemMessage(messagesDiv, "💪 Tracking wellness...");
       
-      // AI-powered insights based on event type and content
-      const insights = {
-        'golf': {
-          reframe: "Perfect time to network and think strategically while enjoying the outdoors.",
-          checklist: [
-            "Check weather forecast and dress appropriately",
-            "Bring business cards for networking opportunities", 
-            "Confirm tee time and arrival 15 minutes early",
-            "Pack sunscreen and stay hydrated"
-          ]
-        },
-        'meeting': {
-          reframe: "This is an opportunity to collaborate and move important projects forward.",
-          checklist: [
-            "Review agenda and prepare talking points",
-            "Test video/audio setup if virtual meeting",
-            "Gather relevant documents and data",
-            "Set clear objectives for the discussion"
-          ]
-        },
-        'dentist': {
-          reframe: "Taking care of your health is an investment in your future well-being.",
-          checklist: [
-            "Arrive 10 minutes early for paperwork",
-            "Bring insurance card and ID",
-            "List any concerns or pain to discuss",
-            "Schedule next cleaning before leaving"
-          ]
-        },
-        'appointment': {
-          reframe: "This dedicated time will help you make progress on important matters.",
-          checklist: [
-            "Confirm appointment time and location",
-            "Prepare questions or topics to discuss",
-            "Bring necessary documents or information",
-            "Allow extra travel time"
-          ]
-        },
-        'soccer': {
-          reframe: "Great opportunity for the kids to stay active and build teamwork skills.",
-          checklist: [
-            "Pack water bottles and healthy snacks",
-            "Check if shin guards and cleats fit properly",
-            "Arrive 15 minutes early for warm-up",
-            "Bring folding chairs for parents"
-          ]
-        }
-      };
-      
-      // Determine event type from title
-      let detectedType = 'appointment';
-      if (title.includes('golf')) detectedType = 'golf';
-      else if (title.includes('meeting') || title.includes('standup') || title.includes('call')) detectedType = 'meeting';
-      else if (title.includes('dentist') || title.includes('doctor') || title.includes('medical')) detectedType = 'dentist';
-      else if (title.includes('soccer') || title.includes('practice') || title.includes('sport')) detectedType = 'soccer';
-      
-      return insights[detectedType] || insights['appointment'];
-    }
-    
-    // HomeOps Chief of Staff conversational intelligence with authentic tone
-    function generateChiefOfStaffResponse(message) {
-      const msg = message.toLowerCase();
-      
-      // Relationship/Partnership Issues
-      if (msg.includes('spouse') || msg.includes('husband') || msg.includes('wife') || 
-          msg.includes('marriage') || msg.includes('relationship') || msg.includes('partner')) {
-        return generateHomeOpsRelationshipResponse(message);
-      }
-      
-      // Friend/Social Dynamics  
-      if (msg.includes('friend') || msg.includes('friendship') || msg.includes('social') || 
-          msg.includes('awkward') || msg.includes('conflict')) {
-        return generateHomeOpsFriendshipResponse(message);
-      }
-      
-      // Work/Career Challenges
-      if (msg.includes('work') || msg.includes('boss') || msg.includes('career') || 
-          msg.includes('job') || msg.includes('meeting') || msg.includes('deadline')) {
-        return generateHomeOpsWorkResponse(message);
-      }
-      
-      // Parenting/Family Dynamics
-      if (msg.includes('kids') || msg.includes('children') || msg.includes('parenting') || 
-          msg.includes('family') || msg.includes('teenager')) {
-        return generateHomeOpsParentingResponse(message);
-      }
-      
-      // Overwhelm/Burnout/Stress
-      if (msg.includes('stress') || msg.includes('anxiety') || msg.includes('overwhelmed') || 
-          msg.includes('tired') || msg.includes('burned out') || msg.includes('exhausted')) {
-        return generateHomeOpsOverwhelmResponse(message);
-      }
-      
-      // Decision Making Support
-      if (msg.includes('should i') || msg.includes('what do you think') || 
-          msg.includes('decision') || msg.includes('choice') || msg.includes('advice')) {
-        return generateHomeOpsDecisionResponse(message);
-      }
-      
-      // General conversation with HomeOps tone
-      return generateHomeOpsGeneralResponse(message);
-    }
-    
-    function generateHomeOpsRelationshipResponse(message) {
-      // Using Esther Perel, Gottmans, and grounded relationship intelligence
-      const insights = [
-        "That wasn't about the dishes. That was about feeling unseen.",
-        "When partnership becomes logistics, desire becomes memory.",
-        "You're not just tired. You're living inside a role that forgot you exist.",
-        "A complaint is often just a bid for connection with bad timing.",
-        "You can't connect while managing. One of you has to stop performing.",
-        "The silence isn't peace. It's disconnection.",
-        "The resentment? That's unspoken overload begging to be named."
-      ];
-      
-      const actions = [
-        ["<strong>Tonight:</strong> Name one thing you need without explaining why", "<strong>This week:</strong> Stop managing their feelings about your needs", "<strong>Going forward:</strong> Ask for help before you're angry"],
-        ["<strong>Right now:</strong> Text them one thing you appreciate", "<strong>Today:</strong> Have the conversation without fixing anything", "<strong>This month:</strong> Create space to be more than useful"],
-        ["<strong>Immediately:</strong> Stop explaining your exhaustion", "<strong>Tomorrow:</strong> Ask what support they need too", "<strong>Next week:</strong> Plan something that isn't logistics"]
-      ];
-      
-      const reframes = [
-        "You're not asking for too much. You're asking too quietly.",
-        "This isn't about them not caring. It's about systems that don't work.",
-        "Partnership isn't automatic — it's built when you both feel seen."
-      ];
-      
-      const insight = insights[Math.floor(Math.random() * insights.length)];
-      const actionSet = actions[Math.floor(Math.random() * actions.length)];
-      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
-      
-      return `
-        <div style="line-height: 1.6;">
-          <p style="margin-bottom: 12px; font-style: italic;">You're carrying too much emotional labor without naming it. ${insight}</p>
-          
-          <div style="background: rgba(139, 92, 246, 0.2); padding: 12px; border-radius: 8px; margin: 12px 0; border-left: 3px solid rgba(139, 92, 246, 0.6);">
-            ${actionSet.map(action => `<div style="margin: 6px 0;">${action}</div>`).join('')}
-          </div>
-          
-          <p style="font-weight: 600; color: rgba(255,255,255,0.9);">${reframe}</p>
-        </div>
-      `;
-    }
-    
-    function generateHomeOpsFriendshipResponse(message) {
-      // Using Amy Schumer observational + Cal Newport boundaries
-      const insights = [
-        "You've been available for everyone except yourself. That's not friendship — that's performance.",
-        "You can't be the emotional manager for every relationship. Some people need to carry their own stuff.",
-        "Behind every draining friendship is someone who stopped setting boundaries.",
-        "You're not responsible for their reaction to your honesty.",
-        "Sometimes distance isn't rejection. It's self-preservation.",
-        "The friendship changed because you changed. That's allowed."
-      ];
-      
-      const actions = [
-        ["**Today:** Stop explaining why you need space", "**This week:** Let them be disappointed", "**Going forward:** Respond when you want to, not when you should"],
-        ["**Right now:** Name what you actually want from this", "**Tomorrow:** Stop managing their emotions", "**Next month:** Be honest about your capacity"],
-        ["**Immediately:** Send the text or don't. Stop drafting", "**This week:** Show up as yourself, not who they need", "**Going forward:** Let the friendship be what it is"]
-      ];
-      
-      const reframes = [
-        "You don't owe anyone access to your energy.",
-        "Real friends can handle your boundaries.",
-        "You're not responsible for keeping everyone comfortable."
-      ];
-      
-      const insight = insights[Math.floor(Math.random() * insights.length)];
-      const actionSet = actions[Math.floor(Math.random() * actions.length)];
-      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
-      
-      return `You're giving more than you're getting and calling it loyalty. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
-    }
-    
-    function generateHomeOpsWorkResponse(message) {
-      // Using Cal Newport focus + Mel Robbins directness
-      const insights = [
-        "You're not disorganized. You're under siege by shallow work.",
-        "You don't need willpower. You need one repeatable protocol.",
-        "Saying yes to everything means you remember nothing.",
-        "Your brain isn't broken — it's fragmented by open loops.",
-        "You booked a 10am meeting and forgot you have a body and children.",
-        "You're not failing at work. You're succeeding at too many things."
-      ];
-      
-      const actions = [
-        ["**This morning:** Close three tabs you don't need", "**Today:** Say no to one non-essential request", "**This week:** Block two hours for deep work"],
-        ["**Right now:** Write down the one thing that matters most", "**Tomorrow:** Do that thing first", "**Going forward:** Stop checking email before 9am"],
-        ["**Immediately:** Set an end time for this project", "**Today:** Delegate one thing you shouldn't be doing", "**This month:** Have the conversation about capacity"]
-      ];
-      
-      const reframes = [
-        "The most strategic thing you can do right now is say no.",
-        "Constraint creates clarity. Let's define the edge.",
-        "You're not behind. You're just carrying too much."
-      ];
-      
-      const insight = insights[Math.floor(Math.random() * insights.length)];
-      const actionSet = actions[Math.floor(Math.random() * actions.length)];
-      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
-      
-      return `You're managing everything and completing nothing. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
-    }
-    
-    function generateHomeOpsParentingResponse(message) {
-      // Using Amy Schumer + Jerry Seinfeld observational + grounded parenting wisdom
-      const insights = [
-        "You've said 'put your shoes on' 37 times. You're basically a broken Alexa.",
-        "Motherhood is just one long game of 'whose poop is this?'",
-        "You ran out of time. But made snacks for school shaped like dinosaurs. Iconic.",
-        "Why do kids always need to poop right after you buckle the car seat?",
-        "Your house has three open containers of goldfish and no matching lids. Just vibes.",
-        "You canceled a meeting and called it spiritual. That's peak parenting."
-      ];
-      
-      const actions = [
-        ["**Right now:** Lower one expectation about today", "**This week:** Buy the easy dinner twice", "**Going forward:** Stop making elaborate snacks"],
-        ["**Today:** Let them be bored for 20 minutes", "**Tomorrow:** Say no to one extra thing", "**This month:** Ask for help without explaining why"],
-        ["**Immediately:** Put your phone in another room", "**Tonight:** Order pizza without guilt", "**This week:** Let someone else handle one school thing"]
-      ];
-      
-      const reframes = [
-        "You're not raising perfect kids. You're raising humans.",
-        "Good enough parenting is actually excellent parenting.",
-        "You don't need to optimize childhood. You need to survive it."
-      ];
-      
-      const insight = insights[Math.floor(Math.random() * insights.length)];
-      const actionSet = actions[Math.floor(Math.random() * actions.length)];
-      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
-      
-      return `You're performing parenthood instead of just doing it. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
-    }
-    
-    function generateHomeOpsOverwhelmResponse(message) {
-      // Using Andrew Huberman nervous system + Mel Robbins action + Pema Chodron grounding
-      const insights = [
-        "You're not lazy. You're cognitively saturated.",
-        "Decision fatigue isn't weakness. It's your brain asking for fewer tabs.",
-        "You're not broken. You're signaling.",
-        "The nervous system speaks before the mind does. Let's listen.",
-        "Stress is signal. Without structure, it becomes noise.",
-        "You don't have capacity issues. You have boundary issues."
-      ];
-      
-      const actions = [
-        ["**Right now:** Name three things you can stop doing", "**Today:** Take 10 minutes outside without your phone", "**This week:** Say no to one good opportunity"],
-        ["**Immediately:** Close your eyes for 30 seconds", "**Tonight:** Go to bed 30 minutes earlier", "**Tomorrow:** Do one less thing than planned"],
-        ["**This moment:** Stop trying to fix everything", "**Today:** Let something be imperfect", "**This month:** Ask someone else to handle one recurring task"]
-      ];
-      
-      const reframes = [
-        "This isn't about doing more. It's about carrying less.",
-        "You're not failing. You're just overloaded.",
-        "The body craves rhythm. Predictability is therapy."
-      ];
-      
-      const insight = insights[Math.floor(Math.random() * insights.length)];
-      const actionSet = actions[Math.floor(Math.random() * actions.length)];
-      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
-      
-      return `You're running on empty and calling it productivity. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
-    }
-    
-    function generateHomeOpsDecisionResponse(message) {
-      // Using Guy Raz reflection + Cal Newport constraints + Cheryl Strayed clarity
-      const insights = [
-        "Sometimes insight starts by saying: this isn't working anymore.",
-        "You don't have to know the next step. Just move toward the light.",
-        "Behind every overloaded schedule is someone who stopped asking for help.",
-        "This isn't about getting better. It's about getting clear.",
-        "Let yourself be a beginner at something hard.",
-        "You've been carrying a lot. No wonder it feels blurry."
-      ];
-      
-      const actions = [
-        ["**Right now:** Write down what you actually want", "**Today:** Eliminate one option that drains energy", "**This week:** Try the thing that scares you less"],
-        ["**Immediately:** Stop asking everyone else what they think", "**Tomorrow:** Make the decision with available information", "**Going forward:** Trust your gut over your guilt"],
-        ["**This moment:** Name what you're really optimizing for", "**Today:** Choose the option that gives you energy", "**Next month:** Evaluate based on outcomes, not effort"]
-      ];
-      
-      const reframes = [
-        "You don't need more information. You need courage to act.",
-        "The right decision is the one you can live with.",
-        "Sometimes the best choice is the one you can change later."
-      ];
-      
-      const insight = insights[Math.floor(Math.random() * insights.length)];
-      const actionSet = actions[Math.floor(Math.random() * actions.length)];
-      const reframe = reframes[Math.floor(Math.random() * reframes.length)];
-      
-      return `You're overthinking because you're trying to optimize for everyone else. ${insight}\n\n${actionSet.join('\n')}\n\n${reframe}`;
-    }
-    
-    function generateHomeOpsGeneralResponse(message) {
-      // Core HomeOps voice - calm, grounded, moves things forward
-      const openings = [
-        "You're tracking everything — kids, logistics, emotions — without a pause. That's not forgetfulness. That's overload.",
-        "You've been available for everyone except yourself. Let's change that.",
-        "You're managing everything and completing nothing. Time to get tactical.",
-        "Behind every perfect family schedule is someone who stopped sleeping. Let's fix this.",
-        "You don't need another system. You need to use the one you have.",
-        "You're not disorganized. You're just carrying too much, too quietly."
-      ];
-      
-      const actions = [
-        ["**Right now:** Name the one thing that actually matters today", "**This week:** Stop doing one thing that doesn't", "**Going forward:** Ask for help before you need it"],
-        ["**Today:** Set one boundary without explaining it", "**Tomorrow:** Do something just for you", "**This month:** Let someone else handle one regular task"],
-        ["**Immediately:** Close three things you don't need open", "**Tonight:** Plan tomorrow in five minutes", "**This week:** Say no to one good opportunity"]
-      ];
-      
-      const closings = [
-        "You're not behind. You're just trying to do everything.",
-        "This isn't about perfection. It's about sustainability.",
-        "You don't need to optimize everything. Just the things that matter."
-      ];
-      
-      const opening = openings[Math.floor(Math.random() * openings.length)];
-      const actionSet = actions[Math.floor(Math.random() * actions.length)];
-      const closing = closings[Math.floor(Math.random() * closings.length)];
-      
-      return `${opening}\n\n${actionSet.join('\n')}\n\n${closing}`;
-    }
-    
-    // Handle AI-suggested actions from backend
-    function handleAISuggestedActions(actions) {
-      actions.forEach(action => {
-        switch(action.type) {
-          case 'calendar_event':
-            // Auto-inject calendar events
-            console.log('AI suggests calendar event:', action.data);
-            showCalendarSuggestion(action.data);
-            break;
-          case 'email_surface':
-            // Surface important emails
-            console.log('AI suggests surfacing email:', action.data);
-            highlightImportantEmail(action.data);
-            break;
-          case 'deal_alert':
-            // Show deal recommendations
-            console.log('AI found relevant deal:', action.data);
-            showDealAlert(action.data);
-            break;
-          case 'gift_recommendation':
-            // Show gift suggestions
-            console.log('AI gift recommendation:', action.data);
-            showGiftSuggestion(action.data);
-            break;
-          case 'task_automation':
-            // Automate routine tasks
-            console.log('AI suggests automation:', action.data);
-            executeTaskAutomation(action.data);
-            break;
-        }
-      });
-    }
-    
-    function showCalendarSuggestion(eventData) {
-      // Show inline calendar injection option
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-            📅 <span>Ready to add to calendar</span>
-          </div>
-          <div style="font-size: 14px; margin-bottom: 12px;">
-            <strong>${eventData.title}</strong><br>
-            ${eventData.date} at ${eventData.time}
-          </div>
-          <button onclick="executeCalendarAdd('${eventData.id}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
-            Add to Calendar
-          </button>
-        </div>
-      `;
-    }
-    
-    function showDealAlert(dealData) {
-      // Show relevant deal notifications
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-            🛍️ <span>Deal Alert</span>
-          </div>
-          <div style="font-size:  14px; margin-bottom: 12px;">
-            <strong>${dealData.item}</strong><br>
-            ${dealData.discount} off - ${dealData.timeLeft} left
-          </div>
-          <button onclick="window.open('${dealData.link}', '_blank')" style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.6); border-radius: 8px; padding: 8px 16px; color: white; font-size: 14px; cursor: pointer;">
-            View Deal
-          </button>
-        </div>
-      `;
-    }
-    
-    function injectCalendarEvent(eventId) {
-      // Calendar injection functionality
-      console.log('Injecting calendar event:', eventId);
-      // Switch to calendar view and add event
-      const calendarBtn = document.querySelector('.nav-btn[onclick*="calendar-mobile"]');
-      showView('calendar-mobile', calendarBtn);
-      // Show success feedback
-      alert('Event added to calendar!');
-    }
-    
-    // Agentic Search Intelligence - Best-in-class web browsing and data surfacing
-    function executeAgenticSearch(message, messagesDiv) {
-      const msg = message.toLowerCase();
-      
-      // Show intelligent search initiation
-      messagesDiv.innerHTML += `
-        <div id="agentic-search-loading" style="background: rgba(139, 69, 19, 0.2); border: 1px solid rgba(139, 69, 19, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0; text-align: center;">
-          <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <i data-lucide="globe" style="width: 20px; height: 20px;"></i>
-            <span>Agentic Search Engine</span>
-            <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">LIVE</span>
-          </div>
-          <div class="typing-dots" style="margin-bottom: 8px;">
-            <span>.</span><span>.</span><span>.</span>
-          </div>
-          <div style="font-size: 14px;">Searching the web with AI intelligence...</div>
-        </div>
-      `;
-      
-      // Determine search type and execute
       setTimeout(() => {
-        document.getElementById('agentic-search-loading').remove();
-        
-        if (msg.includes('flight') || msg.includes('fly') || msg.includes('airline')) {
-          executeFlightSearch(message, messagesDiv);
-        } else if (msg.includes('restaurant') || msg.includes('food') || msg.includes('eat') || msg.includes('dine')) {
-          executeRestaurantSearch(message, messagesDiv);
-        } else if (msg.includes('hotel') || msg.includes('stay') || msg.includes('accommodation')) {
-          executeHotelSearch(message, messagesDiv);
-        } else if (msg.includes('venue') || msg.includes('event')) {
-          executeVenueSearch(message, messagesDiv);
-        } else if (msg.includes('shop') || msg.includes('buy') || msg.includes('price') || msg.includes('gift') || msg.includes('birthday') || msg.includes('present') || msg.includes('need to get') || msg.includes('looking for')) {
-          executeShoppingSearch(message, messagesDiv);
-        } else {
-          executeGeneralWebSearch(message, messagesDiv);
-        }
-      }, 1500);
+        messagesDiv.innerHTML += `
+          <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+            <div style="font-weight: 600; margin-bottom: 8px;">💪 Wellness Tracking</div>
+            <div style="font-size: 14px;">Logged! Stay hydrated and keep moving.</div>
+          </div>
+        `;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }, 500);
     }
     
-    // Flight Search Intelligence
-    async function executeFlightSearch(message, messagesDiv) {
-      const msg = message.toLowerCase();
+    function executeFinancialTracking(message, messagesDiv) {
+      addSystemMessage(messagesDiv, "💰 Analyzing spending...");
       
-      // Extract destination and preferences - Better defaults
-      let destination = 'Los Angeles';
-      let origin = 'Current Location'; // Will be detected from user input
-      let budget = '$400';
-      let dates = 'Tomorrow';
-      let departureDate = '';
-      let returnDate = '';
-      
-      // Enhanced date parsing for mixed specific and relative dates
-      const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
-                         'july', 'august', 'september', 'october', 'november', 'december'];
-      const monthNumbers = {'january': '01', 'february': '02', 'march': '03', 'april': '04', 
-                          'may': '05', 'june': '06', 'july': '07', 'august': '08', 
-                          'september': '09', 'october': '10', 'november': '11', 'december': '12'};
-      
-      // Parse specific dates like "July 30th" and "August 15th"
-      const datePattern = /(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(?:st|nd|rd|th)?/gi;
-      const dateMatches = [...message.matchAll(datePattern)];
-      
-      // Handle mixed departure/return scenarios: "departing tomorrow and returning July 30th"
-      if (msg.includes('departing tomorrow') && dateMatches.length >= 1) {
-        // Tomorrow for departure
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        departureDate = tomorrow.toISOString().split('T')[0];
-        
-        // Specific date for return
-        const retMonth = monthNumbers[dateMatches[0][1].toLowerCase()];
-        const retDay = dateMatches[0][2].padStart(2, '0');
-        returnDate = `2025-${retMonth}-${retDay}`;
-        dates = `Tomorrow - ${dateMatches[0][1]} ${dateMatches[0][2]}`;
-      } else if (dateMatches.length >= 1) {
-        // Standard specific date parsing
-        const depMonth = monthNumbers[dateMatches[0][1].toLowerCase()];
-        const depDay = dateMatches[0][2].padStart(2, '0');
-        departureDate = `2025-${depMonth}-${depDay}`;
-        dates = `${dateMatches[0][1]} ${dateMatches[0][2]}`;
-        
-        if (dateMatches.length >= 2) {
-          const retMonth = monthNumbers[dateMatches[1][1].toLowerCase()];
-          const retDay = dateMatches[1][2].padStart(2, '0');
-          returnDate = `2025-${retMonth}-${retDay}`;
-          dates += ` - ${dateMatches[1][1]} ${dateMatches[1][2]}`;
-        }
-      } else {
-        // Only use general date terms if no specific dates were found
-        if (msg.includes('tomorrow')) {
-          dates = 'Tomorrow';
-          const tomorrow = new Date();
-          tomorrow.setDate(tomorrow.getDate() + 1);
-          departureDate = tomorrow.toISOString().split('T')[0];
-        } else if (msg.includes('today')) {
-          dates = 'Today';
-          departureDate = new Date().toISOString().split('T')[0];
-        } else if (msg.includes('next week')) {
-          dates = 'Next week';
-          const nextWeek = new Date();
-          nextWeek.setDate(nextWeek.getDate() + 7);
-          departureDate = nextWeek.toISOString().split('T')[0];
-        } else if (msg.includes('this week')) {
-          dates = 'This week';
-          const thisWeek = new Date();
-          thisWeek.setDate(thisWeek.getDate() + 3);
-          departureDate = thisWeek.toISOString().split('T')[0];
-        }
-      }
-      
-      // Better extraction logic with smarter origin detection
-      if (msg.includes('from ') && msg.includes(' to ')) {
-        const routeMatch = msg.match(/from ([a-zA-Z\s]+) to ([a-zA-Z\s]+)/);
-        if (routeMatch) {
-          origin = routeMatch[1].trim();
-          destination = routeMatch[2].trim();
-        }
-      } else if (msg.includes('to ')) {
-        // Better destination parsing - look for "to Austin Texas", "to LAX", etc.
-        const destMatch = msg.match(/to\s+([a-zA-Z\s]{2,25})(?:\s+(?:departing|on|tomorrow|today|next week|under|below|\d|$))/i);
-        if (destMatch) {
-          destination = destMatch[1].trim();
-        }
-        // Enhanced origin detection from context
-        if (msg.includes('dc') || msg.includes('washington')) {
-          origin = 'Washington DC';
-        } else if (msg.includes('ny') || msg.includes('new york')) {
-          origin = 'New York';
-        } else if (msg.includes('sf') || msg.includes('san francisco')) {
-          origin = 'San Francisco';
-        } else if (msg.includes('la') || msg.includes('los angeles')) {
-          origin = 'Los Angeles';
-        } else {
-          origin = 'Washington DC'; // Better default for most business travelers
-        }
-      }
-      
-      // Simple city name normalization - keep minimal for common variations
-      const cityMappings = {
-        'la': 'Los Angeles',
-        'sf': 'San Francisco', 
-        'nyc': 'New York',
-        'ny': 'New York',
-        'dc': 'Washington DC',
-        'austin texas': 'Austin'
-      };
-      
-      const destLower = destination.toLowerCase();
-      if (cityMappings[destLower]) {
-        destination = cityMappings[destLower];
-      }
-      
-      // Debug logging
-      console.log('Flight search parsing:', { 
-        originalMessage: message, 
-        parsedDestination: destination, 
-        parsedOrigin: origin, 
-        parsedDates: dates,
-        departureDate: departureDate,
-        returnDate: returnDate,
-        dateMatches: dateMatches
-      });
-      
-      if (msg.includes('under') || msg.includes('below')) {
-        const budgetMatch = msg.match(/under \$?(\d+)/);
-        if (budgetMatch) budget = `$${budgetMatch[1]}`;
-      }
-      
-      // Show loading message
-      const loadingCard = `
-        <div id="flight-loading" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="plane" style="width: 20px; height: 20px;"></i>
-            <span>Searching Flights...</span>
+      setTimeout(() => {
+        messagesDiv.innerHTML += `
+          <div style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
+            <div style="font-weight: 600; margin-bottom: 8px;">💰 Financial Tracking</div>
+            <div style="font-size: 14px;">This month: $342 on groceries, $89 on kids activities. On track with budget.</div>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="width: 16px; height: 16px; border: 2px solid rgba(59, 130, 246, 0.3); border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <span>Finding best deals from ${origin} to ${destination}</span>
-          </div>
-        </div>
-      `;
-      
-      messagesDiv.innerHTML += loadingCard;
-      
+        `;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }, 500);
+    }
+    
+    // Placeholder task management functions
+    function markTaskComplete(button) {
+      button.closest('div').style.opacity = '0.5';
+      button.innerHTML = '✅ Done';
+      button.disabled = true;
+    }
+    
+    function editTask(button) {
+      alert('Task editing - coming soon!');
+    }
+    
+    function snoozeTask(button) {
+      alert('Task snoozed for 1 hour');
+      button.style.opacity = '0.5';
+    }
+    
+    // Initialize app on load
+    document.addEventListener('DOMContentLoaded', function() {
       // Initialize Lucide icons
       if (typeof lucide !== 'undefined') {
         lucide.createIcons();
       }
       
-      try {
-        // Try real flight API first (Amadeus or Skyscanner)
-        const flightResults = await searchRealFlights(origin, destination, dates);
-        
-        // Remove loading card
-        document.getElementById('flight-loading').remove();
-        
-        if (flightResults && flightResults.length > 0) {
-          displayFlightResults(flightResults, destination, budget, dates, messagesDiv, origin);
-        } else {
-          // Fallback to intelligent mock data
-          const mockResults = await generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate);
-          displayFlightResults(mockResults, destination, budget, dates, messagesDiv, origin);
-        }
-        
-      } catch (error) {
-        console.log('Real API failed, using intelligent mock data:', error);
-        
-        // Remove loading card
-        const loadingElement = document.getElementById('flight-loading');
-        if (loadingElement) loadingElement.remove();
-        
-        // Generate intelligent mock data based on real patterns
-        const mockResults = await generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate);
-        displayFlightResults(mockResults, destination, budget, dates, messagesDiv, origin);
-      }
-    }
-    
-    async function searchRealFlights(origin, destination, dates) {
-      try {
-        // Get airport codes
-        const originCode = await getAirportCode(origin);
-        const destCode = await getAirportCode(destination);
-        
-        // Parse dates for round-trip or one-way
-        let departureDate, returnDate;
-        if (dates.includes('returning') || dates.includes('return')) {
-          const parts = dates.split(/returning|return/i);
-          departureDate = parseDateString(parts[0].trim());
-          returnDate = parseDateString(parts[1].trim());
-        } else {
-          departureDate = parseDateString(dates);
-        }
-        
-        console.log('Calling backend flight search:', { originCode, destCode, departureDate, returnDate });
-        
-        // Call our working backend API
-        const response = await fetch('/api/flight-search', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            origin: originCode,
-            destination: destCode,
-            date: departureDate,
-            returnDate: returnDate,
-            adults: 2, // Default to 2 people
-            directOnly: true // Default to direct flights
-          })
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Backend flight response:', data);
-          
-          // Transform backend API response to match frontend expectations
-          const transformedFlights = (data.flights || []).map(flight => {
-            // Convert duration from ISO format (PT1H20M) to readable format
-            let duration = flight.duration || '';
-            if (duration.startsWith('PT')) {
-              const matches = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
-              if (matches) {
-                const hours = matches[1] || '0';
-                const minutes = matches[2] || '0';
-                duration = `${hours}h ${minutes.padStart(2, '0')}m`;
-              }
-            }
-            
-            // Create booking URL for the real flight
-            const createBookingUrl = () => {
-              const flightOrigin = flight.departure?.split(' ')[0] || originCode;
-              const flightDest = flight.arrival?.split(' ')[0] || destCode;
-              return `https://www.google.com/flights?q=${flightOrigin}%20to%20${flightDest}%20on%20${departureDate}`;
-            };
-            
-            return {
-              airline: flight.airline || 'Unknown Airline',
-              departure: flight.departure || `${originCode} --:--`,
-              arrival: flight.arrival || `${destCode} --:--`,
-              duration: duration,
-              stops: flight.stops || 0,
-              price: flight.price || '0',
-              currency: flight.currency === 'EUR' ? '€' : '$',
-              isRoundTrip: flight.isRoundTrip || false,
-              rating: '8.7', // Default rating for real flights
-              bookingUrl: createBookingUrl()
-            };
-          });
-          
-          console.log('Transformed flights:', transformedFlights);
-          return transformedFlights;
-        } else {
-          console.error('Backend flight search failed:', response.status);
-          return [];
-        }
-        
-      } catch (error) {
-        console.error('Flight search error:', error);
-        return [];
-      }
-    }
-    
-    function parseDateString(dateStr) {
-      // Handle various date formats
-      const cleaned = dateStr.toLowerCase().trim();
+      // Initialize default view
+      showView('chat-mobile', document.querySelector('.nav-btn.active'));
       
-      // Month name patterns  
-      const monthMap = {
-        'january': '01', 'jan': '01',
-        'february': '02', 'feb': '02', 
-        'march': '03', 'mar': '03',
-        'april': '04', 'apr': '04',
-        'may': '05',
-        'june': '06', 'jun': '06',
-        'july': '07', 'jul': '07',
-        'august': '08', 'aug': '08',
-        'september': '09', 'sep': '09', 'sept': '09',
-        'october': '10', 'oct': '10',
-        'november': '11', 'nov': '11',
-        'december': '12', 'dec': '12'
-      };
-      
-      // Match patterns like "July 25th", "July 25", "Jul 25"
-      const monthDayMatch = cleaned.match(/(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\s+(\d{1,2})/);
-      
-      if (monthDayMatch) {
-        const month = monthMap[monthDayMatch[1]];
-        const day = monthDayMatch[2].padStart(2, '0');
-        return `2025-${month}-${day}`;
-      }
-      
-      // Default fallback
-      const today = new Date();
-      return today.toISOString().split('T')[0];
-    }
-
-    // Create a proper Google Flights booking URL with specific dates and airports
-    async function createFlightBookingUrl(origin, destination, departureDate, returnDate) {
-      // Get airport codes asynchronously
-      const originCode = await getAirportCode(origin);
-      const destCode = await getAirportCode(destination);
-      
-      // Use current date logic if specific dates weren't parsed
-      if (!departureDate) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        departureDate = tomorrow.toISOString().split('T')[0];
-      }
-      
-      if (!returnDate) {
-        // If no return date specified, default to a week after departure
-        const depDate = new Date(departureDate);
-        depDate.setDate(depDate.getDate() + 7);
-        returnDate = depDate.toISOString().split('T')[0];
-      }
-      
-      // Create a Google Flights URL that includes the specific search criteria
-      // This format works more reliably than the complex encoded URLs
-      const baseUrl = 'https://www.google.com/flights';
-      const searchQuery = `${originCode} to ${destCode} on ${departureDate} returning ${returnDate}`;
-      
-      return `${baseUrl}?q=${encodeURIComponent(searchQuery)}&hl=en`;
-    }
-
-    async function generateIntelligentFlightMock(origin, destination, budget, departureDate, returnDate) {
-      // Simple mock data without hardcoded routes
-      const airlines = ['United', 'American', 'Delta', 'Southwest', 'JetBlue', 'Alaska'];
-      const budgetNum = parseInt((budget || '$500').replace(/[\$,]/g, ''));
-      
-      // Generate 3-5 flight options with realistic pricing
-      const numFlights = 3 + Math.floor(Math.random() * 3);
-      const basePrice = 150 + Math.random() * 200; // $150-$350 base
-      
-      const flightResults = await Promise.all(
-        Array.from({ length: numFlights }, async (_, index) => {
-          const airline = airlines[index % airlines.length];
-          const priceVariation = (Math.random() - 0.5) * 100;
-          const price = Math.max(100, basePrice + priceVariation);
-          const withinBudget = price <= budgetNum;
-          
-          // Generate realistic duration based on distance approximation
-          const baseDuration = 2 + Math.random() * 4; // 2-6 hours
-          const hours = Math.floor(baseDuration);
-          const minutes = Math.floor((baseDuration - hours) * 60);
-          const duration = `${hours}h ${minutes.toString().padStart(2, '0')}m`;
-          
-          const bookingUrl = await createFlightBookingUrl(origin, destination, departureDate, returnDate);
-          const departure = await generateDepartureTime(index, origin);
-          const arrival = await generateArrivalTime(index, duration, destination);
-          
-          return {
-            airline,
-            departure,
-            arrival,
-            price: `$${Math.round(price)}`,
-            duration,
-            stops: Math.random() > 0.6 ? 'Nonstop' : '1 stop',
-            rating: `${(8.0 + Math.random() * 1.5).toFixed(1)}`,
-            withinBudget,
-            bookingUrl
-          };
-        })
-      );
-      
-      return flightResults.sort((a, b) => parseInt(a.price.replace('$', '')) - parseInt(b.price.replace('$', '')));
-    }
-    
-    // Configuration for external APIs (set these in your environment)
-    const CONFIG = {
-      API_NINJAS_KEY: localStorage.getItem('api_ninjas_key') || null,
-      AMADEUS_TOKEN: localStorage.getItem('amadeus_token') || null,
-      RAPIDAPI_KEY: localStorage.getItem('rapidapi_key') || null
-    };
-
-    // Flight API utilities - Dynamic airport code lookup
-    async function getAirportCode(city) {
-      try {
-        // First try a simple lookup for major cities to avoid API calls
-        const majorCities = {
-          'san francisco': 'SFO',
-          'los angeles': 'LAX', 
-          'new york': 'JFK',
-          'jfk': 'JFK',  // Direct airport code
-          'boston': 'BOS',
-          'bos': 'BOS',  // Direct airport code
-          'washington dc': 'DCA',
-          'austin': 'AUS',
-          'chicago': 'ORD',
-          'miami': 'MIA'
-        };
-        
-        // Make lookup case-insensitive
-        const cityLower = city.toLowerCase();
-        if (majorCities[cityLower]) {
-          return majorCities[cityLower];
-        }
-        
-        // For other cities, use API Ninjas Airport API (free tier) if available
-        if (CONFIG.API_NINJAS_KEY) {
-          const response = await fetch(`https://api.api-ninjas.com/v1/airports?city=${encodeURIComponent(city)}`, {
-            headers: {
-              'X-Api-Key': CONFIG.API_NINJAS_KEY
-            }
-          });
-          
-          if (response.ok) {
-            const airports = await response.json();
-            if (airports.length > 0) {
-              return airports[0].iata; // Return the first airport's IATA code
-            }
-          }
-        }
-        
-        // Fallback to DCA if API fails or no key available
-        return 'DCA';
-      } catch (error) {
-        console.log('Airport lookup failed, using fallback:', error);
-        return 'DCA';
-      }
-    }
-    
-    function getDateString(dateText) {
-      const today = new Date();
-      
-      // Handle specific date formats first
-      if (dateText.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
-        // MM/DD/YYYY format
-        return new Date(dateText).toISOString().split('T')[0];
-      }
-      
-      if (dateText.match(/\d{4}-\d{2}-\d{2}/)) {
-        // YYYY-MM-DD format
-        return dateText;
-      }
-      
-      // Handle relative dates
-      const lowerText = dateText.toLowerCase();
-      
-      if (lowerText.includes('tomorrow')) {
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        return tomorrow.toISOString().split('T')[0];
-      }
-      
-      if (lowerText.includes('today')) {
-        return today.toISOString().split('T')[0];
-      }
-      
-      if (lowerText.includes('next week')) {
-        const nextWeek = new Date(today);
-        nextWeek.setDate(today.getDate() + 7);
-        return nextWeek.toISOString().split('T')[0];
-      }
-      
-      // Handle month names (e.g., "July 30")
-      const monthMatch = dateText.match(/(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})/i);
-      if (monthMatch) {
-        const month = monthMatch[1].toLowerCase();
-        const day = parseInt(monthMatch[2]);
-        const currentYear = today.getFullYear();
-        
-        const months = {
-          'january': 0, 'february': 1, 'march': 2, 'april': 3,
-          'may': 4, 'june': 5, 'july': 6, 'august': 7,
-          'september': 8, 'october': 9, 'november': 10, 'december': 11
-        };
-        
-        const targetDate = new Date(currentYear, months[month], day);
-        
-        // If the date has passed this year, assume next year
-        if (targetDate < today) {
-          targetDate.setFullYear(currentYear + 1);
-        }
-        
-        return targetDate.toISOString().split('T')[0];
-      }
-      
-      // Default to next week if we can't parse
-      const nextWeek = new Date(today);
-      nextWeek.setDate(today.getDate() + 7);
-      return nextWeek.toISOString().split('T')[0];
-    }
-    
-    // Flight time generation utilities
-    async function generateDepartureTime(index, origin) {
-      const times = ['6:15 AM', '8:30 AM', '11:45 AM', '3:20 PM', '6:45 PM', '9:15 PM'];
-      const originCode = await getAirportCode(origin);
-      return `${originCode} ${times[index] || times[0]}`;
-    }
-    
-    async function generateArrivalTime(index, duration, destination) {
-      const departureTimes = ['6:15 AM', '8:30 AM', '11:45 AM', '3:20 PM', '6:45 PM', '9:15 PM'];
-      const arrivalTimes = ['8:35 AM', '10:45 AM', '2:05 PM', '5:45 PM', '9:05 PM', '11:35 PM'];
-      const destinationCode = await getAirportCode(destination);
-      return `${destinationCode} ${arrivalTimes[index] || arrivalTimes[0]}`;
-    }
-    
-    async function displayFlightResults(flightResults, destination, budget, dates, messagesDiv, origin = 'Current Location') {
-      // Add AI response as a chat card (don't clear the chat!)
-      const flightCard = `
-        <div style="padding: 12px 20px; background: rgba(59, 130, 246, 0.2); backdrop-filter: blur(10px); margin: 8px 0; border-radius: 4px 18px 18px 18px; max-width: 95%; border: 1px solid rgba(59, 130, 246, 0.4);">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="plane" style="width: 20px; height: 20px;"></i>
-            <span>Flight Intelligence</span>
-          </div>
-          
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-            <div style="font-weight: 600; margin-bottom: 4px;">${origin} → ${destination}</div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Budget: Under ${budget} • ${dates}</div>
-          </div>
-          
-          ${flightResults.map(flight => {
-            if (flight.isRoundTrip) {
-              // Handle round-trip flights
-              return `
-                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0; border: 1px solid rgba(255,255,255,0.1);">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div style="font-weight: 600;">${flight.airline}</div>
-                    <div style="background: rgba(16, 185, 129, 0.3); color: #10b981; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Round-trip</div>
-                  </div>
-                  
-                  <!-- Outbound Flight -->
-                  <div style="margin-bottom: 8px; padding: 8px; border-left: 3px solid #10b981; background: rgba(16, 185, 129, 0.1);">
-                    <div style="font-size: 11px; color: #10b981; margin-bottom: 2px; font-weight: 600;">OUTBOUND</div>
-                    <div style="font-size: 13px; margin-bottom: 2px;">${flight.outbound.departure} → ${flight.outbound.arrival}</div>
-                    <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${flight.outbound.date} • ${flight.outbound.duration} • ${flight.outbound.stops === 0 ? 'Direct' : flight.outbound.stops + ' stop(s)'}</div>
-                  </div>
-                  
-                  <!-- Return Flight -->
-                  <div style="margin-bottom: 8px; padding: 8px; border-left: 3px solid #3b82f6; background: rgba(59, 130, 246, 0.1);">
-                    <div style="font-size: 11px; color: #3b82f6; margin-bottom: 2px; font-weight: 600;">RETURN</div>
-                    <div style="font-size: 13px; margin-bottom: 2px;">${flight.return.departure} → ${flight.return.arrival}</div>
-                    <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${flight.return.date} • ${flight.return.duration} • ${flight.return.stops === 0 ? 'Direct' : flight.return.stops + ' stop(s)'}</div>
-                  </div>
-                  
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-weight: 600; color: #86efac; font-size: 18px;">${flight.currency || '$'}${Math.round(parseFloat(flight.price || '0'))}</div>
-                    <button onclick="window.open('https://www.jetblue.com/book/flights?from=${flight.outbound.departure.split(' ')[0]}&to=${flight.outbound.arrival.split(' ')[0]}&depart=${flight.outbound.date}&return=${flight.return.date}', '_blank')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                      📱 Book Round-trip
-                    </button>
-                  </div>
-                </div>
-              `;
-            } else {
-              // Handle one-way flights
-              return `
-                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0; border: 1px solid rgba(255,255,255,0.1);">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div style="font-weight: 600;">${flight.airline}</div>
-                    <div style="background: rgba(34, 197, 94, 0.3); color: #86efac; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${flight.rating || '8.5'}/10</div>
-                  </div>
-                  <div style="font-size: 14px; margin-bottom: 4px;">${flight.departure} → ${flight.arrival}</div>
-                  <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">${flight.duration} • ${flight.stops === 0 ? 'Direct' : flight.stops + ' stop(s)'}</div>
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-weight: 600; color: #86efac; font-size: 18px;">${flight.currency || '$'}${Math.round(parseFloat(flight.price || '0'))}</div>
-                    <button onclick="window.open('${flight.bookingUrl || `https://www.google.com/flights?q=${destination}`}', '_blank')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                      📱 Book Now
-                    </button>
-                  </div>
-                </div>
-              `;
-            }
-          }).join('')}
-          
-          <div style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; margin-top: 12px;">
-            ✈️ AI found ${flightResults.length} premium options. Prices shown for 2 passengers.
-          </div>
-        </div>
-      `;
-      
-      // Append to chat instead of replacing
-      messagesDiv.innerHTML += flightCard;
-      
-      // Scroll to bottom and initialize icons
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      setTimeout(() => lucide.createIcons(), 100);
-    }
-    
-    // Restaurant Search Intelligence with Real APIs
-    async function executeRestaurantSearch(message, messagesDiv) {
-      const msg = message.toLowerCase();
-      
-      // Extract location and preferences
-      let location = 'San Francisco';
-      let cuisine = 'family-friendly';
-      let priceRange = '$$';
-      
-      if (msg.includes('in ') || msg.includes('near ')) {
-        const locMatch = msg.match(/(?:in|near) ([a-zA-Z\s]+)/);
-        if (locMatch) location = locMatch[1].trim();
-      }
-      
-      if (msg.includes('italian')) cuisine = 'italian';
-      else if (msg.includes('mexican')) cuisine = 'mexican';
-      else if (msg.includes('sushi') || msg.includes('japanese')) cuisine = 'japanese';
-      else if (msg.includes('chinese')) cuisine = 'chinese';
-      else if (msg.includes('pizza')) cuisine = 'pizza';
-      
-      if (msg.includes('cheap') || msg.includes('budget')) priceRange = '$';
-      else if (msg.includes('fancy') || msg.includes('upscale')) priceRange = '$$$$';
-      else if (msg.includes('mid-range')) priceRange = '$$$';
-      
-      // Show loading message
-      const loadingCard = `
-        <div id="restaurant-loading" style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="utensils" style="width: 20px; height: 20px;"></i>
-            <span>Finding Restaurants...</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="width: 16px; height: 16px; border: 2px solid rgba(34, 197, 94, 0.3); border-top: 2px solid #22c55e; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <span>Searching ${cuisine} restaurants in ${location}</span>
-          </div>
-        </div>
-      `;
-      
-      messagesDiv.innerHTML += loadingCard;
-      
-      if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-      }
-      
-      try {
-        // Generate intelligent restaurant data (with real booking integration)
-        const restaurants = generateIntelligentRestaurantMock(location, cuisine, priceRange);
-        
-        // Remove loading card
-        document.getElementById('restaurant-loading').remove();
-        displayRestaurantResults(restaurants, location, cuisine, messagesDiv);
-        
-      } catch (error) {
-        console.log('Restaurant search error:', error);
-        document.getElementById('restaurant-loading').remove();
-        
-        // Fallback simple results
-        const fallbackRestaurants = [
-          {
-            name: 'The Garden Bistro',
-            cuisine: 'American',
-            rating: '4.5',
-            priceRange: '$$',
-            distance: '0.3 miles',
-            highlight: 'Kids menu, outdoor seating',
-            reservations: 'Available tonight',
-            phone: '(415) 555-0123',
-            bookingUrl: 'https://www.opentable.com/r/the-garden-bistro'
-          }
-        ];
-        displayRestaurantResults(fallbackRestaurants, location, cuisine, messagesDiv);
-      }
-    }
-    
-    function generateIntelligentRestaurantMock(location, cuisine, priceRange) {
-      const restaurantTemplates = {
-        'italian': [
-          { name: 'Nonna Maria\'s', highlight: 'Family portions, wine selection', specialty: 'Handmade pasta' },
-          { name: 'Villa Romana', highlight: 'Wood-fired pizza, romantic', specialty: 'Neapolitan pizza' },
-          { name: 'Pasta Bene', highlight: 'Fresh ingredients, fast casual', specialty: 'Build your bowl' }
-        ],
-        'japanese': [
-          { name: 'Sakura Sushi', highlight: 'Fresh fish, family booths', specialty: 'Omakase menu' },
-          { name: 'Ramen Hiroshi', highlight: 'Rich broth, quick service', specialty: 'Tonkotsu ramen' },
-          { name: 'Zen Garden', highlight: 'Traditional atmosphere', specialty: 'Bento boxes' }
-        ],
-        'mexican': [
-          { name: 'Casa Guadalupe', highlight: 'Authentic recipes, large portions', specialty: 'Street tacos' },
-          { name: 'El Corazón', highlight: 'Fresh guac, family style', specialty: 'Carnitas' },
-          { name: 'Taco Libre', highlight: 'Quick service, kids menu', specialty: 'Fish tacos' }
-        ],
-        'family-friendly': [
-          { name: 'The Garden Bistro', highlight: 'Kids menu, outdoor seating', specialty: 'Farm-to-table' },
-          { name: 'Cornerstone Café', highlight: 'All-day breakfast, high chairs', specialty: 'Pancakes' },
-          { name: 'Pacific Fresh', highlight: 'Healthy options, family booths', specialty: 'Salmon bowls' }
-        ]
-      };
-      
-      const templates = restaurantTemplates[cuisine] || restaurantTemplates['family-friendly'];
-      const priceLevel = priceRange.length;
-      
-      return templates.map((template, index) => ({
-        name: template.name,
-        cuisine: cuisine === 'family-friendly' ? 'American' : cuisine.charAt(0).toUpperCase() + cuisine.slice(1),
-        rating: (4.2 + Math.random() * 0.6).toFixed(1),
-        priceRange: '$'.repeat(Math.max(1, priceLevel + (Math.random() > 0.5 ? 1 : 0))),
-        distance: `${(0.3 + Math.random() * 1.5).toFixed(1)} miles`,
-        highlight: template.highlight,
-        specialty: template.specialty,
-        reservations: index === 0 ? 'Available tonight' : (Math.random() > 0.5 ? 'Book ahead' : 'Walk-ins welcome'),
-        phone: `(415) ${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 9000 + 1000)}`,
-        bookingUrl: `https://www.opentable.com/r/${template.name.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '')}`
-      }));
-    }
-    
-    function displayRestaurantResults(restaurants, location, cuisine, messagesDiv) {
-      const restaurantCard = `
-        <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="utensils" style="width: 20px; height: 20px;"></i>
-            <span>Restaurant Intelligence</span>
-          </div>
-          
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-            <div style="font-weight: 600; margin-bottom: 4px;">${cuisine.charAt(0).toUpperCase() + cuisine.slice(1)} restaurants in ${location}</div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Open now • Family-friendly • Easy booking</div>
-          </div>
-          
-          ${restaurants.map(restaurant => `
-            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; border-left: 3px solid rgba(34, 197, 94, 0.6);">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                <div style="flex: 1;">
-                  <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                    <span>${restaurant.name}</span>
-                    <span style="background: rgba(251, 191, 36, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">⭐ ${restaurant.rating}</span>
-                  </div>
-                  <div style="font-size: 13px; margin-bottom: 4px;">${restaurant.cuisine} • ${restaurant.priceRange} • ${restaurant.distance}</div>
-                  <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${restaurant.highlight}</div>
-                  ${restaurant.specialty ? `<div style="font-size: 11px; color: #4ade80; margin-top: 4px;">🌟 ${restaurant.specialty}</div>` : ''}
-                </div>
-                <div style="text-align: right;">
-                  <div style="font-size: 12px; color: #4ade80;">${restaurant.reservations}</div>
-                </div>
-              </div>
-              
-              <div style="display: flex; gap: 6px; margin-top: 8px;">
-                <button onclick="bookRestaurant('${restaurant.name}', '${restaurant.bookingUrl}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; flex: 1;">
-                  <i data-lucide="calendar" style="width: 12px; height: 12px; margin-right: 4px;"></i>
-                  Reserve
-                </button>
-                <button onclick="callRestaurant('${restaurant.phone}')" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                  <i data-lucide="phone" style="width: 12px; height: 12px;"></i>
-                </button>
-                <button onclick="getDirections('${restaurant.name}')" style="background: rgba(168, 85, 247, 0.3); border: 1px solid rgba(168, 85, 247, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                  <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
-                </button>
-              </div>
-            </div>
-          `).join('')}
-          
-          <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 8px;">
-            <i data-lucide="zap" style="width: 14px; height: 14px; margin-right: 4px;"></i>
-            AI found ${restaurants.length} great options with real-time availability.
-          </div>
-        </div>
-      `;
-      
-      messagesDiv.innerHTML += restaurantCard;
-      
-      if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-      }
-    }
-    
-    // Keep the original mock data as fallback
-    function getOriginalRestaurantData() {
-      return [
-        {
-          name: 'The Grove Kitchen',
-          cuisine: 'Farm-to-table American',
-          rating: '4.8',
-          priceRange: '$$',
-          distance: '0.3 miles',
-          highlight: 'Kids menu, outdoor seating',
-          reservations: 'Available tonight'
-        },
-        {
-          name: 'Nonna Maria\'s',
-          cuisine: 'Authentic Italian',
-          rating: '4.6', 
-          priceRange: '$$$',
-          distance: '0.7 miles',
-          highlight: 'Family portions, wine selection',
-          reservations: 'Book ahead'
-        },
-        {
-          name: 'Pacific Fresh',
-          cuisine: 'Seafood & Sushi',
-          rating: '4.7',
-          priceRange: '$$',
-          distance: '1.2 miles',
-          highlight: 'Fresh catch, family booths',
-          reservations: 'Open table'
-        }
-      ];
-      
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="utensils" style="width: 20px; height: 20px;"></i>
-            <span>Restaurant Intelligence</span>
-          </div>
-          
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-            <div style="font-weight: 600; margin-bottom: 4px;">Best family restaurants ${location}</div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Filtered for ${cuisine} dining</div>
-          </div>
-          
-          ${restaurants.map(restaurant => `
-            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0; border-left: 3px solid rgba(251, 191, 36, 0.6);">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                <div style="flex: 1;">
-                  <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                    <span>${restaurant.name}</span>
-                    <span style="background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px;">★ ${restaurant.rating}</span>
-                  </div>
-                  <div style="font-size: 13px; margin-bottom: 4px;">${restaurant.cuisine} • ${restaurant.priceRange}</div>
-                  <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${restaurant.distance} • ${restaurant.highlight}</div>
-                </div>
-                <div style="text-align: right;">
-                  <div style="font-size: 11px; color: rgba(34, 197, 94, 0.8);">${restaurant.reservations}</div>
-                </div>
-              </div>
-              
-              <div style="display: flex; gap: 6px; margin-top: 8px;">
-                <button onclick="makeReservation('${restaurant.name}')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; flex: 1;">
-                  <i data-lucide="calendar-plus" style="width: 12px; height: 12px; margin-right: 4px;"></i>
-                  Reserve
-                </button>
-                <button onclick="getDirections('${restaurant.name}')" style="background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                  <i data-lucide="navigation" style="width: 12px; height: 12px;"></i>
-                </button>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      setTimeout(() => lucide.createIcons(), 100);
-    }
-    
-    // Hotel Search Intelligence  
-    function executeHotelSearch(message, messagesDiv) {
-      const hotels = [
-        {
-          name: 'The Waterfront Hotel',
-          rating: '4.9',
-          price: '$180/night',
-          amenities: 'Pool, Gym, Family Suites',
-          distance: 'Downtown',
-          deal: '15% off 3+ nights'
-        },
-        {
-          name: 'Garden View Resort',
-          rating: '4.6',
-          price: '$145/night', 
-          amenities: 'Breakfast, Kids Club, Spa',
-          distance: '2 miles to center',
-          deal: 'Free breakfast'
-        }
-      ];
-      
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="building" style="width: 20px; height: 20px;"></i>
-            <span>Hotel Intelligence</span>
-          </div>
-          ${hotels.map(hotel => `
-            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
-              <div style="font-weight: 600; margin-bottom: 4px;">${hotel.name} ★ ${hotel.rating}</div>
-              <div style="font-size: 13px; margin-bottom: 4px;">${hotel.price} • ${hotel.amenities}</div>
-              <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${hotel.distance} • ${hotel.deal}</div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      setTimeout(() => lucide.createIcons(), 100);
-    }
-    
-    // Venue Search Intelligence
-    function executeVenueSearch(message, messagesDiv) {
-      const venues = [
-        {
-          name: 'Adventure Zone',
-          type: 'Indoor Play Center',
-          capacity: '50 kids',
-          price: '$25/child',
-          features: 'Climbing walls, bounce house, party rooms'
-        },
-        {
-          name: 'Sunset Park Pavilion',
-          type: 'Outdoor Venue', 
-          capacity: '75 people',
-          price: '$150/4 hours',
-          features: 'BBQ grills, playground, covered area'
-        }
-      ];
-      
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(236, 72, 153, 0.2); border: 1px solid rgba(236, 72, 153, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="map-pin" style="width: 20px; height: 20px;"></i>
-            <span>Venue Intelligence</span>
-          </div>
-          ${venues.map(venue => `
-            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
-              <div style="font-weight: 600; margin-bottom: 4px;">${venue.name}</div>
-              <div style="font-size: 13px; margin-bottom: 4px;">${venue.type} • ${venue.capacity} • ${venue.price}</div>
-              <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${venue.features}</div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      setTimeout(() => lucide.createIcons(), 100);
-    }
-    
-    // Shopping Search Intelligence
-    async function executeShoppingSearch(message, messagesDiv) {
-      const msg = message.toLowerCase();
-      
-      // Extract commerce intent details
-      let occasion = null;
-      let recipient = null;
-      let budget = null;
-      
-      if (msg.includes('birthday')) occasion = 'birthday';
-      if (msg.includes('wedding')) occasion = 'wedding';
-      if (msg.includes('anniversary')) occasion = 'anniversary';
-      if (msg.includes('baby') || msg.includes('newborn')) occasion = 'baby';
-      
-      if (msg.includes('daughter') || msg.includes('girl')) recipient = 'girl';
-      if (msg.includes('son') || msg.includes('boy')) recipient = 'boy';
-      if (msg.includes('friend')) recipient = 'friend';
-      if (msg.includes('wife') || msg.includes('husband')) recipient = 'partner';
-      
-      const budgetMatch = msg.match(/\$\d+|\d+\s*dollars?|\d+\s*bucks?/);
-      if (budgetMatch) budget = budgetMatch[0];
-      
-      messagesDiv.innerHTML += `
-        <div style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="shopping-cart" style="width: 20px; height: 20px;"></i>
-            <span>Commerce Intelligence</span>
-          </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-            <div>🔍 Searching for products and deals...</div>
-          </div>
-          <div id="commerce-results" style="min-height: 40px;">
-            <div style="text-align: center; padding: 20px; opacity: 0.7;">
-              <i data-lucide="loader-2" style="width: 24px; height: 24px; animation: spin 1s linear infinite;"></i>
-            </div>
-          </div>
-        </div>
-      `;
-      setTimeout(() => lucide.createIcons(), 100);
-      
-      try {
-        const response = await fetch('/api/commerce-search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query: message,
-            occasion: occasion,
-            recipient: recipient,
-            budget: budget
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Commerce search failed: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.products && data.products.length > 0) {
-          let productsHtml = '';
-          
-          data.products.slice(0, 4).forEach(product => {
-            productsHtml += `
-              <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0; display: flex; gap: 12px;">
-                ${product.image ? `<img src="${product.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;" onerror="this.style.display='none'">` : ''}
-                <div style="flex: 1;">
-                  <div style="font-weight: 600; margin-bottom: 4px; font-size: 14px;">${product.title}</div>
-                  <div style="color: #4ade80; font-weight: 600; margin-bottom: 6px;">${product.price}</div>
-                  <a href="${product.link}" target="_blank" style="background: #f59e0b; color: #000; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; display: inline-block;">
-                    🛒 Buy on Amazon
-                  </a>
-                </div>
-              </div>
-            `;
-          });
-          
-          if (data.recommendations && data.recommendations.length > 0) {
-            productsHtml += `
-              <div style="background: rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 12px; margin: 12px 0;">
-                <div style="font-weight: 600; margin-bottom: 8px;">💡 Smart Recommendations:</div>
-                ${data.recommendations.map(rec => `<div style="font-size: 13px; opacity: 0.9; margin: 4px 0;">• ${rec}</div>`).join('')}
-              </div>
-            `;
-          }
-          
-          document.getElementById('commerce-results').innerHTML = productsHtml;
-        } else {
-          document.getElementById('commerce-results').innerHTML = `
-            <div style="text-align: center; padding: 20px; opacity: 0.7;">
-              <div>No products found. Try a different search term.</div>
-            </div>
-          `;
-        }
-        
-      } catch (error) {
-        console.error('Commerce search error:', error);
-        document.getElementById('commerce-results').innerHTML = `
-          <div style="text-align: center; padding: 20px; color: #ef4444;">
-            <div>Search temporarily unavailable. Please try again.</div>
-          </div>
-        `;
-      }
-    }
-    
-    // General Web Search Intelligence
-    function executeGeneralWebSearch(message, messagesDiv) {
-      const lowerMessage = message.toLowerCase();
-      
-      // Parse query context for intelligent responses
-      let searchCategory = 'general';
-      let searchTitle = 'Web Search Results';
-      let searchIcon = 'globe';
-      let results = [];
-      
-      // Car/Vehicle deals detection
-      if (lowerMessage.includes('audi') || lowerMessage.includes('bmw') || lowerMessage.includes('mercedes') || 
-          lowerMessage.includes('tesla') || lowerMessage.includes('car') || lowerMessage.includes('suv') ||
-          lowerMessage.includes('deals') && (lowerMessage.includes('auto') || lowerMessage.includes('vehicle'))) {
-        searchCategory = 'automotive';
-        searchTitle = lowerMessage.includes('washington') || lowerMessage.includes('dc') ? 
-          'Car Deals in Washington DC Area' : 'Automotive Deals';
-        searchIcon = 'car';
-        
-        if (lowerMessage.includes('audi') && lowerMessage.includes('q7')) {
-          results = [
-            { title: '🏆 Audi Tysons', type: 'Dealership • New & Used • Premium', desc: '2024 Q7 Premium Plus starting at $58,900. Special lease offers available with $0 down payment options.' },
-            { title: '🚗 CarMax Fairfax', type: 'Used Cars • Certified • No-haggle', desc: '2022 Q7 Prestige with 18k miles - $52,995. CarMax warranty included, financing available.' },
-            { title: '💰 AutoNation Audi', type: 'Certified Pre-owned • Financing', desc: '2023 Q7 S-Line certified pre-owned - $54,900. Extended warranty and competitive financing rates.' },
-            { title: '⭐ Carvana Online', type: 'Online delivery • 7-day return', desc: 'Multiple Q7 options 2020-2023, $45k-$60k range. Home delivery to DC area, virtual inspection available.' }
-          ];
-        } else {
-          results = [
-            { title: '🏆 Best Local Dealerships', type: 'New & Used • Multiple brands', desc: 'Compare prices across BMW, Audi, Mercedes dealers in DMV area. Current incentives and lease specials.' },
-            { title: '💰 CarGurus Deals', type: 'Price comparison • Local inventory', desc: 'Find the best deals on luxury SUVs in your area. Real-time pricing and dealer ratings.' },
-            { title: '🚗 AutoTrader Listings', type: 'Comprehensive search • Filters', desc: 'Advanced search filters for make, model, year, price range. Certified dealer network.' }
-          ];
-        }
-      }
-      
-      // Shopping/Product deals
-      else if (lowerMessage.includes('deals') || lowerMessage.includes('sale') || lowerMessage.includes('discount') ||
-               lowerMessage.includes('buy') || lowerMessage.includes('shopping')) {
-        searchCategory = 'shopping';
-        searchTitle = 'Current Deals & Sales';
-        searchIcon = 'shopping-bag';
-        results = [
-          { title: '🛍️ Amazon Daily Deals', type: 'E-commerce • Prime eligible', desc: 'Lightning deals, daily specials, and exclusive Prime member discounts across all categories.' },
-          { title: '💳 Costco Warehouse', type: 'Bulk savings • Membership required', desc: 'Member-exclusive pricing on electronics, appliances, and household essentials.' },
-          { title: '🏪 Target Circle Offers', type: 'Retail • Free membership', desc: 'Personalized deals, early access to sales, and 1% earnings on purchases.' },
-          { title: '⚡ Best Buy Tech Deals', type: 'Electronics • Geek Squad support', desc: 'Weekly tech deals, open-box discounts, and exclusive member pricing on top brands.' }
-        ];
-      }
-      
-      // Restaurant/Food search
-      else if (lowerMessage.includes('restaurant') || lowerMessage.includes('resturant') || lowerMessage.includes('food') || lowerMessage.includes('eat') ||
-               lowerMessage.includes('dining') || lowerMessage.includes('lunch') || lowerMessage.includes('dinner') || lowerMessage.includes('best') && (lowerMessage.includes('place') || lowerMessage.includes('spot'))) {
-        searchCategory = 'dining';
-        searchTitle = lowerMessage.includes('bethesda') ? 'Best Restaurants in Bethesda, Maryland' :
-                     lowerMessage.includes('washington') || lowerMessage.includes('dc') ? 
-                     'Best Restaurants in Washington DC' : 'Restaurant Recommendations';
-        searchIcon = 'utensils';
-        
-        if (lowerMessage.includes('bethesda')) {
-          results = [
-            { title: '🏆 Julii', type: 'Mediterranean • Fine dining • $$$$', desc: 'Upscale Mediterranean cuisine with creative presentations and seasonal ingredients. Consistently rated among Bethesda\'s best.' },
-            { title: '🍝 Il Canale', type: 'Italian • Neapolitan pizza • $$$', desc: 'Authentic Neapolitan pizzas in wood-fired oven, fresh pasta, and Italian wines in cozy atmosphere.' },
-            { title: '🥩 Morton\'s The Steakhouse', type: 'Steakhouse • Prime cuts • $$$$', desc: 'Premium aged steaks, fresh seafood, and classic sides in elegant steakhouse setting.' },
-            { title: '🦞 Blacksalt', type: 'Seafood • Raw bar • $$$', desc: 'Fresh seafood market and restaurant with daily catches, raw bar, and coastal-inspired dishes.' }
-          ];
-        } else {
-          results = [
-            { title: '🏆 The Inn at Little Washington', type: 'Fine dining • Michelin starred • $$$$', desc: 'World-renowned culinary destination with seasonal American cuisine and impeccable service.' },
-            { title: '🦞 The Oceanaire', type: 'Seafood • Upscale • $$$', desc: 'Fresh seafood flown in daily, raw bar, and classic preparations in elegant downtown setting.' },
-            { title: '🍝 Fiola Mare', type: 'Italian • Seafood • $$$', desc: 'Sophisticated Italian coastal cuisine with harbor views. Known for house-made pasta and fresh fish.' },
-            { title: '🥩 The Capital Grille', type: 'Steakhouse • Business dining • $$$$', desc: 'Premium dry-aged steaks, extensive wine list, and classic American fare in refined atmosphere.' }
-          ];
-        }
-      }
-      
-      // Travel/Tourism
-      else if (lowerMessage.includes('travel') || lowerMessage.includes('vacation') || lowerMessage.includes('trip') ||
-               lowerMessage.includes('visit') || lowerMessage.includes('tourism')) {
-        searchCategory = 'travel';
-        searchTitle = 'Travel Recommendations';
-        searchIcon = 'map-pin';
-        results = [
-          { title: '✈️ Expedia Travel Deals', type: 'Flights • Hotels • Packages', desc: 'Bundle and save on flight + hotel packages. Member pricing and exclusive deals.' },
-          { title: '🏨 Booking.com', type: 'Accommodations • Global • Free cancellation', desc: 'Wide selection of hotels, vacation rentals, and unique stays with flexible booking options.' },
-          { title: '🗺️ TripAdvisor', type: 'Reviews • Planning • Local tips', desc: 'Traveler reviews, destination guides, and local recommendations from real visitors.' },
-          { title: '🎯 Kayak Flight Search', type: 'Price comparison • Flexible dates', desc: 'Compare prices across airlines, track fare changes, and find the best travel deals.' }
-        ];
-      }
-      
-      // Default general search
-      else {
-        searchTitle = 'Web Search Results';
-        searchIcon = 'search';
-        results = [
-          { title: '🌐 Google Search', type: 'Search engine • Comprehensive', desc: 'Find the most relevant and up-to-date information across the web with intelligent search algorithms.' },
-          { title: '📰 News & Updates', type: 'Current events • Multiple sources', desc: 'Latest news, trending topics, and real-time updates from trusted news sources worldwide.' },
-          { title: '📚 Research Resources', type: 'Academic • Professional • Reference', desc: 'Access to scholarly articles, professional databases, and authoritative reference materials.' },
-          { title: '🎯 Specialized Search', type: 'Domain-specific • Expert sources', desc: 'Targeted search results from industry-specific sources and expert communities.' }
-        ];
-      }
-      
-      const searchCard = `
-        <div style="padding: 12px 20px; background: rgba(139, 92, 246, 0.3); backdrop-filter: blur(10px); margin: 8px 0; border-radius: 4px 18px 18px 18px; max-width: 95%; border: 1px solid rgba(139, 92, 246, 0.5);">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="${searchIcon}" style="width: 20px; height: 20px;"></i>
-            <span>Web Intelligence</span>
-          </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-            <div style="font-weight: 600; margin-bottom: 8px;">${searchTitle}</div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Based on your search query and current market data</div>
-          </div>
-          
-          ${results.map(result => `
-            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0;">
-              <div style="font-weight: 600; margin-bottom: 4px;">${result.title}</div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 6px;">${result.type}</div>
-              <div style="font-size: 13px; line-height: 1.4;">${result.desc}</div>
-            </div>
-          `).join('')}
-          
-          <div style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; margin-top: 12px;">
-            🌐 Found ${results.length} relevant results based on your query
-          </div>
-        </div>
-      `;
-      
-      messagesDiv.innerHTML += searchCard;
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      setTimeout(() => lucide.createIcons(), 100);
-    }
-    
-    // Real booking functions with actual web integration
-    function bookFlight(airline, price, bookingUrl) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `✈️ Opening ${airline} booking for ${price}...`);
-      
-      // Actually open the booking URL
-      if (bookingUrl) {
-        window.open(bookingUrl, '_blank');
-      } else {
-        window.open(`https://www.google.com/flights?q=flights+${airline}`, '_blank');
-      }
-      
-      // Add follow-up message
-      setTimeout(() => {
-        addSystemMessage(messagesDiv, `📱 Booking page opened. I'll help track your confirmation once booked!`);
-      }, 1000);
-    }
-    
-    function trackPrice(airline, destination) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `🔔 Price tracking enabled for ${airline} flights to ${destination}. I'll monitor for drops!`);
-      
-      // In a real app, this would set up price tracking
-      setTimeout(() => {
-        addSystemMessage(messagesDiv, `📊 I'll check prices daily and alert you to savings of $50+`);
-      }, 1500);
-    }
-    
-    // Deal Intelligence Function
-    function executeDealIntelligence(message, messagesDiv) {
-      const dealCard = `
-        <div style="padding: 12px 20px; background: rgba(16, 185, 129, 0.3); backdrop-filter: blur(10px); margin: 8px 0; border-radius: 4px 18px 18px 18px; max-width: 95%; border: 1px solid rgba(16, 185, 129, 0.5);">
-          <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="shopping-bag" style="width: 20px; height: 20px;"></i>
-            <span>Deal Intelligence</span>
-          </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-            <div style="font-weight: 600; margin-bottom: 8px;">Smart Deal Detection</div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">I'll scan for the best offers and savings</div>
-          </div>
-          <div style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center;">
-            💰 Deal detection coming soon - I'll help you find the best prices!
-          </div>
-        </div>
-      `;
-      
-      messagesDiv.innerHTML += dealCard;
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      setTimeout(() => lucide.createIcons(), 100);
-    }
-    
-    function addFlightToCalendar(airline, departure, destination) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      const flightDate = departure.split(' ').slice(-2).join(' '); // Extract time
-      
-      addSystemMessage(messagesDiv, `📅 Adding ${airline} flight to ${destination} to your calendar...`);
-      
-      // Generate calendar event
-      const eventDetails = {
-        title: `Flight: ${airline} to ${destination}`,
-        date: 'Next Week', // In real app, would parse from departure
-        time: flightDate,
-        type: 'travel'
-      };
-      
-      // Use existing calendar function
-      addToCalendar(eventDetails.title, eventDetails.date, eventDetails.type);
-    }
-    
-    function bookRestaurant(restaurantName, bookingUrl) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `🍽️ Opening ${restaurantName} reservation system...`);
-      
-      // Actually open the booking URL
-      if (bookingUrl) {
-        window.open(bookingUrl, '_blank');
-      } else {
-        window.open(`https://www.opentable.com/s?text=${encodeURIComponent(restaurantName)}`, '_blank');
-      }
-      
-      setTimeout(() => {
-        addSystemMessage(messagesDiv, `📱 Reservation page opened. I can help add the booking to your calendar once confirmed!`);
-      }, 1000);
-    }
-    
-    function callRestaurant(phoneNumber) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `📞 Calling ${phoneNumber}...`);
-      
-      // On mobile, this will open the phone dialer
-      window.open(`tel:${phoneNumber}`, '_self');
-    }
-    
-    function makeReservation(restaurant) {
-      // Legacy function - redirect to new booking function
-      bookRestaurant(restaurant, null);
-    }
-    
-    function getDirections(restaurant) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addSystemMessage(messagesDiv, `🗺️ Opening directions to ${restaurant}...`);
-      
-      // Open Google Maps with search
-      window.open(`https://maps.google.com/maps?q=${encodeURIComponent(restaurant)}`, '_blank');
-    }
-    
-    // Task Management Functions
-    function markTaskComplete(button) {
-      const taskCard = button.closest('.task-card');
-      const taskTitle = taskCard.querySelector('h4').textContent;
-      
-      // Add completion animation
-      taskCard.style.opacity = '0.7';
-      taskCard.style.transform = 'scale(0.98)';
-      
-      // Show completion message
-      addMessage('assistant', `✅ Task completed: "${taskTitle}". Great job staying on top of things!`);
-      
-      // Remove the task card after animation
-      setTimeout(() => {
-        taskCard.remove();
-      }, 1000);
-    }
-    
-    function editTask(button) {
-      const taskCard = button.closest('.task-card');
-      const taskTitle = taskCard.querySelector('h4').textContent;
-      
-      addMessage('assistant', `📝 Editing task: "${taskTitle}". What would you like to update?`);
-    }
-    
-    function snoozeTask(button) {
-      const taskCard = button.closest('.task-card');
-      const taskTitle = taskCard.querySelector('h4').textContent;
-      
-      // Update due date display
-      const dueDateSpan = taskCard.querySelector('.due-date');
-      dueDateSpan.innerHTML = '<i data-lucide="calendar"></i> Due: Tomorrow';
-      
-      // Re-initialize icons
-      if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-      }
-      
-      addMessage('assistant', `⏰ Task snoozed: "${taskTitle}" moved to tomorrow.`);
-    }
-    
-    function addNewTask() {
-      addMessage('assistant', '➕ What task would you like to add? Just tell me what you need to do and when.');
-    }
-    
-    function filterTasks() {
-      addMessage('assistant', '🔍 How would you like to filter your tasks? By priority (high/medium/low), due date, or category?');
-    }
-    
-    // Missing utility functions
-    function addSystemMessage(messagesDiv, message) {
-      if (!messagesDiv) {
-        messagesDiv = document.querySelector('.chat-messages-mobile');
-      }
-      addMessage('assistant', message, messagesDiv);
-    }
-    
-    function viewEventDetails(eventTitle, eventDate) {
-      const messagesDiv = document.querySelector('.chat-messages-mobile');
-      addMessage('assistant', `📅 Event Details: ${eventTitle} on ${eventDate}`);
-      
-      // Switch to chat view to show the message
-      showView('chat-mobile');
-    }
-    
-    // Add a proper addMessage function for different containers
-    function addMessage(type, content, container) {
-      if (!container) {
-        container = document.querySelector('.chat-messages-mobile');
-      }
-      
-      if (container) {
-        const messageDiv = document.createElement('div');
-        messageDiv.style.cssText = `
-          padding: 12px 20px; 
-          background: rgba(255,255,255,0.1); 
-          margin: 8px 0; 
-          border-radius: 18px 18px 18px 4px; 
-          max-width: 85%; 
-          border: 1px solid rgba(255,255,255,0.1);
-          color: white;
-        `;
-        messageDiv.innerHTML = content;
-        container.appendChild(messageDiv);
-        container.scrollTop = container.scrollHeight;
-        
-        // Initialize Lucide icons
-        if (typeof lucide !== 'undefined') {
-          lucide.createIcons();
-        }
-      }
-    }
-    
-    // Initialize app when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('🚀 Mobile app initializing...');
-      
-      // Initialize Lucide icons on page load
-      if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-        console.log('✅ Lucide icons initialized');
-      } else {
-        console.warn('⚠️ Lucide not loaded, retrying...');
-        // Retry after a short delay if Lucide isn't loaded yet
-        setTimeout(() => {
-          if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-            console.log('✅ Lucide icons initialized (retry)');
-          }
-        }, 500);
-      }
-      
-      // Set initial view
-      showView('chat-mobile');
-      
-      // Setup textarea auto-resize and Enter key handling
+      // Initialize textarea auto-resize
       const chatInput = document.getElementById('chatInput');
       if (chatInput) {
-        // Auto-resize functionality
-        function autoResize() {
-          chatInput.style.height = 'auto';
-          chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
-        }
+        chatInput.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
         
-        // Handle input events for auto-resize
-        chatInput.addEventListener('input', autoResize);
-        chatInput.addEventListener('paste', () => setTimeout(autoResize, 0));
-        
-        // Handle Enter key (Enter sends, Shift+Enter for new line)
-        chatInput.addEventListener('keydown', function(e) {
+        chatInput.addEventListener('keypress', function(e) {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
           }
         });
-        
-        // Initial resize
-        autoResize();
       }
     });
-    
-    // Also initialize icons when window loads (backup)
-    window.addEventListener('load', function() {
-      if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-      }
-    });
-    
+
     // ...existing code...
   </script>
 </body>
