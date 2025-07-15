@@ -1024,11 +1024,85 @@
           // Replace typing indicator with AI response
           const typingEl = document.getElementById('typing-indicator');
           if (typingEl && data.reply) {
-            typingEl.innerHTML = `
-              <div style="color: white; line-height: 1.4;">
-                ${data.reply}
-              </div>
-            `;
+            
+            // Check if this is a Life Intelligence structured response
+            if (data.reply.startsWith('LIFE_INTELLIGENCE_CARD:')) {
+              try {
+                const cardData = JSON.parse(data.reply.replace('LIFE_INTELLIGENCE_CARD:', ''));
+                
+                typingEl.innerHTML = `
+                  <div style="background: rgba(139, 92, 246, 0.3); border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 12px; padding: 16px; margin: 8px 0;">
+                    <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                      <i data-lucide="brain" style="width: 20px; height: 20px;"></i>
+                      <span>Life Intelligence</span>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                      <div style="font-weight: 600; margin-bottom: 6px;">📊 Analysis</div>
+                      <div style="font-size: 14px; line-height: 1.4;">${cardData.analysis}</div>
+                      <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; font-style: italic;">Framework: ${cardData.framework}</div>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                      <div style="font-weight: 600; margin-bottom: 8px;">🎯 Evidence-Based Insights</div>
+                      ${cardData.insights.map(insight => `
+                        <div style="margin: 6px 0; font-size: 13px; line-height: 1.4; padding-left: 12px; border-left: 2px solid rgba(139, 92, 246, 0.6);">
+                          ${insight}
+                        </div>
+                      `).join('')}
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                      <div style="font-weight: 600; margin-bottom: 8px;">✅ Action Protocol</div>
+                      ${cardData.action_steps.map((step, index) => `
+                        <div style="margin: 8px 0; font-size: 13px; line-height: 1.4; display: flex; gap: 8px;">
+                          <span style="background: rgba(139, 92, 246, 0.6); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0;">${index + 1}</span>
+                          <span>${step}</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                      <div style="font-weight: 600; margin-bottom: 6px;">🔄 Reframe</div>
+                      <div style="font-size: 14px; line-height: 1.4; font-style: italic;">${cardData.reframe}</div>
+                    </div>
+                    
+                    <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); padding: 12px; border-radius: 8px; margin-top: 12px;">
+                      <div style="font-weight: 600; margin-bottom: 6px;">🚀 Next Step (Today)</div>
+                      <div style="font-size: 14px; line-height: 1.4;">${cardData.next_step}</div>
+                    </div>
+                    
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-align: center; margin-top: 12px;">
+                      🧠 Evidence-based guidance from clinical psychology & relationship science
+                    </div>
+                  </div>
+                `;
+                
+                // Initialize Lucide icons
+                setTimeout(() => {
+                  if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                  }
+                }, 100);
+                
+              } catch (error) {
+                console.error('Error parsing Life Intelligence card:', error);
+                // Fallback to regular display
+                typingEl.innerHTML = `
+                  <div style="color: white; line-height: 1.4;">
+                    ${data.reply.replace('LIFE_INTELLIGENCE_CARD:', '')}
+                  </div>
+                `;
+              }
+            } else {
+              // Regular response display
+              typingEl.innerHTML = `
+                <div style="color: white; line-height: 1.4;">
+                  ${data.reply}
+                </div>
+              `;
+            }
+            
             typingEl.style.background = 'rgba(139, 92, 246, 0.2)';
             typingEl.style.borderColor = 'rgba(139, 92, 246, 0.4)';
             typingEl.removeAttribute('id');
