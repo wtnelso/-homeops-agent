@@ -75,7 +75,11 @@ function initializeDecoder() {
   
   // Show loading state initially
   showLoadingState();
-  
+
+  // Demo: Trigger flight search and commerce recommendations on dashboard load
+  fetchFlightResults({ origin: 'JFK', destination: 'LAX', date: new Date().toISOString().split('T')[0] });
+  fetchCommerceRecommendations({ userId: getCurrentUserId(), interests: ['travel', 'clothing', 'electronics'] });
+
   // Check initial state instead of just Gmail connection
   checkInitialState();
 }
@@ -193,6 +197,97 @@ function hideAllStates() {
 // 📧 EMAIL CARD RENDERING
 let showAllEmails = false;
 
+// --- FLIGHT & COMMERCE INTEGRATION ---
+let flightResults = [];
+let commerceRecommendations = [];
+
+async function fetchFlightResults(query) {
+  try {
+    const response = await fetch('/api/flight-search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(query)
+    });
+    const result = await response.json();
+    flightResults = result.flights || [];
+    renderFlightResults();
+  } catch (error) {
+    console.error('❌ Error fetching flight results:', error);
+    showError('Failed to fetch flight results');
+  }
+}
+
+async function fetchCommerceRecommendations(profile) {
+  try {
+    const response = await fetch('/api/commerce-profile/recommendations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profile)
+    });
+    const result = await response.json();
+    commerceRecommendations = result.recommendations || [];
+    renderCommerceRecommendations();
+  } catch (error) {
+    console.error('❌ Error fetching commerce recommendations:', error);
+    showError('Failed to fetch commerce recommendations');
+  }
+}
+
+function renderFlightResults() {
+  const container = document.getElementById('flight-results-container');
+  if (!container) return;
+  if (flightResults.length === 0) {
+    container.innerHTML = '<div style="color:#64748b;padding:2rem;">No flights found.</div>';
+    return;
+  }
+  container.innerHTML = flightResults.map(flight => `
+    <div class="flight-card" style="border-radius:12px;box-shadow:0 2px 8px #e0e7ff;background:#fff;margin-bottom:1rem;padding:1rem 1.5rem;">
+      <div style="font-weight:600;font-size:1.1rem;color:#3b82f6;">${flight.airline} ${flight.flightNumber}</div>
+      <div style="color:#22223b;">${flight.origin} → ${flight.destination}</div>
+      <div style="color:#64748b;">Departure: ${flight.departureTime} | Arrival: ${flight.arrivalTime}</div>
+      <div style="margin-top:0.5rem;font-size:1rem;color:#10b981;">Price: ${flight.price}</div>
+      <button class="btn-primary" style="margin-top:0.5rem;" onclick="bookFlight('${flight.id}')">Book Flight</button>
+    </div>
+  `).join('');
+}
+
+function renderCommerceRecommendations() {
+  const container = document.getElementById('commerce-recommendations-container');
+  if (!container) return;
+  if (commerceRecommendations.length === 0) {
+    container.innerHTML = '<div style="color:#64748b;padding:2rem;">No recommendations found.</div>';
+    return;
+  }
+  container.innerHTML = commerceRecommendations.map(rec => `
+    <div class="commerce-card" style="border-radius:12px;box-shadow:0 2px 8px #e0e7ff;background:#fff;margin-bottom:1rem;padding:1rem 1.5rem;">
+      <div style="font-weight:600;font-size:1.1rem;color:#f59e0b;">${rec.productName}</div>
+      <div style="color:#22223b;">${rec.description}</div>
+      <div style="color:#64748b;">Brand: ${rec.brand}</div>
+      <div style="margin-top:0.5rem;font-size:1rem;color:#10b981;">Price: ${rec.price}</div>
+      <a class="btn-primary" style="margin-top:0.5rem;" href="${rec.url}" target="_blank">View Product</a>
+    </div>
+  `).join('');
+}
+
+// Booking logic for flights
+async function bookFlight(flightId) {
+  try {
+    const response = await fetch('/api/flight-search/book', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ flightId, userId: getCurrentUserId() })
+    });
+    const result = await response.json();
+    if (result.success) {
+      showSuccess('Flight booked successfully!');
+    } else {
+      showError(result.error || 'Failed to book flight');
+    }
+  } catch (error) {
+    console.error('❌ Error booking flight:', error);
+    showError('Error booking flight');
+  }
+}
 function getPriorityValue(priority) {
   if (!priority) return 3;
   switch (priority.toLowerCase()) {
@@ -325,6 +420,22 @@ function renderEmailCards() {
   }
   
   container.innerHTML = summaryHtml + emailsToRender.map(email => createDecoderCard(email)).join('') + showMoreHtml;
+
+  // --- Insert Flight & Commerce Results UI ---
+  if (!document.getElementById('flight-results-container')) {
+    const flightDiv = document.createElement('div');
+    flightDiv.id = 'flight-results-container';
+    flightDiv.style.marginTop = '2rem';
+    container.parentNode.insertBefore(flightDiv, container.nextSibling);
+  }
+  if (!document.getElementById('commerce-recommendations-container')) {
+    const commerceDiv = document.createElement('div');
+    commerceDiv.id = 'commerce-recommendations-container';
+    commerceDiv.style.marginTop = '2rem';
+    container.parentNode.insertBefore(commerceDiv, container.nextSibling);
+  }
+  renderFlightResults();
+  renderCommerceRecommendations();
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }

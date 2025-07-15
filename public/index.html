@@ -1066,6 +1066,14 @@
       
       // Enhanced detection patterns
       
+      // Commerce/Shopping search detection - PRIORITY CHECK
+      if (msg.includes('gift') || msg.includes('present') || msg.includes('birthday') || 
+          msg.includes('need to buy') || msg.includes('looking for') || msg.includes('shopping for') ||
+          (msg.includes('need') && (msg.includes('for my') || msg.includes('daughter') || msg.includes('son') || msg.includes('kid')))) {
+        executeShoppingSearch(message, messagesDiv);
+        return true;
+      }
+      
       // Flight search detection - PRIORITY CHECK
       if (msg.includes('flight') || msg.includes('fly') || msg.includes('cheapest flight') || 
           (msg.includes('from') && msg.includes('to') && (msg.includes('dc') || msg.includes('washington') || msg.includes('london'))) ||
@@ -1945,9 +1953,9 @@
           executeRestaurantSearch(message, messagesDiv);
         } else if (msg.includes('hotel') || msg.includes('stay') || msg.includes('accommodation')) {
           executeHotelSearch(message, messagesDiv);
-        } else if (msg.includes('venue') || msg.includes('event') || msg.includes('birthday') || msg.includes('party')) {
+        } else if (msg.includes('venue') || msg.includes('event')) {
           executeVenueSearch(message, messagesDiv);
-        } else if (msg.includes('shop') || msg.includes('buy') || msg.includes('price')) {
+        } else if (msg.includes('shop') || msg.includes('buy') || msg.includes('price') || msg.includes('gift') || msg.includes('birthday') || msg.includes('present') || msg.includes('need to get') || msg.includes('looking for')) {
           executeShoppingSearch(message, messagesDiv);
         } else {
           executeGeneralWebSearch(message, messagesDiv);
@@ -2134,53 +2142,124 @@
     }
     
     async function searchRealFlights(origin, destination, dates) {
-      // Try multiple real flight APIs in order of preference
-      
-      // Get airport codes first
-      const originCode = await getAirportCode(origin);
-      const destCode = await getAirportCode(destination);
-      const dateString = getDateString(dates);
-      
-      // Option 1: Try Amadeus API (most comprehensive) if key available
-      if (CONFIG.AMADEUS_TOKEN) {
-        try {
-          const response = await fetch(`https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode=${originCode}&destinationLocationCode=${destCode}&departureDate=${dateString}&adults=1`, {
-            headers: {
-              'Authorization': `Bearer ${CONFIG.AMADEUS_TOKEN}`
-            }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            return parseAmadeusFlights(data);
-          }
-        } catch (e) {
-          console.log('Amadeus API not available');
+      try {
+        // Get airport codes
+        const originCode = await getAirportCode(origin);
+        const destCode = await getAirportCode(destination);
+        
+        // Parse dates for round-trip or one-way
+        let departureDate, returnDate;
+        if (dates.includes('returning') || dates.includes('return')) {
+          const parts = dates.split(/returning|return/i);
+          departureDate = parseDateString(parts[0].trim());
+          returnDate = parseDateString(parts[1].trim());
+        } else {
+          departureDate = parseDateString(dates);
         }
-      }
-      
-      // Option 2: Try Skyscanner API if key available
-      if (CONFIG.RAPIDAPI_KEY) {
-        try {
-          const response = await fetch(`https://partners.api.skyscanner.net/apiservices/browsequotes/v1.0/US/USD/en-US/${originCode}/${destCode}/${dateString}`, {
-            headers: {
-              'X-RapidAPI-Key': CONFIG.RAPIDAPI_KEY
-            }
-          });
+        
+        console.log('Calling backend flight search:', { originCode, destCode, departureDate, returnDate });
+        
+        // Call our working backend API
+        const response = await fetch('/api/flight-search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            origin: originCode,
+            destination: destCode,
+            date: departureDate,
+            returnDate: returnDate,
+            adults: 2, // Default to 2 people
+            directOnly: true // Default to direct flights
+          })
+        });
         
         if (response.ok) {
           const data = await response.json();
-          return parseSkyscannerFlights(data);
+          console.log('Backend flight response:', data);
+          
+          // Transform backend API response to match frontend expectations
+          const transformedFlights = (data.flights || []).map(flight => {
+            // Convert duration from ISO format (PT1H20M) to readable format
+            let duration = flight.duration || '';
+            if (duration.startsWith('PT')) {
+              const matches = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+              if (matches) {
+                const hours = matches[1] || '0';
+                const minutes = matches[2] || '0';
+                duration = `${hours}h ${minutes.padStart(2, '0')}m`;
+              }
+            }
+            
+            // Create booking URL for the real flight
+            const createBookingUrl = () => {
+              const flightOrigin = flight.departure?.split(' ')[0] || originCode;
+              const flightDest = flight.arrival?.split(' ')[0] || destCode;
+              return `https://www.google.com/flights?q=${flightOrigin}%20to%20${flightDest}%20on%20${departureDate}`;
+            };
+            
+            return {
+              airline: flight.airline || 'Unknown Airline',
+              departure: flight.departure || `${originCode} --:--`,
+              arrival: flight.arrival || `${destCode} --:--`,
+              duration: duration,
+              stops: flight.stops || 0,
+              price: flight.price || '0',
+              currency: flight.currency === 'EUR' ? '€' : '$',
+              isRoundTrip: flight.isRoundTrip || false,
+              rating: '8.7', // Default rating for real flights
+              bookingUrl: createBookingUrl()
+            };
+          });
+          
+          console.log('Transformed flights:', transformedFlights);
+          return transformedFlights;
+        } else {
+          console.error('Backend flight search failed:', response.status);
+          return [];
         }
-      } catch (e) {
-        console.log('Skyscanner API not available');
+        
+      } catch (error) {
+        console.error('Flight search error:', error);
+        return [];
       }
-      
-      // If no APIs work, return null to trigger fallback
-      return null;
     }
     
-    
+    function parseDateString(dateStr) {
+      // Handle various date formats
+      const cleaned = dateStr.toLowerCase().trim();
+      
+      // Month name patterns  
+      const monthMap = {
+        'january': '01', 'jan': '01',
+        'february': '02', 'feb': '02', 
+        'march': '03', 'mar': '03',
+        'april': '04', 'apr': '04',
+        'may': '05',
+        'june': '06', 'jun': '06',
+        'july': '07', 'jul': '07',
+        'august': '08', 'aug': '08',
+        'september': '09', 'sep': '09', 'sept': '09',
+        'october': '10', 'oct': '10',
+        'november': '11', 'nov': '11',
+        'december': '12', 'dec': '12'
+      };
+      
+      // Match patterns like "July 25th", "July 25", "Jul 25"
+      const monthDayMatch = cleaned.match(/(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\s+(\d{1,2})/);
+      
+      if (monthDayMatch) {
+        const month = monthMap[monthDayMatch[1]];
+        const day = monthDayMatch[2].padStart(2, '0');
+        return `2025-${month}-${day}`;
+      }
+      
+      // Default fallback
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    }
+
     // Create a proper Google Flights booking URL with specific dates and airports
     async function createFlightBookingUrl(origin, destination, departureDate, returnDate) {
       // Get airport codes asynchronously
@@ -2264,17 +2343,22 @@
       try {
         // First try a simple lookup for major cities to avoid API calls
         const majorCities = {
-          'San Francisco': 'SFO',
-          'Los Angeles': 'LAX', 
-          'New York': 'JFK',
-          'Washington DC': 'DCA',
-          'Austin': 'AUS',
-          'Chicago': 'ORD',
-          'Miami': 'MIA'
+          'san francisco': 'SFO',
+          'los angeles': 'LAX', 
+          'new york': 'JFK',
+          'jfk': 'JFK',  // Direct airport code
+          'boston': 'BOS',
+          'bos': 'BOS',  // Direct airport code
+          'washington dc': 'DCA',
+          'austin': 'AUS',
+          'chicago': 'ORD',
+          'miami': 'MIA'
         };
         
-        if (majorCities[city]) {
-          return majorCities[city];
+        // Make lookup case-insensitive
+        const cityLower = city.toLowerCase();
+        if (majorCities[cityLower]) {
+          return majorCities[cityLower];
         }
         
         // For other cities, use API Ninjas Airport API (free tier) if available
@@ -2391,25 +2475,61 @@
             <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Budget: Under ${budget} • ${dates}</div>
           </div>
           
-          ${flightResults.map(flight => `
-            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0; border: 1px solid rgba(255,255,255,0.1);">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div style="font-weight: 600;">${flight.airline}</div>
-                <div style="background: rgba(34, 197, 94, 0.3); color: #86efac; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${flight.rating}/10</div>
-              </div>
-              <div style="font-size: 14px; margin-bottom: 4px;">${flight.departure} → ${flight.arrival}</div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">${flight.duration} • ${flight.stops}</div>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-weight: 600; color: #86efac; font-size: 18px;">${flight.price}</div>
-                <button onclick="window.open('${flight.bookingUrl || `https://www.google.com/flights?q=${destination}`}', '_blank')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
-                  📱 Book Now
-                </button>
-              </div>
-            </div>
-          `).join('')}
+          ${flightResults.map(flight => {
+            if (flight.isRoundTrip) {
+              // Handle round-trip flights
+              return `
+                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0; border: 1px solid rgba(255,255,255,0.1);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-weight: 600;">${flight.airline}</div>
+                    <div style="background: rgba(16, 185, 129, 0.3); color: #10b981; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Round-trip</div>
+                  </div>
+                  
+                  <!-- Outbound Flight -->
+                  <div style="margin-bottom: 8px; padding: 8px; border-left: 3px solid #10b981; background: rgba(16, 185, 129, 0.1);">
+                    <div style="font-size: 11px; color: #10b981; margin-bottom: 2px; font-weight: 600;">OUTBOUND</div>
+                    <div style="font-size: 13px; margin-bottom: 2px;">${flight.outbound.departure} → ${flight.outbound.arrival}</div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${flight.outbound.date} • ${flight.outbound.duration} • ${flight.outbound.stops === 0 ? 'Direct' : flight.outbound.stops + ' stop(s)'}</div>
+                  </div>
+                  
+                  <!-- Return Flight -->
+                  <div style="margin-bottom: 8px; padding: 8px; border-left: 3px solid #3b82f6; background: rgba(59, 130, 246, 0.1);">
+                    <div style="font-size: 11px; color: #3b82f6; margin-bottom: 2px; font-weight: 600;">RETURN</div>
+                    <div style="font-size: 13px; margin-bottom: 2px;">${flight.return.departure} → ${flight.return.arrival}</div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${flight.return.date} • ${flight.return.duration} • ${flight.return.stops === 0 ? 'Direct' : flight.return.stops + ' stop(s)'}</div>
+                  </div>
+                  
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 600; color: #86efac; font-size: 18px;">${flight.currency || '$'}${Math.round(parseFloat(flight.price || '0'))}</div>
+                    <button onclick="window.open('https://www.jetblue.com/book/flights?from=${flight.outbound.departure.split(' ')[0]}&to=${flight.outbound.arrival.split(' ')[0]}&depart=${flight.outbound.date}&return=${flight.return.date}', '_blank')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
+                      📱 Book Round-trip
+                    </button>
+                  </div>
+                </div>
+              `;
+            } else {
+              // Handle one-way flights
+              return `
+                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0; border: 1px solid rgba(255,255,255,0.1);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="font-weight: 600;">${flight.airline}</div>
+                    <div style="background: rgba(34, 197, 94, 0.3); color: #86efac; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${flight.rating || '8.5'}/10</div>
+                  </div>
+                  <div style="font-size: 14px; margin-bottom: 4px;">${flight.departure} → ${flight.arrival}</div>
+                  <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">${flight.duration} • ${flight.stops === 0 ? 'Direct' : flight.stops + ' stop(s)'}</div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 600; color: #86efac; font-size: 18px;">${flight.currency || '$'}${Math.round(parseFloat(flight.price || '0'))}</div>
+                    <button onclick="window.open('${flight.bookingUrl || `https://www.google.com/flights?q=${destination}`}', '_blank')" style="background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 6px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer;">
+                      📱 Book Now
+                    </button>
+                  </div>
+                </div>
+              `;
+            }
+          }).join('')}
           
           <div style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; margin-top: 12px;">
-            ✈️ AI found ${flightResults.length} premium options under your budget. Prices include baggage fees.
+            ✈️ AI found ${flightResults.length} premium options. Prices shown for 2 passengers.
           </div>
         </div>
       `;
@@ -2749,19 +2869,107 @@
     }
     
     // Shopping Search Intelligence
-    function executeShoppingSearch(message, messagesDiv) {
+    async function executeShoppingSearch(message, messagesDiv) {
+      const msg = message.toLowerCase();
+      
+      // Extract commerce intent details
+      let occasion = null;
+      let recipient = null;
+      let budget = null;
+      
+      if (msg.includes('birthday')) occasion = 'birthday';
+      if (msg.includes('wedding')) occasion = 'wedding';
+      if (msg.includes('anniversary')) occasion = 'anniversary';
+      if (msg.includes('baby') || msg.includes('newborn')) occasion = 'baby';
+      
+      if (msg.includes('daughter') || msg.includes('girl')) recipient = 'girl';
+      if (msg.includes('son') || msg.includes('boy')) recipient = 'boy';
+      if (msg.includes('friend')) recipient = 'friend';
+      if (msg.includes('wife') || msg.includes('husband')) recipient = 'partner';
+      
+      const budgetMatch = msg.match(/\$\d+|\d+\s*dollars?|\d+\s*bucks?/);
+      if (budgetMatch) budget = budgetMatch[0];
+      
       messagesDiv.innerHTML += `
         <div style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 12px; padding: 16px; margin: 12px 0;">
           <div style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="search" style="width: 20px; height: 20px;"></i>
-            <span>Shopping Intelligence</span>
+            <i data-lucide="shopping-cart" style="width: 20px; height: 20px;"></i>
+            <span>Commerce Intelligence</span>
           </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px;">
-            <div>Price comparison and deal detection for your search query...</div>
+          <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <div>🔍 Searching for products and deals...</div>
+          </div>
+          <div id="commerce-results" style="min-height: 40px;">
+            <div style="text-align: center; padding: 20px; opacity: 0.7;">
+              <i data-lucide="loader-2" style="width: 24px; height: 24px; animation: spin 1s linear infinite;"></i>
+            </div>
           </div>
         </div>
       `;
       setTimeout(() => lucide.createIcons(), 100);
+      
+      try {
+        const response = await fetch('/api/commerce-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: message,
+            occasion: occasion,
+            recipient: recipient,
+            budget: budget
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Commerce search failed: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.products && data.products.length > 0) {
+          let productsHtml = '';
+          
+          data.products.slice(0, 4).forEach(product => {
+            productsHtml += `
+              <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin: 8px 0; display: flex; gap: 12px;">
+                ${product.image ? `<img src="${product.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;" onerror="this.style.display='none'">` : ''}
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; margin-bottom: 4px; font-size: 14px;">${product.title}</div>
+                  <div style="color: #4ade80; font-weight: 600; margin-bottom: 6px;">${product.price}</div>
+                  <a href="${product.link}" target="_blank" style="background: #f59e0b; color: #000; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; display: inline-block;">
+                    🛒 Buy on Amazon
+                  </a>
+                </div>
+              </div>
+            `;
+          });
+          
+          if (data.recommendations && data.recommendations.length > 0) {
+            productsHtml += `
+              <div style="background: rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 12px; margin: 12px 0;">
+                <div style="font-weight: 600; margin-bottom: 8px;">💡 Smart Recommendations:</div>
+                ${data.recommendations.map(rec => `<div style="font-size: 13px; opacity: 0.9; margin: 4px 0;">• ${rec}</div>`).join('')}
+              </div>
+            `;
+          }
+          
+          document.getElementById('commerce-results').innerHTML = productsHtml;
+        } else {
+          document.getElementById('commerce-results').innerHTML = `
+            <div style="text-align: center; padding: 20px; opacity: 0.7;">
+              <div>No products found. Try a different search term.</div>
+            </div>
+          `;
+        }
+        
+      } catch (error) {
+        console.error('Commerce search error:', error);
+        document.getElementById('commerce-results').innerHTML = `
+          <div style="text-align: center; padding: 20px; color: #ef4444;">
+            <div>Search temporarily unavailable. Please try again.</div>
+          </div>
+        `;
+      }
     }
     
     // General Web Search Intelligence

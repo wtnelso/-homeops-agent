@@ -1520,6 +1520,256 @@ async function getCalendarClient(userId) {
 }
 
 // Endpoint to fetch Google Calendar events
+
+
+// ================================
+// 🛒 COMMERCE INTELLIGENCE API
+// ================================
+app.post('/api/commerce-search', async (req, res) => {
+  try {
+    const { query, occasion, budget, recipient } = req.body;
+    
+    console.log('🛒 Commerce search request:', { query, occasion, budget, recipient });
+    
+    if (!query) {
+      return res.status(400).json({ error: 'Search query is required' });
+    }
+    
+    // Build enhanced search query for Amazon products
+    let searchQuery = query;
+    
+    // Add context for better results
+    if (occasion) {
+      searchQuery = `${searchQuery} ${occasion}`;
+    }
+    if (recipient) {
+      searchQuery = `${searchQuery} for ${recipient}`;
+    }
+    if (budget) {
+      searchQuery = `${searchQuery} under ${budget}`;
+    }
+    
+    // Add Amazon site search to get direct Amazon results
+    const amazonQuery = `site:amazon.com ${searchQuery}`;
+    
+    console.log('🔍 Enhanced search query:', amazonQuery);
+    
+    // Use Google Custom Search API
+    const apiKey = process.env.GOOGLE_CUSTOM_SEARCH_API_KEY;
+    const cx = process.env.GOOGLE_CUSTOM_SEARCH_CX;
+    
+    if (!apiKey || !cx) {
+      throw new Error('Google Custom Search API not configured');
+    }
+    
+    const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(amazonQuery)}&num=6`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Google Search API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('📊 Google Search API Response received');
+    
+    // Transform search results to commerce format
+    let products = [];
+    if (data.items && Array.isArray(data.items)) {
+      products = data.items.map(item => {
+        // Extract Amazon product info from search results
+        const title = item.title || 'Product';
+        const link = item.link || '';
+        const snippet = item.snippet || '';
+        const image = item.pagemap?.cse_image?.[0]?.src || item.pagemap?.cse_thumbnail?.[0]?.src || '';
+        
+        // Try to extract price from snippet
+        let price = 'Price varies';
+        const priceMatch = snippet.match(/\$[\d,]+\.?\d*/);
+        if (priceMatch) {
+          price = priceMatch[0];
+        }
+        
+        // Extract rating if available
+        let rating = null;
+        const ratingMatch = snippet.match(/(\d+\.?\d*)\s*out\s*of\s*5\s*stars/i);
+        if (ratingMatch) {
+          rating = parseFloat(ratingMatch[1]);
+        }
+        
+        return {
+          title: title.replace(' - Amazon.com', '').replace(' | Amazon', ''),
+          price: price,
+          image: image,
+          link: link,
+          description: snippet,
+          rating: rating,
+          source: 'Amazon',
+          category: occasion || 'General'
+        };
+      });
+    }
+    
+    // Add smart recommendations based on query type
+    let recommendations = [];
+    const queryLower = query.toLowerCase();
+    
+    if (queryLower.includes('birthday') && queryLower.includes('gift')) {
+      recommendations.push('Consider the recipient\'s age and interests');
+      recommendations.push('Popular birthday gifts include books, electronics, and experiences');
+    }
+    
+    if (queryLower.includes('baby') || queryLower.includes('newborn')) {
+      recommendations.push('Focus on safety-certified products');
+      recommendations.push('Consider practical items like clothes, feeding supplies, or toys');
+    }
+    
+    if (queryLower.includes('wedding') || queryLower.includes('anniversary')) {
+      recommendations.push('Registry items are always appreciated');
+      recommendations.push('Consider personalized or memorable gifts');
+    }
+    
+    console.log(`✅ Found ${products.length} commerce results`);
+    
+    res.json({
+      success: true,
+      query: searchQuery,
+      products: products,
+      recommendations: recommendations,
+      totalResults: data.searchInformation?.totalResults || 0
+    });
+    
+  } catch (error) {
+    console.error('❌ Commerce search error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Commerce search error', 
+      error: error.message 
+    });
+  }
+});
+
+
+// ================================
+// ✈️ FLIGHT SEARCH API ENDPOINT
+// ================================
+app.post('/api/flight-search', async (req, res) => {
+  try {
+    const { origin, destination, date, returnDate, adults = 2, directOnly = true } = req.body;
+    
+    console.log('🛫 Flight search request:', { origin, destination, date, returnDate, adults, directOnly });
+    
+    // Get Amadeus token
+    const tokenResponse = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: process.env.AMADEUS_API_KEY,
+        client_secret: process.env.AMADEUS_API_SECRET
+      })
+    });
+    
+    if (!tokenResponse.ok) {
+      throw new Error(`Failed to get Amadeus token: ${tokenResponse.status}`);
+    }
+    
+    const tokenData = await tokenResponse.json();
+    const token = tokenData.access_token;
+    
+    // Build URL for flight search
+    let url = `https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode=${origin}&destinationLocationCode=${destination}&departureDate=${date}&adults=${adults || 1}&max=3`;
+    
+    if (directOnly) {
+      url += '&nonStop=true';
+    }
+    
+    if (returnDate) {
+      url += `&returnDate=${returnDate}`;
+    }
+    
+    console.log('🔗 Amadeus API URL:', url);
+    
+    const flightResponse = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    if (!flightResponse.ok) {
+      throw new Error(`Amadeus API error: ${flightResponse.status}`);
+    }
+    
+    const data = await flightResponse.json();
+    console.log('📊 Amadeus API Response received');
+    
+    // Transform Amadeus data to frontend format
+    let flights = [];
+    if (Array.isArray(data.data)) {
+      flights = data.data.map(offer => {
+        const isRoundTrip = offer.itineraries?.length > 1;
+        
+        if (isRoundTrip) {
+          const outbound = offer.itineraries[0];
+          const returnFlight = offer.itineraries[1];
+          
+          const outSeg = outbound?.segments?.[0];
+          const retSeg = returnFlight?.segments?.[0];
+          
+          const carrierCode = outSeg?.carrierCode || offer.validatingAirlineCodes?.[0] || 'XX';
+          const airline = data.dictionaries?.carriers?.[carrierCode] || carrierCode;
+          
+          return {
+            isRoundTrip: true,
+            airline: airline,
+            outbound: {
+              departure: `${outSeg?.departure?.iataCode || ''} ${outSeg?.departure?.at ? outSeg.departure.at.split('T')[1].slice(0,5) : ''}`,
+              arrival: `${outSeg?.arrival?.iataCode || ''} ${outSeg?.arrival?.at ? outSeg.arrival.at.split('T')[1].slice(0,5) : ''}`,
+              date: outSeg?.departure?.at ? outSeg.departure.at.split('T')[0] : '',
+              duration: outbound?.duration || '',
+              stops: outbound?.segments?.length ? outbound.segments.length - 1 : 0
+            },
+            return: {
+              departure: `${retSeg?.departure?.iataCode || ''} ${retSeg?.departure?.at ? retSeg.departure.at.split('T')[1].slice(0,5) : ''}`,
+              arrival: `${retSeg?.arrival?.iataCode || ''} ${retSeg?.arrival?.at ? retSeg.arrival.at.split('T')[1].slice(0,5) : ''}`,
+              date: retSeg?.departure?.at ? retSeg.departure.at.split('T')[0] : '',
+              duration: returnFlight?.duration || '',
+              stops: returnFlight?.segments?.length ? returnFlight.segments.length - 1 : 0
+            },
+            price: offer.price?.grandTotal || offer.price?.total || 'N/A',
+            currency: offer.price?.currency || 'USD'
+          };
+        } else {
+          // One-way flight
+          const itinerary = offer.itineraries?.[0];
+          const segment = itinerary?.segments?.[0];
+          const carrierCode = segment?.carrierCode || offer.validatingAirlineCodes?.[0] || 'XX';
+          const airline = data.dictionaries?.carriers?.[carrierCode] || carrierCode;
+          
+          return {
+            isRoundTrip: false,
+            airline: airline,
+            departure: `${segment?.departure?.iataCode || ''} ${segment?.departure?.at ? segment.departure.at.split('T')[1].slice(0,5) : ''}`,
+            arrival: `${segment?.arrival?.iataCode || ''} ${segment?.arrival?.at ? segment.arrival.at.split('T')[1].slice(0,5) : ''}`,
+            duration: itinerary?.duration || '',
+            stops: itinerary?.segments?.length ? itinerary.segments.length - 1 : 0,
+            price: offer.price?.grandTotal || offer.price?.total || 'N/A',
+            currency: offer.price?.currency || 'USD',
+            date: segment?.departure?.at ? segment.departure.at.split('T')[0] : ''
+          };
+        }
+      });
+    }
+    
+    console.log('✅ Processed flights:', flights.length);
+    res.json({ flights });
+    
+  } catch (error) {
+    console.error('❌ Flight search error:', error);
+    res.status(500).json({ success: false, message: 'Flight search error', error: error.message });
+  }
+});
+
 app.get('/api/calendar/events', async (req, res) => {
   const { user_id, timeMin, timeMax, maxResults = 50 } = req.query;
   
