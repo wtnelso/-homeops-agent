@@ -1,8 +1,9 @@
 services:
-  - type: static_site
-    name: homeops-frontend
-    buildCommand: echo "No build needed"
-    publishDir: public
+  - type: web
+    name: homeops-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
     branch: main
     envVars:
       - key: OPENAI_API_KEY
@@ -12,6 +13,6 @@ services:
       - key: GMAIL_CLIENT_SECRET
         sync: false
       - key: GMAIL_REDIRECT_URI
-        value: https://homeops-agent.onrender.com/auth/google/callback
-    healthCheckPath: /
+        value: https://homeops-backend.onrender.com/auth/google/callback
+    healthCheckPath: /health
     autoDeploy: true 
