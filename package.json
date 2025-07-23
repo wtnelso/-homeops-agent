@@ -2,13 +2,14 @@
   "name": "homeops-agent",
   "version": "1.0.0",
   "description": "Personal AI assistant for home operations",
-  "main": "index.cjs",
+  "main": "server.js",
   "scripts": {
-    "start": "node --expose-gc --max-old-space-size=512 index.cjs",
-    "dev": "node --expose-gc --max-old-space-size=512 --watch index.cjs",
+    "start": "node server.js",
+    "dev": "node --watch server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "amazon-paapi": "^1.0.7",
     "axios": "^1.10.0",
     "cheerio": "^1.1.0",
     "chrono-node": "^2.7.5",

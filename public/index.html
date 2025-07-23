@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>HomeOps - Mobile</title>
+  <title>HomeOps - Mobile v7.9-SIMPLE-BACK-NAVIGATION-1753205890</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -88,8 +91,9 @@
       display: none;
       height: 100%;
       padding: 12px;
-      padding-bottom: 100px;
+      padding-bottom: 180px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     
     .mobile-view.active {
@@ -177,7 +181,7 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       /* Fixed height calculation for better mobile experience */
       min-height: 300px;
-      max-height: calc(100vh - 220px); /* Increased to account for input area */
+      max-height: calc(100vh - 280px); /* Increased significantly to prevent cutoff */
     }
     
     .chat-input-mobile {
@@ -1478,6 +1482,9 @@
     async function executeShoppingSearch(message, messagesDiv) {
       console.log('🛍️ executeShoppingSearch called with:', message);
       
+      const timestamp = Date.now();
+      const uniqueId = `commerce-results-${timestamp}`;
+      
       const commerceCard = `
         <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 20px; margin: 15px 0;">
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
@@ -1485,15 +1492,17 @@
             <strong style="font-size: 18px; color: white;">Commerce Intelligence</strong>
           </div>
           <div style="color: rgba(255,255,255,0.9); margin-bottom: 15px;">Finding the best places to buy: <strong>${message}</strong></div>
-          <div id="commerce-results"></div>
+          <div id="${uniqueId}"></div>
         </div>
       `;
       
       messagesDiv.innerHTML += commerceCard;
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
       
+      const currentResultsDiv = document.getElementById(uniqueId);
+      
       try {
-        const response = await fetch('http://localhost:3000/api/commerce-search-enhanced', {
+        const response = await fetch('/api/commerce-intelligence', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: message })
@@ -1503,147 +1512,143 @@
         console.log('📊 Commerce API response:', data);
         let results = '';
         
-        if (data.success && data.productCategories) {
-          data.productCategories.forEach((category, index) => {
-            results += `
-              <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 18px; margin: 15px 0;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                  <i data-lucide="gift" style="width: 18px; height: 18px; color: #22c55e;"></i>
-                  <h3 style="color: white; margin: 0; font-size: 16px; font-weight: 600;">${category.category}</h3>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 16px;">
-                  <i data-lucide="sparkles" style="width: 14px; height: 14px; color: rgba(255,255,255,0.7);"></i>
-                  <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 14px;">${category.description}</p>
-                </div>
-                
-                <div style="display: grid; gap: 16px;">
-                  ${category.sources ? category.sources.map(source => {
-                    // D2C Brand Card - Premium Treatment
-                    if (source.brandType === 'd2c') {
-                      return `
-                        <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(99, 102, 241, 0.2)); border: 2px solid rgba(139, 92, 246, 0.6); border-radius: 12px; padding: 18px; position: relative;">
-                          <!-- D2C Brand Pick Badge -->
-                          <div style="position: absolute; top: -1px; right: -1px; background: linear-gradient(135deg, #8b5cf6, #06b6d4); color: white; padding: 4px 12px; border-radius: 0 12px 0 8px; font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                            <i data-lucide="award" style="width: 12px; height: 12px;"></i>
-                            D2C BRAND PICK
-                          </div>
-                          
-                          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; margin-top: 8px;">
-                            <div style="flex: 1;">
-                              <div style="font-weight: 700; color: white; font-size: 18px; margin-bottom: 6px;">${source.retailer}</div>
-                              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                                <i data-lucide="check-circle" style="width: 14px; height: 14px; color: #22c55e;"></i>
-                                <span style="color: #22c55e; font-size: 13px; font-weight: 600;">Trusted Brand</span>
-                              </div>
-                              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
-                                <i data-lucide="dollar-sign" style="width: 16px; height: 16px; color: white;"></i>
-                                <span style="font-size: 20px; color: white; font-weight: 700;">${source.price}</span>
-                                <span style="font-size: 12px; color: rgba(255,255,255,0.7); margin-left: 8px;">
-                                  <i data-lucide="truck" style="width: 12px; height: 12px; margin-right: 4px;"></i>
-                                  ${source.shipping}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <!-- Value Proposition -->
-                          <div style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-                            <div style="font-size: 13px; color: rgba(255,255,255,0.95); line-height: 1.5; margin-bottom: 8px;">${source.advantage}</div>
-                            <div style="font-size: 12px; color: #a7f3d0; font-weight: 600;">This brand has earned customer loyalty through authentic marketing & quality products</div>
-                          </div>
-                          
-                          <button onclick="window.open('${source.link || source.retailer.toLowerCase().replace(/\\s+/g, '') + '.com'}', '_blank')" 
-                                  style="width: 100%; background: linear-gradient(135deg, #8b5cf6, #06b6d4); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
-                            <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
-                            Shop Direct from ${source.retailer}
-                          </button>
-                        </div>
-                      `;
-                    }
-                    // Amazon Alternative Card - Utility Treatment
-                    else if (source.retailer === 'Amazon') {
-                      return `
-                        <div style="background: rgba(75, 85, 99, 0.2); border: 1px solid rgba(107, 114, 128, 0.4); border-radius: 8px; padding: 14px; margin-top: 8px;">
-                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <div style="flex: 1;">
-                              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                                <i data-lucide="package" style="width: 14px; height: 14px; color: #9ca3af;"></i>
-                                <span style="font-weight: 500; color: #d1d5db; font-size: 14px;">${source.retailer} Alternative</span>
-                              </div>
-                              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                                <i data-lucide="box" style="width: 14px; height: 14px; color: #9ca3af;"></i>
-                                <span style="font-size: 13px; color: #9ca3af;">${source.productName || 'Similar Product'}</span>
-                              </div>
-                              <div style="display: flex; align-items: center; gap: 6px;">
-                                <i data-lucide="dollar-sign" style="width: 14px; height: 14px; color: #d1d5db;"></i>
-                                <span style="font-size: 16px; color: #d1d5db; font-weight: 600;">${source.price}</span>
-                                <span style="font-size: 11px; color: rgba(255,255,255,0.6); margin-left: 6px;">
-                                  <i data-lucide="truck" style="width: 10px; height: 10px; margin-right: 2px;"></i>
-                                  ${source.shipping}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div style="font-size: 11px; color: #9ca3af; margin-bottom: 12px; padding: 8px; background: rgba(107, 114, 128, 0.1); border-radius: 4px;">
-                            If you prefer fast shipping & returns (but less brand connection)
-                          </div>
-                          
-                          <button onclick="window.open('${source.link || 'https://amazon.com/s?k=' + encodeURIComponent(source.searchTerm || category.category)}', '_blank')" 
-                                  style="width: 100%; background: rgba(107, 114, 128, 0.4); color: #d1d5db; border: 1px solid rgba(107, 114, 128, 0.6); padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                            <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i>
-                            Find on Amazon
-                          </button>
-                        </div>
-                      `;
-                    }
-                    // Other retailers - Standard treatment
-                    else {
-                      return `
-                        <div style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 14px;">
-                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <div style="flex: 1;">
-                              <div style="font-weight: 600; color: white; font-size: 15px; margin-bottom: 4px;">${source.retailer}</div>
-                              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                                <i data-lucide="dollar-sign" style="width: 14px; height: 14px; color: white;"></i>
-                                <span style="font-size: 16px; color: white; font-weight: 600;">${source.price}</span>
-                                <span style="font-size: 11px; color: rgba(255,255,255,0.6); margin-left: 6px;">${source.shipping}</span>
-                              </div>
-                              <div style="font-size: 12px; color: rgba(255,255,255,0.8);">${source.advantage}</div>
-                            </div>
-                          </div>
-                          
-                          <button onclick="window.open('${source.link || source.retailer.toLowerCase().replace(/\\s+/g, '') + '.com'}', '_blank')" 
-                                  style="width: 100%; background: rgba(255, 255, 255, 0.15); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                            <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                            Shop at ${source.retailer}
-                          </button>
-                        </div>
-                      `;
-                    }
-                  }).join('') : ''}
+        if (data.success && data.results && data.results.length > 0) {
+          // Process Commerce Intelligence results
+          results += `
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 18px; margin: 15px 0;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <i data-lucide="gift" style="width: 18px; height: 18px; color: #22c55e;"></i>
+                <h3 style="color: white; margin: 0; font-size: 16px; font-weight: 600;">Commerce Intelligence Recommendations</h3>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 16px;">
+                <i data-lucide="sparkles" style="width: 14px; height: 14px; color: rgba(255,255,255,0.7);"></i>
+                <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 14px;">${data.strategy}</p>
+              </div>
+              
+              <div style="display: grid; gap: 16px;">
+          `;
+          
+          data.results.forEach((result, index) => {
+            // DTC Brand Card - Premium Treatment
+            if (result.source !== 'Amazon' && result.loyaltyScore > 0.8) {
+              results += `
+                <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(99, 102, 241, 0.2)); border: 2px solid rgba(139, 92, 246, 0.6); border-radius: 12px; padding: 18px; position: relative;">
+                  <!-- D2C Brand Pick Badge -->
+                  <div style="position: absolute; top: -1px; right: -1px; background: linear-gradient(135deg, #8b5cf6, #06b6d4); color: white; padding: 4px 12px; border-radius: 0 12px 0 8px; font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                    <i data-lucide="award" style="width: 12px; height: 12px;"></i>
+                    DTC BRAND PICK
+                  </div>
                   
-                  <!-- Trade-off Message -->
-                  ${category.sources && category.sources.some(s => s.brandType === 'd2c') && category.sources.some(s => s.retailer === 'Amazon') ? `
-                    <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 6px; padding: 10px; margin-top: 8px;">
-                      <div style="font-size: 11px; color: #fbbf24; font-weight: 600; text-align: center;">
-                        Trade-off: Fast delivery vs supporting innovative D2C brands
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; margin-top: 8px;">
+                    <div style="flex: 1;">
+                      <div style="font-weight: 700; color: white; font-size: 18px; margin-bottom: 6px;">${result.source}</div>
+                      <div style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px; margin-bottom: 8px;">${result.title}</div>
+                      <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                        <i data-lucide="check-circle" style="width: 14px; height: 14px; color: #22c55e;"></i>
+                        <span style="color: #22c55e; font-size: 13px; font-weight: 600;">Loyalty Score: ${Math.round(result.loyaltyScore * 100)}%</span>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
+                        <i data-lucide="dollar-sign" style="width: 16px; height: 16px; color: white;"></i>
+                        <span style="font-size: 20px; color: white; font-weight: 700;">${result.price}</span>
+                        <span style="font-size: 12px; color: rgba(255,255,255,0.7); margin-left: 8px;">
+                          <i data-lucide="truck" style="width: 12px; height: 12px; margin-right: 4px;"></i>
+                          ${result.delivery}
+                        </span>
                       </div>
                     </div>
-                  ` : ''}
+                  </div>
+                  
+                  <!-- Value Proposition -->
+                  <div style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.95); line-height: 1.5; margin-bottom: 8px;">${result.reason}</div>
+                    <div style="font-size: 12px; color: #a7f3d0; font-weight: 600;">This brand has earned customer attention through merit, not paid placement</div>
+                  </div>
+                  
+                  <button onclick="window.open('${result.url}', '_blank')" 
+                          style="width: 100%; background: linear-gradient(135deg, #8b5cf6, #06b6d4); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                    <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
+                    Shop Direct from ${result.source}
+                  </button>
                 </div>
-              </div>
-            `;
+              `;
+            }
+            // Amazon Alternative Card - Utility Treatment
+            else if (result.source === 'Amazon') {
+              results += `
+                <div style="background: rgba(75, 85, 99, 0.2); border: 1px solid rgba(107, 114, 128, 0.4); border-radius: 8px; padding: 14px; margin-top: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="flex: 1;">
+                      <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                        <i data-lucide="package" style="width: 14px; height: 14px; color: #9ca3af;"></i>
+                        <span style="font-weight: 500; color: #d1d5db; font-size: 14px;">${result.source} Alternative</span>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                        <i data-lucide="box" style="width: 14px; height: 14px; color: #9ca3af;"></i>
+                        <span style="font-size: 13px; color: #9ca3af;">${result.title}</span>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="dollar-sign" style="width: 14px; height: 14px; color: #d1d5db;"></i>
+                        <span style="font-size: 16px; color: #d1d5db; font-weight: 600;">${result.price}</span>
+                        <span style="font-size: 11px; color: rgba(255,255,255,0.6); margin-left: 6px;">
+                          <i data-lucide="truck" style="width: 10px; height: 10px; margin-right: 2px;"></i>
+                          ${result.delivery}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style="font-size: 11px; color: #9ca3af; margin-bottom: 12px; padding: 8px; background: rgba(107, 114, 128, 0.1); border-radius: 4px;">
+                    ${result.reason}
+                  </div>
+                  
+                  <button onclick="window.open('${result.url}', '_blank')" 
+                          style="width: 100%; background: rgba(107, 114, 128, 0.4); color: #d1d5db; border: 1px solid rgba(107, 114, 128, 0.6); padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i>
+                    Find on Amazon
+                  </button>
+                </div>
+              `;
+            }
+            // Other retailers - Standard treatment
+            else {
+              results += `
+                <div style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 14px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="flex: 1;">
+                      <div style="font-weight: 600; color: white; font-size: 15px; margin-bottom: 4px;">${result.source}</div>
+                      <div style="font-weight: 500; color: rgba(255,255,255,0.9); font-size: 13px; margin-bottom: 6px;">${result.title}</div>
+                      <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                        <i data-lucide="dollar-sign" style="width: 14px; height: 14px; color: white;"></i>
+                        <span style="font-size: 16px; color: white; font-weight: 600;">${result.price}</span>
+                        <span style="font-size: 11px; color: rgba(255,255,255,0.6); margin-left: 6px;">${result.delivery}</span>
+                      </div>
+                      <div style="font-size: 12px; color: rgba(255,255,255,0.8);">${result.reason}</div>
+                    </div>
+                  </div>
+                  
+                  <button onclick="window.open('${result.url}', '_blank')" 
+                          style="width: 100%; background: rgba(255, 255, 255, 0.15); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                    Shop at ${result.source}
+                  </button>
+                </div>
+              `;
+            }
           });
           
-          // Simple insights
-          if (data.insights && data.insights.length > 0) {
+          results += `
+              </div>
+            </div>
+          `;
+          
+          // Add strategy explanation
+          if (data.interpretation) {
             results += `
               <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 12px; margin: 12px 0;">
-                <div style="color: #22c55e; font-weight: 600; margin-bottom: 8px;">Shopping Tips</div>
-                ${data.insights.slice(0, 2).map(insight => `
-                  <div style="font-size: 13px; color: rgba(255,255,255,0.9); margin: 4px 0;">• ${insight}</div>
-                `).join('')}
+                <div style="color: #22c55e; font-weight: 600; margin-bottom: 8px;">Why These Recommendations?</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.9); margin: 4px 0;">• Strategic brand selection based on loyalty metrics and customer trust</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.9); margin: 4px 0;">• Direct-to-consumer brands prioritized for authentic value proposition</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.9); margin: 4px 0;">• Merit-based recommendations, not paid placement</div>
               </div>
             `;
           }
@@ -1653,7 +1658,7 @@
             <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 18px; margin: 15px 0; border: 1px solid rgba(255,255,255,0.1);">
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
                 <i data-lucide="gift" style="width: 18px; height: 18px; color: #22c55e;"></i>
-                <span style="color: #ffffff; font-size: 16px; font-weight: 600;">Perfect Gifts for 5-Year-Old</span>
+                <span style="color: #ffffff; font-size: 16px; font-weight: 600;">Perfect Gifts for 7-Year-Old</span>
               </div>
               <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
                 <i data-lucide="dollar-sign" style="width: 14px; height: 14px; color: #22c55e;"></i>
@@ -1669,15 +1674,6 @@
                 <div style="font-size: 14px; color: white; font-weight: 500;">LEGO Classic Bricks • Crayola Art Set • Age-appropriate Puzzles</div>
                 <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 2px;">Available at Target, Amazon, Walmart</div>
               </div>
-              
-              <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 8px; padding: 12px; margin: 10px 0;">
-                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                  <i data-lucide="activity" style="width: 14px; height: 14px; color: #86efac;"></i>
-                  <span style="font-weight: 600; color: #86efac;">Active & Outdoor</span>
-                </div>
-                <div style="font-size: 14px; color: white; font-weight: 500;">Soccer Ball • Jump Rope • Sidewalk Chalk Set</div>
-                <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 2px;">Perfect for outdoor birthday party activities</div>
-              </div>
             </div>
           `;
           console.log('❌ Using fallback gift recommendations');
@@ -1685,11 +1681,11 @@
         
         console.log('📋 Final results HTML length:', results.length);
         console.log('📋 Final results preview:', results.substring(0, 200));
-        document.getElementById('commerce-results').innerHTML = results;
+        currentResultsDiv.innerHTML = results;
         if (typeof lucide !== 'undefined') lucide.createIcons();
       } catch (error) {
         console.error('Commerce API error:', error);
-        document.getElementById('commerce-results').innerHTML = `
+        currentResultsDiv.innerHTML = `
           <div style="color: #f87171; padding: 10px;">
             Unable to get recommendations right now. Please try again.
           </div>
@@ -2598,7 +2594,7 @@
       if (!calendarDays) return;
       
       // Load events from new calendar intelligence system
-      const events = await loadCalendarEvents('user@homeops.ai');
+      const events = JSON.parse(localStorage.getItem('homeops_calendar_events') || '[]');
       const todayEventsList = document.getElementById('today-events-list');
       
       if (todayEventsList) {
@@ -2687,7 +2683,7 @@
         // Show emotional load summary if there are events
         if (todayEvents.length > 0) {
           try {
-            const emotionalLoad = await getUpcomingEmotionalLoad('user@homeops.ai');
+            const emotionalLoad = null; // Removed API call
             if (emotionalLoad && emotionalLoad.emotionalBreakdown && Object.keys(emotionalLoad.emotionalBreakdown).length > 0) {
             const loadSummary = document.createElement('div');
             loadSummary.style.cssText = `
@@ -3058,7 +3054,8 @@
     
     // Test sample parent email
     function testSampleParentEmail() {
-      testSampleEmail();
+      console.log('🔄 Demo: Loading all local emails...');
+      loadLocalEmails();
     }
     
     // Show email category
@@ -3193,13 +3190,12 @@
       }
       
       try {
-        const response = await fetch('/api/decoder-cards', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ maxResults: 10 })
-        });
+        // Load emails from local JSON file
+        const response = await fetch('/emails.json');
+        const emails = await response.json();
         
-        const data = await response.json();
+        // Convert emails to decoder card format
+        const data = { success: true, cards: emails };
         
         if (data.success && data.cards.length > 0) {
           displayDecoderCards(data.cards);
@@ -3578,7 +3574,7 @@
     
     async function updateTodaysEventsForDate(selectedDate) {
       try {
-        const events = await loadCalendarEvents('user@homeops.ai');
+        const events = JSON.parse(localStorage.getItem('homeops_calendar_events') || '[]');
         const selectedDateStr = selectedDate.toDateString();
         
         // Filter events for selected date
@@ -3760,7 +3756,7 @@
             </div>
           </div>
           
-          <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" style="
+          <button onclick="window.history.back()" style="
             width: 100%;
             background: rgba(139, 92, 246, 0.3);
             border: 1px solid rgba(139, 92, 246, 0.6);
@@ -3835,7 +3831,7 @@
           </div>
           
           <div style="display: flex; gap: 12px;">
-            <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" style="
+            <button onclick="window.history.back()" style="
               flex: 1;
               background: rgba(255, 255, 255, 0.1);
               border: 1px solid rgba(255, 255, 255, 0.3);
@@ -4175,7 +4171,7 @@
           
           <!-- Action Buttons -->
           <div style="display: flex; gap: 16px;">
-            <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" style="
+            <button onclick="window.history.back()" style="
               flex: 1;
               background: rgba(255, 255, 255, 0.1);
               border: 1px solid rgba(255, 255, 255, 0.2);
@@ -5095,46 +5091,8 @@
       }
     }
     
-    // Load calendar events for user
-    async function loadCalendarEvents(userId) {
-      try {
-        const response = await fetch(`/api/calendar-events/${userId}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          return data.events;
-        } else {
-          console.error('Failed to load calendar events:', data.message);
-          // Fallback to localStorage
-          const events = JSON.parse(localStorage.getItem('homeops_calendar_events') || '[]');
-          return events.filter(event => event.userId === userId);
-        }
-      } catch (error) {
-        console.error('Error loading calendar events:', error);
-        // Fallback to localStorage
-        const events = JSON.parse(localStorage.getItem('homeops_calendar_events') || '[]');
-        return events.filter(event => event.userId === userId);
-      }
-    }
-    
-    // Get upcoming emotional load forecast
-    async function getUpcomingEmotionalLoad(userId) {
-      try {
-        const response = await fetch(`/api/emotional-load-forecast/${userId}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          return data.forecast;
-        } else {
-          console.error('Failed to get emotional load forecast:', data.message);
-          // Fallback to local calculation
-          return calculateLocalEmotionalLoad(userId);
-        }
-      } catch (error) {
-        console.error('Error getting emotional load forecast:', error);
-        return calculateLocalEmotionalLoad(userId);
-      }
-    }
+    // DELETED - API-calling functions REMOVED
+    // Using immutable localStorage-only versions defined earlier in file
     
     // Fallback local emotional load calculation
     function calculateLocalEmotionalLoad(userId) {
@@ -5258,6 +5216,31 @@
         });
       }
     });
+
+    // Load emails from local JSON file for demo
+    async function loadLocalEmails() {
+      try {
+        console.log('🔄 Loading local emails from JSON...');
+        const response = await fetch('/emails.json');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const emails = await response.json();
+        console.log(`📧 Loaded ${emails.length} emails from local JSON`);
+        
+        // Display all emails
+        displayDecoderCards(emails);
+        updateEmailCounts(emails.length, emails.length);
+        
+        return emails;
+      } catch (error) {
+        console.error('❌ Error loading local emails:', error);
+        return [];
+      }
+    }
+
+    // Make loadLocalEmails available globally
+    window.loadLocalEmails = loadLocalEmails;
 
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
