@@ -1,145 +1,440 @@
-{
-  "emails": [
-    {
-      "id": "email_abc123",
-      "source": "The Woods Academy",
-      "subject": "Arts Celebration & Camp Info",
-      "summary": "Arts Celebration is May 27–30. Summer camps June 11–13. Sneak Peek Day June 2.",
-      "category": "School",
-      "priority": "Medium",
-      "actions": ["Add to Calendar", "Download PDF", "Save to Ops"],
-      "eventDates": [
-        { "label": "Arts Celebration", "start": "2025-05-27", "end": "2025-05-30" },
-        { "label": "Sneak Peek Day", "start": "2025-06-02" }
-      ],
-      "feedback": null,
-      "column": "schedule"
+[
+  {
+    "email_id": "001",
+    "subject": "🎨✨ Join Us for the 21st Annual Arts Celebration at The Woods Academy NEXT WEEK! | May 27–30!",
+    "sender": "communications@woodsacademy.edu",
+    "summary": "Annual Arts Celebration at The Woods Academy happening May 27-30 with concerts, performances, and coffee with teachers",
+    "time_ago": "2 hours ago",
+    "category": "School",
+    "priority": "High",
+    "calendar_events": "Arts Celebration May 27-30",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/001",
+    "manipulation_score": 2,
+    "full_analysis": "This isn't just another school event email — it's family culture happening in real time. Four days of concerts, performances, and coffee with teachers? That's your kid getting seen for who they're becoming, not just what they're learning. The timing works in your favor: it's planned, it's structured, and someone else did the heavy lifting. Your job? Show up. Let them see you watching them shine. Block the calendar now before your brain moves to the next fire drill.",
+    "coaching_intelligence": "**Life Moment Coaching:** Your presence at these events writes the story your kid tells about their childhood. It's not about the art — it's about them knowing you prioritize their world. Coffee with teachers? Pure gold. That's intel on how your child shows up when you're not watching. Take notes. Ask questions. This is parenting strategy disguised as school spirit.",
+    "action_items": [
+      "Block May 27-30 on family calendar immediately",
+      "Ask your child which performances they're most excited about",
+      "Schedule the coffee-with-teachers session - this is relationship building",
+      "Plan logistics: who's covering which events if both parents work"
+    ],
+    "personalized_score": 0.95,
+    "actions": ["Add to Calendar", "RSVP", "Share with Family"],
+    "eventDates": [
+      { "label": "Arts Celebration", "start": "2025-05-27T09:00:00", "end": "2025-05-30T17:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "002",
+    "subject": "📋 Your Lab Results Are Ready - Review Portal",
+    "sender": "results@healthcaresystem.com",
+    "summary": "Lab work completed and ready for review in patient portal - important health information requiring attention",
+    "time_ago": "4 hours ago",
+    "category": "Medical",
+    "priority": "High",
+    "calendar_events": null,
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/002",
+    "manipulation_score": 1,
+    "full_analysis": "Your body had something to say, and now you get to hear what it said. Lab results aren't just numbers — they're data about how well your system is handling everything you're asking it to do. The patient portal is your friend here: no phone tag, no waiting rooms, just you and the information when you're ready for it. If something's off, you'll handle it. If everything's normal, you can stop carrying that low-level worry you didn't even know you had.",
+    "coaching_intelligence": "**Health Stewardship:** This is you being a grown-up about your body. Results sitting in a portal don't improve — they just create anxiety. Log in, read them, and if you don't understand something, ask questions. Your healthcare is a relationship, not a transaction. If numbers are outside normal ranges, that's information, not judgment. Your job is to be curious, not catastrophic.",
+    "action_items": [
+      "Log into patient portal within 24 hours",
+      "Print or screenshot results for your records",
+      "If any values are flagged, call doctor's office with specific questions",
+      "Update your personal health tracking if you keep one"
+    ],
+    "personalized_score": 0.88,
+    "actions": ["View Results", "Schedule Follow-up", "Contact Doctor"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "003",
+    "subject": "🏠 Weekly Meal Prep Ideas & Grocery List",
+    "sender": "wellness@mealplanpro.com",
+    "summary": "This week's meal prep featuring Mediterranean bowl, slow-cooker chicken, and overnight oats with shopping list",
+    "time_ago": "6 hours ago",
+    "category": "Family",
+    "priority": "Low",
+    "calendar_events": null,
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/003",
+    "manipulation_score": 3,
+    "full_analysis": "Someone's trying to solve your dinner problem, but they're also trying to sell you the solution. Mediterranean bowls and overnight oats sound great until you realize you don't have tahini and your kids think quinoa is punishment. The real question: does this actually make your week easier, or does it add another layer of performance to an already complicated day?",
+    "coaching_intelligence": "**Reality Check:** You don't need Pinterest-perfect meals. You need food that gets eaten without a fight. If this meal plan speaks to you, steal the ideas that work and ignore the rest. The goal isn't Instagram-worthy lunches — it's reducing the 4pm panic of 'what's for dinner?' Your family needs fed, not impressed.",
+    "action_items": [
+      "Scan the list for 2-3 realistic meals that work for your family",
+      "Check what ingredients you already have before shopping",
+      "Consider: does meal prep actually save you time, or add pressure?",
+      "Adapt recipes to include foods your family already eats"
+    ],
+    "personalized_score": 0.45,
+    "actions": ["View Recipes", "Generate List", "Save Favorites"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "email_id": "004",
+    "subject": "💼 Q4 Strategy Meeting - Action Items Due Friday",
+    "sender": "strategy@company.com",
+    "summary": "Q4 planning follow-up with department action items deadline Friday EOD - urgent work deliverables",
+    "time_ago": "1 day ago",
+    "category": "Work",
+    "priority": "High",
+    "calendar_events": "Action Items Due Jan 31",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/004",
+    "manipulation_score": 1,
+    "full_analysis": "Strategy meeting follow-up with a Friday deadline. This is work being work — clear expectations, known deadlines, professional stakes. Nothing manipulative here, just the reality that when you sit in strategy meetings, you walk away with strategy work. The timeline is tight but not impossible. Your reputation is built on moments like this.",
+    "coaching_intelligence": "**Professional Momentum:** Q4 strategy work is where you show up as someone who can think bigger than their inbox. These action items aren't just tasks — they're your chance to influence how your team approaches the next quarter. Do this work thoughtfully, not frantically. Friday deadlines mean Thursday completion if you want to review your work with fresh eyes.",
+    "action_items": [
+      "Block 2-hour focused work session before Thursday",
+      "Review meeting notes to understand the bigger strategy context",
+      "Draft action items Tuesday, review Wednesday, finalize Thursday",
+      "Consider: what's the strategic impact, not just the tactical deliverable?"
+    ],
+    "personalized_score": 0.92,
+    "actions": ["Review Items", "Submit Report", "Schedule 1:1"],
+    "eventDates": [
+      { "label": "Action Items Due", "start": "2025-01-31T17:00:00", "end": "2025-01-31T17:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "005",
+    "subject": "🛍️ Flash Sale: 40% Off Winter Collection - Ends Tonight!",
+    "sender": "sales@fashionstore.com",
+    "summary": "Flash sale ending tonight with 40% off all winter items - coats, sweaters, and boots until midnight",
+    "time_ago": "3 hours ago",
+    "category": "Shopping",
+    "priority": "Medium",
+    "calendar_events": "Sale Ends Tonight 11:59 PM",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/005",
+    "manipulation_score": 7,
+    "full_analysis": "Classic urgency manipulation dressed up as savings. 'Ends tonight' is designed to bypass your rational brain and trigger your scarcity response. They're betting you'll buy something you don't need because the timer is ticking. Real talk: if you needed a winter coat, you would have bought one before January. This isn't about need — it's about want disguised as opportunity.",
+    "coaching_intelligence": "**Consumer Awareness:** Your closet already has winter clothes. Your credit card doesn't need this drama. Sales happen constantly — this isn't your last chance to own a sweater. If you're shopping for actual needs (kid outgrew their coat), fine. But don't let artificial urgency drive real spending. Sleep on it. If you still want it tomorrow, find it at regular price.",
+    "action_items": [
+      "Ask: do I actually need winter clothes, or do I just want new ones?",
+      "If you need something specific, check your budget first",
+      "Set a 24-hour rule: wait until tomorrow to see if you still want it",
+      "Consider: what winter clothes do you already have that work fine?"
+    ],
+    "personalized_score": 0.25,
+    "actions": ["Shop Now", "View Cart", "Compare Prices"],
+    "eventDates": [
+      { "label": "Sale Ends", "start": "2025-01-15T23:59:00", "end": "2025-01-15T23:59:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "006",
+    "subject": "📚 Parent-Teacher Conference Scheduling Now Open",
+    "sender": "office@elementaryschool.edu",
+    "summary": "Conference scheduling for Feb 10-14 now available through online portal - select preferred time slots",
+    "time_ago": "1 day ago",
+    "category": "School",
+    "priority": "High",
+    "calendar_events": "Conference Week Feb 10-14",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/006",
+    "intelligence": {
+      "manipulation_score": 1,
+      "analysis": "Standard educational communication for parent engagement. Clear scheduling information with educational institution authenticity."
     },
-    {
-      "id": "email_def456",
-      "source": "Dr. Sarah Chen - Pediatrician",
-      "subject": "Appointment Confirmation: Tomorrow 2:30 PM",
-      "summary": "Your child's annual checkup is confirmed for tomorrow at 2:30 PM. Please arrive 15 minutes early.",
-      "category": "Medical",
-      "priority": "High",
-      "actions": ["Confirm", "Reschedule", "Add to Calendar"],
-      "eventDates": [
-        { "label": "Annual Checkup", "start": "2025-01-28T14:30:00" }
-      ],
-      "feedback": null,
-      "column": "urgent"
+    "actions": ["Schedule Conference", "View Teacher Notes", "Prepare Questions"],
+    "eventDates": [
+      { "label": "Conference Week", "start": "2025-02-10T08:00:00", "end": "2025-02-14T17:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "007",
+    "subject": "💊 Prescription Ready for Pickup - CVS Pharmacy",
+    "sender": "notifications@cvs.com",
+    "summary": "Lisinopril prescription ready for pickup at CVS #1234 - must collect by 6 PM today",
+    "time_ago": "30 minutes ago",
+    "category": "Medical",
+    "priority": "High",
+    "calendar_events": "Pickup by 6 PM Today",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/007",
+    "intelligence": {
+      "manipulation_score": 1,
+      "analysis": "Legitimate pharmacy notification with time-sensitive medication pickup requirement. Standard healthcare logistics communication."
     },
-    {
-      "id": "email_ghi789",
-      "source": "Amazon Prime",
-      "subject": "Order #123-4567890-1234567 has shipped",
-      "summary": "Your order containing 'Organic Baby Formula' will arrive tomorrow between 2-6 PM.",
-      "category": "Shopping",
-      "priority": "High",
-      "actions": ["Track Package", "View Order", "Save to Ops"],
-      "eventDates": [
-        { "label": "Package Delivery", "start": "2025-01-28T14:00:00", "end": "2025-01-28T18:00:00" }
-      ],
-      "feedback": null,
-      "column": "urgent"
+    "actions": ["Get Directions", "Transfer Prescription", "Set Pickup Reminder"],
+    "eventDates": [
+      { "label": "Pickup Deadline", "start": "2025-01-16T18:00:00", "end": "2025-01-16T18:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "008",
+    "subject": "🎂 Birthday Party Planning Checklist & Vendor Contacts",
+    "sender": "events@partyplanners.com",
+    "summary": "Sarah's 8th birthday party planning guide with venue confirmation, catering options, and vendor contacts",
+    "time_ago": "2 days ago",
+    "category": "Family",
+    "priority": "Medium",
+    "calendar_events": "Sarah's Birthday Feb 15",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/008",
+    "intelligence": {
+      "manipulation_score": 4,
+      "analysis": "Event planning service with helpful content but potential for upselling additional services. Mixed commercial and informational purpose."
     },
-    {
-      "id": "email_jkl012",
-      "source": "Jessica Martinez - School Principal",
-      "subject": "Parent-Teacher Conference: This Friday",
-      "summary": "Reminder: Your parent-teacher conference is scheduled for this Friday at 3:00 PM.",
-      "category": "School",
-      "priority": "High",
-      "actions": ["RSVP Yes", "Reschedule", "Add to Calendar"],
-      "eventDates": [
-        { "label": "Parent-Teacher Conference", "start": "2025-01-31T15:00:00" }
-      ],
-      "feedback": null,
-      "column": "urgent"
+    "actions": ["Confirm Venue", "Order Cake", "Send Invitations"],
+    "eventDates": [
+      { "label": "Sarah's Birthday", "start": "2025-02-15T14:00:00", "end": "2025-02-15T17:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "009",
+    "subject": "📊 Monthly Budget Review & Investment Portfolio Update",
+    "sender": "advisor@financialgroup.com",
+    "summary": "January budget analysis showing 15% under in dining, 8% over in utilities with portfolio performance review",
+    "time_ago": "5 hours ago",
+    "category": "Work",
+    "priority": "Medium",
+    "calendar_events": null,
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/009",
+    "intelligence": {
+      "manipulation_score": 2,
+      "analysis": "Professional financial advisory communication with detailed analysis. Low manipulation but may contain investment product recommendations."
     },
-    {
-      "id": "email_mno345",
-      "source": "Golf Club Pro Shop",
-      "subject": "Tee Time Confirmation: Saturday 9:00 AM",
-      "summary": "Your tee time for Saturday morning is confirmed. Please arrive 30 minutes early. Weather looks perfect!",
-      "category": "Recreation",
-      "priority": "Medium",
-      "actions": ["Add to Calendar", "Cancel", "Save to Ops"],
-      "eventDates": [
-        { "label": "Golf Tee Time", "start": "2025-02-01T09:00:00" }
-      ],
-      "feedback": null,
-      "column": "schedule"
+    "actions": ["Review Budget", "Adjust Allocations", "Schedule Meeting"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "email_id": "010",
+    "subject": "🏃‍♀️ Marathon Training Week 12 - Taper Phase Begins",
+    "sender": "coach@runningclub.com",
+    "summary": "Week 12 marathon training with taper phase beginning - reduced mileage and race preparation focus",
+    "time_ago": "1 day ago",
+    "category": "Family",
+    "priority": "Medium",
+    "calendar_events": "Marathon Race Mar 15",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/010",
+    "intelligence": {
+      "manipulation_score": 2,
+      "analysis": "Coaching service communication with training guidance. Primarily informational with potential for additional service offerings."
     },
-    {
-      "id": "email_pqr678",
-      "source": "Dental Associates",
-      "subject": "Appointment Reminder: Next Tuesday 10:00 AM",
-      "summary": "This is a friendly reminder of your dental cleaning appointment next Tuesday. Please call if you need to reschedule.",
-      "category": "Medical",
-      "priority": "Medium",
-      "actions": ["Confirm", "Reschedule", "Add to Calendar"],
-      "eventDates": [
-        { "label": "Dental Cleaning", "start": "2025-02-04T10:00:00" }
-      ],
-      "feedback": null,
-      "column": "schedule"
+    "actions": ["View Schedule", "Track Progress", "Prepare Race Day"],
+    "eventDates": [
+      { "label": "Marathon Race", "start": "2025-03-15T07:00:00", "end": "2025-03-15T13:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "011",
+    "subject": "🍕 Team Lunch Tomorrow - Please Confirm Attendance",
+    "sender": "hr@company.com",
+    "summary": "Monthly team lunch tomorrow 12:30 PM at Mario's Italian - attendance confirmation requested",
+    "time_ago": "8 hours ago",
+    "category": "Work",
+    "priority": "Medium",
+    "calendar_events": "Team Lunch Tomorrow 12:30 PM",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/011",
+    "intelligence": {
+      "manipulation_score": 1,
+      "analysis": "Standard workplace social communication for team building. No manipulation detected - straightforward event coordination."
     },
-    {
-      "id": "email_stu901",
-      "source": "Mom & Dad",
-      "subject": "Weekend Visit – This Saturday",
-      "summary": "Hi honey! We're planning to visit this Saturday around 2 PM. Can't wait to see the kids! Should we bring anything?",
-      "category": "Family",
-      "priority": "Medium",
-      "actions": ["Reply", "Call", "Add to Calendar"],
-      "eventDates": [
-        { "label": "Grandparents Visit", "start": "2025-02-01T14:00:00" }
-      ],
-      "feedback": null,
-      "column": "context"
+    "actions": ["Confirm Attendance", "View Menu", "Add to Calendar"],
+    "eventDates": [
+      { "label": "Team Lunch", "start": "2025-01-17T12:30:00", "end": "2025-01-17T14:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "012",
+    "subject": "🧘‍♀️ Meditation App: 30-Day Challenge Completed!",
+    "sender": "wellness@mindfulapp.com",
+    "summary": "Congratulations on completing 30 consecutive days of meditation with mindfulness streak achievement",
+    "time_ago": "12 hours ago",
+    "category": "Family",
+    "priority": "Low",
+    "calendar_events": null,
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/012",
+    "intelligence": {
+      "manipulation_score": 3,
+      "analysis": "Positive reinforcement from app service with gamification elements. Celebrates achievement but likely promotes continued subscription."
     },
-    {
-      "id": "email_vwx234",
-      "source": "Soccer League",
-      "subject": "Season Schedule Posted",
-      "summary": "The fall soccer season schedule is now available. Games start September 15th. Practice times remain the same.",
-      "category": "Sports",
-      "priority": "Low",
-      "actions": ["View Schedule", "Download", "Save to Ops"],
-      "eventDates": [
-        { "label": "Soccer Season Start", "start": "2025-09-15" }
-      ],
-      "feedback": null,
-      "column": "context"
+    "actions": ["View Progress", "Set New Goal", "Share Achievement"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "email_id": "013",
+    "subject": "📱 iPhone Software Update Available - iOS 18.3",
+    "sender": "updates@apple.com",
+    "summary": "iOS 18.3 available with security updates and new features - update now or schedule for tonight",
+    "time_ago": "6 hours ago",
+    "category": "Shopping",
+    "priority": "Low",
+    "calendar_events": null,
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/013",
+    "intelligence": {
+      "manipulation_score": 1,
+      "analysis": "Legitimate system update notification from Apple. No manipulation detected - standard software maintenance communication."
     },
-    {
-      "id": "email_yz0567",
-      "source": "Neighborhood Watch",
-      "subject": "Block Party Planning – Save the Date",
-      "summary": "Mark your calendars! Our annual block party is scheduled for September 28th. More details coming soon.",
-      "category": "Community",
-      "priority": "Low",
-      "actions": ["Save Date", "Volunteer", "Add to Calendar"],
-      "eventDates": [
-        { "label": "Block Party", "start": "2025-09-28" }
-      ],
-      "feedback": null,
-      "column": "context"
+    "actions": ["Update Now", "Schedule Update", "View Details"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "email_id": "014",
+    "subject": "🎭 Drama Club Performance - Final Rehearsal Schedule",
+    "sender": "drama@highschool.edu",
+    "summary": "Final rehearsals for Romeo and Juliet this week with schedule changes for cast and crew",
+    "time_ago": "1 day ago",
+    "category": "School",
+    "priority": "High",
+    "calendar_events": "Performance Feb 20 7 PM",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/014",
+    "intelligence": {
+      "manipulation_score": 1,
+      "analysis": "Educational institution communication for extracurricular activity. Clear rehearsal information with no manipulation detected."
     },
-    {
-      "id": "email_abc890",
-      "source": "Local Library",
-      "subject": "Book Club Meeting: Next Thursday 7:00 PM",
-      "summary": "Join us for our monthly book club discussion of 'The Midnight Library' by Matt Haig. Light refreshments provided.",
-      "category": "Community",
-      "priority": "Low",
-      "actions": ["RSVP", "More Info", "Add to Calendar"],
-      "eventDates": [
-        { "label": "Book Club Meeting", "start": "2025-01-30T19:00:00" }
-      ],
-      "feedback": null,
-      "column": "schedule"
-    }
-  ]
-} 
+    "actions": ["View Schedule", "Confirm Availability", "Prepare Costume"],
+    "eventDates": [
+      { "label": "Performance", "start": "2025-02-20T19:00:00", "end": "2025-02-20T21:30:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "015",
+    "subject": "🏥 Annual Physical Exam Reminder - Schedule Soon",
+    "sender": "reminders@doctoroffice.com",
+    "summary": "Annual physical exam due - call to schedule appointment for routine health maintenance",
+    "time_ago": "3 days ago",
+    "category": "Medical",
+    "priority": "Medium",
+    "calendar_events": null,
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/015",
+    "intelligence": {
+      "manipulation_score": 1,
+      "analysis": "Standard healthcare reminder for preventive care. Legitimate medical communication with patient wellbeing focus."
+    },
+    "actions": ["Schedule Appointment", "Review Last Results", "Prepare Questions"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "016",
+    "subject": "💰 Tax Document Upload - H&R Block Portal",
+    "sender": "documents@hrblock.com",
+    "summary": "Upload remaining tax documents including W-2s, 1099s, and charitable donation receipts",
+    "time_ago": "2 days ago",
+    "category": "Work",
+    "priority": "High",
+    "calendar_events": "Tax Deadline Apr 15",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/016",
+    "intelligence": {
+      "manipulation_score": 2,
+      "analysis": "Tax preparation service communication with legitimate deadline urgency. Professional service with clear action requirements."
+    },
+    "actions": ["Upload Documents", "Schedule Review", "Download Forms"],
+    "eventDates": [
+      { "label": "Tax Deadline", "start": "2025-04-15T23:59:00", "end": "2025-04-15T23:59:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "017",
+    "subject": "🌱 Garden Planning: Spring Planting Schedule",
+    "sender": "tips@gardeningpro.com",
+    "summary": "Zone 7 spring planting guide with seed starting times and garden bed preparation schedule",
+    "time_ago": "4 days ago",
+    "category": "Family",
+    "priority": "Low",
+    "calendar_events": "Planting Season Mar 15 - May 1",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/017",
+    "intelligence": {
+      "manipulation_score": 3,
+      "analysis": "Gardening service providing seasonal advice with educational value. Moderate commercial intent through product recommendations."
+    },
+    "actions": ["Order Seeds", "Prepare Soil", "Plan Layout"],
+    "eventDates": [
+      { "label": "Planting Season", "start": "2025-03-15T00:00:00", "end": "2025-05-01T00:00:00" }
+    ],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "email_id": "018",
+    "subject": "🚗 Car Insurance Renewal - Review Coverage Options",
+    "sender": "renewal@insurancecompany.com",
+    "summary": "Auto insurance policy expires next month - review coverage and explore new discount opportunities",
+    "time_ago": "1 week ago",
+    "category": "Shopping",
+    "priority": "Medium",
+    "calendar_events": "Policy Expires Feb 28",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/018",
+    "intelligence": {
+      "manipulation_score": 4,
+      "analysis": "Insurance renewal with legitimate deadline but potential for upselling. Mixed helpful information and commercial pressure."
+    },
+    "actions": ["Review Policy", "Compare Rates", "Update Coverage"],
+    "eventDates": [
+      { "label": "Policy Expires", "start": "2025-02-28T23:59:00", "end": "2025-02-28T23:59:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "email_id": "019",
+    "subject": "📖 Book Club Selection: 'The Seven Husbands of Evelyn Hugo'",
+    "sender": "organizer@bookclub.com",
+    "summary": "February book selection with meeting scheduled for Feb 28th - Taylor Jenkins Reid novel discussion",
+    "time_ago": "1 week ago",
+    "category": "Family",
+    "priority": "Low",
+    "calendar_events": "Book Club Meeting Feb 28 7 PM",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/019",
+    "intelligence": {
+      "manipulation_score": 1,
+      "analysis": "Social group organization communication for book discussion. No manipulation detected - straightforward club coordination."
+    },
+    "actions": ["Get Book", "Set Reading Schedule", "Add Meeting to Calendar"],
+    "eventDates": [
+      { "label": "Book Club Meeting", "start": "2025-02-28T19:00:00", "end": "2025-02-28T21:00:00" }
+    ],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "email_id": "020",
+    "subject": "🛒 Weekly Grocery Pickup Ready - Whole Foods",
+    "sender": "pickup@wholefoods.com",
+    "summary": "Weekly grocery order ready for pickup - pickup window 2-4 PM today at Whole Foods Market",
+    "time_ago": "1 hour ago",
+    "category": "Shopping",
+    "priority": "High",
+    "calendar_events": "Pickup Window 2-4 PM Today",
+    "gmail_url": "https://mail.google.com/mail/u/0/#inbox/020",
+    "intelligence": {
+      "manipulation_score": 1,
+      "analysis": "Standard grocery service notification with time-sensitive pickup requirement. No manipulation detected."
+    },
+    "actions": ["Get Directions", "View Order", "Rate Experience"],
+    "eventDates": [
+      { "label": "Pickup Window", "start": "2025-01-16T14:00:00", "end": "2025-01-16T16:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  }
+]

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Debug - HomeOps</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .headline {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 16px;
+        }
+        
+        .description {
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        
+        .debug-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .debug-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .debug-title i {
+            margin-right: 8px;
+        }
+        
+        .debug-button {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin: 8px;
+            transition: all 0.2s;
+        }
+        
+        .debug-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+        }
+        
+        .external-button {
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+        }
+        
+        .external-button:hover {
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+        }
+        
+        .status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .back-link i {
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <div class="logo-icon">
+                <i data-lucide="home" style="color: white; width: 20px; height: 20px;"></i>
+            </div>
+            <div class="logo-text">HomeOps</div>
+        </div>
+        
+        <h1 class="headline">OAuth Debug Tools</h1>
+        <p class="description">
+            Use these tools to test the complete Gmail OAuth flow from scratch. 
+            Clear tokens first, then start the onboarding to see the full Google consent screen.
+        </p>
+        
+        <div class="debug-section">
+            <div class="debug-title">
+                <i data-lucide="server"></i>
+                Server-Side Token Management
+            </div>
+            <button class="debug-button" onclick="clearServerTokens()">Clear Server Tokens</button>
+            <div id="serverStatus" class="status"></div>
+        </div>
+        
+        <div class="debug-section">
+            <div class="debug-title">
+                <i data-lucide="user"></i>
+                Google Account Permissions
+            </div>
+            <p style="font-size: 13px; color: #718096; margin-bottom: 16px;">
+                If you've previously authorized HomeOps, you need to revoke permissions to see the consent screen again.
+            </p>
+            <button class="debug-button external-button" onclick="openGooglePermissions()">
+                Revoke Google Permissions
+            </button>
+        </div>
+        
+        <div class="debug-section">
+            <div class="debug-title">
+                <i data-lucide="play"></i>
+                Test Complete Flow
+            </div>
+            <p style="font-size: 13px; color: #718096; margin-bottom: 16px;">
+                After clearing tokens and permissions above, test the full onboarding experience.
+            </p>
+            <button class="debug-button" onclick="startFreshOnboarding()" style="background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);">
+                Start Fresh Onboarding
+            </button>
+        </div>
+        
+        <a href="/landing" class="back-link">
+            <i data-lucide="arrow-left"></i>
+            Back to Landing Page
+        </a>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        async function clearServerTokens() {
+            try {
+                document.getElementById('serverStatus').textContent = 'Clearing server tokens...';
+                document.getElementById('serverStatus').style.background = '#fef5e7';
+                document.getElementById('serverStatus').style.color = '#744210';
+                
+                const response = await fetch('/api/clear-gmail-tokens', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('serverStatus').textContent = '✅ Server tokens cleared successfully!';
+                    document.getElementById('serverStatus').style.background = '#f0fff4';
+                    document.getElementById('serverStatus').style.color = '#22543d';
+                } else {
+                    document.getElementById('serverStatus').textContent = '❌ Failed to clear server tokens';
+                    document.getElementById('serverStatus').style.background = '#fed7d7';
+                    document.getElementById('serverStatus').style.color = '#742a2a';
+                }
+            } catch (error) {
+                document.getElementById('serverStatus').textContent = '❌ Error: ' + error.message;
+                document.getElementById('serverStatus').style.background = '#fed7d7';
+                document.getElementById('serverStatus').style.color = '#742a2a';
+            }
+        }
+        
+        function openGooglePermissions() {
+            window.open('https://myaccount.google.com/permissions', '_blank');
+        }
+        
+        function startFreshOnboarding() {
+            // Clear any existing session data
+            sessionStorage.clear();
+            localStorage.clear();
+            
+            // Go to landing page for fresh start
+            window.location.href = '/landing';
+        }
+    </script>
+</body>
+</html>

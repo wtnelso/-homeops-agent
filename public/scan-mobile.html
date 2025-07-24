@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyzing Your Data - HomeOps</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 32px 24px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header {
+            margin-bottom: 32px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            color: white;
+        }
+        
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+            letter-spacing: -0.5px;
+        }
+        
+        .step-indicator {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+        
+        .headline {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .subheadline {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+        
+        .scanning-animation {
+            margin: 32px 0;
+            position: relative;
+        }
+        
+        .scanner-circle {
+            width: 80px;
+            height: 80px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .current-task {
+            font-size: 16px;
+            font-weight: 500;
+            color: #4a5568;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+        
+        .task-list {
+            text-align: left;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .task-list h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #4a5568;
+        }
+        
+        .task-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .task-status {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .task-status.completed {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .task-status.current {
+            background: #667eea;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        .task-status.pending {
+            background: #e2e8f0;
+            border: 2px solid #cbd5e0;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .progress-info {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .progress-info h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        
+        .progress-info p {
+            font-size: 12px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        .time-estimate {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 20px;
+        }
+        
+        .security-note {
+            font-size: 11px;
+            color: #718096;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .security-note i {
+            width: 14px;
+            height: 14px;
+            margin-right: 6px;
+            color: #38a169;
+        }
+        
+        /* Tablet */
+        @media (min-width: 768px) {
+            body {
+                padding: 24px;
+            }
+            
+            .container {
+                padding: 48px 32px;
+                max-width: 600px;
+            }
+            
+            .header {
+                margin-bottom: 40px;
+            }
+            
+            .logo-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                margin-right: 10px;
+            }
+            
+            .logo-text {
+                font-size: 24px;
+            }
+            
+            .step-indicator {
+                font-size: 13px;
+                padding: 6px 16px;
+                border-radius: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .headline {
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+            
+            .subheadline {
+                font-size: 16px;
+                margin-bottom: 40px;
+            }
+            
+            .scanning-animation {
+                margin: 40px 0;
+            }
+            
+            .scanner-circle {
+                width: 100px;
+                height: 100px;
+                margin-bottom: 30px;
+            }
+            
+            .current-task {
+                font-size: 18px;
+                min-height: 60px;
+                margin-bottom: 30px;
+            }
+            
+            .task-list {
+                padding: 24px;
+                margin-bottom: 30px;
+            }
+            
+            .task-list h3 {
+                font-size: 16px;
+                margin-bottom: 16px;
+            }
+            
+            .task-item {
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+            
+            .task-status {
+                width: 18px;
+                height: 18px;
+                margin-right: 10px;
+            }
+            
+            .progress-info {
+                padding: 20px;
+                margin-bottom: 30px;
+            }
+            
+            .progress-info h3 {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+            
+            .progress-info p {
+                font-size: 14px;
+            }
+            
+            .time-estimate {
+                font-size: 14px;
+                margin-bottom: 24px;
+            }
+            
+            .security-note {
+                font-size: 13px;
+                padding-top: 20px;
+            }
+            
+            .security-note i {
+                width: 16px;
+                height: 16px;
+                margin-right: 8px;
+            }
+        }
+        
+        /* Desktop */
+        @media (min-width: 1024px) {
+            .container {
+                padding: 60px 40px;
+            }
+            
+            .headline {
+                font-size: 28px;
+            }
+            
+            .subheadline {
+                font-size: 18px;
+            }
+            
+            .scanner-circle {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .current-task {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="home"></i>
+                </div>
+                <div class="logo-text">HomeOps</div>
+            </div>
+            <div class="step-indicator">Step 3 of 5</div>
+            <h1 class="headline">Analyzing Your Digital Life</h1>
+            <p class="subheadline">AI is scanning your email patterns to understand your mental load</p>
+        </div>
+        
+        <div class="scanning-animation">
+            <div class="scanner-circle"></div>
+            <div class="current-task" id="currentTask">
+                Connecting to your Gmail account...
+            </div>
+        </div>
+        
+        <div class="task-list">
+            <h3>Analysis Progress</h3>
+            <div class="task-item">
+                <div class="task-status completed" id="status-1">
+                    <i data-lucide="check" style="width: 10px; height: 10px;"></i>
+                </div>
+                <span>Connected to Gmail securely</span>
+            </div>
+            <div class="task-item">
+                <div class="task-status current" id="status-2">
+                    <i data-lucide="loader" style="width: 10px; height: 10px;"></i>
+                </div>
+                <span>Scanning email patterns and senders</span>
+            </div>
+            <div class="task-item">
+                <div class="task-status pending" id="status-3"></div>
+                <span>Analyzing brand preferences</span>
+            </div>
+            <div class="task-item">
+                <div class="task-status pending" id="status-4"></div>
+                <span>Building your mental load profile</span>
+            </div>
+            <div class="task-item">
+                <div class="task-status pending" id="status-5"></div>
+                <span>Preparing personalized assistant</span>
+            </div>
+        </div>
+        
+        <div class="progress-info">
+            <h3>What's Happening</h3>
+            <p id="progressDescription">
+                HomeOps is analyzing your email patterns to understand what brands and services are part of your life. This helps us reduce your mental load by understanding your preferences.
+            </p>
+        </div>
+        
+        <div class="time-estimate">
+            <span id="timeRemaining">Estimated time remaining: 2-3 minutes</span>
+        </div>
+        
+        <div class="security-note">
+            <i data-lucide="shield-check"></i>
+            Your data is encrypted and processed securely. We never share or sell your information.
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        const tasks = [
+            {
+                status: 'Connecting to your Gmail account...',
+                description: 'HomeOps is establishing a secure connection to your Gmail account using industry-standard OAuth protocols.',
+                duration: 3000
+            },
+            {
+                status: 'Scanning email patterns and senders...',
+                description: 'We\'re analyzing your email history to understand which brands and services are important to your daily life.',
+                duration: 5000
+            },
+            {
+                status: 'Analyzing brand preferences...',
+                description: 'Our AI is learning about your preferences for different brands, stores, and services based on your email interactions.',
+                duration: 4000
+            },
+            {
+                status: 'Building your mental load profile...',
+                description: 'Creating a personalized understanding of your family\'s logistics patterns and communication preferences.',
+                duration: 3000
+            },
+            {
+                status: 'Preparing your personalized assistant...',
+                description: 'Setting up your HomeOps assistant with all the insights about your digital life and preferences.',
+                duration: 2000
+            }
+        ];
+        
+        let currentTaskIndex = 0;
+        let startTime = Date.now();
+        
+        function updateTask() {
+            if (currentTaskIndex >= tasks.length) {
+                // All tasks complete - redirect to calibration
+                document.getElementById('currentTask').textContent = 'Analysis complete! Redirecting...';
+                document.getElementById('timeRemaining').textContent = 'Redirecting to personalization...';
+                
+                setTimeout(() => {
+                    window.location.href = '/calibrate';
+                }, 1500);
+                return;
+            }
+            
+            const task = tasks[currentTaskIndex];
+            const currentTask = document.getElementById('currentTask');
+            const progressDescription = document.getElementById('progressDescription');
+            const timeRemaining = document.getElementById('timeRemaining');
+            
+            // Update current status
+            currentTask.textContent = task.status;
+            progressDescription.textContent = task.description;
+            
+            // Update task status indicators
+            const currentStatusElement = document.getElementById(`status-${currentTaskIndex + 1}`);
+            if (currentStatusElement) {
+                currentStatusElement.classList.remove('pending');
+                currentStatusElement.classList.add('current');
+                currentStatusElement.innerHTML = '<i data-lucide="loader" style="width: 10px; height: 10px;"></i>';
+            }
+            
+            // Calculate time remaining
+            const totalDuration = tasks.reduce((sum, t) => sum + t.duration, 0);
+            const elapsedDuration = tasks.slice(0, currentTaskIndex).reduce((sum, t) => sum + t.duration, 0);
+            const remainingDuration = totalDuration - elapsedDuration;
+            const remainingSeconds = Math.ceil(remainingDuration / 1000);
+            const remainingMinutes = Math.ceil(remainingSeconds / 60);
+            
+            if (remainingMinutes > 1) {
+                timeRemaining.textContent = `Estimated time remaining: ${remainingMinutes} minutes`;
+            } else {
+                timeRemaining.textContent = `Estimated time remaining: ${remainingSeconds} seconds`;
+            }
+            
+            lucide.createIcons();
+            
+            // Complete current task after duration
+            setTimeout(() => {
+                const statusElement = document.getElementById(`status-${currentTaskIndex + 1}`);
+                if (statusElement) {
+                    statusElement.classList.remove('current');
+                    statusElement.classList.add('completed');
+                    statusElement.innerHTML = '<i data-lucide="check" style="width: 10px; height: 10px;"></i>';
+                }
+                
+                currentTaskIndex++;
+                
+                lucide.createIcons();
+                
+                // Move to next task
+                setTimeout(() => {
+                    updateTask();
+                }, 500);
+            }, task.duration);
+        }
+        
+        // Start the scanning process
+        setTimeout(() => {
+            updateTask();
+        }, 1000);
+        
+        // Get user info from session storage
+        const userInfo = JSON.parse(sessionStorage.getItem('onboarding_user') || '{}');
+        if (userInfo.name) {
+            document.querySelector('.subheadline').textContent = 
+                `${userInfo.name.split(' ')[0]}, AI is scanning your email patterns to understand your mental load`;
+        }
+    </script>
+</body>
+</html>

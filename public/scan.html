@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyzing Your Data - HomeOps</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 66%;
+            transition: width 0.3s ease;
+        }
+        
+        .step-indicator {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .headline {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+        
+        .subheadline {
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .scanning-animation {
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .scanner-circle {
+            width: 100px;
+            height: 100px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .current-task {
+            font-size: 16px;
+            font-weight: 500;
+            color: #4a5568;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .task-list {
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f7fafc;
+            transition: all 0.3s ease;
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .task-icon svg {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .task-icon.pending {
+            background: #f7fafc;
+            color: #a0aec0;
+        }
+        
+        .task-icon.active {
+            background: #667eea;
+            color: white;
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+        
+        .task-icon.completed {
+            background: #48bb78;
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+        
+        .task-text {
+            color: #4a5568;
+            font-size: 15px;
+            flex-grow: 1;
+        }
+        
+        .task-item.completed .task-text {
+            color: #2d3748;
+            font-weight: 500;
+        }
+        
+        .progress-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .progress-text {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .progress-numbers {
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .eta {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .headline {
+                font-size: 22px;
+            }
+            
+            .subheadline {
+                font-size: 15px;
+            }
+            
+            .current-task {
+                font-size: 15px;
+                min-height: 45px;
+            }
+            
+            .scanner-circle {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .task-text {
+                font-size: 14px;
+            }
+            
+            .task-item {
+                padding: 10px 0;
+            }
+        }
+        
+        /* Debug panel for testing */
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #4a5568;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .debug-button {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-top: 8px;
+            display: block;
+            width: 100%;
+        }
+        
+        .debug-button:hover {
+            background: #c53030;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <div class="step-indicator">Step 3 of 4</div>
+        <h1 class="headline">Analyzing Your Mental Load</h1>
+        <p class="subheadline">We're scanning your emails and calendar to build your personalized AI assistant</p>
+        
+        <div class="scanning-animation">
+            <div class="scanner-circle"></div>
+            <div class="current-task" id="currentTask">
+                Initializing analysis...
+            </div>
+        </div>
+        
+        <div class="task-list">
+            <div class="task-item" id="task1">
+                <div class="task-icon pending">
+                    <i data-lucide="mail"></i>
+                </div>
+                <div class="task-text">Scanning Gmail for brand preferences</div>
+            </div>
+            <div class="task-item" id="task2">
+                <div class="task-icon pending">
+                    <i data-lucide="tag"></i>
+                </div>
+                <div class="task-text">Identifying DTC brands you love</div>
+            </div>
+            <div class="task-item" id="task3">
+                <div class="task-icon pending">
+                    <i data-lucide="graduation-cap"></i>
+                </div>
+                <div class="task-text">Finding important school and work emails</div>
+            </div>
+            <div class="task-item" id="task4">
+                <div class="task-icon pending">
+                    <i data-lucide="calendar"></i>
+                </div>
+                <div class="task-text">Analyzing calendar patterns</div>
+            </div>
+            <div class="task-item" id="task5">
+                <div class="task-icon pending">
+                    <i data-lucide="brain"></i>
+                </div>
+                <div class="task-text">Building your personal intelligence profile</div>
+            </div>
+        </div>
+        
+        <div class="progress-section">
+            <div class="progress-text">Progress</div>
+            <div class="progress-numbers" id="progressNumbers">0 of 5 tasks completed</div>
+            <div class="eta" id="eta">Estimated time: 2-3 minutes</div>
+        </div>
+    </div>
+    
+    <!-- Debug Panel for Testing -->
+    <div class="debug-panel">
+        <div>🧪 Debug Tools</div>
+        <button class="debug-button" onclick="clearGmailTokens()">Clear Gmail Tokens</button>
+        <div id="debugStatus" style="margin-top: 8px; font-size: 10px;"></div>
+    </div>
+
+    <script>
+        // Debug function to clear Gmail tokens
+        async function clearGmailTokens() {
+            try {
+                document.getElementById('debugStatus').textContent = 'Clearing tokens...';
+                
+                const response = await fetch('/api/clear-gmail-tokens', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('debugStatus').textContent = '✅ Tokens cleared!';
+                    setTimeout(() => {
+                        document.getElementById('debugStatus').textContent = 'Now you can test full OAuth flow';
+                    }, 2000);
+                } else {
+                    document.getElementById('debugStatus').textContent = '❌ Failed to clear';
+                }
+            } catch (error) {
+                document.getElementById('debugStatus').textContent = '❌ Error: ' + error.message;
+            }
+        }
+        
+        let currentTaskIndex = 0;
+        let completedTasks = 0;
+        
+        const tasks = [
+            {
+                text: "Connecting to your Gmail account...",
+                duration: 3000,
+                apiCall: null
+            },
+            {
+                text: "Scanning for DTC brands you actually like...",
+                duration: 8000,
+                apiCall: '/api/start-email-scan'
+            },
+            {
+                text: "Identifying important school and club emails...",
+                duration: 5000,
+                apiCall: null
+            },
+            {
+                text: "Analyzing your calendar for schedule patterns...",
+                duration: 4000,
+                apiCall: null
+            },
+            {
+                text: "Building your personalized intelligence profile...",
+                duration: 3000,
+                apiCall: null
+            }
+        ];
+        
+        const currentTaskElement = document.getElementById('currentTask');
+        const progressElement = document.getElementById('progressNumbers');
+        const etaElement = document.getElementById('eta');
+        
+        function updateTask(index) {
+            // Update current task text
+            currentTaskElement.textContent = tasks[index].text;
+            
+            // Update task icons
+            const taskItems = document.querySelectorAll('.task-item');
+            taskItems.forEach((item, i) => {
+                const icon = item.querySelector('.task-icon');
+                if (i < index) {
+                    icon.className = 'task-icon completed';
+                    icon.innerHTML = '<i data-lucide="check"></i>';
+                    item.classList.add('completed');
+                } else if (i === index) {
+                    icon.className = 'task-icon active';
+                } else {
+                    icon.className = 'task-icon pending';
+                }
+            });
+            
+            // Re-initialize Lucide icons
+            lucide.createIcons();
+            
+            // Update progress
+            completedTasks = index;
+            progressElement.textContent = `${completedTasks} of 5 tasks completed`;
+            
+            // Update ETA
+            const remainingTasks = 5 - completedTasks;
+            const avgTime = remainingTasks * 4; // 4 seconds average per task
+            if (remainingTasks > 0) {
+                etaElement.textContent = `Estimated time: ${Math.ceil(avgTime / 60)} minute${Math.ceil(avgTime / 60) !== 1 ? 's' : ''}`;
+            } else {
+                etaElement.textContent = 'Almost done!';
+            }
+        }
+        
+        async function runTask(index) {
+            updateTask(index);
+            
+            const task = tasks[index];
+            
+            // Make API call if specified - REAL EMAIL SCANNING
+            if (task.apiCall) {
+                try {
+                    console.log(`🔄 Making API call to ${task.apiCall}`);
+                    const response = await fetch(task.apiCall, { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+                    console.log(`✅ API call result:`, result);
+                    
+                    if (task.apiCall === '/api/start-email-scan' && result.success) {
+                        console.log(`📧 Started real email scanning of ${result.totalMessages} emails`);
+                        currentTaskElement.textContent = `Analyzing ${result.totalMessages} emails for brand preferences...`;
+                    }
+                } catch (error) {
+                    console.error(`❌ API call failed for ${task.apiCall}:`, error);
+                }
+            }
+            
+            // Wait for task duration
+            await new Promise(resolve => setTimeout(resolve, task.duration));
+            
+            // Move to next task or complete
+            if (index < tasks.length - 1) {
+                await runTask(index + 1);
+            } else {
+                completeScanning();
+            }
+        }
+        
+        function completeScanning() {
+            // Mark all tasks complete
+            const taskItems = document.querySelectorAll('.task-item');
+            taskItems.forEach((item) => {
+                const icon = item.querySelector('.task-icon');
+                icon.className = 'task-icon completed';
+                icon.innerHTML = '<i data-lucide="check"></i>';
+                item.classList.add('completed');
+            });
+            
+            // Re-initialize Lucide icons
+            lucide.createIcons();
+            
+            currentTaskElement.textContent = "Analysis complete! Preparing your personalized experience...";
+            progressElement.textContent = "5 of 5 tasks completed";
+            etaElement.textContent = "Ready!";
+            
+            // Redirect to calibration after a moment
+            setTimeout(() => {
+                window.location.href = '/calibrate';
+            }, 2000);
+        }
+        
+        // Start the scanning process
+        setTimeout(() => {
+            // Initialize Lucide icons first
+            lucide.createIcons();
+            runTask(0);
+        }, 1000);
+    </script>
+</body>
+</html>

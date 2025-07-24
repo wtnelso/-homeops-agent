@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeOps - AI-Powered Life Organization</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 32px 24px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo-section {
+            margin-bottom: 32px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+        }
+        
+        .logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2d3748;
+            letter-spacing: -0.5px;
+        }
+        
+        .mental-load-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .headline {
+            font-size: 22px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+        
+        .subheadline {
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .continue-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 16px;
+        }
+        
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .continue-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .features {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+        
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            color: #667eea;
+            flex-shrink: 0;
+        }
+        
+        .feature-text {
+            color: #4a5568;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        /* Tablet */
+        @media (min-width: 768px) {
+            body {
+                padding: 24px;
+            }
+            
+            .container {
+                padding: 48px 32px;
+            }
+            
+            .logo-icon {
+                width: 56px;
+                height: 56px;
+            }
+            
+            .logo-text {
+                font-size: 32px;
+            }
+            
+            .headline {
+                font-size: 28px;
+            }
+            
+            .subheadline {
+                font-size: 18px;
+            }
+            
+            .continue-btn {
+                font-size: 18px;
+            }
+            
+            .feature-icon {
+                width: 24px;
+                height: 24px;
+                margin-right: 12px;
+            }
+            
+            .feature-text {
+                font-size: 15px;
+            }
+        }
+        
+        /* Desktop */
+        @media (min-width: 1024px) {
+            .container {
+                padding: 60px 40px;
+            }
+            
+            .features {
+                margin-top: 40px;
+                padding-top: 30px;
+            }
+            
+            .feature {
+                margin-bottom: 16px;
+            }
+        }
+        
+        /* Debug panel for testing */
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #4a5568;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .debug-button {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-top: 8px;
+            display: block;
+            width: 100%;
+        }
+        
+        .debug-button:hover {
+            background: #c53030;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-section">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="home"></i>
+                </div>
+                <div class="logo-text">HomeOps</div>
+            </div>
+            <div class="mental-load-badge">Mental Load Reduction</div>
+        </div>
+        
+        <h1 class="headline">AI-powered organization to reduce the mental load of the real logistics of modern life</h1>
+        <p class="subheadline">Built to reduce email clutter, automate life admin, and keep your calendar ahead of you.</p>
+        
+        <form id="onboardingForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required placeholder="Enter your full name">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="Enter your email address">
+            </div>
+            
+            <button type="submit" class="continue-btn" id="continueBtn">
+                Start Reducing Mental Load →
+            </button>
+        </form>
+        
+        <div class="features">
+            <div class="feature">
+                <i data-lucide="brain" class="feature-icon"></i>
+                <div class="feature-text">Analyzes your email patterns to surface what actually matters</div>
+            </div>
+            <div class="feature">
+                <i data-lucide="calendar-check" class="feature-icon"></i>
+                <div class="feature-text">Understands your family's schedule chaos and helps organize it</div>
+            </div>
+            <div class="feature">
+                <i data-lucide="shield-check" class="feature-icon"></i>
+                <div class="feature-text">Built with parent-level security and data protection</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Debug Panel for Testing -->
+    <div class="debug-panel">
+        <div style="margin-bottom: 8px;">🔧 Debug Panel</div>
+        <button class="debug-button" onclick="clearGmailTokens()">Clear Gmail Tokens</button>
+        <button class="debug-button" onclick="window.location.href='/debug-oauth'">Full Debug Tools</button>
+        <div id="debugStatus" style="margin-top: 8px; font-size: 10px; color: #718096;"></div>
+    </div>
+
+    <script>
+        // Debug function to clear Gmail tokens
+        async function clearGmailTokens() {
+            try {
+                document.getElementById('debugStatus').textContent = 'Clearing tokens...';
+                
+                const response = await fetch('/api/clear-gmail-tokens', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('debugStatus').textContent = '✅ Tokens cleared!';
+                    setTimeout(() => {
+                        document.getElementById('debugStatus').textContent = 'Ready for fresh OAuth test';
+                    }, 2000);
+                } else {
+                    document.getElementById('debugStatus').textContent = '❌ Failed to clear';
+                }
+            } catch (error) {
+                document.getElementById('debugStatus').textContent = '❌ Error: ' + error.message;
+            }
+        }
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        document.getElementById('onboardingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const continueBtn = document.getElementById('continueBtn');
+            
+            if (!name || !email) return;
+            
+            // Store user info and proceed to onboarding
+            continueBtn.disabled = true;
+            continueBtn.textContent = 'Setting up your mental load OS...';
+            
+            try {
+                // Store user info for onboarding session
+                sessionStorage.setItem('onboarding_user', JSON.stringify({ name, email }));
+                
+                // Redirect to OAuth step
+                window.location.href = '/onboard';
+            } catch (error) {
+                console.error('Error starting onboarding:', error);
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Start Reducing Mental Load →';
+            }
+        });
+        
+        // Auto-focus first input
+        document.getElementById('name').focus();
+    </script>
+</body>
+</html>
