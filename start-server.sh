@@ -40,7 +40,7 @@ try {
 # Kill any existing server
 echo ""
 echo "🧹 Cleaning up any existing servers..."
-pkill -f "node server.js" 2>/dev/null || true
+pkill -f "node homeops-with-email.js" 2>/dev/null || true
 sleep 1
 
 # Start the server with error capture
@@ -54,7 +54,7 @@ echo ""
 echo "Starting on port 3000..."
 
 # Start server and capture output
-node server.js 2>&1 &
+node homeops-with-email.js 2>&1 &
 SERVER_PID=$!
 
 # Wait and check if it started successfully
@@ -86,5 +86,5 @@ else
     # Try to get error output
     echo ""
     echo "🔍 Attempting direct start for error details:"
-    node server.js
+    node homeops-with-email.js
 fi

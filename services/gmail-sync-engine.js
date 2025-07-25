@@ -326,7 +326,21 @@ class GmailSyncEngine {
    * Get real emails for calibration cards
    */
   async getEmailsForCalibration(maxEmails = 5) {
-    try {
+    console.log("🔧 Loading Firebase tokens into Gmail client...");
+    const admin = require("firebase-admin");
+    const db = admin.firestore();
+    const tokenDoc = await db.collection("gmail_tokens").doc("current_user").get();
+    if (tokenDoc.exists) {
+      const tokens = tokenDoc.data();
+      this.oauth2Client.setCredentials({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expiry_date: tokens.expiry_date
+      });
+      console.log("✅ Gmail tokens loaded from Firebase into OAuth client");
+    } else {
+      console.log("❌ No tokens found in Firebase");
+    }    try {
       console.log(`📧 Getting ${maxEmails} emails for calibration...`);
       
       // Get list of messages
