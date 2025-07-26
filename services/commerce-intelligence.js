@@ -405,56 +405,9 @@ class CommerceIntelligence {
     console.log(`✅ DTC database now contains ${Object.keys(this.dtcBrands).length} total brands`);
   }
 
-  // Helper methods for Gmail intelligence integration
-  inferCategoriesFromBrand(brand) {
-    const domain = brand.domain.toLowerCase();
-    const name = brand.name.toLowerCase();
-    
-    // Simple category inference based on brand characteristics
-    const categories = [];
-    
-    if (domain.includes('clothing') || name.includes('fashion') || name.includes('apparel')) {
-      categories.push('clothing');
-    }
-    if (domain.includes('kids') || name.includes('kid') || name.includes('child')) {
-      categories.push('kids');
-    }
-    if (domain.includes('sport') || name.includes('athletic') || name.includes('fitness')) {
-      categories.push('sports');
-    }
-    if (domain.includes('beauty') || name.includes('cosmetic') || name.includes('skincare')) {
-      categories.push('beauty');
-    }
-    
-    return categories.length > 0 ? categories : ['general'];
-  }
-
-  estimatePriceFromSignals(brand) {
-    // Estimate price based on email quality and frequency
-    const basePrice = 50;
-    const qualityMultiplier = 1 + (brand.emailQualityScore - 0.5);
-    const frequencyMultiplier = Math.min(1.5, 1 + (brand.emailsReceived / 20));
-    
-    const estimatedPrice = Math.round(basePrice * qualityMultiplier * frequencyMultiplier);
-    return `$${estimatedPrice}`;
-  }
-
-  generateOfferFromSignals(brand) {
-    const offers = [
-      "Exclusive offer from your email history",
-      "Special deal for engaged customers", 
-      "Premium member pricing",
-      "Personalized offer based on your engagement"
-    ];
-    
-    const index = brand.emailsReceived % offers.length;
-    return offers[index];
-  }
-
   async process(query, userBrandProfile = null) {
     try {
       console.log('🛍️ COMMERCE INTELLIGENCE: Processing query:', query);
-      console.log('📧 User brand profile provided:', userBrandProfile ? 'Yes' : 'No');
 
       // Step 1: Query Interpretation using AI
       const interpretation = await this.parseQuery(query);
@@ -463,26 +416,32 @@ class CommerceIntelligence {
       // Step 2: Get Amazon result (Speed/Familiarity Layer)
       const amazonResult = await this.getAmazonRecommendation(interpretation);
 
-      // Step 3: Get DTC result with Gmail intelligence boost
-      const dtcResult = await this.getDTCRecommendation(interpretation, userBrandProfile);
+      // Step 3: DTC Brand Matching (Curation Layer)
+      const dtcResult = await this.getDTCRecommendation(interpretation);
 
-      return {
+      // Step 4: Unified Recommendation Output
+      const recommendation = {
         success: true,
         query: query,
         interpretation: interpretation,
-        strategy: 'Dual-layer Commerce Intelligence with Gmail brand signals',
         results: [
           amazonResult,
           dtcResult
-        ]
+        ],
+        strategy: "Agent-powered commerce: Fast utility + Curated trust",
+        timestamp: new Date().toISOString()
       };
 
+      console.log('✅ COMMERCE RECOMMENDATION:', JSON.stringify(recommendation, null, 2));
+      return recommendation;
+
     } catch (error) {
-      console.error('Commerce Intelligence error:', error);
+      console.error('❌ Commerce Intelligence error:', error);
       return {
         success: false,
         error: error.message,
-        results: []
+        query: query,
+        fallback: "Commerce intelligence temporarily unavailable. Try Amazon search."
       };
     }
   }

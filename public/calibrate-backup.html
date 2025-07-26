@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calibrate Your HomeOps - Step 4</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            padding: 24px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            color: white;
+        }
+        
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+            letter-spacing: -0.5px;
+        }
+        
+        .step-indicator {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+        
+        .headline {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .subheadline {
+            font-size: 14px;
+            color: #718096;
+            line-height: 1.5;
+        }
+        
+        .content {
+            padding: 24px 20px;
+        }
+        
+        .intro {
+            text-align: center;
+            margin-bottom: 32px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 12px;
+        }
+        
+        .intro h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .intro p {
+            font-size: 14px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .card.hidden {
+            display: none;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #f7fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        
+        .card-info {
+            flex-grow: 1;
+        }
+        
+        .brand-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+        
+        .brand-category {
+            font-size: 13px;
+            color: #718096;
+        }
+        
+        .card-content {
+            margin-bottom: 16px;
+        }
+        
+        .email-preview {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 3px solid #667eea;
+            margin-bottom: 12px;
+        }
+        
+        .email-subject {
+            font-size: 13px;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+        
+        .email-snippet {
+            font-size: 12px;
+            color: #718096;
+            line-height: 1.4;
+        }
+        
+        .insights {
+            background: #f0fff4;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #2f855a;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .thumbs-up {
+            background: #f0fff4;
+            color: #38a169;
+            border: 2px solid #9ae6b4;
+        }
+        
+        .thumbs-up:hover {
+            background: #38a169;
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .thumbs-down {
+            background: #fef5e7;
+            color: #d69e2e;
+            border: 2px solid #f6e05e;
+        }
+        
+        .thumbs-down:hover {
+            background: #d69e2e;
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .completion-screen {
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+        }
+        
+        .completion-screen.active {
+            display: block;
+        }
+        
+        .completion-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            color: white;
+        }
+        
+        .completion-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+        
+        .completion-message {
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+        
+        .launch-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .launch-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Tablet */
+        @media (min-width: 768px) {
+            body {
+                padding: 24px;
+            }
+            
+            .header {
+                padding: 32px 40px;
+            }
+            
+            .logo-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                margin-right: 10px;
+            }
+            
+            .logo-text {
+                font-size: 24px;
+            }
+            
+            .step-indicator {
+                font-size: 13px;
+                padding: 6px 16px;
+                border-radius: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .headline {
+                font-size: 22px;
+                margin-bottom: 10px;
+            }
+            
+            .subheadline {
+                font-size: 16px;
+            }
+            
+            .content {
+                padding: 32px 40px;
+            }
+            
+            .intro {
+                padding: 24px;
+                margin-bottom: 40px;
+            }
+            
+            .intro h3 {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+            
+            .intro p {
+                font-size: 15px;
+            }
+            
+            .card {
+                padding: 24px;
+                margin-bottom: 24px;
+            }
+            
+            .brand-logo {
+                width: 48px;
+                height: 48px;
+                border-radius: 10px;
+                margin-right: 16px;
+                font-size: 20px;
+            }
+            
+            .brand-name {
+                font-size: 18px;
+                margin-bottom: 6px;
+            }
+            
+            .brand-category {
+                font-size: 14px;
+            }
+            
+            .email-preview {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+            
+            .email-subject {
+                font-size: 14px;
+                margin-bottom: 6px;
+            }
+            
+            .email-snippet {
+                font-size: 13px;
+            }
+            
+            .insights {
+                padding: 16px;
+                font-size: 13px;
+            }
+            
+            .actions {
+                gap: 16px;
+            }
+            
+            .action-btn {
+                padding: 14px;
+                font-size: 15px;
+                gap: 8px;
+            }
+            
+            .completion-screen {
+                padding: 60px 40px;
+            }
+            
+            .completion-icon {
+                width: 100px;
+                height: 100px;
+                margin-bottom: 32px;
+            }
+            
+            .completion-title {
+                font-size: 28px;
+                margin-bottom: 16px;
+            }
+            
+            .completion-message {
+                font-size: 18px;
+                margin-bottom: 40px;
+            }
+            
+            .launch-btn {
+                padding: 18px 36px;
+                font-size: 18px;
+            }
+        }
+        
+        /* Desktop */
+        @media (min-width: 1024px) {
+            .content {
+                padding: 40px 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="home"></i>
+                </div>
+                <div class="logo-text">HomeOps</div>
+            </div>
+            <div class="step-indicator">Step 4 of 4</div>
+            <h1 class="headline">Calibrate Your Preferences</h1>
+            <p class="subheadline">Help HomeOps learn what matters to you by rating these email insights</p>
+        </div>
+        
+        <div class="content">
+            <div class="intro">
+                <h3>Teaching Your Mental Load Assistant</h3>
+                <p>Based on your emails, we found these brands and insights. Rate them to help HomeOps understand what's important to your family.</p>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div id="cardContainer">
+                <!-- Cards will be dynamically loaded here -->
+            </div>
+            
+            <div class="completion-screen" id="completionScreen">
+                <div class="completion-icon">
+                    <i data-lucide="check" style="width: 40px; height: 40px;"></i>
+                </div>
+                <h2 class="completion-title">HomeOps is Ready!</h2>
+                <p class="completion-message">
+                    Your mental load operating system has been calibrated. HomeOps now understands your preferences and is ready to help reduce the cognitive overhead of your family's logistics.
+                </p>
+                <button class="launch-btn" onclick="launchHomeOps()">
+                    Launch Your HomeOps Assistant →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Load real calibration data from Gmail
+        let calibrationCards = [];
+        let currentCardIndex = 0;
+        let responses = [];
+        
+        async function loadCalibrationData() {
+            try {
+                console.log('📧 Loading real email data for calibration...');
+                const response = await fetch('/api/calibration-data');
+                const data = await response.json();
+                
+                if (data.success) {
+                    calibrationCards = data.calibrationCards;
+                    if (data.usingMockData) {
+                        console.log('⚠️ Using mock data - Gmail not connected');
+                    } else {
+                        console.log(`✅ Loaded ${calibrationCards.length} real email cards`);
+                    }
+                    
+                    // Load the first card
+                    loadCards();
+                } else {
+                    throw new Error(data.error || 'Failed to load calibration data');
+                }
+                
+            } catch (error) {
+                console.error('Failed to load calibration data:', error);
+                
+                // Fallback to hardcoded mock data
+                calibrationCards = [
+                    {
+                        id: 1,
+                        brandName: "Target",
+                        category: "Retail & Shopping",
+                        logo: '<i data-lucide="target" style="width: 20px; height: 20px; color: #e53e3e;"></i>',
+                        emailSubject: "Weekly Ad: Save on back-to-school essentials",
+                        emailSnippet: "Find everything your family needs for the new school year. Save 20% on supplies, clothes, and more.",
+                        insight: '<i data-lucide="bar-chart-3" style="width: 14px; height: 14px; margin-right: 6px;"></i>Mock data - could not load real emails'
+                    },
+                    {
+                        id: 2,
+                        brandName: "Amazon",
+                        category: "E-commerce",
+                        logo: '<i data-lucide="package" style="width: 20px; height: 20px; color: #ff9500;"></i>',
+                        emailSubject: "Your package has been delivered",
+                        emailSnippet: "Your order of kids' vitamins and household supplies arrived today at your front door.",
+                        insight: '<i data-lucide="truck" style="width: 14px; height: 14px; margin-right: 6px;"></i>Mock data - could not load real emails'
+                    }
+                ];
+                
+                loadCards();
+            }
+        }
+        
+        function renderCard(cardData) {
+            return `
+                <div class="card" id="card-${cardData.id}">
+                    <div class="card-header">
+                        <div class="brand-logo">${cardData.logo}</div>
+                        <div class="card-info">
+                            <div class="brand-name">${cardData.brandName}</div>
+                            <div class="brand-category">${cardData.category}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <div class="email-preview">
+                            <div class="email-subject">${cardData.emailSubject}</div>
+                            <div class="email-snippet">${cardData.emailSnippet}</div>
+                        </div>
+                        
+                        <div class="insights">
+                            <span style="display: flex; align-items: center;">${cardData.insight}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <button class="action-btn thumbs-up" onclick="rateCard(${cardData.id}, 'up')">
+                            <i data-lucide="thumbs-up" style="width: 16px; height: 16px;"></i>
+                            Useful - Show More
+                        </button>
+                        <button class="action-btn thumbs-down" onclick="rateCard(${cardData.id}, 'down')">
+                            <i data-lucide="thumbs-down" style="width: 16px; height: 16px;"></i>
+                            Not Important
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function loadCards() {
+            const container = document.getElementById('cardContainer');
+            
+            // Show only the current card
+            if (currentCardIndex < calibrationCards.length) {
+                const cardData = calibrationCards[currentCardIndex];
+                container.innerHTML = renderCard(cardData);
+                lucide.createIcons();
+            }
+        }
+        
+        async function rateCard(cardId, rating) {
+            // Store the rating
+            responses.push({ cardId, rating });
+            
+            // Update progress
+            const progress = (responses.length / calibrationCards.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            
+            // Send rating to backend
+            try {
+                await fetch('/api/calibration-rating', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cardId, rating, userId: 'demo-user' })
+                });
+            } catch (error) {
+                console.error('Failed to save rating:', error);
+            }
+            
+            // Move to next card
+            currentCardIndex++;
+            
+            if (currentCardIndex < calibrationCards.length) {
+                setTimeout(() => {
+                    loadCards();
+                }, 300);
+            } else {
+                // All cards completed
+                setTimeout(() => {
+                    showCompletion();
+                }, 300);
+            }
+        }
+        
+        function showCompletion() {
+            document.getElementById('cardContainer').style.display = 'none';
+            document.getElementById('completionScreen').classList.add('active');
+            lucide.createIcons();
+        }
+        
+        function launchHomeOps() {
+            // Store completion status
+            sessionStorage.setItem('homeops_onboarding_complete', 'true');
+            
+            // Redirect to main HomeOps chat interface
+            window.location.href = '/';
+        }
+        
+        // Initialize the calibration flow by loading real data
+        loadCalibrationData();
+        
+        // Get user info from session storage
+        const userInfo = JSON.parse(sessionStorage.getItem('onboarding_user') || '{}');
+        if (userInfo.name) {
+            document.querySelector('.subheadline').textContent = 
+                `${userInfo.name.split(' ')[0]}, help HomeOps learn what matters to you by rating these email insights`;
+        }
+    </script>
+</body>
+</html>

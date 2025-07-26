@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Debug</title>
+</head>
+<body>
+    <h1>API Debug Test</h1>
+    <div id="debug"></div>
+    
+    <script>
+        async function testAPI() {
+            try {
+                console.log('Testing API...');
+                const response = await fetch('/api/calibration-data');
+                console.log('Response:', response);
+                
+                const data = await response.json();
+                console.log('Data:', data);
+                
+                const debugDiv = document.getElementById('debug');
+                debugDiv.innerHTML = `
+                    <h2>API Response</h2>
+                    <p><strong>Success:</strong> ${data.success}</p>
+                    <p><strong>Emails count:</strong> ${data.emails ? data.emails.length : 'No emails property'}</p>
+                    <p><strong>Response OK:</strong> ${response.ok}</p>
+                    <p><strong>Data type:</strong> ${typeof data}</p>
+                    <h3>First email:</h3>
+                    <pre>${data.emails && data.emails[0] ? JSON.stringify(data.emails[0], null, 2) : 'No first email'}</pre>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('debug').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

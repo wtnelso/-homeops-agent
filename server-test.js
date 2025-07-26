@@ -102,119 +102,7 @@ app.post('/api/onboard-user', async (req, res) => {
   }
 });
 
-// User Onboarding Flow Endpoints
-
-// Discovered brands from user's Gmail (after OAuth)
-app.get('/api/discovered-brands', async (req, res) => {
-  try {
-    // Get brands discovered from user's Gmail analysis
-    const userBrands = gmailBrandBuilder.masterBrandDatabase || {};
-    
-    // Convert to onboarding format
-    const brands = Object.values(userBrands).map(brand => ({
-      name: brand.name,
-      domain: brand.domain,
-      categories: brand.categories,
-      emailCount: brand.emailCount,
-      lastSeen: brand.lastSeen,
-      loyaltyScore: brand.loyaltyScore
-    }));
-
-    res.json({
-      success: true,
-      brands: brands.slice(0, 20), // Show top 20 for onboarding
-      totalDiscovered: brands.length
-    });
-  } catch (error) {
-    console.error('Error loading discovered brands:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Complete user onboarding with preferences
-app.post('/api/complete-onboarding', async (req, res) => {
-  try {
-    const { likedBrands, dislikedBrands, importantEmailTypes, unimportantEmailTypes } = req.body;
-    const userId = req.headers['user-id'] || `user_${Date.now()}`; // Generate temp user ID
-    
-    console.log(`🎯 Completing onboarding for user ${userId}`);
-    
-    // Create user profile based on preferences
-    const userProfile = createUserProfile(userId, {
-      likedBrands,
-      dislikedBrands,
-      importantEmailTypes,
-      unimportantEmailTypes
-    });
-    
-    // Cross-reference with master database
-    const personalizedProfile = crossReferenceBrands(
-      userProfile.brandPreferences, 
-      masterBrandDatabase, 
-      userId
-    );
-    
-    // Store user profile
-    userBrandDatabases[userId] = personalizedProfile;
-    
-    console.log(`✅ User ${userId} onboarded with ${personalizedProfile.totalBrands} personalized brands`);
-    
-    res.json({
-      success: true,
-      userId: userId,
-      profile: {
-        totalBrands: personalizedProfile.totalBrands,
-        sharedBrands: personalizedProfile.sharedBrands.length,
-        uniqueBrands: personalizedProfile.uniqueBrands.length,
-        intelligenceScore: personalizedProfile.recommendationScore,
-        emailIntelligence: userProfile.emailIntelligence
-      }
-    });
-    
-  } catch (error) {
-    console.error('Onboarding completion error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Create user profile from onboarding preferences
-function createUserProfile(userId, preferences) {
-  const { likedBrands, dislikedBrands, importantEmailTypes, unimportantEmailTypes } = preferences;
-  
-  // Filter master database by user preferences
-  const brandPreferences = {};
-  
-  for (const [domain, brand] of Object.entries(masterBrandDatabase)) {
-    if (likedBrands.includes(domain)) {
-      brandPreferences[domain] = {
-        ...brand,
-        userLoyaltyBoost: 0.2, // Boost for explicitly liked brands
-        userPreference: 'liked'
-      };
-    } else if (!dislikedBrands.includes(domain)) {
-      // Include neutral brands with standard scoring
-      brandPreferences[domain] = {
-        ...brand,
-        userPreference: 'neutral'
-      };
-    }
-    // Exclude disliked brands entirely
-  }
-  
-  return {
-    userId,
-    brandPreferences,
-    emailIntelligence: {
-      importantCategories: importantEmailTypes,
-      unimportantCategories: unimportantEmailTypes,
-      intelligenceLevel: (importantEmailTypes.length / 6) * 100 // Percentage of categories configured
-    },
-    createdAt: new Date(),
-    onboardingComplete: true
-  };
-}
-
-// Enhanced cross-reference with user preferences
+// Cross-reference user brands with master database
 function crossReferenceBrands(userBrands, masterBrands, userId) {
   const sharedBrands = [];
   const uniqueBrands = [];
@@ -284,19 +172,27 @@ app.get('/auth/gmail/callback', async (req, res) => {
     
     gmailBrandBuilder.oauth2Client.setCredentials(tokens);
     
-    console.log('✅ Gmail authenticated! Building user brand database...');
+    console.log('✅ Gmail authenticated! Building master brand database...');
     
-    // Build user's personal brand database
-    gmailBrandBuilder.buildMasterDatabase(1000)
+    // Build master database in background
+    gmailBrandBuilder.buildMasterDatabase(2000)
       .then(brands => {
-        console.log(`🎉 Discovered ${Object.keys(brands).length} brands from user's Gmail!`);
-        // This will be used in the onboarding flow
+        masterBrandDatabase = brands;
+        // Update Commerce Intelligence with discovered brands
+        commerceIntelligence.updateDTCBrands(brands);
+        console.log(`🎉 Master database built with ${Object.keys(brands).length} DTC brands!`);
+        console.log('Top 10 brands:', Object.keys(brands).slice(0, 10));
       })
-      .catch(error => console.error('Brand discovery failed:', error));
+      .catch(error => console.error('Master database build failed:', error));
     
-    // Redirect to onboarding flow instead of basic success page
-    res.redirect('/gmail-onboarding.html?gmail_connected=true');
-    
+    res.send(`
+      <h1>🎉 Gmail Connected!</h1>
+      <p>Building master DTC brand database from your promotion emails...</p>
+      <p>This will power personalized recommendations for all users.</p>
+      <p><strong>Database Purpose:</strong> Extract real DTC brands to replace manual curation</p>
+      <p><a href="/">← Back to HomeOps</a></p>
+      <script>setTimeout(() => window.close(), 5000);</script>
+    `);
   } catch (error) {
     console.error('Gmail callback error:', error);
     res.status(500).json({ success: false, error: error.message });

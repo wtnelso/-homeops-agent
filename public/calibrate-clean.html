@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeOps Email Calibration - 20 Emails</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <style>
+        .calibration-debug {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .email-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .rating-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .rating-btn {
+            padding: 8px 16px;
+            border: 1px solid #007AFF;
+            background: white;
+            color: #007AFF;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .rating-btn:hover, .rating-btn.selected {
+            background: #007AFF;
+            color: white;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="calibration-container">
+        <h1>🧠 HomeOps Email Calibration (20 Emails)</h1>
+        
+        <div class="calibration-debug" id="debug-info">
+            Status: Initializing...
+        </div>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn" id="prev-btn" onclick="previousEmail()" disabled>← Previous</button>
+            <span id="progress">Email 1 of 20</span>
+            <button class="nav-btn" id="next-btn" onclick="nextEmail()">Next →</button>
+        </div>
+        
+        <div id="email-container">
+            <div class="email-card">
+                <p>Loading emails...</p>
+            </div>
+        </div>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="previousEmail()" disabled id="prev-btn-2">← Previous</button>
+            <span>Rate emails to train your Mental Load Assistant</span>
+            <button class="nav-btn" onclick="nextEmail()" id="next-btn-2">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        let emails = [];
+        let currentIndex = 0;
+        let ratings = {};
+        
+        function updateDebug(message) {
+            document.getElementById('debug-info').textContent = message;
+        }
+        
+        async function loadEmails() {
+            try {
+                updateDebug('Fetching emails from /api/calibration-data...');
+                
+                const response = await fetch('/api/calibration-data');
+                updateDebug(`Response status: ${response.status} ${response.ok ? 'OK' : 'ERROR'}`);
+                
+                const data = await response.json();
+                updateDebug(`Data received: ${JSON.stringify({success: data.success, emailCount: data.emails ? data.emails.length : 'no emails'})}`);
+                
+                if (!data.success || !data.emails) {
+                    throw new Error('Invalid response: ' + JSON.stringify(data));
+                }
+                
+                emails = data.emails;
+                updateDebug(`✅ Loaded ${emails.length} emails successfully`);
+                
+                if (emails.length === 0) {
+                    throw new Error('No emails in response');
+                }
+                
+                showCurrentEmail();
+                
+            } catch (error) {
+                updateDebug(`❌ Error: ${error.message}`);
+                document.getElementById('email-container').innerHTML = `
+                    <div class="email-card">
+                        <h3>Error Loading Emails</h3>
+                        <p>${error.message}</p>
+                        <button onclick="loadEmails()">Try Again</button>
+                    </div>
+                `;
+            }
+        }
+        
+        function showCurrentEmail() {
+            if (!emails || emails.length === 0) return;
+            
+            const email = emails[currentIndex];
+            updateDebug(`Showing email ${currentIndex + 1}/${emails.length}: ${email.subject.substring(0, 50)}...`);
+            
+            document.getElementById('progress').textContent = `Email ${currentIndex + 1} of ${emails.length}`;
+            
+            document.getElementById('email-container').innerHTML = `
+                <div class="email-card">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <span style="font-size: 20px;">${email.brandIcon || '📧'}</span>
+                        <span><strong>${email.brandName || email.sender}</strong></span>
+                        <span style="background: #e3f2fd; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${email.emailType || email.category}</span>
+                    </div>
+                    
+                    <h3>${email.subject}</h3>
+                    <p style="color: #666; margin: 10px 0;">${email.snippet || email.summary}</p>
+                    
+                    <div style="font-size: 12px; color: #888; margin: 10px 0;">
+                        📅 ${email.time_ago || 'Recently'} | 
+                        ⚠️ Priority: ${email.priority || 'Medium'} |
+                        🎯 Manipulation Score: ${email.manipulation_score || 'N/A'}/10
+                    </div>
+                    
+                    <h4>How would you handle this email?</h4>
+                    <div class="rating-buttons">
+                        <button class="rating-btn" onclick="rateEmail('immediate')">🔥 Immediate</button>
+                        <button class="rating-btn" onclick="rateEmail('today')">📅 Today</button>
+                        <button class="rating-btn" onclick="rateEmail('this_week')">📝 This Week</button>
+                        <button class="rating-btn" onclick="rateEmail('someday')">🗂️ Someday</button>
+                        <button class="rating-btn" onclick="rateEmail('ignore')">🗑️ Ignore</button>
+                    </div>
+                </div>
+            `;
+            
+            // Update navigation buttons
+            document.getElementById('prev-btn').disabled = currentIndex === 0;
+            document.getElementById('prev-btn-2').disabled = currentIndex === 0;
+            document.getElementById('next-btn').disabled = currentIndex === emails.length - 1;
+            document.getElementById('next-btn-2').disabled = currentIndex === emails.length - 1;
+            
+            // Restore previous rating
+            if (ratings[email.id]) {
+                const buttons = document.querySelectorAll('.rating-btn');
+                buttons.forEach(btn => {
+                    if (btn.textContent.includes(ratings[email.id])) {
+                        btn.classList.add('selected');
+                    }
+                });
+            }
+        }
+        
+        function rateEmail(rating) {
+            if (!emails || currentIndex >= emails.length) return;
+            
+            const email = emails[currentIndex];
+            ratings[email.id] = rating;
+            
+            updateDebug(`⭐ Rated email ${email.id}: ${rating}`);
+            
+            // Update button styles
+            document.querySelectorAll('.rating-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            // Save to server
+            fetch('/api/calibration-rating', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    emailId: email.id,
+                    rating: rating,
+                    timestamp: new Date().toISOString()
+                })
+            }).catch(err => console.error('Rating save failed:', err));
+        }
+        
+        function nextEmail() {
+            if (currentIndex < emails.length - 1) {
+                currentIndex++;
+                showCurrentEmail();
+            }
+        }
+        
+        function previousEmail() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                showCurrentEmail();
+            }
+        }
+        
+        // Start loading immediately
+        loadEmails();
+    </script>
+</body>
+</html>
