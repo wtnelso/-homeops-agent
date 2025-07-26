@@ -460,24 +460,35 @@ try {
       
       console.log(`🎯 Filtered to ${scoredEmails.length} high-value emails for calibration`);
       
-      // Transform to calibration card format
+      // Transform to calibration format that works with existing frontend
       const calibrationCards = scoredEmails.map((email, index) => ({
         id: email.id || index + 1,
         brandName: email.brandName || 'Unknown',
-        category: email.emailType || 'General',
-        logo: email.brandIcon || '<i data-lucide="mail" style="width: 20px; height: 20px; color: #4a90e2;"></i>',
-        emailSubject: email.subject || 'No Subject',
-        emailSnippet: email.snippet || 'No preview available',
-        insight: `<i data-lucide="brain" style="width: 14px; height: 14px; margin-right: 6px;"></i>Mental Load Score: ${email.score} - ${email.score >= 8 ? 'High Priority' : 'Medium Priority'}`,
-        score: email.score // Include score for debugging
+        brandIcon: email.brandIcon || '📧',
+        emailType: email.emailType || 'General',
+        subject: email.subject || 'No Subject',
+        snippet: email.snippet || 'No preview available',
+        // Add intelligent scoring insight
+        insight: `🧠 Mental Load Score: ${email.score} | ${email.score >= 8 ? 'High Priority' : 'Medium Priority'}`,
+        score: email.score, // Include score for debugging
+        // Make sure we include all fields the frontend expects
+        from: email.from || 'Unknown sender',
+        date: email.date || 'Recent',
+        gmailUrl: email.gmailUrl || '#'
       }));
       
       res.json({ 
         success: true, 
-        calibrationCards: calibrationCards,
+        emails: calibrationCards, // Frontend expects 'emails' property
+        calibrationCards: calibrationCards, // Keep new format for future use
         totalScanned: allEmails.length,
         highValueFiltered: scoredEmails.length,
-        intelligentFiltering: true
+        intelligentFiltering: true,
+        scoringStats: {
+          averageScore: Math.round(scoredEmails.reduce((sum, e) => sum + e.score, 0) / scoredEmails.length),
+          highPriority: scoredEmails.filter(e => e.score >= 8).length,
+          mediumPriority: scoredEmails.filter(e => e.score >= 6 && e.score < 8).length
+        }
       });
       
     } catch (error) {
