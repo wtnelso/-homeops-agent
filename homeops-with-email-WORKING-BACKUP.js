@@ -424,6 +424,23 @@ try {
     return Math.max(0, score); // Ensure non-negative scores
   }
 
+  // API endpoint to check authentication status
+  app.get('/api/auth-status', async (req, res) => {
+    try {
+      const tokenDoc = await db.collection('gmail_tokens').doc('user_tokens').get();
+      res.json({
+        authenticated: tokenDoc.exists,
+        hasTokens: tokenDoc.exists,
+        tokenData: tokenDoc.exists ? Object.keys(tokenDoc.data()) : []
+      });
+    } catch (error) {
+      res.json({
+        authenticated: false,
+        error: error.message
+      });
+    }
+  });
+
   // API endpoint to get real calibration data from emails
   app.get('/api/calibration-data', async (req, res) => {
     try {
@@ -432,6 +449,7 @@ try {
       // Get stored OAuth tokens from Firebase
       const tokenDoc = await db.collection('gmail_tokens').doc('user_tokens').get();
       if (!tokenDoc.exists) {
+        console.log('❌ No OAuth tokens found in Firebase');
         return res.status(401).json({ 
           success: false,
           needsAuth: true, 
@@ -439,6 +457,8 @@ try {
           message: 'Please connect your Gmail account to start calibration.'
         });
       }
+
+      console.log('✅ OAuth tokens found, proceeding with Gmail API calls...');
       
       const tokens = tokenDoc.data();
       oauth2Client.setCredentials(tokens);
@@ -498,24 +518,22 @@ try {
       
     } catch (error) {
       console.error('Calibration data error:', error);
-      // Fallback to mock data if Gmail not available
-      const mockData = [
-        {
-          id: 1,
-          brandName: "Target",
-          category: "Retail & Shopping",
-          logo: '<i data-lucide="target" style="width: 20px; height: 20px; color: #e53e3e;"></i>',
-          emailSubject: "Weekly Ad: Save on back-to-school essentials",
-          emailSnippet: "Find everything your family needs for the new school year. Save 20% on supplies, clothes, and more.",
-          insight: '<i data-lucide="bar-chart-3" style="width: 14px; height: 14px; margin-right: 6px;"></i>Mock data - Gmail not connected'
-        }
-      ];
       
-      res.json({ 
-        success: true, 
-        calibrationCards: mockData,
-        usingMockData: true,
-        error: error.message
+      // Check if this is an authentication error
+      if (error.message && error.message.includes('OAuth tokens not found')) {
+        return res.status(401).json({
+          success: false,
+          needsAuth: true,
+          error: 'OAuth tokens not found. Please authenticate first.',
+          message: 'Please connect your Gmail account to start calibration.'
+        });
+      }
+      
+      // For other errors, return the actual error instead of mock data
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to load calibration data',
+        message: 'Unable to load emails for calibration. Please try again.'
       });
     }
   });
