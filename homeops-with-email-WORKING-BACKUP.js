@@ -432,7 +432,12 @@ try {
       // Get stored OAuth tokens from Firebase
       const tokenDoc = await db.collection('gmail_tokens').doc('user_tokens').get();
       if (!tokenDoc.exists) {
-        return res.status(401).json({ error: 'OAuth tokens not found. Please authenticate first.' });
+        return res.status(401).json({ 
+          success: false,
+          needsAuth: true, 
+          error: 'OAuth tokens not found. Please authenticate first.',
+          message: 'Please connect your Gmail account to start calibration.'
+        });
       }
       
       const tokens = tokenDoc.data();
