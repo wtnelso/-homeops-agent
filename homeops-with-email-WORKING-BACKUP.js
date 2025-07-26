@@ -443,18 +443,29 @@ try {
 
   // API endpoint to get real calibration data from emails
   app.get('/api/calibration-data', async (req, res) => {
+    // Prevent all caching of this endpoint
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate, private',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'ETag': `"${Date.now()}"` // Force unique ETag each time
+    });
+    
     try {
       console.log('📧 Getting real email data for calibration...');
+      console.log('� Request timestamp:', new Date().toISOString());
       
       // Get stored OAuth tokens from Firebase
       const tokenDoc = await db.collection('gmail_tokens').doc('user_tokens').get();
       if (!tokenDoc.exists) {
         console.log('❌ No OAuth tokens found in Firebase');
+        console.log('🔐 Returning 401 with needsAuth=true');
         return res.status(401).json({ 
           success: false,
           needsAuth: true, 
           error: 'OAuth tokens not found. Please authenticate first.',
-          message: 'Please connect your Gmail account to start calibration.'
+          message: 'Please connect your Gmail account to start calibration.',
+          timestamp: Date.now()
         });
       }
 
