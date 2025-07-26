@@ -343,26 +343,141 @@ try {
     }
   });
 
+  // 🧠 ENHANCED EMAIL SCORING SYSTEM
+  function scoreEmail(email) {
+    let score = 0;
+    
+    const subject = email.subject?.toLowerCase() || '';
+    const snippet = email.snippet?.toLowerCase() || '';
+    const sender = email.from?.toLowerCase() || '';
+    const content = `${subject} ${snippet}`;
+    
+    console.log(`📊 Scoring email: "${email.subject}" from ${email.from}`);
+    
+    // 🏫 Family / School / Camps (Highest Priority)
+    if (content.match(/school|pta|classroom|field trip|camp|tuition|signup|parent|teacher|student|homework|grades|conference/i)) {
+      score += 10;
+      console.log(`  +10 Family/School detected`);
+    }
+    
+    // ⛳ Club / Community (High Priority)
+    if (content.match(/golf|club|league|practice|team|volunteer|community|meeting|event|tournament|registration/i)) {
+      score += 8;
+      console.log(`  +8 Club/Community detected`);
+    }
+    
+    // 🛒 Purchases / Confirmed Orders
+    if (content.match(/order confirmed|shipped|tracking|receipt|purchase|delivery|your order/i)) {
+      score += 6;
+      console.log(`  +6 Order confirmation detected`);
+    }
+    
+    // 👤 Personal (non-corporate) senders
+    const domain = sender.split('@')[1] || '';
+    const isPersonal = !domain.includes('.com') || 
+                      domain.includes('gmail.') || 
+                      domain.includes('yahoo.') || 
+                      domain.includes('hotmail.') ||
+                      !sender.includes('noreply') && !sender.includes('no-reply');
+    
+    if (isPersonal && !content.match(/unsubscribe|marketing|promotion/i)) {
+      score += 7;
+      console.log(`  +7 Personal sender detected`);
+    }
+    
+    // 💰 Finance / Admin / Medical (Important but not urgent)
+    if (content.match(/copay|insurance|invoice|bill|statement|payment|account|balance|medical|appointment|doctor|dentist/i)) {
+      score += 5;
+      console.log(`  +5 Finance/Medical detected`);
+    }
+    
+    // 📅 Calendar Events (Smart signals)
+    if (content.match(/calendar|meeting|appointment|schedule|rsvp|save the date|reminder/i)) {
+      score += 4;
+      console.log(`  +4 Calendar event detected`);
+    }
+    
+    // 🎯 High manipulation score penalty
+    const manipulationKeywords = content.match(/urgent|limited time|act now|expires|don't miss|final notice|last chance/gi) || [];
+    if (manipulationKeywords.length >= 2) {
+      score -= 4;
+      console.log(`  -4 High manipulation detected (${manipulationKeywords.length} keywords)`);
+    }
+    
+    // 🚫 Noise / No-reply filtering (Heavy penalty)
+    if (sender.includes('noreply') || 
+        sender.includes('no-reply') || 
+        sender.includes('mailchimp') ||
+        sender.includes('constantcontact') ||
+        content.match(/unsubscribe|marketing blast|newsletter|promotional/i)) {
+      score -= 3;
+      console.log(`  -3 Noise/No-reply detected`);
+    }
+    
+    // 📧 Newsletter/Promotional penalty
+    if (content.match(/newsletter|weekly digest|marketing|promotion|deal|sale|% off|discount/i)) {
+      score -= 2;
+      console.log(`  -2 Newsletter/Promotional detected`);
+    }
+    
+    console.log(`  Final score: ${score}`);
+    return Math.max(0, score); // Ensure non-negative scores
+  }
+
   // API endpoint to get real calibration data from emails
   app.get('/api/calibration-data', async (req, res) => {
     try {
       console.log('📧 Getting real email data for calibration...');
       
-      const gmailSync = new GmailSyncEngine();
-      await gmailSync.initialize();
-      
-      // Test connection first
-      const connectionTest = await gmailSync.testConnection();
-      if (!connectionTest.success) {
-        console.log("⚠️ Bypassing Gmail connection test - tokens exist in Firebase");
+      // Get stored OAuth tokens from Firebase
+      const tokenDoc = await db.collection('gmail_tokens').doc('user_tokens').get();
+      if (!tokenDoc.exists) {
+        return res.status(401).json({ error: 'OAuth tokens not found. Please authenticate first.' });
       }
       
-      // Get a sample of recent emails for calibration
-      const emailSample = await gmailSync.getEmailsForCalibration(20);
+      const tokens = tokenDoc.data();
+      oauth2Client.setCredentials(tokens);
+      
+      const gmailSync = new GmailSyncEngine();
+      
+      // Get larger sample for intelligent filtering (scan up to 1000, surface top 20-30)
+      console.log('🔍 Fetching up to 100 emails for intelligent scoring...');
+      const allEmails = await gmailSync.getEmailsForCalibration(oauth2Client, 100);
+      
+      // Apply intelligent scoring and filtering
+      console.log(`📊 Scoring ${allEmails.length} emails...`);
+      const scoredEmails = allEmails
+        .map(email => ({ ...email, score: scoreEmail(email) }))
+        .filter(email => {
+          const passesThreshold = email.score >= 6;
+          if (passesThreshold) {
+            console.log(`✅ Email passed threshold: "${email.subject}" (score: ${email.score})`);
+          }
+          return passesThreshold;
+        })
+        .sort((a, b) => b.score - a.score) // Sort by score descending
+        .slice(0, 25); // Limit to top 25 for calibration UX
+      
+      console.log(`🎯 Filtered to ${scoredEmails.length} high-value emails for calibration`);
+      
+      // Transform to calibration card format
+      const calibrationCards = scoredEmails.map((email, index) => ({
+        id: email.id || index + 1,
+        brandName: email.brandName || 'Unknown',
+        category: email.emailType || 'General',
+        logo: email.brandIcon || '<i data-lucide="mail" style="width: 20px; height: 20px; color: #4a90e2;"></i>',
+        emailSubject: email.subject || 'No Subject',
+        emailSnippet: email.snippet || 'No preview available',
+        insight: `<i data-lucide="brain" style="width: 14px; height: 14px; margin-right: 6px;"></i>Mental Load Score: ${email.score} - ${email.score >= 8 ? 'High Priority' : 'Medium Priority'}`,
+        score: email.score // Include score for debugging
+      }));
       
       res.json({ 
         success: true, 
-        calibrationCards: emailSample
+        calibrationCards: calibrationCards,
+        totalScanned: allEmails.length,
+        highValueFiltered: scoredEmails.length,
+        intelligentFiltering: true
       });
       
     } catch (error) {
