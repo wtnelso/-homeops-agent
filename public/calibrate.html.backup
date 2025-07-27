@@ -565,18 +565,8 @@
         
         async function loadCalibrationData() {
             console.log('🔄 Starting loadCalibrationData...');
-            // Update loading text safely
-            try {
-                const loadingContainer = document.getElementById('loading-container');
-                if (loadingContainer) {
-                    const loadingText = loadingContainer.querySelector('p');
-                    if (loadingText) {
-                        loadingText.textContent = 'Fetching API...';
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Error updating loading text:', error);
-            }            showLoading();
+            document.getElementById('loading-container').querySelector('p').textContent = 'Fetching API...';
+            showLoading();
             
             // Add cache busting timestamp and random number  
             const cacheBuster = `t=${Date.now()}&r=${Math.random()}`;
@@ -624,22 +614,22 @@
 
                 // Show intelligence stats if available
                 if (data.intelligentFiltering && data.totalScanned) {
-                    const intelligenceStats = document.getElementById('intelligence-stats'); if (intelligenceStats) { intelligenceStats.style.display = 'block'; } else { console.error('❌ intelligence-stats element not found'); }
-                    const totalScannedEl = document.getElementById("total-scanned"); if (totalScannedEl) totalScannedEl.textContent = String(data.totalScanned || 0);
-                    const highValueEl = document.getElementById("high-value-count"); if (highValueEl) highValueEl.textContent = String(data.highValueFiltered || currentEmails.length || 0);
+                    document.getElementById('intelligence-stats').style.display = 'block';
+                    document.getElementById('total-scanned').textContent = data.totalScanned;
+                    document.getElementById('high-value-count').textContent = data.highValueFiltered || currentEmails.length;
                     
                     const noiseReduction = Math.round((1 - (data.highValueFiltered || currentEmails.length) / data.totalScanned) * 100);
-                    const noiseReductionEl = document.getElementById("noise-reduction"); if (noiseReductionEl) noiseReductionEl.textContent = `${noiseReduction}%`;
+                    document.getElementById('noise-reduction').textContent = `${noiseReduction}%`;
                 }
                 
                 // Show progress and skip section
-                const progressContainer = document.getElementById('progress-container'); if (progressContainer) { progressContainer.style.display = 'block'; } else { console.error('❌ progress-container element not found'); }
-                const skipSection = document.getElementById('skip-section'); if (skipSection) { skipSection.style.display = 'block'; } else { console.error('❌ skip-section element not found'); }
+                document.getElementById('progress-container').style.display = 'block';
+                document.getElementById('skip-section').style.display = 'block';
                 
                 // Check if user is curator
                 if (data.isCurator) {
                     isCurator = true;
-                    const curatorBadge = document.getElementById('curator-badge'); if (curatorBadge) { curatorBadge.style.display = 'block'; } else { console.error('❌ curator-badge element not found'); }
+                    document.getElementById('curator-badge').style.display = 'block';
                 }
                 
                 hideLoading();

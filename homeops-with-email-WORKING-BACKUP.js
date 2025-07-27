@@ -54,6 +54,39 @@ try {
   const app = express();
   const PORT = process.env.PORT || 3000;
   
+  // Create OAuth2 client for token operations
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GMAIL_CLIENT_ID,
+    process.env.GMAIL_CLIENT_SECRET,
+    'http://localhost:3000/auth/gmail/callback'
+  );
+  
+  // Helper function to store OAuth tokens consistently
+  async function storeOAuthTokens(tokens, userEmail) {
+    try {
+      console.log('💾 Storing OAuth tokens for user:', userEmail);
+      console.log('🔑 Token details:', {
+        has_access_token: !!tokens.access_token,
+        has_refresh_token: !!tokens.refresh_token,
+        expiry_date: tokens.expiry_date
+      });
+      
+      await db.collection('gmail_tokens').doc(userEmail).set({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expiry_date: tokens.expiry_date,
+        token_type: tokens.token_type || 'Bearer',
+        stored_at: new Date().toISOString(),
+        user_email: userEmail
+      });
+      console.log('✅ OAuth tokens stored successfully for:', userEmail);
+      return true;
+    } catch (error) {
+      console.error('❌ Error storing OAuth tokens:', error);
+      return false;
+    }
+  }
+  
   console.log('10. Setting up middleware...');
   app.use(express.json({ limit: '50mb' }));
   app.use(express.static('public'));
@@ -82,8 +115,25 @@ try {
     res.sendFile(path.join(__dirname, 'public', 'scan.html'));
   });
   
+  // Calibration page route
   app.get('/calibrate', (req, res) => {
+    // Prevent caching of HTML files during development
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
     res.sendFile(path.join(__dirname, 'public', 'calibrate.html'));
+  });
+
+  // Fixed calibration page route (bypasses browser cache)
+  app.get('/calibrate-fixed', (req, res) => {
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    res.sendFile(path.join(__dirname, 'public', 'calibrate-fixed.html'));
   });
   
   app.get('/debug-oauth', (req, res) => {
@@ -128,7 +178,8 @@ try {
       const gmailSync = new GmailSyncEngine();
       await gmailSync.initialize(); // Initialize the OAuth client first
       
-      let authUrl = await gmailSync.getAuthUrl();
+      // ALWAYS force consent screen to ensure fresh OAuth tokens
+      let authUrl = await gmailSync.getAuthUrl(true); // Force consent = true
       
       // Add onboarding parameter to the state or redirect URL
       if (isOnboarding) {
@@ -136,6 +187,10 @@ try {
         urlObj.searchParams.set('state', JSON.stringify({ isOnboarding: true }));
         authUrl = urlObj.toString();
       }
+      
+      console.log('🔄 Redirecting to Gmail auth with FORCED consent screen...');
+      console.log('🔗 Auth URL:', authUrl);
+      console.log('📱 Onboarding mode:', isOnboarding);
       
       res.redirect(authUrl);
     } catch (error) {
@@ -167,43 +222,54 @@ try {
         throw new Error('No authorization code received');
       }
       
-      const gmailSync = new GmailSyncEngine();
-      await gmailSync.initialize(); // Initialize first
+      console.log('🔄 Exchanging authorization code for tokens...');
       
-      console.log('🔄 Exchanging code for tokens...');
-      const tokenResult = await gmailSync.exchangeCodeForTokens(code);
+      // Create OAuth2 client for token exchange
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET,
+        'http://localhost:3000/auth/gmail/callback'
+      );
       
-      if (!tokenResult.success) {
-        throw new Error(`Token exchange failed: ${tokenResult.error}`);
+      // Exchange code for tokens
+      const { tokens } = await oauth2Client.getToken(code);
+      console.log('✅ Tokens received, setting credentials...');
+      
+      oauth2Client.setCredentials(tokens);
+      console.log('✅ Gmail tokens exchanged and client updated');
+      
+      // Test Gmail connection
+      console.log('🔄 Testing Gmail connection...');
+      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+      const profile = await gmail.users.getProfile({ userId: 'me' });
+      
+      const userEmail = profile.data.emailAddress;
+      console.log(`✅ Gmail connected for ${userEmail}`);
+      
+      // Store tokens using our consistent storage function
+      const tokenStored = await storeOAuthTokens(tokens, userEmail);
+      if (!tokenStored) {
+        throw new Error('Failed to store OAuth tokens');
       }
       
-      console.log('🔄 Testing Gmail connection...');
-      const connectionTest = await gmailSync.testConnection();
-      
-      if (connectionTest.success) {
-        console.log(`✅ Gmail connected for ${connectionTest.email}`);
-        
-        if (isOnboarding) {
-          console.log('🔄 Onboarding flow detected - redirecting to scan page');
-          // Redirect to scanning animation page in onboarding flow
-          res.redirect('/scan?gmail_connected=true');
-        } else {
-          console.log('🔄 Regular OAuth flow - showing success page');
-          // Regular OAuth completion
-          res.send(`
-            <h2>✅ Gmail Successfully Connected!</h2>
-            <p>Email: ${connectionTest.email}</p>
-            <p>Total Messages: ${connectionTest.totalMessages}</p>
-            <p><strong>Next steps:</strong></p>
-            <ul>
-              <li>Your Gmail is now connected for Email Intelligence</li>
-              <li>You can now scan emails to build your brand database</li>
-              <li><a href="/">Return to Dashboard</a></li>
-            </ul>
-          `);
-        }
+      if (isOnboarding) {
+        console.log('🔄 Onboarding flow detected - redirecting to scan page');
+        // Redirect to scanning animation page in onboarding flow
+        res.redirect('/scan?gmail_connected=true');
       } else {
-        throw new Error(`Connection test failed: ${connectionTest.error}`);
+        console.log('🔄 Regular OAuth flow - showing success page');
+        // Regular OAuth completion
+        res.send(`
+          <h2>✅ Gmail Successfully Connected!</h2>
+          <p>Email: ${userEmail}</p>
+          <p>Total Messages: ${profile.data.messagesTotal || 'Unknown'}</p>
+          <p><strong>Next steps:</strong></p>
+          <ul>
+            <li>Your Gmail is now connected for Email Intelligence</li>
+            <li>You can now scan emails to build your brand database</li>
+            <li><a href="/">Return to Dashboard</a></li>
+          </ul>
+        `);
       }
     } catch (error) {
       console.error('Gmail callback error:', error);
@@ -427,7 +493,8 @@ try {
   // API endpoint to check authentication status
   app.get('/api/auth-status', async (req, res) => {
     try {
-      const tokenDoc = await db.collection('gmail_tokens').doc('user_tokens').get();
+      const userId = 'oliverhbaron@gmail.com'; // Use your email as consistent ID
+      const tokenDoc = await db.collection('gmail_tokens').doc(userId).get();
       res.json({
         authenticated: tokenDoc.exists,
         hasTokens: tokenDoc.exists,
@@ -455,10 +522,11 @@ try {
       console.log('📧 Getting real email data for calibration...');
       console.log('� Request timestamp:', new Date().toISOString());
       
-      // Get stored OAuth tokens from Firebase
-      const tokenDoc = await db.collection('gmail_tokens').doc('user_tokens').get();
+      // Get stored OAuth tokens from Firebase using consistent user ID
+      const userId = 'oliverhbaron@gmail.com'; // Use your email as consistent ID
+      const tokenDoc = await db.collection('gmail_tokens').doc(userId).get();
       if (!tokenDoc.exists) {
-        console.log('❌ No OAuth tokens found in Firebase');
+        console.log('❌ No OAuth tokens found in Firebase for user:', userId);
         console.log('🔐 Returning 401 with needsAuth=true');
         return res.status(401).json({ 
           success: false,
@@ -474,11 +542,86 @@ try {
       const tokens = tokenDoc.data();
       oauth2Client.setCredentials(tokens);
       
-      const gmailSync = new GmailSyncEngine();
-      
-      // Get larger sample for intelligent filtering (scan up to 1000, surface top 20-30)
+      // Use Gmail API directly instead of the problematic GmailSyncEngine
       console.log('🔍 Fetching up to 100 emails for intelligent scoring...');
-      const allEmails = await gmailSync.getEmailsForCalibration(oauth2Client, 100);
+      
+      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+      
+      // Get email list
+      const emailList = await gmail.users.messages.list({
+        userId: 'me',
+        maxResults: 200, // Get more to account for filtering
+        q: '-in:sent -in:draft -in:spam -in:trash' // Exclude sent, drafts, spam, trash
+      });
+
+      if (!emailList.data.messages) {
+        console.log('⚠️ No emails found');
+        return res.json({ 
+          success: false, 
+          error: 'No emails found',
+          message: 'No emails found in your Gmail account.',
+          emails: []
+        });
+      }
+
+      console.log(`📋 Processing ${emailList.data.messages.length} email messages...`);
+      
+      const allEmails = [];
+      
+      // Process emails in batches for better performance
+      const batchSize = 10;
+      for (let i = 0; i < Math.min(emailList.data.messages.length, 100); i += batchSize) {
+        const batch = emailList.data.messages.slice(i, i + batchSize);
+        const batchPromises = batch.map(async (message) => {
+          try {
+            const email = await gmail.users.messages.get({
+              userId: 'me',
+              id: message.id,
+              format: 'metadata',
+              metadataHeaders: ['From', 'Subject', 'Date', 'To']
+            });
+
+            const headers = email.data.payload.headers;
+            const fromHeader = headers.find(h => h.name === 'From');
+            const subjectHeader = headers.find(h => h.name === 'Subject');
+            const dateHeader = headers.find(h => h.name === 'Date');
+
+            if (!fromHeader || !subjectHeader) {
+              return null; // Skip emails without basic headers
+            }
+
+            const fromEmail = fromHeader.value;
+            const subject = subjectHeader.value;
+            const date = dateHeader ? dateHeader.value : '';
+
+            // Simple brand name extraction
+            const domain = fromEmail.split('@')[1]?.toLowerCase() || '';
+            const brandName = domain.split('.')[0]?.charAt(0).toUpperCase() + domain.split('.')[0]?.slice(1) || 'Unknown';
+
+            return {
+              id: message.id,
+              from: fromEmail,
+              subject: subject,
+              date: date,
+              brandName: brandName,
+              emailType: 'general',
+              brandIcon: '📧',
+              snippet: email.data.snippet || '',
+              gmailUrl: `https://mail.google.com/mail/u/0/#inbox/${message.id}`
+            };
+
+          } catch (error) {
+            console.error(`❌ Error processing email ${message.id}:`, error.message);
+            return null;
+          }
+        });
+        
+        const batchResults = await Promise.all(batchPromises);
+        const validEmails = batchResults.filter(email => email !== null);
+        allEmails.push(...validEmails);
+        
+        console.log(`📧 Processed batch ${Math.floor(i/batchSize) + 1}, total emails: ${allEmails.length}`);
+      }
       
       // Apply intelligent scoring and filtering
       console.log(`📊 Scoring ${allEmails.length} emails...`);

@@ -16,20 +16,36 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
         }
         
         .container {
             background: white;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-            padding: 60px 50px;
-            max-width: 600px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             width: 100%;
-            text-align: center;
+            max-width: 500px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .cta-section {
+            background: white;
+            padding: 16px 24px 24px 24px;
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .progress-bar {
@@ -37,7 +53,7 @@
             height: 4px;
             background: #e2e8f0;
             border-radius: 2px;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             overflow: hidden;
         }
         
@@ -49,56 +65,58 @@
         }
         
         .step-indicator {
-            color: #718096;
-            font-size: 14px;
-            margin-bottom: 12px;
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
             font-weight: 500;
+            margin-bottom: 20px;
+            display: inline-block;
+            text-align: center;
         }
-
+        
         .brand-mark {
-            width: 100px;
-            height: 100px;
-            background: transparent;
-            border-radius: 20px;
             display: flex;
-            align-items: center;
             justify-content: center;
-            margin: 0 auto 24px;
-            position: relative;
+            margin-bottom: 16px;
         }
-
+        
         .logo-icon {
             width: 60px;
             height: 60px;
-            object-fit: contain;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
         }
-
+        
         h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 16px;
-            letter-spacing: -0.02em;
-            color: #1a202c;
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+            line-height: 1.2;
+            text-align: center;
         }
-
+        
         .headline {
-            color: #4a5568;
-            font-size: 1.2rem;
-            margin-bottom: 48px;
-            line-height: 1.6;
-            max-width: 480px;
-            margin-left: auto;
-            margin-right: auto;
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 24px;
+            line-height: 1.4;
+            text-align: center;
         }
         
         .connection-card {
             background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 32px;
-            margin-bottom: 32px;
-            text-align: left;
-            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
         }
         
         .connection-card.connected {
@@ -109,30 +127,30 @@
         .card-header {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 16px;
         }
         
         .card-icon {
-            width: 32px;
-            height: 32px;
-            margin-right: 16px;
+            width: 24px;
+            height: 24px;
             color: #667eea;
         }
         
         .card-title {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 600;
             color: #2d3748;
+            flex: 1;
         }
         
         .card-status {
-            margin-left: auto;
-            font-size: 0.9rem;
-            font-weight: 600;
-            padding: 6px 16px;
-            border-radius: 20px;
-            background: #fef3c7;
-            color: #92400e;
+            background: #fef5e7;
+            color: #d69e2e;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
         }
         
         .card-status.connected {
@@ -142,35 +160,35 @@
         
         .capabilities-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 24px;
+            gap: 12px;
+            margin-bottom: 16px;
         }
         
         .capability {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
+            gap: 10px;
         }
         
         .capability-icon {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             color: #667eea;
             margin-top: 2px;
+            flex-shrink: 0;
         }
         
         .capability-content h4 {
-            font-size: 0.95rem;
+            font-size: 14px;
             font-weight: 600;
             color: #2d3748;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         
         .capability-content p {
-            font-size: 0.85rem;
+            font-size: 12px;
             color: #4a5568;
-            line-height: 1.4;
+            line-height: 1.3;
         }
         
         .privacy-note {
@@ -180,15 +198,16 @@
             background: #f0f9ff;
             border: 1px solid #bae6fd;
             border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 24px;
+            padding: 10px;
             color: #1e40af;
-            font-size: 0.9rem;
+            font-size: 11px;
+            line-height: 1.3;
         }
         
         .privacy-icon {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
         }
         
         .connect-btn {
@@ -196,21 +215,22 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 18px 24px;
-            border-radius: 12px;
-            font-size: 1.1rem;
+            padding: 16px 20px;
+            border-radius: 10px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 8px;
+            min-height: 48px;
         }
         
         .connect-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
         
         .connect-btn:disabled {
@@ -220,170 +240,118 @@
         }
         
         .btn-icon {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
+        /* Desktop enhancements */
+        @media (min-width: 768px) {
             body {
-                padding: 10px;
-                align-items: flex-start;
-                padding-top: 20px;
+                padding: 24px;
             }
             
             .container {
-                padding: 30px 20px;
-                max-width: 100%;
-                width: 100%;
+                max-width: 600px;
+                border-radius: 24px;
             }
             
-            .brand-mark {
-                width: 80px;
-                height: 80px;
-                margin-bottom: 16px;
+            .content {
+                padding: 40px;
             }
             
-            .logo-icon {
-                width: 45px;
-                height: 45px;
+            .cta-section {
+                padding: 20px 40px 40px 40px;
             }
             
             h1 {
-                font-size: 2rem;
+                font-size: 28px;
                 margin-bottom: 12px;
             }
             
             .headline {
-                font-size: 1rem;
-                margin-bottom: 28px;
+                font-size: 16px;
+                margin-bottom: 32px;
             }
             
-            .connection-card {
-                padding: 20px;
-                margin-bottom: 24px;
-            }
-            
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-                margin-bottom: 16px;
-            }
-            
-            .card-status {
-                margin-left: 0;
-                align-self: flex-start;
+            .step-indicator {
+                font-size: 14px;
+                padding: 8px 16px;
             }
             
             .capabilities-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
                 gap: 16px;
-                margin-bottom: 20px;
-            }
-            
-            .capability-content h4 {
-                font-size: 0.9rem;
-            }
-            
-            .capability-content p {
-                font-size: 0.8rem;
-            }
-            
-            .privacy-note {
-                padding: 10px;
-                font-size: 0.85rem;
-                margin-bottom: 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 24px 16px;
-            }
-            
-            h1 {
-                font-size: 1.8rem;
-            }
-            
-            .headline {
-                font-size: 0.95rem;
-                margin-bottom: 24px;
-            }
-            
-            .connection-card {
-                padding: 16px;
-            }
-            
-            .card-title {
-                font-size: 1.3rem;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="progress-bar">
-            <div class="progress-fill"></div>
-        </div>
-        
-        <div class="step-indicator">Step 2 of 4</div>
-        
-        <div class="brand-mark">
-            <img src="homeops-logo.svg" alt="HomeOps" class="logo-icon">
-        </div>
-        
-        <h1>Streamline Your Family Operations</h1>
-        <p class="headline">Transform email chaos into intelligent insights for high-performing modern families</p>
-        
-        <div class="connection-card" id="gmailCard">
-            <div class="card-header">
-                <i data-lucide="mail" class="card-icon"></i>
-                <div>
+        <div class="content">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            
+            <div class="step-indicator">Step 2 of 4</div>
+            
+            <div class="brand-mark">
+                <div class="logo-icon">
+                    <i data-lucide="home"></i>
+                </div>
+            </div>
+            
+            <h1>Streamline Your Family Operations</h1>
+            <p class="headline">Transform email chaos into intelligent insights for high-performing modern families</p>
+            
+            <div class="connection-card" id="gmailCard">
+                <div class="card-header">
+                    <i data-lucide="mail" class="card-icon"></i>
                     <div class="card-title">Gmail & Calendar Intelligence</div>
+                    <span class="card-status" id="gmailStatus">Not Connected</span>
                 </div>
-                <span class="card-status" id="gmailStatus">Not Connected</span>
-            </div>
-            
-            <div class="capabilities-grid">
-                <div class="capability">
-                    <i data-lucide="filter" class="capability-icon"></i>
-                    <div class="capability-content">
-                        <h4>Email Intelligence</h4>
-                        <p>Identify trusted brands, school communications, and important family emails</p>
+                
+                <div class="capabilities-grid">
+                    <div class="capability">
+                        <i data-lucide="filter" class="capability-icon"></i>
+                        <div class="capability-content">
+                            <h4>Email Intelligence</h4>
+                            <p>Identify trusted brands, school communications, and important family emails</p>
+                        </div>
+                    </div>
+                    
+                    <div class="capability">
+                        <i data-lucide="calendar" class="capability-icon"></i>
+                        <div class="capability-content">
+                            <h4>Schedule Intelligence</h4>
+                            <p>Track family events, identify conflicts, and reduce scheduling chaos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="capability">
+                        <i data-lucide="bell" class="capability-icon"></i>
+                        <div class="capability-content">
+                            <h4>Smart Alerts</h4>
+                            <p>Never miss school deadlines or important family communications</p>
+                        </div>
+                    </div>
+                    
+                    <div class="capability">
+                        <i data-lucide="brain" class="capability-icon"></i>
+                        <div class="capability-content">
+                            <h4>Mental Load Reduction</h4>
+                            <p>Stop tracking everything in your head—we'll surface what matters</p>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="capability">
-                    <i data-lucide="calendar" class="capability-icon"></i>
-                    <div class="capability-content">
-                        <h4>Schedule Intelligence</h4>
-                        <p>Track family events, identify conflicts, and reduce scheduling chaos</p>
-                    </div>
-                </div>
-                
-                <div class="capability">
-                    <i data-lucide="bell" class="capability-icon"></i>
-                    <div class="capability-content">
-                        <h4>Smart Alerts</h4>
-                        <p>Never miss school deadlines or important family communications</p>
-                    </div>
-                </div>
-                
-                <div class="capability">
-                    <i data-lucide="brain" class="capability-icon"></i>
-                    <div class="capability-content">
-                        <h4>Mental Load Reduction</h4>
-                        <p>Stop tracking everything in your head—we'll surface what matters</p>
-                    </div>
+                <div class="privacy-note">
+                    <i data-lucide="shield" class="privacy-icon"></i>
+                    Read-only access • Your data stays yours • Parent-built security • No ads or tracking
                 </div>
             </div>
-            
-            <div class="privacy-note">
-                <i data-lucide="shield-check" class="privacy-icon"></i>
-                <span>Read-only access • Your data stays yours • Parent-built security • No ads or tracking</span>
-            </div>
-            
+        </div>
+        
+        <div class="cta-section">
             <button class="connect-btn" id="connectBtn">
                 <i data-lucide="link" class="btn-icon"></i>
                 Connect Gmail & Calendar Securely
