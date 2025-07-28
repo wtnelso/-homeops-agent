@@ -74,6 +74,12 @@
       padding-bottom: 80px;
     }
     
+    /* Remove all spacing when Command Center is active */
+    .mobile-content:has(#command-mobile.active) {
+      padding: 0;
+      margin: 0;
+    }
+    
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -94,6 +100,12 @@
       padding-bottom: 180px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Special styling for Command Center to remove ALL spacing */
+    #command-mobile {
+      padding: 0px;
+      margin: 0px;
     }
     
     .mobile-view.active {
@@ -899,7 +911,7 @@
       <!-- Command Center View -->
       <div id="command-mobile" class="mobile-view active">
         <iframe src="/command-center.html" 
-                style="width: 100%; height: calc(100vh - 80px); border: none; background: transparent;"
+                style="width: 100%; height: calc(100vh - 140px); border: none; background: transparent; margin: 0; padding: 0; position: absolute; top: 0; left: 0;"
                 onload="this.style.opacity='1'">
         </iframe>
       </div>
@@ -5212,8 +5224,8 @@
       updateCalendarDisplay();
       await renderSmartCalendar();
       
-      // Initialize default view (without event since this is programmatic)
-      showView('chat-mobile', document.querySelector('.nav-btn.active'), null);
+      // Initialize default view - Command Center is the first tab
+      showView('command-mobile', document.querySelector('.nav-btn.active'), null);
       
       // Initialize textarea auto-resize
       const chatInput = document.getElementById('chatInput');
