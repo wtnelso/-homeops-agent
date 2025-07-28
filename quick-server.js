@@ -48,6 +48,17 @@ app.get('/scan', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'scan.html'));
 });
 
+// Main app route - serve the enhanced navigation system
+app.get('/app', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Root route - redirect to onboarding or main app based on user state
+app.get('/', (req, res) => {
+  // For now, redirect to onboarding - in production this would check user auth state
+  res.redirect('/onboard');
+});
+
 // Gmail OAuth authentication
 app.get('/auth/gmail', (req, res) => {
   // Clear any existing credentials to force fresh OAuth
