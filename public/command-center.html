@@ -4,12 +4,837 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HomeOps Command Center</title>
-  <link rel="stylesheet" href="style.css">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      min-height: 100vh;
+    }
+    
+    .command-center {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .hero-header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+    }
+    
+    .hero-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    
+    .hero-subtitle {
+      font-size: 16px;
+      opacity: 0.8;
+      font-weight: 500;
+    }
+    
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    
+    .summary-tile {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .summary-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    .tile-icon {
+      margin-bottom: 12px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .tile-count {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .tile-label {
+      font-size: 14px;
+      opacity: 0.8;
+      font-weight: 500;
+    }
+    
+    .insights-section {
+      margin-bottom: 32px;
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .insights-container {
+      display: grid;
+      gap: 16px;
+    }
+    
+    .insight-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      transition: transform 0.2s;
+    }
+    
+    .insight-card:hover {
+      transform: translateY(-1px);
+    }
+    
+    .insight-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .insight-icon {
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    
+    .insight-content {
+      flex: 1;
+    }
+    
+    .insight-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .insight-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      opacity: 0.7;
+      margin-bottom: 8px;
+    }
+    
+    .insight-text {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      opacity: 0.9;
+    }
+    
+    .insight-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .action-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+    
+    .action-btn.primary {
+      background: rgba(139, 92, 246, 0.3);
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+    
+    .action-btn.primary:hover {
+      background: rgba(139, 92, 246, 0.4);
+    }
+    
+    .loading-state {
+      text-align: center;
+      padding: 40px;
+      opacity: 0.6;
+    }
+    
+    .activity-timeline {
+      margin-top: 32px;
+    }
+    
+    .timeline-item {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+    
+    .timeline-icon {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    .timeline-icon.email { background: #8b5cf6; }
+    .timeline-icon.calendar { background: #22c55e; }
+    .timeline-icon.commerce { background: #f59e0b; }
+    .timeline-icon.system { background: #06b6d4; }
+    
+    .reframe-section {
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    
+    .reframe-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .reframe-text {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 16px;
+    }
+    
+    @media (max-width: 768px) {
+      .command-center {
+        padding: 16px;
+      }
+      
+      .hero-title {
+        font-size: 24px;
+      }
+      
+      .summary-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      
+      .summary-tile {
+        padding: 16px;
+      }
+      
+      .tile-count {
+        font-size: 24px;
+      }
+      
+      .section-header {
+        font-size: 20px;
+      }
+      
+      .insight-actions {
+        flex-direction: column;
+      }
+      
+      .action-btn {
+        justify-content: center;
+      }
+    }
+  </style>
 </head>
-<body style="background:#101722;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;">
-  <div style="text-align:center;">
-    <h1>HomeOps Command Center</h1>
-    <p>This is your new HomeOps Command Center page. Customize this page as needed.</p>
+<body>
+  <div class="command-center">
+    <!-- Hero Header -->
+    <div class="hero-header">
+      <h1 class="hero-title">
+        HomeOps Command Center
+      </h1>
+      <p class="hero-subtitle">Your Daily Mental Load Operating System</p>
+    </div>
+    
+    <!-- Summary Tile Row (Mental Load Digest) -->
+    <div class="summary-row">
+      <div class="summary-tile">
+        <div class="tile-icon">
+          <i data-lucide="alert-triangle" style="width: 32px; height: 32px;"></i>
+        </div>
+        <div class="tile-count" id="urgent-count">-</div>
+        <div class="tile-label">Urgent Messages</div>
+      </div>
+      
+      <div class="summary-tile">
+        <div class="tile-icon">
+          <i data-lucide="calendar-days" style="width: 32px; height: 32px;"></i>
+        </div>
+        <div class="tile-count" id="events-count">-</div>
+        <div class="tile-label">Calendar Events</div>
+      </div>
+      
+      <div class="summary-tile">
+        <div class="tile-icon">
+          <i data-lucide="shopping-cart" style="width: 32px; height: 32px;"></i>
+        </div>
+        <div class="tile-count" id="commerce-count">-</div>
+        <div class="tile-label">Commerce Updates</div>
+      </div>
+      
+      <div class="summary-tile">
+        <div class="tile-icon">
+          <i data-lucide="brain" style="width: 32px; height: 32px;"></i>
+        </div>
+        <div class="tile-count" id="insights-count">-</div>
+        <div class="tile-label">Total Insights</div>
+      </div>
+    </div>
+    
+    <!-- This Week's Intelligence Module -->
+    <div class="insights-section">
+      <h2 class="section-header">
+        <i data-lucide="brain" style="width: 24px; height: 24px;"></i>
+        This Week's Intelligence
+      </h2>
+      
+      <div class="insights-container" id="insights-container">
+        <div class="loading-state">
+          <i data-lucide="loader" style="width: 24px; height: 24px; margin-bottom: 8px;"></i>
+          <div>Loading insights...</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Reframe or Relax Section -->
+    <div class="reframe-section" id="reframe-section" style="display: none;">
+      <h3 class="reframe-title">
+        <i data-lucide="refresh-cw" style="width: 20px; height: 20px;"></i>
+        Mindset Check
+      </h3>
+      <p class="reframe-text" id="reframe-text">
+        You've had a busy week with multiple urgent items. Want a mindset reset?
+      </p>
+      <button class="action-btn primary" onclick="reframeWeek()">
+        <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i>
+        Reframe My Week
+      </button>
+    </div>
+    
+    <!-- Recent Activity Timeline -->
+    <div class="activity-timeline">
+      <h2 class="section-header">
+        <i data-lucide="activity" style="width: 24px; height: 24px;"></i>
+        Recent Activity
+      </h2>
+      
+      <div id="activity-timeline">
+        <div class="loading-state">
+          <i data-lucide="loader" style="width: 20px; height: 20px; margin-bottom: 8px;"></i>
+          <div>Loading activity...</div>
+        </div>
+      </div>
+    </div>
   </div>
+  
+  <script>
+    // Global state management
+    let dashboardData = {
+      summary: {},
+      insights: [],
+      activity: [],
+      currentUser: null
+    };
+    
+    // Initialize Lucide icons and dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 HomeOps Command Center Loading...');
+      lucide.createIcons();
+      initializeUser();
+    });
+    
+    // User initialization and management
+    async function initializeUser() {
+      try {
+        // For now, create a demo user - in production this would be actual auth
+        const userId = getUserIdFromSession() || 'demo-user';
+        
+        if (userId === 'demo-user') {
+          // Create demo user profile
+          await createDemoUser();
+        }
+        
+        dashboardData.currentUser = userId;
+        console.log(`👤 User initialized: ${userId}`);
+        
+        // Load personalized dashboard
+        await loadDashboardData();
+        
+      } catch (error) {
+        console.error('❌ User initialization failed:', error);
+        // Fallback to non-personalized mode
+        await loadDashboardData();
+      }
+    }
+    
+    async function createDemoUser() {
+      try {
+        const response = await fetch('/api/user/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: 'demo@homeops.app',
+            name: 'Demo User'
+          })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          localStorage.setItem('homeops-user-id', result.userId);
+          console.log('✅ Demo user created:', result.userId);
+          return result.userId;
+        }
+      } catch (error) {
+        console.error('❌ Demo user creation failed:', error);
+      }
+      return 'demo-user';
+    }
+    
+    function getUserIdFromSession() {
+      return localStorage.getItem('homeops-user-id') || null;
+    }    // Main data loading function
+    async function loadDashboardData() {
+      console.log('📊 Loading dashboard data...');
+      
+      try {
+        await loadSummaryData();
+        await loadInsightsData();
+        await loadActivityData();
+        checkReframeSection();
+        console.log('✅ Dashboard data loaded successfully');
+      } catch (error) {
+        console.error('❌ Error loading dashboard data:', error);
+        loadFallbackData();
+      }
+    }
+    
+        // Load summary tile data with personalization
+    async function loadSummaryData() {
+      try {
+        const userId = dashboardData.currentUser || 'default';
+        const response = await fetch(`/api/dashboard-summary?userId=${userId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          dashboardData.summary = data.summary;
+          updateSummaryTiles(data.summary);
+          console.log('📊 Personalized summary loaded for:', userId);
+        } else {
+          throw new Error('Failed to load summary data');
+        }
+      } catch (error) {
+        console.warn('Using fallback summary data:', error);
+        const fallbackSummary = { urgent: 6, events: 3, commerce: 4, insights: 23 };
+        dashboardData.summary = fallbackSummary;
+        updateSummaryTiles(fallbackSummary);
+      }
+    }
+    
+    // Load insights data with personalization
+    async function loadInsightsData() {
+      try {
+        const userId = dashboardData.currentUser || 'default';
+        const response = await fetch(`/api/email-intelligence?userId=${userId}&limit=5&days=7`);
+        const data = await response.json();
+        
+        if (data.success && data.insights) {
+          dashboardData.insights = data.insights;
+          renderInsights(data.insights);
+          console.log('🧠 Personalized insights loaded for:', userId);
+        } else {
+          throw new Error('Failed to load insights data');
+        }
+      } catch (error) {
+        console.warn('Using fallback insights data:', error);
+        loadFallbackInsights();
+      }
+    }
+    
+    // Load activity timeline data with personalization
+    async function loadActivityData() {
+      try {
+        const userId = dashboardData.currentUser || 'default';
+        const response = await fetch(`/api/recent-activity?userId=${userId}&days=7`);
+        const data = await response.json();
+        
+        if (data.success && data.activity) {
+          dashboardData.activity = data.activity;
+          renderActivity(data.activity);
+          console.log('🔄 Personalized activity loaded for:', userId);
+        } else {
+          throw new Error('Failed to load activity data');
+        }
+      } catch (error) {
+        console.warn('Using fallback activity data:', error);
+        loadFallbackActivity();
+      }
+    }
+    
+    // Load insights data
+    async function loadInsightsData() {
+      try {
+        const response = await fetch('/api/email-intelligence?limit=5&days=7');
+        const data = await response.json();
+        
+        if (data.success && data.insights) {
+          dashboardData.insights = data.insights;
+          renderInsights(data.insights);
+        } else {
+          throw new Error('Failed to load insights data');
+        }
+      } catch (error) {
+        console.warn('Using fallback insights data:', error);
+        loadFallbackInsights();
+      }
+    }
+    
+    // Load activity timeline data
+    async function loadActivityData() {
+      try {
+        const response = await fetch('/api/recent-activity?days=7');
+        const data = await response.json();
+        
+        if (data.success && data.activity) {
+          dashboardData.activity = data.activity;
+          renderActivity(data.activity);
+        } else {
+          throw new Error('Failed to load activity data');
+        }
+      } catch (error) {
+        console.warn('Using fallback activity data:', error);
+        loadFallbackActivity();
+      }
+    }
+    
+    // Update summary tiles
+    function updateSummaryTiles(summary) {
+      document.getElementById('urgent-count').textContent = summary.urgent || 0;
+      document.getElementById('events-count').textContent = summary.events || 0;
+      document.getElementById('commerce-count').textContent = summary.commerce || 0;
+      document.getElementById('insights-count').textContent = summary.insights || 0;
+    }
+    
+    // Render insights
+    function renderInsights(insights) {
+      const container = document.getElementById('insights-container');
+      
+      if (!insights || insights.length === 0) {
+        container.innerHTML = `
+          <div class="loading-state">
+            <i data-lucide="inbox" style="width: 24px; height: 24px; margin-bottom: 8px;"></i>
+            <div>No insights available</div>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+      
+      container.innerHTML = insights.map(insight => `
+        <div class="insight-card">
+          <div class="insight-header">
+            <div class="insight-icon">
+              <i data-lucide="${insight.icon || 'info'}" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div class="insight-content">
+              <div class="insight-title">${insight.title}</div>
+              <div class="insight-meta">
+                <span>${insight.category}</span>
+                <span>•</span>
+                <span>${insight.date}</span>
+                <span>•</span>
+                <span style="color: ${getPriorityColor(insight.priority)}">${insight.priority}</span>
+              </div>
+              <div class="insight-text">${insight.insight}</div>
+              <div class="insight-actions">
+                <button class="action-btn primary" onclick="handleAction('${insight.action}', '${insight.title}')">
+                  <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                  ${insight.action}
+                </button>
+                <button class="action-btn" onclick="expandInsight('${insight.title}')">
+                  <i data-lucide="expand" style="width: 14px; height: 14px;"></i>
+                  Expand
+                </button>
+                <button class="action-btn" onclick="dismissInsight('${insight.title}')">
+                  <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      // Re-initialize Lucide icons
+      lucide.createIcons();
+    }
+    
+    // Render activity timeline
+    function renderActivity(activities) {
+      const container = document.getElementById('activity-timeline');
+      
+      if (!activities || activities.length === 0) {
+        container.innerHTML = `
+          <div class="loading-state">
+            <i data-lucide="clock" style="width: 20px; height: 20px; margin-bottom: 8px;"></i>
+            <div>No recent activity</div>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+      
+      container.innerHTML = activities.map(activity => `
+        <div class="timeline-item">
+          <div class="timeline-icon ${activity.type}"></div>
+          <div>${activity.text}</div>
+        </div>
+      `).join('');
+    }
+    
+    // Utility functions
+    function getPriorityColor(priority) {
+      switch(priority?.toLowerCase()) {
+        case 'high': return '#ef4444';
+        case 'medium': return '#f59e0b';
+        case 'low': return '#22c55e';
+        default: return '#6b7280';
+      }
+    }
+    
+    function checkReframeSection() {
+      const urgentCount = dashboardData.summary.urgent || 0;
+      if (urgentCount > 5) {
+        document.getElementById('reframe-section').style.display = 'block';
+        document.getElementById('reframe-text').textContent = 
+          `You've had ${urgentCount} urgent messages this week. Want a mindset reset for your next meeting?`;
+      }
+    }
+    
+    // Action handlers
+    async function handleAction(action, title) {
+      console.log(`Action: ${action} for ${title}`);
+      
+      if (action === 'Add to Calendar') {
+        try {
+          const response = await fetch('/api/calendar-events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, action: 'add' })
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert(`✅ Added "${title}" to calendar`);
+          } else {
+            alert(`❌ Failed to add to calendar: ${result.error}`);
+          }
+        } catch (error) {
+          console.error('Calendar action error:', error);
+          alert(`Calendar action: ${action} for "${title}"`);
+        }
+      } else {
+        alert(`${action} action triggered for: ${title}`);
+      }
+    }
+    
+    function expandInsight(title) {
+      console.log(`Expanding insight: ${title}`);
+      const insight = dashboardData.insights.find(i => i.title === title);
+      if (insight) {
+        alert(`Full insight details:\n\nTitle: ${insight.title}\nCategory: ${insight.category}\nPriority: ${insight.priority}\n\nInsight: ${insight.insight}`);
+      } else {
+        alert(`Would show detailed modal for: ${title}`);
+      }
+    }
+    
+    function dismissInsight(title) {
+      console.log(`Dismissing insight: ${title}`);
+      const cards = document.querySelectorAll('.insight-card');
+      cards.forEach(card => {
+        if (card.querySelector('.insight-title').textContent === title) {
+          card.style.opacity = '0.5';
+          card.style.transform = 'scale(0.95)';
+          setTimeout(() => card.remove(), 300);
+        }
+      });
+      
+      // Remove from data array
+      dashboardData.insights = dashboardData.insights.filter(i => i.title !== title);
+    }
+    
+    async function reframeWeek() {
+      console.log('Reframing week...');
+      const reframeSection = document.getElementById('reframe-section');
+      reframeSection.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <i data-lucide="loader" style="width: 20px; height: 20px;"></i>
+          <span>Generating your personalized mindset reset...</span>
+        </div>
+      `;
+      lucide.createIcons();
+      
+      try {
+        const userId = dashboardData.currentUser || 'default';
+        const response = await fetch('/api/emotional-load-forecast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            action: 'reframe',
+            urgentCount: dashboardData.summary.urgent,
+            userId: userId
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          reframeSection.innerHTML = `
+            <h3 class="reframe-title">
+              <i data-lucide="sparkles" style="width: 20px; height: 20px;"></i>
+              Your Personalized Week Reframe
+            </h3>
+            <p class="reframe-text">${data.reframe}</p>
+            <button class="action-btn" onclick="this.parentElement.style.display='none'">
+              <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+              Thanks, I needed that
+            </button>
+          `;
+        } else {
+          throw new Error('Failed to get reframe');
+        }
+      } catch (error) {
+        console.error('Reframe error:', error);
+        reframeSection.innerHTML = `
+          <h3 class="reframe-title">
+            <i data-lucide="sparkles" style="width: 20px; height: 20px;"></i>
+            Your Week Reframed
+          </h3>
+          <p class="reframe-text">
+            "You're not managing chaos—you're orchestrating a complex, dynamic system. Every 'urgent' item you've handled shows your family can count on you. Take a breath. You've got this."
+          </p>
+          <button class="action-btn" onclick="this.parentElement.style.display='none'">
+            <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+            Thanks, I needed that
+          </button>
+        `;
+      }
+      
+      lucide.createIcons();
+    }
+    
+    // Fallback data functions
+    function loadFallbackData() {
+      console.log('📦 Loading fallback data...');
+      
+      dashboardData.summary = { urgent: 6, events: 3, commerce: 4, insights: 23 };
+      updateSummaryTiles(dashboardData.summary);
+      
+      loadFallbackInsights();
+      loadFallbackActivity();
+      checkReframeSection();
+    }
+    
+    function loadFallbackInsights() {
+      const fallbackInsights = [
+        {
+          title: "Father-Son Golf Tournament Moved",
+          category: "Family",
+          date: "2025-07-20",
+          priority: "High",
+          insight: "Rain delay announced. Rescheduled to 12PM.",
+          action: "Add to Calendar",
+          icon: "calendar-days"
+        },
+        {
+          title: "School Supply List Updated",
+          category: "Education",
+          date: "2025-07-19",
+          priority: "Medium",
+          insight: "New items added: Scientific calculator, art supplies.",
+          action: "Create Shopping List",
+          icon: "graduation-cap"
+        },
+        {
+          title: "Flight Change Notification",
+          category: "Travel",
+          date: "2025-07-18",
+          priority: "High",
+          insight: "Gate changed from B12 to C5. Departure delayed 30 minutes.",
+          action: "Update Itinerary",
+          icon: "plane"
+        }
+      ];
+      dashboardData.insights = fallbackInsights;
+      renderInsights(fallbackInsights);
+    }
+    
+    function loadFallbackActivity() {
+      const fallbackActivity = [
+        { type: 'email', text: 'Synced Gmail (20 new insights processed)' },
+        { type: 'calendar', text: 'Calendar: Added Swim Meet on July 22' },
+        { type: 'commerce', text: 'You dismissed 3 commerce emails' },
+        { type: 'system', text: 'Intelligence engine updated with new patterns' }
+      ];
+      dashboardData.activity = fallbackActivity;
+      renderActivity(fallbackActivity);
+    }
+  </script>
 </body>
-</html> 
+</html>
