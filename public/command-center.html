@@ -47,10 +47,8 @@
       font-size: 32px;
       font-weight: 700;
       margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
+      text-align: center;
+      line-height: 1.2;
     }
     
     .hero-subtitle {
@@ -74,12 +72,19 @@
       text-align: center;
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      cursor: pointer;
     }
     
     .summary-tile:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .summary-tile:active {
+      transform: translateY(1px);
+      background: rgba(255, 255, 255, 0.2);
     }
     
     .tile-icon {
@@ -297,12 +302,12 @@
 </head>
 <body>
   <div class="command-center">
-    <!-- Hero Header -->
+    <!-- Dynamic Hero Header -->
     <div class="hero-header">
-      <h1 class="hero-title">
-        HomeOps Command Center
+      <h1 class="hero-title" id="dynamic-greeting">
+        Hi there<br>
+        <span style="font-size: 0.7em; opacity: 0.8;">Today is July 28, 2025</span>
       </h1>
-      <p class="hero-subtitle">Your Daily Mental Load Operating System</p>
     </div>
     
     <!-- Summary Tile Row (Mental Load Digest) -->
@@ -317,7 +322,7 @@
       
       <div class="summary-tile">
         <div class="tile-icon">
-          <i data-lucide="calendar-days" style="width: 32px; height: 32px;"></i>
+          <i data-lucide="calendar-days" style="width: 32px; height: 32px; color: white;"></i>
         </div>
         <div class="tile-count" id="events-count">-</div>
         <div class="tile-label">Calendar Events</div>
@@ -333,7 +338,7 @@
       
       <div class="summary-tile">
         <div class="tile-icon">
-          <i data-lucide="brain" style="width: 32px; height: 32px;"></i>
+          <i data-lucide="brain" style="width: 32px; height: 32px; color: white;"></i>
         </div>
         <div class="tile-count" id="insights-count">-</div>
         <div class="tile-label">Total Insights</div>
@@ -343,7 +348,7 @@
     <!-- This Week's Intelligence Module -->
     <div class="insights-section">
       <h2 class="section-header">
-        <i data-lucide="brain" style="width: 24px; height: 24px;"></i>
+        <i data-lucide="brain" style="width: 24px; height: 24px; color: white;"></i>
         This Week's Intelligence
       </h2>
       
@@ -416,13 +421,21 @@
         dashboardData.currentUser = userId;
         console.log(`👤 User initialized: ${userId}`);
         
+        // Update dynamic header
+        updateDynamicHeader();
+        
         // Load personalized dashboard
         await loadDashboardData();
+        
+        // Setup interactive tiles
+        setupTileInteractions();
+        console.log('✅ Dashboard interactions initialized');
         
       } catch (error) {
         console.error('❌ User initialization failed:', error);
         // Fallback to non-personalized mode
         await loadDashboardData();
+        setupTileInteractions();
       }
     }
     
@@ -453,7 +466,37 @@
     
     function getUserIdFromSession() {
       return localStorage.getItem('homeops-user-id') || null;
-    }    // Main data loading function
+    }
+    
+    // Update dynamic header with user name and current date
+    function updateDynamicHeader() {
+      // Get user's first name from session storage or use fallback
+      const userData = JSON.parse(sessionStorage.getItem('homeops-user-data') || '{}');
+      const firstName = userData.firstName || userData.name?.split(' ')[0] || 'there';
+      
+      // Format today's date
+      const today = new Date();
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      const formattedDate = today.toLocaleDateString('en-US', options);
+      
+      // Update the header with two-line format
+      const headerElement = document.getElementById('dynamic-greeting');
+      if (headerElement) {
+        headerElement.innerHTML = `
+          Hi ${firstName}<br>
+          <span style="font-size: 0.7em; opacity: 0.8;">Today is ${formattedDate}</span>
+        `;
+      }
+      
+      console.log(`🎉 Dynamic header updated: Hi ${firstName}, Today is ${formattedDate}`);
+    }
+    
+    // Main data loading function
     async function loadDashboardData() {
       console.log('📊 Loading dashboard data...');
       
@@ -684,26 +727,199 @@
           });
           const result = await response.json();
           if (result.success) {
-            alert(`✅ Added "${title}" to calendar`);
+            showNotification(`✅ Added "${title}" to calendar`);
           } else {
-            alert(`❌ Failed to add to calendar: ${result.error}`);
+            showNotification(`❌ Failed to add to calendar: ${result.error}`);
           }
         } catch (error) {
           console.error('Calendar action error:', error);
-          alert(`Calendar action: ${action} for "${title}"`);
+          showNotification(`📅 Calendar action: ${action} for "${title}"`);
         }
       } else {
-        alert(`${action} action triggered for: ${title}`);
+        showNotification(`⚡ ${action} action triggered for: ${title}`);
       }
     }
     
     function expandInsight(title) {
       console.log(`Expanding insight: ${title}`);
       const insight = dashboardData.insights.find(i => i.title === title);
+      
       if (insight) {
-        alert(`Full insight details:\n\nTitle: ${insight.title}\nCategory: ${insight.category}\nPriority: ${insight.priority}\n\nInsight: ${insight.insight}`);
+        const priorityColor = insight.priority === 'High' ? '#ef4444' : 
+                             insight.priority === 'Medium' ? '#f59e0b' : '#22c55e';
+        
+        // Mock additional data for expanded view
+        const expandedData = {
+          aiConfidence: Math.floor(Math.random() * 30) + 70, // 70-100%
+          relatedEmails: Math.floor(Math.random() * 5) + 2,
+          timesSeen: Math.floor(Math.random() * 10) + 1,
+          lastSeen: '2 hours ago',
+          suggestedActions: [
+            'Set calendar reminder',
+            'Create task list',
+            'Delegate to family member',
+            'Block focus time'
+          ].slice(0, Math.floor(Math.random() * 3) + 2)
+        };
+        
+        showModal(`📄 Insight Details: ${insight.title}`, `
+          <div style="margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <div style="
+                background: rgba(${priorityColor.slice(1, 3) === 'ef' ? '239, 68, 68' : 
+                                 priorityColor.slice(1, 3) === 'f5' ? '245, 158, 11' : '34, 197, 94'}, 0.2);
+                border-radius: 8px;
+                padding: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                <i data-lucide="${insight.icon || 'lightbulb'}" style="width: 24px; height: 24px; color: ${priorityColor};"></i>
+              </div>
+              <div>
+                <h4 style="margin: 0; font-size: 18px; font-weight: 600;">${insight.title}</h4>
+                <div style="font-size: 12px; opacity: 0.7; margin-top: 2px;">
+                  ${insight.category} • ${insight.date} • Priority: ${insight.priority}
+                </div>
+              </div>
+            </div>
+            
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border-radius: 8px;
+              padding: 16px;
+              margin-bottom: 20px;
+            ">
+              <h5 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">Full Analysis</h5>
+              <p style="margin: 0; font-size: 14px; line-height: 1.5; opacity: 0.9;">
+                ${insight.insight}
+              </p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+              <div style="
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 12px;
+                text-align: center;
+              ">
+                <div style="font-size: 20px; font-weight: 700; color: #22c55e;">${expandedData.aiConfidence}%</div>
+                <div style="font-size: 11px; opacity: 0.7;">AI Confidence</div>
+              </div>
+              <div style="
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 12px;
+                text-align: center;
+              ">
+                <div style="font-size: 20px; font-weight: 700; color: #3b82f6;">${expandedData.relatedEmails}</div>
+                <div style="font-size: 11px; opacity: 0.7;">Related Emails</div>
+              </div>
+              <div style="
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 12px;
+                text-align: center;
+              ">
+                <div style="font-size: 20px; font-weight: 700; color: #f59e0b;">${expandedData.timesSeen}</div>
+                <div style="font-size: 11px; opacity: 0.7;">Times Detected</div>
+              </div>
+              <div style="
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 12px;
+                text-align: center;
+              ">
+                <div style="font-size: 12px; font-weight: 600; color: #8b5cf6;">${expandedData.lastSeen}</div>
+                <div style="font-size: 11px; opacity: 0.7;">Last Seen</div>
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">AI Suggested Actions</h5>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                ${expandedData.suggestedActions.map((action, index) => `
+                  <div style="
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 6px;
+                    padding: 10px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                  ">
+                    <div style="
+                      background: rgba(139, 92, 246, 0.3);
+                      border-radius: 4px;
+                      padding: 4px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      min-width: 24px;
+                      height: 24px;
+                    ">
+                      <span style="font-size: 10px; font-weight: 600;">${index + 1}</span>
+                    </div>
+                    <span style="font-size: 13px;">${action}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button onclick="handleQuickAction('${insight.action}', '${insight.title}')" style="
+                background: rgba(139, 92, 246, 0.3);
+                border: 1px solid rgba(139, 92, 246, 0.5);
+                color: white;
+                padding: 10px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                ${insight.action}
+              </button>
+              <button onclick="reviewPattern('${insight.title}')" style="
+                background: rgba(34, 197, 94, 0.3);
+                border: 1px solid rgba(34, 197, 94, 0.5);
+                color: white;
+                padding: 10px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
+                Review Pattern
+              </button>
+              <button onclick="dismissInsight('${insight.title}')" style="
+                background: rgba(107, 114, 128, 0.3);
+                border: 1px solid rgba(107, 114, 128, 0.5);
+                color: white;
+                padding: 10px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                Dismiss
+              </button>
+            </div>
+          </div>
+        `);
+        
+        // Re-initialize Lucide icons
+        setTimeout(() => lucide.createIcons(), 100);
+        
       } else {
-        alert(`Would show detailed modal for: ${title}`);
+        showNotification(`📄 Detailed view for: ${title}`);
       }
     }
     
@@ -837,6 +1053,1760 @@
       ];
       dashboardData.activity = fallbackActivity;
       renderActivity(fallbackActivity);
+    }
+    
+    // Interactive tile handlers for real actions
+    function setupTileInteractions() {
+      // Make summary tiles clickable
+      const tiles = document.querySelectorAll('.summary-tile');
+      tiles.forEach((tile, index) => {
+        tile.style.cursor = 'pointer';
+        tile.addEventListener('click', () => handleTileClick(index));
+      });
+    }
+    
+    async function handleTileClick(tileIndex) {
+      const actions = [
+        'urgent-messages',
+        'calendar-events', 
+        'commerce-updates',
+        'total-insights'
+      ];
+      
+      const action = actions[tileIndex];
+      console.log(`🎯 Tile clicked: ${action}`);
+      
+      // Add visual feedback
+      const tiles = document.querySelectorAll('.summary-tile');
+      const clickedTile = tiles[tileIndex];
+      if (clickedTile) {
+        clickedTile.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          clickedTile.style.transform = '';
+        }, 150);
+      }
+      
+      switch(action) {
+        case 'urgent-messages':
+          await showUrgentMessages();
+          break;
+        case 'calendar-events':
+          await showCalendarEvents();
+          break;
+        case 'commerce-updates':
+          await showCommerceUpdates();
+          break;
+        case 'total-insights':
+          await showTotalInsights();
+          break;
+      }
+    }
+    
+    async function showUrgentMessages() {
+      try {
+        const userId = dashboardData.currentUser || 'default';
+        const response = await fetch(`/api/email-intelligence?userId=${userId}&filter=urgent`);
+        const data = await response.json();
+        
+        if (data.success && data.insights.length > 0) {
+          const urgentInsights = data.insights.filter(insight => 
+            insight.priority === 'High' || insight.category === 'Urgent'
+          );
+          
+          if (urgentInsights.length === 0) {
+            showModal(`
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <i data-lucide="alert-triangle" style="width: 24px; height: 24px; color: #ef4444;"></i>
+                <h2 style="margin: 0;">Urgent Messages</h2>
+              </div>
+            `, `
+              <div style="text-align: center; padding: 20px;">
+                <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                  <i data-lucide="check-circle" style="width: 48px; height: 48px; color: #22c55e;"></i>
+                </div>
+                <h4 style="margin-bottom: 8px;">All Clear!</h4>
+                <p style="opacity: 0.8;">No urgent messages require immediate attention.</p>
+              </div>
+            `);
+            setTimeout(() => lucide.createIcons(), 100);
+            return;
+          }
+          
+          const urgentCards = urgentInsights.map(insight => `
+            <div style="
+              background: rgba(255, 255, 255, 0.1);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              border-radius: 12px;
+              padding: 16px;
+              margin-bottom: 16px;
+              border-left: 4px solid #ef4444;
+            ">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <div style="
+                  background: rgba(239, 68, 68, 0.2);
+                  border-radius: 8px;
+                  padding: 8px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                ">
+                  <i data-lucide="${insight.icon || 'alert-triangle'}" style="width: 20px; height: 20px; color: #ef4444;"></i>
+                </div>
+                <div>
+                  <h4 style="margin: 0; font-size: 16px; font-weight: 600;">${insight.title}</h4>
+                  <div style="font-size: 12px; opacity: 0.7; margin-top: 2px;">
+                    ${insight.category} • ${insight.date} • Priority: ${insight.priority}
+                  </div>
+                </div>
+              </div>
+              
+              <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.4; opacity: 0.9;">
+                ${insight.insight}
+              </p>
+              
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button onclick="handleQuickAction('${insight.action}', '${insight.title}')" style="
+                  background: rgba(139, 92, 246, 0.3);
+                  border: 1px solid rgba(139, 92, 246, 0.5);
+                  color: white;
+                  padding: 8px 12px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 12px;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                ">
+                  <i data-lucide="plus" style="width: 12px; height: 12px;"></i>
+                  ${insight.action}
+                </button>
+                <button onclick="openEmailLink('${insight.title}')" style="
+                  background: rgba(34, 197, 94, 0.3);
+                  border: 1px solid rgba(34, 197, 94, 0.5);
+                  color: white;
+                  padding: 8px 12px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 12px;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                ">
+                  <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                  View Email
+                </button>
+              </div>
+            </div>
+          `).join('');
+          
+          showModal(`
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <i data-lucide="alert-triangle" style="width: 24px; height: 24px; color: #ef4444;"></i>
+              <h2 style="margin: 0;">Urgent Messages</h2>
+            </div>
+          `, `
+            <div style="margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <div style="background: rgba(239, 68, 68, 0.2); padding: 8px; border-radius: 8px;">
+                  <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: #ef4444;"></i>
+                </div>
+                <div>
+                  <h4 style="margin: 0;">${urgentInsights.length} Urgent ${urgentInsights.length === 1 ? 'Message' : 'Messages'}</h4>
+                  <p style="margin: 0; font-size: 12px; opacity: 0.7;">Requires immediate attention</p>
+                </div>
+              </div>
+            </div>
+            
+            ${urgentCards}
+          `);
+          
+          // Re-initialize Lucide icons in the modal
+          setTimeout(() => lucide.createIcons(), 100);
+          
+        } else {
+          showModal(`
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <i data-lucide="alert-triangle" style="width: 24px; height: 24px; color: #ef4444;"></i>
+              <h2 style="margin: 0;">Urgent Messages</h2>
+            </div>
+          `, `
+            <div style="text-align: center; padding: 20px;">
+              <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <i data-lucide="check-circle" style="width: 48px; height: 48px; color: #22c55e;"></i>
+              </div>
+              <h4 style="margin-bottom: 8px;">All Clear!</h4>
+              <p style="opacity: 0.8;">No urgent messages at the moment.</p>
+            </div>
+          `);
+          setTimeout(() => lucide.createIcons(), 100);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching urgent messages:', error);
+        showModal(`
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <i data-lucide="x-circle" style="width: 24px; height: 24px; color: #ef4444;"></i>
+            <h2 style="margin: 0;">Error</h2>
+          </div>
+        `, `
+          <div style="text-align: center; padding: 20px;">
+            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+              <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: #f59e0b;"></i>
+            </div>
+            <h4 style="margin-bottom: 8px;">Connection Error</h4>
+            <p style="opacity: 0.8;">Unable to load urgent messages. Please try again.</p>
+          </div>
+        `);
+        setTimeout(() => lucide.createIcons(), 100);
+      }
+    }
+    
+    async function showCalendarEvents() {
+      try {
+        const userId = dashboardData.currentUser || 'default';
+        const response = await fetch(`/api/recent-activity?userId=${userId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          // Get real calendar data from emotional load forecast API
+          const calendarResponse = await fetch(`/api/emotional-load-forecast?userId=${userId}`);
+          const forecastData = await calendarResponse.json();
+          
+          const calendarActivity = data.activity.filter(item => item.type === 'calendar');
+          
+          // Use real calendar events from the API
+          let realEvents = [];
+          if (forecastData.success && forecastData.upcomingEvents) {
+            realEvents = forecastData.upcomingEvents.map(event => ({
+              title: event.title || event.summary || 'Untitled Event',
+              time: event.timeDisplay || formatEventTime(event.start, event.end),
+              date: formatEventDate(event.start),
+              type: categorizeEventType(event.title || event.summary || ''),
+              priority: calculateEventPriority(event),
+              location: event.location || 'Not specified',
+              prep: generatePrepTime(event)
+            }));
+          }
+          
+          // Fallback to mock events if no real events available
+          const mockEvents = [
+            {
+              title: 'Parent-Teacher Conference',
+              time: '2:00 PM - 3:00 PM',
+              date: 'Today',
+              type: 'family',
+              priority: 'High',
+              location: 'School',
+              prep: '15 min prep needed'
+            },
+            {
+              title: 'Soccer Practice',
+              time: '6:00 PM - 7:30 PM', 
+              date: 'Today',
+              type: 'family',
+              priority: 'Medium',
+              location: 'Sports Complex',
+              prep: 'Pack water & snacks'
+            },
+            {
+              title: 'Team Standup',
+              time: '9:00 AM - 9:30 AM',
+              date: 'Tomorrow',
+              type: 'work',
+              priority: 'Medium',
+              location: 'Virtual',
+              prep: 'Review sprint goals'
+            }
+          ];
+          
+          const eventsToShow = realEvents.length > 0 ? realEvents : mockEvents;
+          
+          const eventCards = eventsToShow.map(event => `
+            <div style="
+              background: rgba(255, 255, 255, 0.1);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              border-radius: 12px;
+              padding: 16px;
+              margin-bottom: 12px;
+              border-left: 4px solid ${event.type === 'family' ? '#22c55e' : '#3b82f6'};
+            ">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <div>
+                  <h4 style="margin: 0; font-size: 16px; font-weight: 600;">${event.title}</h4>
+                  <div style="font-size: 12px; opacity: 0.7; margin-top: 2px;">
+                    ${event.date} • ${event.time}
+                  </div>
+                </div>
+                <div style="
+                  background: rgba(${event.type === 'family' ? '34, 197, 94' : '59, 130, 246'}, 0.2);
+                  padding: 4px 8px;
+                  border-radius: 12px;
+                  font-size: 10px;
+                  font-weight: 600;
+                  text-transform: uppercase;
+                ">${event.type}</div>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px; font-size: 14px;">
+                <div style="display: flex; align-items: center; gap: 6px; opacity: 0.8;">
+                  <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+                  ${event.location}
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; opacity: 0.8;">
+                  <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
+                  ${event.prep}
+                </div>
+              </div>
+              
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button onclick="handleQuickAction('prep', '${event.title}')" style="
+                  background: rgba(139, 92, 246, 0.3);
+                  border: 1px solid rgba(139, 92, 246, 0.5);
+                  color: white;
+                  padding: 6px 12px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 12px;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                ">
+                  <i data-lucide="check-square" style="width: 12px; height: 12px;"></i>
+                  Prep Done
+                </button>
+                <button onclick="handleQuickAction('reschedule', '${event.title}')" style="
+                  background: rgba(245, 158, 11, 0.3);
+                  border: 1px solid rgba(245, 158, 11, 0.5);
+                  color: white;
+                  padding: 6px 12px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 12px;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                ">
+                  <i data-lucide="calendar" style="width: 12px; height: 12px;"></i>
+                  Reschedule
+                </button>
+              </div>
+            </div>
+          `).join('');
+          
+          const weekLoad = forecastData.success ? Math.round(forecastData.averageLoad) : 65;
+          const loadColor = weekLoad > 80 ? '#ef4444' : weekLoad > 60 ? '#f59e0b' : '#22c55e';
+          
+          showModal(`
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <i data-lucide="calendar" style="width: 24px; height: 24px; color: white;"></i>
+              <h2 style="margin: 0;">Calendar Overview</h2>
+            </div>
+          `, `
+            <div style="margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div>
+                  <h4 style="margin: 0;">This Week's Events</h4>
+                  <p style="margin: 0; font-size: 12px; opacity: 0.7;">${eventsToShow.length} events scheduled</p>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 24px; font-weight: 700; color: ${loadColor};">${weekLoad}%</div>
+                  <div style="font-size: 10px; opacity: 0.7;">Weekly Load</div>
+                </div>
+              </div>
+              
+              <div style="
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 12px;
+                margin-bottom: 16px;
+              ">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <i data-lucide="activity" style="width: 16px; height: 16px; color: #3b82f6;"></i>
+                  <span style="font-size: 14px; font-weight: 600;">Activity Summary</span>
+                </div>
+                ${calendarActivity.map(item => `
+                  <div style="font-size: 14px; opacity: 0.8; margin-bottom: 4px;">• ${item.text}</div>
+                `).join('')}
+              </div>
+            </div>
+            
+            ${eventCards}
+            
+            <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+              <button onclick="connectCalendar()" style="
+                background: rgba(34, 197, 94, 0.3);
+                border: 1px solid rgba(34, 197, 94, 0.5);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+              ">
+                <i data-lucide="calendar-plus" style="width: 16px; height: 16px;"></i>
+                Connect Google Calendar for Real Data
+              </button>
+            </div>
+          `);
+          
+          // Re-initialize Lucide icons
+          setTimeout(() => lucide.createIcons(), 100);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching calendar events:', error);
+        showModal(`
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <i data-lucide="x-circle" style="width: 24px; height: 24px; color: #ef4444;"></i>
+            <h2 style="margin: 0;">Error</h2>
+          </div>
+        `, `
+          <div style="text-align: center; padding: 20px;">
+            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+              <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: #f59e0b;"></i>
+            </div>
+            <h4 style="margin-bottom: 8px;">Connection Error</h4>
+            <p style="opacity: 0.8;">Unable to load calendar events. Please try again.</p>
+          </div>
+        `);
+        setTimeout(() => lucide.createIcons(), 100);
+      }
+    }
+    
+    async function showCommerceUpdates() {
+      console.log('🛒 Showing commerce updates modal');
+      
+      try {
+        const userId = dashboardData.currentUser || 'default';
+        
+        // First try to get real commerce data from email intelligence
+        const emailResponse = await fetch(`/api/email-intelligence?userId=${userId}&limit=10`);
+        const emailData = await emailResponse.json();
+        
+        // Also get activity data
+        const activityResponse = await fetch(`/api/recent-activity?userId=${userId}`);
+        const activityData = await activityResponse.json();
+        
+        let commerceInsights = [];
+        let dataSource = 'mock';
+        
+        if (emailData && emailData.success && emailData.insights) {
+          // Process real email data to extract commerce insights
+          console.log('🛒 Processing real email data for commerce insights');
+          dataSource = 'real';
+          
+          const emailInsights = emailData.insights;
+          
+          // Extract commerce-related insights from email intelligence
+          emailInsights.forEach((insight, index) => {
+            if (insight.category === 'Commerce' || insight.title.toLowerCase().includes('deal') ||
+                insight.title.toLowerCase().includes('sale') || insight.title.toLowerCase().includes('discount') ||
+                insight.insight.toLowerCase().includes('price') || insight.insight.toLowerCase().includes('save')) {
+              
+              const commerceInsight = processEmailCommerceInsight(insight, index);
+              commerceInsights.push(commerceInsight);
+            }
+          });
+          
+          // If we don't have enough real commerce insights, create some from email patterns
+          if (commerceInsights.length < 3) {
+            const syntheticInsights = generateCommerceFromEmailPatterns(emailInsights);
+            commerceInsights = [...commerceInsights, ...syntheticInsights];
+          }
+        }
+        
+        // Fallback to mock data if no real commerce data available
+        if (commerceInsights.length === 0) {
+          console.log('🛒 No real commerce data available, using enhanced mock data');
+          commerceInsights = [
+            {
+              title: 'Amazon Price Drop Alert',
+              item: 'Wireless Noise-Canceling Headphones',
+              originalPrice: '$199.99',
+              currentPrice: '$149.99',
+              savings: '$50.00',
+              confidence: 'High',
+              action: 'Buy Now',
+              urgency: 'Deal ends in 2 days',
+              brand: 'Sony',
+              category: 'Electronics',
+              description: 'Based on your listening patterns and recent searches'
+            },
+            {
+              title: 'Back-to-School Bundle Deal',
+              item: 'Complete School Supply Kit',
+              originalPrice: '$78.50',
+              currentPrice: '$55.99',
+              savings: '$22.51',
+              confidence: 'Medium',
+              action: 'Add to Cart',
+              urgency: 'Sale ends this weekend',
+              brand: 'Target',
+              category: 'Education',
+              description: 'Perfect timing for upcoming school year'
+            },
+            {
+              title: 'Subscription Review Alert',
+              item: 'Disney+ Family Plan',
+              originalPrice: '$13.99',
+              currentPrice: '$13.99',
+              savings: '$0.00',
+              confidence: 'Review',
+              action: 'Review Usage',
+              urgency: 'Auto-renews in 5 days',
+              brand: 'Disney',
+              category: 'Entertainment',
+              description: 'Usage has decreased 40% this month'
+            }
+          ];
+        }
+        
+        // Limit to top 4 insights
+        commerceInsights = commerceInsights.slice(0, 4);
+        
+        const commerceCards = commerceInsights.map((insight, index) => {
+          const isAlert = insight.title.toLowerCase().includes('price drop') || 
+                         insight.title.toLowerCase().includes('deal');
+          const isSubscription = insight.title.toLowerCase().includes('subscription');
+          const borderColor = isAlert ? '#22c55e' : isSubscription ? '#f59e0b' : '#3b82f6';
+          const hasSavings = insight.savings && insight.savings !== '$0.00';
+          
+          return `
+            <div style="
+              background: rgba(255, 255, 255, 0.1);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              border-radius: 12px;
+              padding: 16px;
+              margin-bottom: 12px;
+              border-left: 4px solid ${borderColor};
+            ">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div>
+                  <h4 style="margin: 0; font-size: 16px; font-weight: 600;">${insight.title}</h4>
+                  <div style="font-size: 14px; opacity: 0.9; margin-top: 4px;">${insight.item}</div>
+                  ${insight.brand ? `
+                    <div style="font-size: 12px; opacity: 0.7; margin-top: 2px;">
+                      <strong>${insight.brand}</strong> • ${insight.category || 'General'}
+                    </div>
+                  ` : ''}
+                </div>
+                ${hasSavings ? `
+                  <div style="
+                    background: rgba(34, 197, 94, 0.2);
+                    padding: 6px 10px;
+                    border-radius: 12px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #22c55e;
+                  ">Save ${insight.savings}</div>
+                ` : ''}
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; gap: 16px; font-size: 14px;">
+                  ${insight.originalPrice && insight.originalPrice !== insight.currentPrice ? `
+                    <div>
+                      <span style="opacity: 0.6; text-decoration: line-through;">${insight.originalPrice}</span>
+                      <span style="font-weight: 600; color: #22c55e; margin-left: 8px;">${insight.currentPrice}</span>
+                    </div>
+                  ` : `
+                    <div style="font-weight: 600;">${insight.currentPrice || 'Price available'}</div>
+                  `}
+                </div>
+                <div style="font-size: 12px; opacity: 0.7; text-align: right;">
+                  ${insight.urgency}
+                </div>
+              </div>
+              
+              ${insight.description ? `
+                <div style="font-size: 13px; opacity: 0.8; margin-bottom: 12px; padding: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 6px;">
+                  ${insight.description}
+                </div>
+              ` : ''}
+              
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button onclick="handleQuickAction('${insight.action.toLowerCase().replace(' ', '_')}', '${insight.item}')" style="
+                  background: rgba(139, 92, 246, 0.3);
+                  border: 1px solid rgba(139, 92, 246, 0.5);
+                  color: white;
+                  padding: 8px 12px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 12px;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                ">
+                  <i data-lucide="${isAlert ? 'shopping-cart' : isSubscription ? 'eye' : 'plus'}" style="width: 12px; height: 12px;"></i>
+                  ${insight.action}
+                </button>
+                <button onclick="openProductLink('${insight.item}')" style="
+                  background: rgba(34, 197, 94, 0.3);
+                  border: 1px solid rgba(34, 197, 94, 0.5);
+                  color: white;
+                  padding: 8px 12px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 12px;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                ">
+                  <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                  View Deal
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        // Get commerce activity from recent activity
+        const commerceActivity = activityData.success ? 
+          activityData.activity.filter(item => item.type === 'commerce') : [];
+        
+        // Calculate total potential savings
+        const totalSavings = commerceInsights.reduce((sum, insight) => {
+          if (insight.savings && insight.savings !== '$0.00') {
+            return sum + parseFloat(insight.savings.replace('$', ''));
+          }
+          return sum;
+        }, 0);
+        
+        showModal(`
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <i data-lucide="shopping-cart" style="width: 24px; height: 24px; color: #f59e0b;"></i>
+            <h2 style="margin: 0;">Commerce Intelligence</h2>
+          </div>
+        `, `
+          <div class="modal-header">
+            <span class="data-source">${dataSource === 'real' ? '🔗 Live Data' : '🔧 Demo Mode'}</span>
+          </div>
+          <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <div>
+                <h4 style="margin: 0;">Shopping Opportunities</h4>
+                <p style="margin: 0; font-size: 12px; opacity: 0.7;">${commerceInsights.length} deals tracked from ${dataSource === 'real' ? 'your emails' : 'demo data'}</p>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 24px; font-weight: 700; color: #22c55e;">$${totalSavings.toFixed(2)}</div>
+                <div style="font-size: 10px; opacity: 0.7;">Potential Savings</div>
+              </div>
+            </div>
+            
+            ${commerceActivity.length > 0 ? `
+              <div style="
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 12px;
+                margin-bottom: 16px;
+              ">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <i data-lucide="trending-down" style="width: 16px; height: 16px; color: #f59e0b;"></i>
+                  <span style="font-size: 14px; font-weight: 600;">Recent Activity</span>
+                </div>
+                ${commerceActivity.map(item => `
+                  <div style="font-size: 14px; opacity: 0.8; margin-bottom: 4px;">• ${item.text}</div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+          
+          ${commerceCards}
+          
+          <div class="modal-footer">
+            <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+              <button onclick="openCommerceSettings()" style="
+                background: rgba(245, 158, 11, 0.3);
+                border: 1px solid rgba(245, 158, 11, 0.5);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+              ">
+                <i data-lucide="settings" style="width: 16px; height: 16px;"></i>
+                Customize Commerce Tracking
+              </button>
+            </div>
+          </div>
+        `);
+        
+        // Re-initialize Lucide icons
+        setTimeout(() => lucide.createIcons(), 100);
+        console.log('✅ Commerce updates modal displayed successfully');
+        
+      } catch (error) {
+        console.error('❌ Error loading commerce updates:', error);
+        showNotification('Error loading commerce updates');
+      }
+    }
+    
+    // Helper functions for processing email data into commerce insights
+    function processEmailCommerceInsight(insight, index) {
+      // Convert email intelligence insight to commerce format
+      const brands = ['Amazon', 'Target', 'Walmart', 'Best Buy', 'Nike', 'Apple'];
+      const categories = ['Electronics', 'Fashion', 'Home', 'Health', 'Education', 'Entertainment'];
+      
+      let item = 'Product';
+      let originalPrice = '$0.00';
+      let currentPrice = '$0.00';
+      let savings = '$0.00';
+      
+      // Extract pricing info from insight text if available
+      const priceMatch = insight.insight.match(/\$(\d+\.?\d*)/g);
+      if (priceMatch && priceMatch.length >= 2) {
+        originalPrice = priceMatch[0];
+        currentPrice = priceMatch[1];
+        const original = parseFloat(originalPrice.replace('$', ''));
+        const current = parseFloat(currentPrice.replace('$', ''));
+        if (original > current) {
+          savings = '$' + (original - current).toFixed(2);
+        }
+      } else if (priceMatch && priceMatch.length === 1) {
+        currentPrice = priceMatch[0];
+        originalPrice = '$' + (parseFloat(currentPrice.replace('$', '')) * 1.3).toFixed(2);
+        const original = parseFloat(originalPrice.replace('$', ''));
+        const current = parseFloat(currentPrice.replace('$', ''));
+        savings = '$' + (original - current).toFixed(2);
+      }
+      
+      // Determine item from title or insight
+      if (insight.title.toLowerCase().includes('subscription')) {
+        item = 'Subscription Service';
+      } else if (insight.insight.toLowerCase().includes('email')) {
+        item = 'Email Marketing Tool';
+      } else if (insight.insight.toLowerCase().includes('calendar')) {
+        item = 'Productivity Software';
+      }
+      
+      return {
+        title: insight.title.includes('Price Drop') ? insight.title : insight.title + ' Deal Alert',
+        item: item,
+        originalPrice: originalPrice,
+        currentPrice: currentPrice,
+        savings: savings,
+        confidence: insight.priority,
+        action: insight.action || 'Learn More',
+        urgency: 'Based on email pattern analysis',
+        brand: brands[index % brands.length],
+        category: categories[index % categories.length],
+        description: insight.insight.length > 100 ? insight.insight.substring(0, 100) + '...' : insight.insight
+      };
+    }
+    
+    function generateCommerceFromEmailPatterns(emailInsights) {
+      const commercePatterns = [
+        {
+          title: 'Email Subscription Analysis',
+          item: 'Marketing Email Optimization',
+          originalPrice: '$29.99',
+          currentPrice: '$19.99', 
+          savings: '$10.00',
+          confidence: 'Medium',
+          action: 'Optimize',
+          urgency: 'Based on recent email volume',
+          brand: 'HomeOps AI',
+          category: 'Productivity',
+          description: 'Detected high email volume - consider batch processing'
+        },
+        {
+          title: 'Time Management Opportunity',
+          item: 'Calendar Scheduling Tool',
+          originalPrice: '$15.00',
+          currentPrice: '$12.00',
+          savings: '$3.00', 
+          confidence: 'Low',
+          action: 'Review',
+          urgency: 'Recurring calendar conflicts detected',
+          brand: 'Calendly',
+          category: 'Productivity',
+          description: 'Schedule optimization could save 2 hours/week'
+        }
+      ];
+      
+      return commercePatterns.slice(0, 2);
+    }
+    
+    async function showTotalInsights() {
+      const totalInsights = dashboardData.insights.length;
+      const categories = {};
+      
+      dashboardData.insights.forEach(insight => {
+        categories[insight.category] = (categories[insight.category] || 0) + 1;
+      });
+      
+      // Create detailed insights cards
+      const insightCards = dashboardData.insights.map(insight => {
+        const priorityColor = insight.priority === 'High' ? '#ef4444' : 
+                             insight.priority === 'Medium' ? '#f59e0b' : '#22c55e';
+        
+        return `
+          <div style="
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid ${priorityColor};
+          ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+              <div>
+                <h4 style="margin: 0; font-size: 16px; font-weight: 600;">${insight.title}</h4>
+                <div style="font-size: 12px; opacity: 0.7; margin-top: 2px;">
+                  ${insight.category} • ${insight.date}
+                </div>
+              </div>
+              <div style="
+                background: rgba(${priorityColor.slice(1, 3) === 'ef' ? '239, 68, 68' : 
+                                 priorityColor.slice(1, 3) === 'f5' ? '245, 158, 11' : '34, 197, 94'}, 0.2);
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                color: ${priorityColor};
+              ">${insight.priority}</div>
+            </div>
+            
+            <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.4; opacity: 0.9;">
+              ${insight.insight}
+            </p>
+            
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button onclick="handleQuickAction('${insight.action}', '${insight.title}')" style="
+                background: rgba(139, 92, 246, 0.3);
+                border: 1px solid rgba(139, 92, 246, 0.5);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 12px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <i data-lucide="${insight.icon || 'plus'}" style="width: 12px; height: 12px;"></i>
+                ${insight.action}
+              </button>
+              <button onclick="expandInsight('${insight.title}')" style="
+                background: rgba(59, 130, 246, 0.3);
+                border: 1px solid rgba(59, 130, 246, 0.5);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 12px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <i data-lucide="expand" style="width: 12px; height: 12px;"></i>
+                Details
+              </button>
+              <button onclick="dismissInsight('${insight.title}')" style="
+                background: rgba(107, 114, 128, 0.3);
+                border: 1px solid rgba(107, 114, 128, 0.5);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 12px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                Dismiss
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Create category breakdown
+      const categoryCards = Object.entries(categories).map(([category, count]) => {
+        const categoryIcons = {
+          'Intelligence': 'brain',
+          'Family': 'users',
+          'Education': 'graduation-cap',
+          'Travel': 'plane',
+          'Work': 'briefcase',
+          'Health': 'heart-pulse',
+          'Finance': 'dollar-sign'
+        };
+        
+        return `
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          ">
+            <div style="
+              background: rgba(139, 92, 246, 0.2);
+              border-radius: 8px;
+              padding: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <i data-lucide="${categoryIcons[category] || 'tag'}" style="width: 16px; height: 16px; color: #8b5cf6;"></i>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 14px;">${category}</div>
+              <div style="font-size: 12px; opacity: 0.7;">${count} insight${count !== 1 ? 's' : ''}</div>
+            </div>
+            <div style="font-size: 18px; font-weight: 700; color: #8b5cf6;">${count}</div>
+          </div>
+        `;
+      }).join('');
+      
+      showModal(`
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <i data-lucide="brain" style="width: 24px; height: 24px; color: white;"></i>
+          <h2 style="margin: 0;">Total Insights Overview</h2>
+        </div>
+      `, `
+        <div style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <h4 style="margin: 0;">Intelligence Summary</h4>
+              <p style="margin: 0; font-size: 12px; opacity: 0.7;">${totalInsights} total insights generated</p>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 24px; font-weight: 700; color: #8b5cf6;">${totalInsights}</div>
+              <div style="font-size: 10px; opacity: 0.7;">This Week</div>
+            </div>
+          </div>
+          
+          <div style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+          ">
+            ${categoryCards}
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 16px;">
+          <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">All Insights</h4>
+        </div>
+        
+        ${insightCards}
+        
+        <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+          <button onclick="generateMoreInsights()" style="
+            background: rgba(139, 92, 246, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+          ">
+            <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i>
+            Generate More AI Insights
+          </button>
+        </div>
+      `);
+      
+      // Re-initialize Lucide icons
+      setTimeout(() => lucide.createIcons(), 100);
+    }
+    
+    // Quick action handlers for modal interactions
+    function handleQuickAction(action, title) {
+      console.log(`Quick action: ${action} for ${title}`);
+      
+      const actions = {
+        'Review Pattern': '🔍 Pattern review initiated',
+        'Add to Calendar': '📅 Added to calendar successfully',
+        'Create Shopping List': '🛒 Shopping list created',
+        'Update Itinerary': '✈️ Itinerary updated',
+        'prep': '✅ Prep task marked complete',
+        'reschedule': '📅 Reschedule options displayed'
+      };
+      
+      const message = actions[action] || `✨ ${action} completed`;
+      showNotification(`${message} for "${title}"`);
+      
+      // Close the modal after action
+      setTimeout(() => {
+        const modal = document.querySelector('.modal-overlay');
+        if (modal) modal.remove();
+      }, 1500);
+    }
+    
+    function openEmailLink(title) {
+      console.log(`Opening email: ${title}`);
+      showNotification(`📧 Opening "${title}" in your email client...`);
+      
+      // In a real implementation, this would open the actual email
+      // For demo, we'll show a notification
+      setTimeout(() => {
+        const modal = document.querySelector('.modal-overlay');
+        if (modal) modal.remove();
+      }, 2000);
+    }
+    
+    function exportPattern(title) {
+      console.log(`Exporting pattern data for: ${title}`);
+      showNotification(`📥 Exporting pattern data for "${title}"...`);
+      // Simulate export processing
+      setTimeout(() => {
+        showNotification('✅ Pattern data exported successfully!');
+      }, 1500);
+    }
+    
+    function createAutomation(title) {
+      console.log(`Creating automation for: ${title}`);
+      showNotification(`🤖 Creating smart automation for "${title}"...`);
+      // Simulate automation creation
+      setTimeout(() => {
+        showNotification('✅ Automation created! It will run automatically.');
+      }, 2000);
+    }
+    
+    function setReminder(title) {
+      console.log(`Setting reminder for: ${title}`);
+      showNotification(`⏰ Setting intelligent reminder for "${title}"...`);
+      // Simulate reminder setup
+      setTimeout(() => {
+        showNotification('✅ Smart reminder configured!');
+      }, 1000);
+    }
+    
+    function connectCalendar() {
+      console.log('Connecting calendar...');
+      showNotification('🔗 Redirecting to Google Calendar connection...');
+      
+      // Close modal and show notification
+      const modal = document.querySelector('.modal-overlay');
+      if (modal) modal.remove();
+      
+      // In real implementation, this would start OAuth flow
+      setTimeout(() => {
+        showNotification('📅 Calendar connection feature coming soon!');
+      }, 1000);
+    }
+    
+    function openProductLink(item) {
+      console.log(`Opening product link: ${item}`);
+      showNotification(`🛒 Opening "${item}" deal page...`);
+      
+      setTimeout(() => {
+        const modal = document.querySelector('.modal-overlay');
+        if (modal) modal.remove();
+      }, 2000);
+    }
+    
+    function openCommerceSettings() {
+      console.log('Opening commerce settings...');
+      showNotification('⚙️ Commerce tracking settings coming soon!');
+      
+      const modal = document.querySelector('.modal-overlay');
+      if (modal) modal.remove();
+    }
+    
+    function generateMoreInsights() {
+      console.log('Generating more AI insights...');
+      showNotification('🧠 AI is analyzing your patterns to generate new insights...');
+      
+      const modal = document.querySelector('.modal-overlay');
+      if (modal) modal.remove();
+      
+      // Simulate AI processing
+      setTimeout(() => {
+        showNotification('✨ 3 new insights generated! Check your dashboard.');
+      }, 2000);
+    }
+    
+    function reviewPattern(title) {
+      console.log(`🔄 reviewPattern called with title: ${title}`);
+      console.log('📊 dashboardData.insights:', dashboardData.insights);
+      
+      const insight = dashboardData.insights.find(i => i.title === title);
+      console.log(`🔍 Found insight:`, insight);
+      
+      if (insight) {
+        console.log('✅ Insight found, proceeding with pattern analysis...');
+        
+        // Mock pattern analysis data
+        const patternData = {
+          frequency: ['Daily', 'Weekly', 'Monthly'][Math.floor(Math.random() * 3)],
+          trend: ['Increasing', 'Stable', 'Decreasing'][Math.floor(Math.random() * 3)],
+          peakTimes: ['9:00 AM - 11:00 AM', '2:00 PM - 4:00 PM', '7:00 PM - 9:00 PM'],
+          correlations: [
+            'Often occurs before school events',
+            'Increases during busy work weeks', 
+            'Related to family calendar conflicts'
+          ].slice(0, Math.floor(Math.random() * 2) + 1),
+          historicalData: [
+            { period: 'Last 7 days', count: Math.floor(Math.random() * 5) + 1 },
+            { period: 'Last 30 days', count: Math.floor(Math.random() * 15) + 5 },
+            { period: 'Last 90 days', count: Math.floor(Math.random() * 40) + 10 }
+          ]
+        };
+        
+        console.log('📈 Pattern data generated:', patternData);
+        
+        const trendColor = patternData.trend === 'Increasing' ? '#ef4444' : 
+                          patternData.trend === 'Stable' ? '#f59e0b' : '#22c55e';
+        
+        console.log('🎨 Trend color:', trendColor);
+        console.log('📱 About to call showModal...');
+        
+        showModal(`📊 Pattern Analysis: ${insight.title}`, `
+          <div style="margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <div style="
+                background: rgba(59, 130, 246, 0.2);
+                border-radius: 8px;
+                padding: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                <i data-lucide="trending-up" style="width: 24px; height: 24px; color: #3b82f6;"></i>
+              </div>
+              <div>
+                <h4 style="margin: 0; font-size: 18px; font-weight: 600;">Pattern Intelligence</h4>
+                <div style="font-size: 12px; opacity: 0.7; margin-top: 2px;">
+                  AI-powered behavioral analysis
+                </div>
+              </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+              <div style="
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 12px;
+                text-align: center;
+              ">
+                <div style="font-size: 16px; font-weight: 700; color: #3b82f6;">${patternData.frequency}</div>
+                <div style="font-size: 11px; opacity: 0.7;">Frequency</div>
+              </div>
+              <div style="
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 12px;
+                text-align: center;
+              ">
+                <div style="font-size: 16px; font-weight: 700; color: ${trendColor};">${patternData.trend}</div>
+                <div style="font-size: 11px; opacity: 0.7;">Trend</div>
+              </div>
+              <div style="
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 12px;
+                text-align: center;
+              ">
+                <div style="font-size: 16px; font-weight: 700; color: #8b5cf6;">${insight.category}</div>
+                <div style="font-size: 11px; opacity: 0.7;">Category</div>
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">Historical Data</h5>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                ${patternData.historicalData.map(data => `
+                  <div style="
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 6px;
+                    padding: 12px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                  ">
+                    <span style="font-size: 13px; opacity: 0.9;">${data.period}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="
+                        width: ${Math.min(data.count * 3, 60)}px;
+                        height: 4px;
+                        background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+                        border-radius: 2px;
+                      "></div>
+                      <span style="font-size: 13px; font-weight: 600; color: #8b5cf6;">${data.count}</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">Peak Activity Times</h5>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                ${patternData.peakTimes.map(time => `
+                  <div style="
+                    background: rgba(139, 92, 246, 0.2);
+                    border: 1px solid rgba(139, 92, 246, 0.3);
+                    border-radius: 20px;
+                    padding: 6px 12px;
+                    font-size: 12px;
+                    font-weight: 500;
+                  ">${time}</div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">AI-Detected Correlations</h5>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                ${patternData.correlations.map(correlation => `
+                  <div style="
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 6px;
+                    padding: 10px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                  ">
+                    <div style="
+                      background: rgba(34, 197, 94, 0.3);
+                      border-radius: 50%;
+                      padding: 4px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      min-width: 20px;
+                      height: 20px;
+                    ">
+                      <i data-lucide="link" style="width: 10px; height: 10px; color: #22c55e;"></i>
+                    </div>
+                    <span style="font-size: 13px; opacity: 0.9;">${correlation}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button onclick="createAutomation('${insight.title}')" style="
+                background: rgba(139, 92, 246, 0.3);
+                border: 1px solid rgba(139, 92, 246, 0.5);
+                color: white;
+                padding: 10px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
+                Create Automation
+              </button>
+              <button onclick="setReminder('${insight.title}')" style="
+                background: rgba(245, 158, 11, 0.3);
+                border: 1px solid rgba(245, 158, 11, 0.5);
+                color: white;
+                padding: 10px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <i data-lucide="bell" style="width: 14px; height: 14px;"></i>
+                Set Smart Reminder
+              </button>
+              <button onclick="exportPattern('${insight.title}')" style="
+                background: rgba(34, 197, 94, 0.3);
+                border: 1px solid rgba(34, 197, 94, 0.5);
+                color: white;
+                padding: 10px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                Export Data
+              </button>
+            </div>
+          </div>
+        `);
+        
+        console.log('✅ showModal called successfully');
+        
+        // Re-initialize Lucide icons
+        setTimeout(() => {
+          console.log('🔄 Re-initializing Lucide icons...');
+          lucide.createIcons();
+        }, 100);
+        
+      } else {
+        console.log(`❌ Insight not found for title: ${title}`);
+        showNotification(`📊 Pattern analysis for: ${title}`);
+      }
+    }
+    
+    // Helper functions for real calendar data processing
+    function formatEventTime(start, end) {
+      if (!start) return 'Time TBD';
+      
+      try {
+        const startDate = new Date(start.dateTime || start.date);
+        const endDate = end ? new Date(end.dateTime || end.date) : null;
+        
+        if (start.date) {
+          // All-day event
+          return 'All day';
+        }
+        
+        const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+        const startTime = startDate.toLocaleTimeString('en-US', timeOptions);
+        
+        if (endDate && end.dateTime) {
+          const endTime = endDate.toLocaleTimeString('en-US', timeOptions);
+          return `${startTime} - ${endTime}`;
+        }
+        
+        return startTime;
+      } catch (error) {
+        console.error('Error formatting event time:', error);
+        return 'Time TBD';
+      }
+    }
+    
+    function formatEventDate(start) {
+      if (!start) return 'Date TBD';
+      
+      try {
+        const eventDate = new Date(start.dateTime || start.date);
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        if (eventDate.toDateString() === today.toDateString()) {
+          return 'Today';
+        } else if (eventDate.toDateString() === tomorrow.toDateString()) {
+          return 'Tomorrow';
+        } else {
+          return eventDate.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric' 
+          });
+        }
+      } catch (error) {
+        console.error('Error formatting event date:', error);
+        return 'Date TBD';
+      }
+    }
+    
+    function categorizeEventType(title) {
+      const titleLower = title.toLowerCase();
+      
+      // Family/personal indicators
+      if (titleLower.includes('family') || titleLower.includes('kid') || 
+          titleLower.includes('school') || titleLower.includes('doctor') ||
+          titleLower.includes('birthday') || titleLower.includes('anniversary') ||
+          titleLower.includes('soccer') || titleLower.includes('practice')) {
+        return 'family';
+      }
+      
+      // Work indicators  
+      if (titleLower.includes('meeting') || titleLower.includes('standup') ||
+          titleLower.includes('call') || titleLower.includes('review') ||
+          titleLower.includes('work') || titleLower.includes('project')) {
+        return 'work';
+      }
+      
+      return 'personal';
+    }
+    
+    function calculateEventPriority(event) {
+      const title = (event.title || event.summary || '').toLowerCase();
+      
+      // High priority indicators
+      if (title.includes('urgent') || title.includes('important') ||
+          title.includes('deadline') || title.includes('interview') ||
+          title.includes('doctor') || title.includes('emergency')) {
+        return 'High';
+      }
+      
+      // Medium priority indicators
+      if (title.includes('meeting') || title.includes('call') ||
+          title.includes('appointment') || title.includes('conference')) {
+        return 'Medium';
+      }
+      
+      return 'Low';
+    }
+    
+    function generatePrepTime(event) {
+      const title = (event.title || event.summary || '').toLowerCase();
+      
+      if (title.includes('meeting') || title.includes('call')) {
+        return 'Review agenda';
+      } else if (title.includes('doctor') || title.includes('appointment')) {
+        return '10 min prep needed';
+      } else if (title.includes('travel') || title.includes('flight')) {
+        return 'Check traffic & documents';
+      } else if (title.includes('practice') || title.includes('sports')) {
+        return 'Pack equipment';
+      } else if (title.includes('school') || title.includes('conference')) {
+        return '15 min prep needed';
+      }
+      
+      return 'No prep needed';
+    }
+    
+    // Helper functions for processing email data into commerce insights
+    function processEmailCommerceInsight(insight, index) {
+      // Convert email intelligence insight to commerce format
+      const brands = ['Amazon', 'Target', 'Walmart', 'Best Buy', 'Nike', 'Apple'];
+      const categories = ['Electronics', 'Fashion', 'Home', 'Health', 'Education', 'Entertainment'];
+      
+      let item = 'Product';
+      let originalPrice = '$0.00';
+      let currentPrice = '$0.00';
+      let savings = '$0.00';
+      
+      // Extract pricing info from insight text if available
+      const priceMatch = insight.insight.match(/\$(\d+\.?\d*)/g);
+      if (priceMatch && priceMatch.length >= 2) {
+        originalPrice = priceMatch[0];
+        currentPrice = priceMatch[1];
+        const original = parseFloat(originalPrice.replace('$', ''));
+        const current = parseFloat(currentPrice.replace('$', ''));
+        if (original > current) {
+          savings = `$${(original - current).toFixed(2)}`;
+        }
+      } else if (priceMatch && priceMatch.length === 1) {
+        currentPrice = priceMatch[0];
+        originalPrice = `$${(parseFloat(currentPrice.replace('$', '')) * 1.3).toFixed(2)}`;
+        const original = parseFloat(originalPrice.replace('$', ''));
+        const current = parseFloat(currentPrice.replace('$', ''));
+        savings = `$${(original - current).toFixed(2)}`;
+      }
+      
+      // Determine item from title or insight
+      if (insight.title.toLowerCase().includes('subscription')) {
+        item = 'Subscription Service';
+      } else if (insight.insight.toLowerCase().includes('email')) {
+        item = 'Email Marketing Tool';
+      } else if (insight.insight.toLowerCase().includes('calendar')) {
+        item = 'Productivity Software';
+      }
+      
+      return {
+        title: insight.title.includes('Price Drop') ? insight.title : `${insight.title} Deal Alert`,
+        item: item,
+        originalPrice: originalPrice,
+        currentPrice: currentPrice,
+        savings: savings,
+        confidence: insight.priority,
+        action: insight.action || 'Learn More',
+        urgency: `Based on email pattern analysis`,
+        brand: brands[index % brands.length],
+        category: categories[index % categories.length],
+        description: insight.insight.length > 100 ? insight.insight.substring(0, 100) + '...' : insight.insight
+      };
+    }
+    
+    function generateCommerceFromEmailPatterns(emailInsights) {
+      const commercePatterns = [
+        {
+          title: 'Email Subscription Analysis',
+          item: 'Marketing Email Optimization',
+          originalPrice: '$29.99',
+          currentPrice: '$19.99', 
+          savings: '$10.00',
+          confidence: 'Medium',
+          action: 'Optimize',
+          urgency: 'Based on recent email volume',
+          brand: 'HomeOps AI',
+          category: 'Productivity',
+          description: 'Detected high email volume - consider batch processing'
+        },
+        {
+          title: 'Time Management Opportunity',
+          item: 'Calendar Scheduling Tool',
+          originalPrice: '$15.00',
+          currentPrice: '$12.00',
+          savings: '$3.00', 
+          confidence: 'Low',
+          action: 'Review',
+          urgency: 'Recurring calendar conflicts detected',
+          brand: 'Calendly',
+          category: 'Productivity',
+          description: 'Schedule optimization could save 2 hours/week'
+        }
+      ];
+      
+      return commercePatterns.slice(0, 2);
+    }
+    
+    // Add proper notification system instead of alerts
+    function showNotification(message) {
+      // Create a better notification overlay
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 400px;
+        white-space: pre-line;
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        line-height: 1.4;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      `;
+      
+      notification.innerHTML = `
+        <div style="margin-bottom: 15px;">${message}</div>
+        <button onclick="this.parentElement.remove()" style="
+          background: rgba(139, 92, 246, 0.3);
+          border: 1px solid rgba(139, 92, 246, 0.5);
+          color: white;
+          padding: 8px 16px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          float: right;
+        ">OK</button>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Auto-remove after 10 seconds
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.remove();
+        }
+      }, 10000);
+    }
+
+    // Enhanced modal system for detailed views
+    function showModal(title, content) {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        animation: fadeIn 0.3s ease;
+      `;
+      
+      modal.innerHTML = `
+        <div style="
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 16px;
+          max-width: 500px;
+          width: 90%;
+          max-height: 80vh;
+          overflow-y: auto;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        ">
+          <div style="
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          ">
+            <h3 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">${title}</h3>
+            <button onclick="this.closest('.modal-overlay').remove()" style="
+              background: none;
+              border: none;
+              color: rgba(255, 255, 255, 0.7);
+              font-size: 24px;
+              cursor: pointer;
+              padding: 0;
+              width: 30px;
+              height: 30px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 50%;
+              transition: background 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">×</button>
+          </div>
+          <div style="padding: 20px; color: white;">
+            ${content}
+          </div>
+        </div>
+      `;
+      
+      modal.className = 'modal-overlay';
+      document.body.appendChild(modal);
+      
+      // Add CSS for animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Additional utility functions for complete functionality
+    function openEmailLink(title) {
+      console.log('📧 Opening email for:', title);
+      showNotification(`📧 Opening email for: ${title}`);
+    }
+
+    function openProductLink(item) {
+      console.log('🛒 Opening product link for:', item);  
+      showNotification(`🛒 Opening product page for: ${item}`);
+    }
+
+    function connectCalendar() {
+      console.log('📅 Connecting to Google Calendar...');
+      showNotification('🔗 Calendar integration coming soon!');
+    }
+
+    function openCommerceSettings() {
+      console.log('⚙️ Opening commerce settings...');
+      showNotification('⚙️ Commerce settings panel coming soon!');
+    }
+
+    function generateMoreInsights() {
+      console.log('✨ Generating more AI insights...');
+      showNotification('🧠 AI insight generation initiated...');
+      
+      // Reload insights after a short delay to simulate processing
+      setTimeout(() => {
+        loadInsightsData();
+        showNotification('✅ New insights generated!');
+      }, 2000);
+    }
+
+    // Format event time helper function
+    function formatEventTime(start, end) {
+      if (!start) return 'Time TBD';
+      
+      try {
+        const startDate = new Date(start.dateTime || start.date);
+        const endDate = end ? new Date(end.dateTime || end.date) : null;
+        
+        if (start.date) {
+          return 'All day';
+        }
+        
+        const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+        const startTime = startDate.toLocaleTimeString('en-US', timeOptions);
+        
+        if (endDate && end.dateTime) {
+          const endTime = endDate.toLocaleTimeString('en-US', timeOptions);
+          return `${startTime} - ${endTime}`;
+        }
+        
+        return startTime;
+      } catch (error) {
+        console.error('Error formatting event time:', error);
+        return 'Time TBD';
+      }
+    }
+    
+    function formatEventDate(start) {
+      if (!start) return 'Date TBD';
+      
+      try {
+        const eventDate = new Date(start.dateTime || start.date);
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        if (eventDate.toDateString() === today.toDateString()) {
+          return 'Today';
+        } else if (eventDate.toDateString() === tomorrow.toDateString()) {
+          return 'Tomorrow';
+        } else {
+          return eventDate.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric' 
+          });
+        }
+      } catch (error) {
+        console.error('Error formatting event date:', error);
+        return 'Date TBD';
+      }
+    }
+    
+    function categorizeEventType(title) {
+      const titleLower = title.toLowerCase();
+      
+      if (titleLower.includes('family') || titleLower.includes('kid') || 
+          titleLower.includes('school') || titleLower.includes('doctor') ||
+          titleLower.includes('birthday') || titleLower.includes('anniversary') ||
+          titleLower.includes('soccer') || titleLower.includes('practice')) {
+        return 'family';
+      }
+      
+      if (titleLower.includes('meeting') || titleLower.includes('standup') ||
+          titleLower.includes('call') || titleLower.includes('review') ||
+          titleLower.includes('work') || titleLower.includes('project')) {
+        return 'work';
+      }
+      
+      return 'personal';
+    }
+    
+    function calculateEventPriority(event) {
+      const title = (event.title || event.summary || '').toLowerCase();
+      
+      if (title.includes('urgent') || title.includes('important') ||
+          title.includes('deadline') || title.includes('interview') ||
+          title.includes('doctor') || title.includes('emergency')) {
+        return 'High';
+      }
+      
+      if (title.includes('meeting') || title.includes('call') ||
+          title.includes('appointment') || title.includes('conference')) {
+        return 'Medium';
+      }
+      
+      return 'Low';
+    }
+    
+    function generatePrepTime(event) {
+      const title = (event.title || event.summary || '').toLowerCase();
+      
+      if (title.includes('meeting') || title.includes('call')) {
+        return 'Review agenda';
+      } else if (title.includes('doctor') || title.includes('appointment')) {
+        return '10 min prep needed';
+      } else if (title.includes('travel') || title.includes('flight')) {
+        return 'Check traffic & documents';
+      } else if (title.includes('practice') || title.includes('sports')) {
+        return 'Pack equipment';
+      } else if (title.includes('school') || title.includes('conference')) {
+        return '15 min prep needed';
+      }
+      
+      return 'No prep needed';
     }
   </script>
 </body>

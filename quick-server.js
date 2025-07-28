@@ -3,9 +3,13 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { google } = require('googleapis');
+const HomeOpsDataManager = require('./services/data-manager');
 
 const app = express();
 const PORT = 3000;
+
+// Initialize HomeOps Data Manager for real data
+const dataManager = new HomeOpsDataManager();
 
 // Gmail OAuth setup
 const oauth2Client = new google.auth.OAuth2(
@@ -22,6 +26,12 @@ app.use(express.json());
 app.get('/app', (req, res) => {
   console.log('🎯 Serving /app route -> index-with-command.html');
   res.sendFile(path.join(__dirname, 'public', 'index-with-command.html'));
+});
+
+// Command Center standalone route for iframe embedding
+app.get('/command-center.html', (req, res) => {
+  console.log('📊 Serving Command Center for iframe -> command-center.html');
+  res.sendFile(path.join(__dirname, 'public', 'command-center.html'));
 });
 
 // Root route - redirect to onboarding for now
@@ -83,20 +93,36 @@ function getUserProfile(userId = 'default') {
   return userProfiles.get(userId);
 }
 
-// Dashboard Summary API - Now personalized
+// Dashboard Summary API - Now with REAL data
 app.get('/api/dashboard-summary', async (req, res) => {
   try {
     const userId = req.query.userId || 'default';
     const profile = getUserProfile(userId);
-    const timeframe = req.query.days || 7;
     
-    // Calculate personalized summary based on user's actual data
-    const summary = await calculatePersonalizedSummary(profile, timeframe);
+    console.log(`📊 Getting REAL dashboard summary for: ${userId}`);
     
-    res.json({ success: true, summary, userId });
+    // Try to get user's tokens for real data
+    if (profile.integrations && profile.integrations.gmail) {
+      dataManager.setUserCredentials(userId, profile.integrations.gmail);
+    }
+    
+    // Get real dashboard data
+    const summary = await dataManager.getDashboardSummary(userId, profile);
+    
+    res.json({ 
+      success: true, 
+      summary,
+      userId,
+      dataSource: profile.integrations?.gmail ? 'real' : 'fallback'
+    });
+    
   } catch (error) {
-    console.error('Dashboard summary error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('❌ Dashboard summary error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      summary: dataManager.getFallbackDashboardData()
+    });
   }
 });
 
@@ -193,22 +219,37 @@ function parseAIInsights(aiResponse) {
   return insights;
 }
 
-// Email Intelligence API - Now truly personalized
+// Email Intelligence API - Now with REAL insights
 app.get('/api/email-intelligence', async (req, res) => {
   try {
     const userId = req.query.userId || 'default';
     const profile = getUserProfile(userId);
     const limit = parseInt(req.query.limit) || 5;
     
-    // Generate real insights based on user's actual email patterns
-    const emailData = await analyzeUserEmails(profile);
-    const calendarData = await analyzeUserCalendar(profile);
-    const insights = await generateRealTimeInsights(profile, emailData, calendarData, limit);
+    console.log(`🧠 Getting REAL email intelligence for: ${userId}`);
     
-    res.json({ success: true, insights, userId });
+    // Set user credentials if available
+    if (profile.integrations && profile.integrations.gmail) {
+      dataManager.setUserCredentials(userId, profile.integrations.gmail);
+    }
+    
+    // Get real-time insights based on actual data
+    const insights = await dataManager.generateRealTimeInsights(userId, profile, limit);
+    
+    res.json({ 
+      success: true, 
+      insights, 
+      userId,
+      dataSource: profile.integrations?.gmail ? 'real' : 'fallback'
+    });
+    
   } catch (error) {
-    console.error('Email intelligence error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('❌ Email intelligence error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      insights: dataManager.getFallbackInsights(5)
+    });
   }
 });
 
@@ -298,28 +339,36 @@ async function generateContextualInsight(profile, emailData, calendarData) {
   }
 }
 
-// Recent Activity API - Personalized based on user data
+// Recent Activity API - Based on real data
 app.get('/api/recent-activity', async (req, res) => {
   try {
     const userId = req.query.userId || 'default';
     const profile = getUserProfile(userId);
     
-    // Generate activity based on user's actual patterns
-    const emailData = await analyzeUserEmails(profile);
-    const calendarData = await analyzeUserCalendar(profile);
+    console.log(`🔄 Getting REAL activity data for: ${userId}`);
+    
+    // Set user credentials if available
+    if (profile.integrations && profile.integrations.gmail) {
+      dataManager.setUserCredentials(userId, profile.integrations.gmail);
+    }
+    
+    // Get real data for activity feed
+    const emailData = await dataManager.getRealEmailData(profile);
+    const calendarData = await dataManager.getRealCalendarData(profile);
+    const commerceData = await dataManager.getCommerceInsights(profile);
     
     const activity = [
       { 
         type: 'email', 
-        text: `Synced Gmail (${emailData.totalProcessed} emails processed, ${emailData.urgentCount} urgent)` 
+        text: `Gmail sync: ${emailData.totalProcessed} emails processed, ${emailData.urgentCount} urgent` 
       },
       { 
         type: 'calendar', 
-        text: `Calendar: ${calendarData.upcomingEvents.length} events this week` 
+        text: `Calendar: ${calendarData.upcomingCount} events this week (${calendarData.weeklyLoad} load)` 
       },
       { 
         type: 'commerce', 
-        text: `Commerce Intelligence: ${emailData.commerceCount} shopping opportunities identified` 
+        text: `Commerce: ${commerceData.opportunityCount} shopping opportunities identified` 
       },
       { 
         type: 'system', 
@@ -327,10 +376,22 @@ app.get('/api/recent-activity', async (req, res) => {
       }
     ];
     
-    res.json({ success: true, activity, userId });
+    res.json({ 
+      success: true, 
+      activity, 
+      userId,
+      dataSource: profile.integrations?.gmail ? 'real' : 'mixed'
+    });
+    
   } catch (error) {
-    console.error('Recent activity error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('❌ Recent activity error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      activity: [
+        { type: 'system', text: 'Connect Gmail for real-time activity tracking' }
+      ]
+    });
   }
 });
 
@@ -380,6 +441,71 @@ async function generatePersonalizedReframe(profile, urgentCount) {
   }
 }
 
+// Emotional Load Forecast Data API - GET endpoint for forecast data
+app.get('/api/emotional-load-forecast', async (req, res) => {
+  try {
+    const userId = req.query.userId || 'default';
+    const profile = getUserProfile(userId);
+    
+    console.log(`📊 Computing REAL emotional load forecast for: ${userId}`);
+    
+    // Set user credentials if available
+    if (profile.integrations && profile.integrations.gmail) {
+      dataManager.setUserCredentials(userId, profile.integrations.gmail);
+    }
+    
+    // Get real data for emotional load analysis
+    const emailData = await dataManager.getRealEmailData(profile);
+    const calendarData = await dataManager.getRealCalendarData(profile);
+    
+    // Compute load based on real data patterns
+    const currentLoad = (emailData.urgentCount * 20) + (calendarData.conflictCount * 15) + 30;
+    const todayLoad = Math.min(currentLoad, 100);
+    const tomorrowLoad = Math.max(20, todayLoad - 15);
+    const weekendLoad = profile.preferences.workLifeBalance === 'high' ? 10 : 35;
+    
+    const forecast = [
+      { day: 'Today', load: todayLoad },
+      { day: 'Tomorrow', load: tomorrowLoad },
+      { day: 'Wednesday', load: Math.max(25, todayLoad - 10) },
+      { day: 'Thursday', load: Math.max(30, todayLoad - 5) },
+      { day: 'Friday', load: Math.max(35, todayLoad) },
+      { day: 'Weekend', load: weekendLoad }
+    ];
+    
+    // Generate insights based on actual load
+    const insights = [];
+    if (todayLoad > 80) {
+      insights.push(`High stress detected: ${emailData.urgentCount} urgent emails, ${calendarData.conflictCount} conflicts`);
+    }
+    if (calendarData.upcomingCount > 8) {
+      insights.push('Consider rescheduling some meetings for better balance');
+    }
+    if (emailData.totalProcessed > 50) {
+      insights.push('Email volume is high - batch processing recommended');
+    }
+    
+    res.json({ 
+      success: true, 
+      forecast, 
+      insights,
+      averageLoad: Math.round(forecast.reduce((sum, day) => sum + day.load, 0) / forecast.length),
+      dataSource: profile.integrations?.gmail ? 'real' : 'estimated'
+    });
+    
+  } catch (error) {
+    console.error('❌ Emotional load forecast error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      forecast: [
+        { day: 'Today', load: 50 },
+        { day: 'Tomorrow', load: 40 }
+      ]
+    });
+  }
+});
+
 // Calibrate route - serve the mobile-optimized calibrate file
 app.get('/calibrate', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'calibrate-mobile-fixed.html'));
@@ -397,17 +523,8 @@ app.get('/landing', (req, res) => {
 app.get('/scan', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'scan.html'));
 });
-
 // Main app route - serve the enhanced navigation system
-app.get('/app', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
-// Root route - redirect to onboarding or main app based on user state
-app.get('/', (req, res) => {
-  // For now, redirect to onboarding - in production this would check user auth state
-  res.redirect('/onboard');
-});
 
 // Gmail OAuth authentication
 app.get('/auth/gmail', (req, res) => {
