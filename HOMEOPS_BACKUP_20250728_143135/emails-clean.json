@@ -1,0 +1,270 @@
+[
+  {
+    "id": "001",
+    "subject": "🎨✨ Join Us for the 21st Annual Arts Celebration at The Woods Academy NEXT WEEK! | May 27–30!",
+    "sender": "communications@woodsacademy.edu",
+    "preview": "Dear Woods Academy Families, Mark your calendars! The 21st Annual Arts Celebration is happening NEXT WEEK...",
+    "category": "School",
+    "priority": "High",
+    "actions": ["Add to Calendar", "RSVP", "Share with Family"],
+    "eventDates": [
+      { "label": "Arts Celebration", "start": "2025-05-27T09:00:00", "end": "2025-05-30T17:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "002",
+    "subject": "📋 Your Lab Results Are Ready - Review Portal",
+    "sender": "results@healthcaresystem.com",
+    "preview": "Dear Patient, Your recent lab work has been completed. Please log into your patient portal...",
+    "category": "Medical",
+    "priority": "High",
+    "actions": ["View Results", "Schedule Follow-up", "Contact Doctor"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "003",
+    "subject": "🏠 Weekly Meal Prep Ideas & Grocery List",
+    "sender": "wellness@mealplanpro.com",
+    "preview": "This week's featured recipes include Mediterranean bowl, slow-cooker chicken, and overnight oats...",
+    "category": "Family",
+    "priority": "Low",
+    "actions": ["View Recipes", "Generate List", "Save Favorites"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "id": "004",
+    "subject": "💼 Q4 Strategy Meeting - Action Items Due Friday",
+    "sender": "strategy@company.com",
+    "preview": "Team, following our Q4 planning session, please complete your department action items by EOD Friday...",
+    "category": "Work",
+    "priority": "High",
+    "actions": ["Review Items", "Submit Report", "Schedule 1:1"],
+    "eventDates": [
+      { "label": "Action Items Due", "start": "2025-01-31T17:00:00", "end": "2025-01-31T17:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "005",
+    "subject": "🛍️ Flash Sale: 40% Off Winter Collection - Ends Tonight!",
+    "sender": "sales@fashionstore.com",
+    "preview": "Don't miss our biggest winter sale! All coats, sweaters, and boots are 40% off until midnight...",
+    "category": "Shopping",
+    "priority": "Medium",
+    "actions": ["Shop Now", "View Cart", "Compare Prices"],
+    "eventDates": [
+      { "label": "Sale Ends", "start": "2025-01-15T23:59:00", "end": "2025-01-15T23:59:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "006",
+    "subject": "📚 Parent-Teacher Conference Scheduling Now Open",
+    "sender": "office@elementaryschool.edu",
+    "preview": "Conference week is February 10-14. Please use the online portal to select your preferred time slots...",
+    "category": "School",
+    "priority": "High",
+    "actions": ["Schedule Conference", "View Teacher Notes", "Prepare Questions"],
+    "eventDates": [
+      { "label": "Conference Week", "start": "2025-02-10T08:00:00", "end": "2025-02-14T17:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "007",
+    "subject": "💊 Prescription Ready for Pickup - CVS Pharmacy",
+    "sender": "notifications@cvs.com",
+    "preview": "Your prescription for Lisinopril is ready for pickup at CVS #1234. Pickup by 6 PM...",
+    "category": "Medical",
+    "priority": "High",
+    "actions": ["Get Directions", "Transfer Prescription", "Set Pickup Reminder"],
+    "eventDates": [
+      { "label": "Pickup Deadline", "start": "2025-01-16T18:00:00", "end": "2025-01-16T18:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "008",
+    "subject": "🎂 Birthday Party Planning Checklist & Vendor Contacts",
+    "sender": "events@partyplanners.com",
+    "preview": "For Sarah's 8th birthday party next month, here's everything you need: venue confirmation, catering options...",
+    "category": "Family",
+    "priority": "Medium",
+    "actions": ["Confirm Venue", "Order Cake", "Send Invitations"],
+    "eventDates": [
+      { "label": "Sarah's Birthday", "start": "2025-02-15T14:00:00", "end": "2025-02-15T17:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "009",
+    "subject": "📊 Monthly Budget Review & Investment Portfolio Update",
+    "sender": "advisor@financialgroup.com",
+    "preview": "Your January budget performance shows 15% under spending in dining, 8% over in utilities...",
+    "category": "Work",
+    "priority": "Medium",
+    "actions": ["Review Budget", "Adjust Allocations", "Schedule Meeting"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "id": "010",
+    "subject": "🏃‍♀️ Marathon Training Week 12 - Taper Phase Begins",
+    "sender": "coach@runningclub.com",
+    "preview": "Congratulations on completing 11 weeks! This week we begin tapering with reduced mileage...",
+    "category": "Family",
+    "priority": "Medium",
+    "actions": ["View Schedule", "Track Progress", "Prepare Race Day"],
+    "eventDates": [
+      { "label": "Marathon Race", "start": "2025-03-15T07:00:00", "end": "2025-03-15T13:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "011",
+    "subject": "🍕 Team Lunch Tomorrow - Please Confirm Attendance",
+    "sender": "hr@company.com",
+    "preview": "Our monthly team lunch is tomorrow at 12:30 PM at Mario's Italian. Please reply to confirm...",
+    "category": "Work",
+    "priority": "Medium",
+    "actions": ["Confirm Attendance", "View Menu", "Add to Calendar"],
+    "eventDates": [
+      { "label": "Team Lunch", "start": "2025-01-17T12:30:00", "end": "2025-01-17T14:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "012",
+    "subject": "🧘‍♀️ Meditation App: 30-Day Challenge Completed!",
+    "sender": "wellness@mindfulapp.com",
+    "preview": "Amazing work! You've completed 30 consecutive days of meditation. Your mindfulness streak...",
+    "category": "Family",
+    "priority": "Low",
+    "actions": ["View Progress", "Set New Goal", "Share Achievement"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "id": "013",
+    "subject": "📱 iPhone Software Update Available - iOS 18.3",
+    "sender": "updates@apple.com",
+    "preview": "iOS 18.3 includes important security updates and new features. Update now or schedule for tonight...",
+    "category": "Shopping",
+    "priority": "Low",
+    "actions": ["Update Now", "Schedule Update", "View Details"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "id": "014",
+    "subject": "🎭 Drama Club Performance - Final Rehearsal Schedule",
+    "sender": "drama@highschool.edu",
+    "preview": "Final rehearsals for 'Romeo and Juliet' are this week. Cast and crew please note schedule changes...",
+    "category": "School",
+    "priority": "High",
+    "actions": ["View Schedule", "Confirm Availability", "Prepare Costume"],
+    "eventDates": [
+      { "label": "Performance", "start": "2025-02-20T19:00:00", "end": "2025-02-20T21:30:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "015",
+    "subject": "🏥 Annual Physical Exam Reminder - Schedule Soon",
+    "sender": "reminders@doctoroffice.com",
+    "preview": "It's time for your annual physical exam. Please call to schedule your appointment...",
+    "category": "Medical",
+    "priority": "Medium",
+    "actions": ["Schedule Appointment", "Review Last Results", "Prepare Questions"],
+    "eventDates": [],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "016",
+    "subject": "💰 Tax Document Upload - H&R Block Portal",
+    "sender": "documents@hrblock.com",
+    "preview": "Please upload your remaining tax documents: W-2s, 1099s, and charitable donation receipts...",
+    "category": "Work",
+    "priority": "High",
+    "actions": ["Upload Documents", "Schedule Review", "Download Forms"],
+    "eventDates": [
+      { "label": "Tax Deadline", "start": "2025-04-15T23:59:00", "end": "2025-04-15T23:59:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "017",
+    "subject": "🌱 Garden Planning: Spring Planting Schedule",
+    "sender": "tips@gardeningpro.com",
+    "preview": "Based on your zone 7 location, here's when to start your spring seeds and prepare garden beds...",
+    "category": "Family",
+    "priority": "Low",
+    "actions": ["Order Seeds", "Prepare Soil", "Plan Layout"],
+    "eventDates": [
+      { "label": "Planting Season", "start": "2025-03-15T00:00:00", "end": "2025-05-01T00:00:00" }
+    ],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "id": "018",
+    "subject": "🚗 Car Insurance Renewal - Review Coverage Options",
+    "sender": "renewal@insurancecompany.com",
+    "preview": "Your auto insurance policy expires next month. Review your coverage and explore new discounts...",
+    "category": "Shopping",
+    "priority": "Medium",
+    "actions": ["Review Policy", "Compare Rates", "Update Coverage"],
+    "eventDates": [
+      { "label": "Policy Expires", "start": "2025-02-28T23:59:00", "end": "2025-02-28T23:59:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  },
+  {
+    "id": "019",
+    "subject": "📖 Book Club Selection: 'The Seven Husbands of Evelyn Hugo'",
+    "sender": "organizer@bookclub.com",
+    "preview": "Our February book is 'The Seven Husbands of Evelyn Hugo' by Taylor Jenkins Reid. Meeting is Feb 28th...",
+    "category": "Family",
+    "priority": "Low",
+    "actions": ["Get Book", "Set Reading Schedule", "Add Meeting to Calendar"],
+    "eventDates": [
+      { "label": "Book Club Meeting", "start": "2025-02-28T19:00:00", "end": "2025-02-28T21:00:00" }
+    ],
+    "feedback": null,
+    "column": "reference"
+  },
+  {
+    "id": "020",
+    "subject": "🛒 Weekly Grocery Pickup Ready - Whole Foods",
+    "sender": "pickup@wholefoods.com",
+    "preview": "Your grocery order is ready for pickup at Whole Foods Market. Pickup window: 2-4 PM today...",
+    "category": "Shopping",
+    "priority": "High",
+    "actions": ["Get Directions", "View Order", "Rate Experience"],
+    "eventDates": [
+      { "label": "Pickup Window", "start": "2025-01-16T14:00:00", "end": "2025-01-16T16:00:00" }
+    ],
+    "feedback": null,
+    "column": "actionable"
+  }
+]

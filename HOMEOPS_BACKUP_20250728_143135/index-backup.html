@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HomeOps.ai</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <button data-view="home" class="nav-icon active">🏠</button>
+      <button data-view="chat" class="nav-icon">💬</button>
+      <button data-view="dashboard" class="nav-icon">📊</button>
+    </aside>
+
+    <main class="main-panel">
+      <section id="view-home" class="view active">
+        <h2>🏠 Home Base</h2>
+        <div id="home-summary">Coming soon: weekly themes, upcoming focus areas, and alerts.</div>
+      </section>
+<section id="view-chat" class="view">
+  <div class="chat-header">
+    <h2>💬 Ask HomeOps</h2>
+    <p class="subtext">Get clarity, scripts, and mental load relief—on demand.</p>
+  </div>
+
+  <div id="chat-box" class="chat-box"></div>
+
+  <form id="chat-form" class="chat-form">
+    <input 
+      id="user-input" 
+      type="text" 
+      placeholder="What's the thing you haven’t said out loud yet?" 
+      autocomplete="off" 
+    />
+    <button type="submit">Send</button>
+  </form>
+</section>
+
+      <section id="view-dashboard" class="view">
+        <h2>📊 Parent Dashboard</h2>
+        <div id="load-score"></div>
+        <ul id="emotional-themes"></ul>
+        <div id="timeline"></div>
+        <div id="suggested-scripts"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="layout.js"></script>
+  <script src="chat.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

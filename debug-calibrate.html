@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Calibrate</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Calibrate Debug</h1>
+    <div id="debug-output"></div>
+    
+    <script>
+        async function debugCalibrate() {
+            const debugDiv = document.getElementById('debug-output');
+            
+            try {
+                debugDiv.innerHTML += '<div class="debug">📡 Testing API...</div>';
+                
+                const response = await fetch('/api/calibration-data');
+                debugDiv.innerHTML += `<div class="debug">Response status: ${response.status}</div>`;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    debugDiv.innerHTML += `<div class="debug success">✅ API Success!</div>`;
+                    debugDiv.innerHTML += `<div class="debug">Emails count: ${data.emails?.length || 0}</div>`;
+                    debugDiv.innerHTML += `<div class="debug">Success flag: ${data.success}</div>`;
+                    
+                    if (data.emails && data.emails.length > 0) {
+                        debugDiv.innerHTML += `<div class="debug">First email subject: ${data.emails[0].subject}</div>`;
+                        debugDiv.innerHTML += `<div class="debug">First email icon: ${data.emails[0].brandIcon}</div>`;
+                        debugDiv.innerHTML += `<div class="debug">First email category: ${data.emails[0].emailType}</div>`;
+                    }
+                    
+                    // Test if we can render an email card
+                    debugDiv.innerHTML += '<div class="debug">📧 Testing email rendering...</div>';
+                    const container = document.createElement('div');
+                    container.innerHTML = `
+                        <div style="border: 1px solid #ccc; padding: 15px; margin: 10px 0;">
+                            <h3>${data.emails[0].subject}</h3>
+                            <p>Category: ${data.emails[0].emailType}</p>
+                            <p>Icon: ${data.emails[0].brandIcon}</p>
+                            <p>Score: ${data.emails[0].score}</p>
+                            <p>From: ${data.emails[0].from}</p>
+                        </div>
+                    `;
+                    debugDiv.appendChild(container);
+                    
+                } else {
+                    debugDiv.innerHTML += `<div class="debug error">❌ API Error: ${response.status}</div>`;
+                }
+                
+            } catch (error) {
+                debugDiv.innerHTML += `<div class="debug error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        debugCalibrate();
+    </script>
+</body>
+</html>

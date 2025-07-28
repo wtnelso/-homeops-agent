@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Debug Test</title>
+</head>
+<body>
+    <h1>API Debug Test</h1>
+    <button onclick="testAPI()">Test API</button>
+    <pre id="output"></pre>
+
+    <script>
+        async function testAPI() {
+            const output = document.getElementById('output');
+            try {
+                output.textContent = 'Loading...';
+                const response = await fetch('/api/calibration-data');
+                const data = await response.json();
+                
+                output.textContent = JSON.stringify(data, null, 2);
+                
+                // Log first email specifically
+                if (data.emails && data.emails[0]) {
+                    console.log('First email brandIcon:', data.emails[0].brandIcon);
+                    console.log('First email score:', data.emails[0].score);
+                }
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

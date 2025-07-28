@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct API Test</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <h1>Direct API Test</h1>
+    <button onclick="testCalibrationAPI()">Test Calibration API</button>
+    <div id="results"></div>
+
+    <script>
+        async function testCalibrationAPI() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                resultsDiv.innerHTML = '<p>Loading...</p>';
+                
+                const response = await fetch('/api/calibration-data');
+                const data = await response.json();
+                
+                console.log('🔍 Full API Response:', data);
+                
+                if (data.emails && data.emails.length > 0) {
+                    const firstEmail = data.emails[0];
+                    
+                    resultsDiv.innerHTML = `
+                        <h2>✅ API Working!</h2>
+                        <h3>First Email Test:</h3>
+                        <p><strong>Subject:</strong> ${firstEmail.subject}</p>
+                        <p><strong>brandIcon from API:</strong> "${firstEmail.brandIcon}" ${firstEmail.brandIcon ? '✅' : '❌'}</p>
+                        <p><strong>score from API:</strong> "${firstEmail.score}" ${firstEmail.score ? '✅' : '❌'}</p>
+                        <p><strong>emailType:</strong> "${firstEmail.emailType}"</p>
+                        
+                        <h3>Icon Test:</h3>
+                        <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                            <span>Should show ${firstEmail.brandIcon} icon:</span>
+                            <i data-lucide="${firstEmail.brandIcon}" style="width: 24px; height: 24px; color: #667eea;"></i>
+                        </div>
+                        
+                        <h3>Mental Load Score Test:</h3>
+                        <div style="padding: 10px; background: #f0f0f0; border-radius: 5px;">
+                            Mental Load Score: ${firstEmail.score}/100
+                        </div>
+                        
+                        <h3>Raw Email Object:</h3>
+                        <pre style="background: #f5f5f5; padding: 10px; overflow: auto; max-height: 300px;">${JSON.stringify(firstEmail, null, 2)}</pre>
+                    `;
+                    
+                    // Initialize Lucide icons
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                } else {
+                    resultsDiv.innerHTML = '<p>❌ No emails found in API response</p>';
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>❌ API Error: ${error.message}</p>`;
+                console.error('API Test Error:', error);
+            }
+        }
+        
+        // Auto-run test when page loads
+        window.addEventListener('load', testCalibrationAPI);
+    </script>
+</body>
+</html>

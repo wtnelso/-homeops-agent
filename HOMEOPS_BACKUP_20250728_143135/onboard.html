@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeOps - Your Mental Load Operating System</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .onboard-container {
+            background: white;
+            border-radius: 24px;
+            padding: 60px 50px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            position: relative;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 25%;
+            transition: width 0.3s ease;
+        }
+        
+        .step-indicator {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .brand-mark {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            color: white;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+            color: #1a202c;
+        }
+
+        .brand-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .headline {
+            color: #2d3748;
+            font-size: 1.35rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .subheadline {
+            color: #4a5568;
+            font-size: 1.1rem;
+            margin-bottom: 48px;
+            line-height: 1.6;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .form-section {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .form-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .continue-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 24px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .trust-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .trust-indicator {
+            display: flex;
+            align-items: center;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .trust-indicator i {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            color: #48bb78;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+                padding-top: 20px;
+            }
+            
+            .onboard-container {
+                padding: 30px 20px;
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            .brand-mark {
+                width: 60px;
+                height: 60px;
+                margin-bottom: 16px;
+            }
+            
+            .logo-icon {
+                width: 30px;
+                height: 30px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 12px;
+            }
+            
+            .headline {
+                font-size: 1.1rem;
+                margin-bottom: 8px;
+            }
+            
+            .subheadline {
+                font-size: 0.95rem;
+                margin-bottom: 28px;
+            }
+            
+            .form-section {
+                padding: 20px;
+                margin-bottom: 24px;
+            }
+            
+            .form-title {
+                font-size: 1.1rem;
+                margin-bottom: 16px;
+            }
+            
+            .trust-indicators {
+                flex-direction: column;
+                gap: 8px;
+                margin-top: 20px;
+                padding-top: 16px;
+            }
+            
+            .trust-indicator {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="onboard-container">
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <div class="step-indicator">Step 1 of 4</div>
+        
+        <div class="brand-mark">
+            <img src="homeops-logo.svg" alt="HomeOps" class="logo-icon">
+        </div>
+        
+        <h1 class="brand-gradient">HomeOps</h1>
+        <div class="headline">The Mental Load Operating System for High-Performing Modern Families</div>
+        <p class="subheadline">Transform your family's invisible workload into an intelligent system that anticipates needs and gives you back your mental space.</p>
+        
+        <div class="form-section">
+            <div class="form-title">Start Reducing Your Mental Load Today</div>
+            
+            <form id="onboardingForm">
+                <div class="form-group">
+                    <label for="name">Your First Name</label>
+                    <input type="text" id="name" name="name" placeholder="What should we call you?" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="We'll keep this secure and never spam you" required>
+                </div>
+                
+                <button type="submit" class="continue-btn" id="continueBtn">
+                    Begin My Mental Load Transformation
+                </button>
+            </form>
+        </div>
+        
+        <div class="trust-indicators">
+            <div class="trust-indicator">
+                <i data-lucide="shield-check"></i>
+                Parent-Built Security
+            </div>
+            <div class="trust-indicator">
+                <i data-lucide="eye-off"></i>
+                No Data Selling
+            </div>
+            <div class="trust-indicator">
+                <i data-lucide="lock"></i>
+                Privacy First
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        document.getElementById('onboardingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            
+            if (name && email) {
+                sessionStorage.setItem('onboarding_user', JSON.stringify({
+                    name: name,
+                    email: email,
+                    step: 1
+                }));
+                
+                window.location.href = '/landing';
+            }
+        });
+    </script>
+</body>
+</html>

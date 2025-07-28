@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calibrate Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-info { background: #f0f0f0; padding: 15px; margin: 10px 0; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Calibrate Page Debug Test</h1>
+    
+    <div class="debug-info">
+        <h3>API Test Results:</h3>
+        <div id="api-result">Testing...</div>
+    </div>
+
+    <div class="debug-info">
+        <h3>Calibrate Page Test:</h3>
+        <div id="page-result">Testing...</div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            try {
+                const response = await fetch('/api/calibration-data');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('api-result').innerHTML = 
+                        `<span class="success">✅ API Working</span><br>
+                         Success: ${data.success}<br>
+                         Emails count: ${data.emails?.length || 0}<br>
+                         First email: ${data.emails?.[0]?.subject || 'N/A'}`;
+                } else {
+                    document.getElementById('api-result').innerHTML = 
+                        `<span class="error">❌ API Error: ${response.status}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('api-result').innerHTML = 
+                    `<span class="error">❌ API Error: ${error.message}</span>`;
+            }
+        }
+
+        async function testCalibratePage() {
+            try {
+                const response = await fetch('/calibrate.html');
+                if (response.ok) {
+                    document.getElementById('page-result').innerHTML = 
+                        `<span class="success">✅ Calibrate page loads</span><br>
+                         <a href="/calibrate.html" target="_blank">Open calibrate page</a>`;
+                } else {
+                    document.getElementById('page-result').innerHTML = 
+                        `<span class="error">❌ Page Error: ${response.status}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('page-result').innerHTML = 
+                    `<span class="error">❌ Page Error: ${error.message}</span>`;
+            }
+        }
+
+        // Run tests
+        testAPI();
+        testCalibratePage();
+    </script>
+</body>
+</html>

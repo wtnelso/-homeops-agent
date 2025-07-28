@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Calibrate Test</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .email-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+        }
+        .email-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .email-from {
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .email-type {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: auto;
+        }
+        .email-subject {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .email-snippet {
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+        .mental-load-score {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error {
+            color: red;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧠 Email Intelligence Calibration Test</h1>
+    <div id="status">Loading...</div>
+    <div id="email-container"></div>
+    
+    <script>
+        async function loadAndDisplayEmails() {
+            const statusDiv = document.getElementById('status');
+            const containerDiv = document.getElementById('email-container');
+            
+            try {
+                statusDiv.innerHTML = '📡 Fetching emails...';
+                
+                const response = await fetch('/api/calibration-data');
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Data received:', data);
+                
+                if (!data.success) {
+                    throw new Error('API returned success: false');
+                }
+                
+                if (!data.emails || data.emails.length === 0) {
+                    throw new Error('No emails in response');
+                }
+                
+                statusDiv.innerHTML = `✅ Loaded ${data.emails.length} emails`;
+                
+                // Render first 5 emails for testing
+                const emailsToShow = data.emails.slice(0, 5);
+                
+                emailsToShow.forEach((email, index) => {
+                    const emailCard = document.createElement('div');
+                    emailCard.className = 'email-card';
+                    emailCard.innerHTML = `
+                        <div class="email-header">
+                            <i data-lucide="${email.brandIcon}" style="width: 20px; height: 20px; color: #667eea;"></i>
+                            <div class="email-from">${email.brandName}</div>
+                            <span class="email-type">${email.emailType}</span>
+                        </div>
+                        <div class="email-subject">${email.subject}</div>
+                        <div class="email-snippet">${email.snippet}</div>
+                        <div class="mental-load-score">
+                            Mental Load Score: ${email.score}/100
+                        </div>
+                    `;
+                    containerDiv.appendChild(emailCard);
+                });
+                
+                // Initialize Lucide icons
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+        
+        // Load when page loads
+        document.addEventListener('DOMContentLoaded', loadAndDisplayEmails);
+    </script>
+</body>
+</html>
