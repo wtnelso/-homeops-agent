@@ -127,6 +127,22 @@
                     </div>
                 `;
                 messagesDiv.appendChild(aiMessage);
+                
+                // Show email insights if available
+                if (data.emailInsights && data.emailInsights.length > 0) {
+                    addEmailInsights(data.emailInsights, messagesDiv);
+                }
+                
+                // Show commerce recommendations if available
+                if (data.commerceRecommendations && data.commerceRecommendations.length > 0) {
+                    addCommerceCards(data.commerceRecommendations, messagesDiv);
+                }
+                
+                // Show calendar events if available
+                if (data.events && data.events.length > 0) {
+                    addCalendarWidget(data.events, messagesDiv);
+                }
+                
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
                 
             } catch (error) {
@@ -147,6 +163,352 @@
                 messagesDiv.appendChild(errorMessage);
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
             }
+        }
+        
+        // Email insights widget rendering
+        function addEmailInsights(insights, container) {
+            const emailWidget = document.createElement('div');
+            emailWidget.style.cssText = 'display: flex; justify-content: flex-start; margin: 15px 0;';
+            
+            // Check if this is a specific sender email summary
+            if (insights.length === 1 && insights[0].type === 'email-summary') {
+                addEmailSummaryWidget(insights[0], container);
+                return;
+            }
+            
+            // Check if this is a purchase history summary
+            if (insights.length === 1 && insights[0].type === 'purchase-summary') {
+                addPurchaseHistoryWidget(insights[0], container);
+                return;
+            }
+            
+            const categoryIcons = {
+                'deals': '🏷️',
+                'bills': '💳',
+                'school': '🎓',
+                'deliveries': '📦',
+                'appointments': '🏥',
+                'general': '📧'
+            };
+            
+            const categoryColors = {
+                'deals': '#10b981',
+                'bills': '#f59e0b', 
+                'school': '#3b82f6',
+                'deliveries': '#8b5cf6',
+                'appointments': '#ef4444',
+                'general': '#6b7280'
+            };
+            
+            const categoryName = insights[0].category || 'general';
+            const icon = categoryIcons[categoryName] || '📧';
+            const color = categoryColors[categoryName] || '#6b7280';
+            
+            emailWidget.innerHTML = `
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; max-width: 90%; min-width: 400px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <span style="font-size: 20px; margin-right: 8px;">${icon}</span>
+                        <h4 style="margin: 0; color: ${color}; font-size: 16px; font-weight: 600;">
+                            ${categoryName.charAt(0).toUpperCase() + categoryName.slice(1)} Summary
+                        </h4>
+                    </div>
+                    <div style="space-y: 8px;">
+                        ${insights.map((insight, i) => `
+                            <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px; margin-bottom: 8px; border-left: 3px solid ${color};">
+                                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 6px;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: white; font-size: 14px; margin-bottom: 4px;">
+                                            ${insight.summary}
+                                        </div>
+                                        ${insight.type === 'deal' ? `
+                                            <div style="font-size: 12px; color: #10b981; margin-bottom: 4px;">
+                                                <strong>${insight.brand}</strong> • ${insight.discount}
+                                            </div>
+                                        ` : ''}
+                                        ${insight.type === 'bill' ? `
+                                            <div style="font-size: 12px; color: #f59e0b; margin-bottom: 4px;">
+                                                <strong>${insight.company}</strong> • ${insight.amount} due ${insight.dueDate}
+                                            </div>
+                                        ` : ''}
+                                        ${insight.type === 'school' ? `
+                                            <div style="font-size: 12px; color: #3b82f6; margin-bottom: 4px;">
+                                                <strong>${insight.school}</strong>${insight.teacher ? ` • ${insight.teacher}` : ''}
+                                            </div>
+                                        ` : ''}
+                                        ${insight.type === 'delivery' ? `
+                                            <div style="font-size: 12px; color: #8b5cf6; margin-bottom: 4px;">
+                                                <strong>${insight.carrier}</strong> • ${insight.status}${insight.tracking ? ` • ${insight.tracking}` : ''}
+                                            </div>
+                                        ` : ''}
+                                        ${insight.type === 'appointment' ? `
+                                            <div style="font-size: 12px; color: #ef4444; margin-bottom: 4px;">
+                                                <strong>${insight.provider}</strong> • ${insight.date} at ${insight.time}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="background: ${insight.urgency === 'high' ? '#ef4444' : insight.urgency === 'medium' ? '#f59e0b' : '#6b7280'}; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                                            ${insight.urgency.toUpperCase()}
+                                        </span>
+                                        <button onclick="handleEmailAction('${insight.id}', '${insight.action}')" style="background: ${color}; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                                            ${insight.action}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: rgba(255,255,255,0.6);">
+                        📧 ${insights.length} ${categoryName} email${insights.length !== 1 ? 's' : ''} from the last 7 days
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(emailWidget);
+        }
+        
+        // Email summary widget for specific sender queries
+        function addEmailSummaryWidget(emailSummary, container) {
+            const summaryWidget = document.createElement('div');
+            summaryWidget.style.cssText = 'display: flex; justify-content: flex-start; margin: 15px 0;';
+            
+            summaryWidget.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; max-width: 90%; min-width: 450px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 24px; margin-right: 12px;">📧</span>
+                        <div>
+                            <h4 style="margin: 0; color: #3b82f6; font-size: 18px; font-weight: 600;">
+                                Email from ${emailSummary.sender}
+                            </h4>
+                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 14px;">
+                                ${emailSummary.date}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <h5 style="margin: 0 0 8px 0; color: white; font-size: 16px; font-weight: 600;">
+                            Subject: ${emailSummary.subject}
+                        </h5>
+                        <div style="color: rgba(255,255,255,0.9); font-size: 14px; line-height: 1.6;">
+                            ${emailSummary.summary.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                    
+                    ${emailSummary.fullContent ? `
+                        <details style="margin-bottom: 16px;">
+                            <summary style="color: #3b82f6; cursor: pointer; font-size: 14px; font-weight: 600;">
+                                View Email Excerpt
+                            </summary>
+                            <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; font-family: monospace;">
+                                ${emailSummary.fullContent.replace(/\n/g, '<br>')}
+                            </div>
+                        </details>
+                    ` : ''}
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="background: ${emailSummary.urgency === 'high' ? '#ef4444' : emailSummary.urgency === 'medium' ? '#f59e0b' : '#6b7280'}; color: white; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600;">
+                                ${emailSummary.urgency.toUpperCase()} PRIORITY
+                            </span>
+                            <span style="background: ${emailSummary.source === 'real' ? '#10b981' : '#6b7280'}; color: white; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600;">
+                                ${emailSummary.source === 'real' ? 'REAL EMAIL' : 'DEMO'}
+                            </span>
+                        </div>
+                        <button onclick="handleEmailAction('${emailSummary.id}', '${emailSummary.action}')" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;">
+                            ${emailSummary.action}
+                        </button>
+                        <button onclick="viewInGmail('${emailSummary.sender}')" style="background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; margin-left: 8px;">
+                            View in Gmail
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(summaryWidget);
+        }
+        
+        // Purchase history widget for retailer queries
+        function addPurchaseHistoryWidget(purchaseHistory, container) {
+            const historyWidget = document.createElement('div');
+            historyWidget.style.cssText = 'display: flex; justify-content: flex-start; margin: 15px 0;';
+            
+            historyWidget.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(34, 197, 94, 0.1)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; max-width: 90%; min-width: 450px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 24px; margin-right: 12px;">🛒</span>
+                        <div>
+                            <h4 style="margin: 0; color: #10b981; font-size: 18px; font-weight: 600;">
+                                Purchase History: ${purchaseHistory.retailer}
+                            </h4>
+                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 14px;">
+                                ${purchaseHistory.totalOrders} orders in the last 6 months
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <h5 style="margin: 0 0 12px 0; color: white; font-size: 16px; font-weight: 600;">
+                            Latest Order: ${purchaseHistory.lastPurchase.date}
+                        </h5>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">Amount</div>
+                                <div style="font-size: 16px; color: #10b981; font-weight: 600;">${purchaseHistory.lastPurchase.amount || 'N/A'}</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">Status</div>
+                                <div style="font-size: 16px; color: white; font-weight: 600;">${purchaseHistory.lastPurchase.status || 'N/A'}</div>
+                            </div>
+                        </div>
+                        ${purchaseHistory.lastPurchase.items && purchaseHistory.lastPurchase.items.length > 0 ? `
+                            <div style="margin-bottom: 12px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Items Purchased</div>
+                                <div style="font-size: 14px; color: rgba(255,255,255,0.9);">
+                                    ${purchaseHistory.lastPurchase.items.slice(0, 3).join(', ')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        <div style="color: rgba(255,255,255,0.9); font-size: 14px; line-height: 1.6;">
+                            ${purchaseHistory.summary.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                    
+                    ${purchaseHistory.recentOrders && purchaseHistory.recentOrders.length > 1 ? `
+                        <details style="margin-bottom: 16px;">
+                            <summary style="color: #10b981; cursor: pointer; font-size: 14px; font-weight: 600;">
+                                View Recent Orders (${purchaseHistory.recentOrders.length})
+                            </summary>
+                            <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 12px; margin-top: 8px;">
+                                ${purchaseHistory.recentOrders.slice(0, 5).map(order => `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <div>
+                                            <div style="font-size: 13px; color: white; font-weight: 500;">${order.date}</div>
+                                            <div style="font-size: 11px; color: rgba(255,255,255,0.6);">${order.status}</div>
+                                        </div>
+                                        <div style="font-size: 14px; color: #10b981; font-weight: 600;">
+                                            ${order.amount || 'N/A'}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </details>
+                    ` : ''}
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="background: ${purchaseHistory.source === 'real' ? '#10b981' : '#6b7280'}; color: white; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600;">
+                                ${purchaseHistory.source === 'real' ? 'REAL DATA' : 'DEMO'}
+                            </span>
+                            ${purchaseHistory.totalOrders > 0 ? `
+                                <span style="background: #374151; color: white; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600;">
+                                    ${purchaseHistory.totalOrders} ORDERS
+                                </span>
+                            ` : ''}
+                        </div>
+                        <button onclick="handleEmailAction('${purchaseHistory.id}', '${purchaseHistory.action}')" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;">
+                            ${purchaseHistory.action}
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(historyWidget);
+        }
+        
+        // Calendar widget for event display with better date formatting
+        function addCalendarWidget(events, container) {
+            if (!events || events.length === 0) return;
+            
+            const calendarWidget = document.createElement('div');
+            calendarWidget.style.cssText = 'display: flex; justify-content: flex-start; margin: 15px 0;';
+            
+            // Format dates nicely
+            function formatEventDate(dateString) {
+                const date = new Date(dateString);
+                const options = { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric'
+                };
+                return date.toLocaleDateString('en-US', options);
+            }
+            
+            function formatEventTime(dateString, allDay) {
+                if (allDay) return 'All Day';
+                const date = new Date(dateString);
+                return date.toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+            }
+            
+            calendarWidget.innerHTML = `
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; max-width: 90%; min-width: 450px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <span style="font-size: 20px; margin-right: 8px;">📅</span>
+                        <h4 style="margin: 0; color: #8b5cf6; font-size: 16px; font-weight: 600;">
+                            Upcoming Events & Reminders
+                        </h4>
+                    </div>
+                    <div style="space-y: 8px;">
+                        ${events.map((event, i) => `
+                            <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px; margin-bottom: 8px; border-left: 3px solid #8b5cf6;">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: white; font-size: 14px; margin-bottom: 4px;">
+                                            ${event.title}
+                                        </div>
+                                        <div style="font-size: 12px; color: #8b5cf6; margin-bottom: 4px;">
+                                            📍 ${formatEventDate(event.start)} ${!event.allDay ? `at ${formatEventTime(event.start, event.allDay)}` : ''}
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button onclick="addToCalendar('${event.title.replace(/'/g, "\\'")}', '${event.start}', ${event.allDay})" style="background: #8b5cf6; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: 600;">
+                                            Add to Calendar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: rgba(255,255,255,0.6);">
+                        📅 ${events.length} upcoming event${events.length !== 1 ? 's' : ''} extracted from your emails
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(calendarWidget);
+        }
+        
+        // Add to calendar functionality
+        function addToCalendar(title, startDate, allDay) {
+            const start = new Date(startDate);
+            const end = new Date(start.getTime() + (allDay ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000));
+            
+            // Format dates for calendar URL
+            const formatDate = (date) => {
+                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            };
+            
+            const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatDate(start)}/${formatDate(end)}&details=${encodeURIComponent('Event extracted from email by HomeOps')}`;
+            
+            window.open(googleCalendarUrl, '_blank');
+        }
+        
+        // Handle email insight actions
+        function handleEmailAction(insightId, action) {
+            console.log(`Email action: ${action} for ${insightId}`);
+            // You can implement specific actions here
+            alert(`${action} clicked! This would open the relevant email or take the appropriate action.`);
+        }
+        
+        // View email in Gmail
+        function viewInGmail(sender) {
+            const gmailSearchUrl = `https://mail.google.com/mail/u/0/#search/from%3A${encodeURIComponent(sender)}`;
+            window.open(gmailSearchUrl, '_blank');
         }
     </script>
 </body>

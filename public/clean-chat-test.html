@@ -657,6 +657,8 @@
                 setTimeout(() => {
                     welcomeMessage.style.display = 'none';
                 }, 300);
+                // Mark chat as started for scrolling behavior
+                messagesContainer.classList.add('chat-started');
             }
             
             // Add user message
@@ -689,7 +691,24 @@
                 
                 // Add assistant response
                 const reply = data.reply || data.response || "I'm here to help. Can you tell me more about what's going on?";
-                addMessage(reply, 'assistant');
+                addMessage(reply, 'assistant', data);
+                
+                // Debug: Log the full response data
+                console.log('🔍 Full API response:', data);
+                console.log('🛍️ Commerce recommendations in response:', data.commerceRecommendations);
+                
+                // Handle commerce recommendations if present
+                if (data.commerceRecommendations && data.commerceRecommendations.length > 0) {
+                    console.log('✅ Adding commerce cards...');
+                    addCommerceCards(data.commerceRecommendations);
+                } else {
+                    console.log('❌ No commerce recommendations found in response');
+                }
+                
+                // Handle calendar events if present
+                if (data.events && data.events.length > 0) {
+                    addCalendarWidget(data.events);
+                }
                 
             } catch (error) {
                 console.error('Chat error:', error);
@@ -698,7 +717,7 @@
             }
         }
         
-        function addMessage(text, type) {
+        function addMessage(text, type, data = null) {
             const messagesContainer = document.getElementById('messages');
             
             const messageDiv = document.createElement('div');
@@ -725,8 +744,90 @@
             }
             
             bubbleDiv.innerHTML = cleanText;
+            
+            // Add calendar and Gmail buttons for email intelligence responses
+            if (type === 'assistant' && data && (data.events || data.emailInsights)) {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'message-actions';
+                actionsDiv.style.cssText = `
+                    display: flex;
+                    gap: 8px;
+                    margin-top: 16px;
+                    flex-wrap: wrap;
+                `;
+                
+                // Add calendar events button
+                if (data.events && data.events.length > 0) {
+                    const calendarBtn = document.createElement('button');
+                    calendarBtn.className = 'action-button calendar-button';
+                    calendarBtn.innerHTML = '<i data-lucide="calendar-plus"></i> Add to Calendar';
+                    calendarBtn.style.cssText = `
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        padding: 8px 12px;
+                        background: rgba(255, 255, 255, 0.15);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 8px;
+                        color: white;
+                        font-size: 13px;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        font-family: inherit;
+                    `;
+                    calendarBtn.onmouseover = () => {
+                        calendarBtn.style.background = 'rgba(255, 255, 255, 0.25)';
+                        calendarBtn.style.transform = 'translateY(-1px)';
+                    };
+                    calendarBtn.onmouseout = () => {
+                        calendarBtn.style.background = 'rgba(255, 255, 255, 0.15)';
+                        calendarBtn.style.transform = 'translateY(0)';
+                    };
+                    calendarBtn.addEventListener('click', () => addToCalendar(data.events));
+                    actionsDiv.appendChild(calendarBtn);
+                }
+                
+                // Add Gmail view button if email insights exist
+                if (data.emailInsights && data.emailInsights.length > 0) {
+                    const gmailBtn = document.createElement('button');
+                    gmailBtn.className = 'action-button gmail-button';
+                    gmailBtn.innerHTML = '<i data-lucide="mail"></i> View in Gmail';
+                    gmailBtn.style.cssText = `
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        padding: 8px 12px;
+                        background: rgba(255, 255, 255, 0.15);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 8px;
+                        color: white;
+                        font-size: 13px;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        font-family: inherit;
+                    `;
+                    gmailBtn.onmouseover = () => {
+                        gmailBtn.style.background = 'rgba(255, 255, 255, 0.25)';
+                        gmailBtn.style.transform = 'translateY(-1px)';
+                    };
+                    gmailBtn.onmouseout = () => {
+                        gmailBtn.style.background = 'rgba(255, 255, 255, 0.15)';
+                        gmailBtn.style.transform = 'translateY(0)';
+                    };
+                    gmailBtn.addEventListener('click', () => openInGmail(data.emailInsights));
+                    actionsDiv.appendChild(gmailBtn);
+                }
+                
+                bubbleDiv.appendChild(actionsDiv);
+            }
+            
             messageDiv.appendChild(bubbleDiv);
             messagesContainer.appendChild(messageDiv);
+            
+            // Reinitialize Lucide icons for new buttons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
             
             // Scroll to bottom
             setTimeout(() => {
@@ -766,6 +867,228 @@
             if (thinking) {
                 thinking.remove();
             }
+        }
+        
+        // Helper function to add events to calendar
+        function addToCalendar(events) {
+            if (!events || events.length === 0) return;
+            
+            // Create calendar URL for the first event (or could create multiple)
+            const event = events[0];
+            const startDate = new Date(event.start);
+            const endDate = new Date(startDate.getTime() + (event.allDay ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000));
+            
+            // Format dates for Google Calendar
+            const formatDate = (date) => {
+                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            };
+            
+            const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${formatDate(startDate)}/${formatDate(endDate)}&details=${encodeURIComponent('Added from HomeOps')}`;
+            
+            window.open(calendarUrl, '_blank');
+        }
+        
+        // Helper function to open emails in Gmail
+        function openInGmail(emailInsights) {
+            if (!emailInsights || emailInsights.length === 0) return;
+            
+            // Find the first email insight with a Gmail URL or open Gmail inbox
+            const emailWithGmail = emailInsights.find(insight => insight.gmailUrl);
+            
+            if (emailWithGmail) {
+                window.open(emailWithGmail.gmailUrl, '_blank');
+            } else {
+                // Fallback to Gmail inbox
+                window.open('https://mail.google.com/mail/u/0/#inbox', '_blank');
+            }
+        }
+        
+        function addCommerceCards(recommendations) {
+            console.log('🛍️ Commerce recommendations received:', recommendations);
+            
+            if (!recommendations || recommendations.length === 0) {
+                console.log('❌ No commerce recommendations to display');
+                return;
+            }
+            
+            const messagesContainer = document.getElementById('messages');
+            
+            const commerceDiv = document.createElement('div');
+            commerceDiv.className = 'message assistant-message';
+            
+            const cardsContainer = document.createElement('div');
+            cardsContainer.style.cssText = `
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                max-width: 82%;
+                margin-bottom: 16px;
+            `;
+            
+            recommendations.forEach(item => {
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(20px) saturate(180%);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 16px;
+                    padding: 16px;
+                    display: flex;
+                    gap: 16px;
+                    align-items: center;
+                    animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                `;
+                
+                card.innerHTML = `
+                    <div style="
+                        width: 80px;
+                        height: 80px;
+                        background: rgba(255, 255, 255, 0.15);
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                    ">
+                        <i data-lucide="${item.icon || 'shopping-bag'}" style="width: 32px; height: 32px; opacity: 0.8;"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600;">${item.title}</h4>
+                        <p style="margin: 0 0 8px 0; font-size: 14px; opacity: 0.8; line-height: 1.4;">${item.description}</p>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 18px; font-weight: 700; color: #4ade80;">$${item.price}</span>
+                            <button onclick="handleProductClick('${item.url}', '${item.title}')" style="
+                                background: rgba(74, 222, 128, 0.2);
+                                border: 1px solid rgba(74, 222, 128, 0.4);
+                                color: #4ade80;
+                                padding: 8px 16px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 14px;
+                                font-weight: 600;
+                                transition: all 0.3s ease;
+                            " onmouseover="this.style.background='rgba(74, 222, 128, 0.3)'" onmouseout="this.style.background='rgba(74, 222, 128, 0.2)'">
+                                Shop Now
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                cardsContainer.appendChild(card);
+            });
+            
+            commerceDiv.appendChild(cardsContainer);
+            messagesContainer.appendChild(commerceDiv);
+            
+            // Re-initialize icons and scroll
+            setTimeout(() => {
+                lucide.createIcons();
+                if (messagesContainer.classList.contains('chat-started')) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }, 50);
+        }
+        
+        function addCalendarWidget(events) {
+            const messagesContainer = document.getElementById('messages');
+            
+            const calendarDiv = document.createElement('div');
+            calendarDiv.className = 'message assistant-message';
+            
+            const widget = document.createElement('div');
+            widget.style.cssText = `
+                background: rgba(255, 255, 255, 0.08);
+                backdrop-filter: blur(20px) saturate(180%);
+                border: 1px solid rgba(255, 255, 255, 0.16);
+                border-radius: 16px;
+                padding: 20px;
+                max-width: 82%;
+                animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            `;
+            
+            const header = document.createElement('div');
+            header.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 16px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            `;
+            header.innerHTML = `
+                <i data-lucide="calendar" style="width: 20px; height: 20px; opacity: 0.8;"></i>
+                <h4 style="margin: 0; font-size: 16px; font-weight: 600;">Your Schedule</h4>
+            `;
+            
+            const eventsList = document.createElement('div');
+            eventsList.style.cssText = `display: flex; flex-direction: column; gap: 12px;`;
+            
+            events.forEach(event => {
+                const eventItem = document.createElement('div');
+                eventItem.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 8px;
+                    border-left: 3px solid #60a5fa;
+                `;
+                
+                const eventDate = new Date(event.start);
+                const dayName = eventDate.toLocaleDateString('en-US', { weekday: 'short' });
+                const time = event.allDay ? 'All day' : eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                
+                eventItem.innerHTML = `
+                    <div style="
+                        background: rgba(96, 165, 250, 0.2);
+                        border-radius: 8px;
+                        padding: 8px;
+                        min-width: 40px;
+                        text-align: center;
+                        font-size: 12px;
+                        font-weight: 600;
+                    ">
+                        ${dayName}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;">${event.title}</div>
+                        <div style="font-size: 12px; opacity: 0.7;">${time}</div>
+                    </div>
+                `;
+                
+                eventsList.appendChild(eventItem);
+            });
+            
+            widget.appendChild(header);
+            widget.appendChild(eventsList);
+            calendarDiv.appendChild(widget);
+            messagesContainer.appendChild(calendarDiv);
+            
+            // Re-initialize icons and scroll
+            setTimeout(() => {
+                lucide.createIcons();
+                if (messagesContainer.classList.contains('chat-started')) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }, 50);
+        }
+        
+        function handleProductClick(productUrl, itemTitle) {
+            // Open product page in new tab
+            console.log(`🔗 Opening product page: ${productUrl}`);
+            
+            // Fallback to Amazon search if no URL provided
+            const finalUrl = productUrl || `https://www.amazon.com/s?k=${encodeURIComponent(itemTitle)}`;
+            
+            // Open in new tab
+            window.open(finalUrl, '_blank');
+            
+            // Optional: Track the click for analytics
+            console.log(`📊 Product click tracked: ${itemTitle} -> ${finalUrl}`);
+            
+            // Show confirmation message
+            addMessage(`🔗 Opening ${itemTitle} in a new tab. Happy shopping!`, 'assistant');
         }
     </script>
 </body>
