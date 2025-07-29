@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeOps Calendar Integration Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .chat-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .send-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .send-btn:hover {
+            background: #0056CC;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007AFF;
+        }
+        .calendar-event {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+        }
+        .calendar-event h4 {
+            margin: 0 0 8px 0;
+            color: #1565c0;
+        }
+        .calendar-event p {
+            margin: 4px 0;
+            color: #666;
+        }
+        .add-to-calendar {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .add-to-calendar:hover {
+            background: #45a049;
+        }
+        .calendar-list {
+            margin-top: 20px;
+        }
+        .calendar-list h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .no-events {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗓️ HomeOps Calendar Integration Test</h1>
+        <p>Test the calendar integration by asking about emails from Woods Academy or other calendar-related queries.</p>
+        
+        <input type="text" id="messageInput" class="chat-input" placeholder="Ask about emails from Woods Academy..." value="Can you summarize the last email I got from Woods Academy?">
+        <button onclick="sendMessage()" class="send-btn">Send Message</button>
+        
+        <div id="response" class="response" style="display: none;">
+            <h3>📧 Chat Response:</h3>
+            <div id="chatReply"></div>
+            
+            <div id="calendarEvents" style="display: none;">
+                <h4>📅 Calendar Events Found:</h4>
+                <div id="eventsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📅 HomeOps Calendar</h2>
+        <button onclick="loadCalendar()" class="send-btn">Load Calendar Events</button>
+        <div id="calendarList" class="calendar-list"></div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+
+            const responseDiv = document.getElementById('response');
+            const chatReply = document.getElementById('chatReply');
+            const calendarEvents = document.getElementById('calendarEvents');
+            const eventsList = document.getElementById('eventsList');
+            
+            responseDiv.style.display = 'block';
+            chatReply.innerHTML = '<p>🤔 Processing your request...</p>';
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: 'test-user',
+                        message: message
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Chat response:', data);
+                
+                // Display chat reply
+                chatReply.innerHTML = `<p>${data.reply}</p>`;
+                
+                // Display calendar events if any
+                if (data.emailInsights && data.emailInsights.length > 0) {
+                    let hasCalendarEvents = false;
+                    let eventsHtml = '';
+                    
+                    for (const insight of data.emailInsights) {
+                        if (insight.calendarEvents && insight.calendarEvents.length > 0) {
+                            hasCalendarEvents = true;
+                            
+                            for (const event of insight.calendarEvents) {
+                                eventsHtml += `
+                                    <div class="calendar-event">
+                                        <h4>${event.title}</h4>
+                                        <p><strong>📅 Date:</strong> ${new Date(event.start).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                        ${event.description ? `<p><strong>📝 Description:</strong> ${event.description}</p>` : ''}
+                                        ${event.location ? `<p><strong>📍 Location:</strong> ${event.location}</p>` : ''}
+                                        <button class="add-to-calendar" onclick="addToGoogleCalendar('${event.title}', '${event.start}', '${event.end || ''}', '${event.description || ''}', '${event.location || ''}')">
+                                            Add to Google Calendar
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                    
+                    if (hasCalendarEvents) {
+                        eventsList.innerHTML = eventsHtml;
+                        calendarEvents.style.display = 'block';
+                    } else {
+                        calendarEvents.style.display = 'none';
+                    }
+                } else {
+                    calendarEvents.style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                chatReply.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function loadCalendar() {
+            const calendarList = document.getElementById('calendarList');
+            calendarList.innerHTML = '<p>📅 Loading calendar events...</p>';
+            
+            try {
+                const response = await fetch('/api/calendar/homeops-events?userId=test-user');
+                const data = await response.json();
+                
+                if (data.success && data.events.length > 0) {
+                    let eventsHtml = '';
+                    
+                    for (const event of data.events) {
+                        eventsHtml += `
+                            <div class="calendar-event">
+                                <h4>${event.title}</h4>
+                                <p><strong>📅 Date:</strong> ${new Date(event.start).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                <p><strong>📂 Source:</strong> ${event.source} ${event.emailSource ? `(from ${event.emailSource})` : ''}</p>
+                                ${event.description ? `<p><strong>📝 Description:</strong> ${event.description}</p>` : ''}
+                                ${event.location ? `<p><strong>📍 Location:</strong> ${event.location}</p>` : ''}
+                                <button class="add-to-calendar" onclick="window.open('${event.googleCalendarUrl}', '_blank')">
+                                    Add to Google Calendar
+                                </button>
+                            </div>
+                        `;
+                    }
+                    
+                    calendarList.innerHTML = `<h3>Found ${data.events.length} events:</h3>${eventsHtml}`;
+                } else {
+                    calendarList.innerHTML = '<p class="no-events">No calendar events found. Try asking about emails from Woods Academy to generate some events!</p>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading calendar:', error);
+                calendarList.innerHTML = `<p style="color: red;">❌ Error loading calendar: ${error.message}</p>`;
+            }
+        }
+
+        function addToGoogleCalendar(title, start, end, description, location) {
+            const baseUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+            const params = new URLSearchParams();
+            
+            params.append('text', title);
+            
+            if (start) {
+                const startDate = new Date(start);
+                let endDate = end ? new Date(end) : new Date(startDate.getTime() + 60 * 60 * 1000);
+                
+                params.append('dates', 
+                    startDate.toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z/' +
+                    endDate.toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
+                );
+            }
+            
+            if (description) {
+                params.append('details', description);
+            }
+            
+            if (location) {
+                params.append('location', location);
+            }
+            
+            const url = `${baseUrl}&${params.toString()}`;
+            window.open(url, '_blank');
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Load calendar on page load
+        window.addEventListener('load', function() {
+            loadCalendar();
+        });
+    </script>
+</body>
+</html>

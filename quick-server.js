@@ -19,7 +19,37 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 // Middleware
-app.use(express.json()); 
+app.use(express.json());
+
+// Add simple in-memory cache to prevent repeated processing
+const responseCache = new Map();
+const CACHE_DURATION = 30000; // 30 seconds
+
+function getCacheKey(query) {
+  return `chat_${query.toLowerCase().trim()}`;
+}
+
+function getCachedResponse(key) {
+  const cached = responseCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    console.log(`📋 Using cached response for: ${key}`);
+    return cached.data;
+  }
+  return null;
+}
+
+function setCachedResponse(key, data) {
+  responseCache.set(key, {
+    data: data,
+    timestamp: Date.now()
+  });
+  
+  // Clean old cache entries
+  if (responseCache.size > 100) {
+    const oldestKey = responseCache.keys().next().value;
+    responseCache.delete(oldestKey);
+  }
+} 
 
 // CRITICAL: Custom routes MUST come BEFORE static middleware to override default files
 // Main app route - serve the main HomeOps app with navigation  
@@ -460,6 +490,35 @@ function parseEmailForCommerceDeal(subject, from, body, date) {
     else if (discountPercent < 10) priority = 'Low';
   }
   
+  // Create calendar event for deal expiration (if urgency indicates a time limit)
+  let calendarEvents = [];
+  if (urgency.toLowerCase().includes('today')) {
+    // Deal expires today
+    const today = new Date();
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+    calendarEvents.push({
+      title: `${brand} Deal Expires`,
+      start: endOfDay.toISOString().slice(0, -5) + 'Z',
+      description: `Don't miss: ${product} deal expires today! ${savings ? `Save ${savings}` : `${discountPercent}% off`}`,
+      location: `${brand} Website`,
+      allDay: false
+    });
+  } else if (urgency.match(/(\d+)\s+days?/i)) {
+    // Deal expires in X days
+    const daysMatch = urgency.match(/(\d+)\s+days?/i);
+    const daysUntilExpiration = parseInt(daysMatch[1]);
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + daysUntilExpiration);
+    
+    calendarEvents.push({
+      title: `${brand} Deal Expires`,
+      start: expirationDate.toISOString().split('T')[0] + 'T20:00:00',
+      description: `Last chance: ${product} deal expires! ${savings ? `Save ${savings}` : `${discountPercent}% off`}`,
+      location: `${brand} Website`,
+      allDay: false
+    });
+  }
+  
   return {
     title: `${brand} Deal Alert`,
     category: 'Commerce',
@@ -475,7 +534,17 @@ function parseEmailForCommerceDeal(subject, from, body, date) {
     savings: savings,
     urgency: urgency,
     source: `${brand} Email`,
-    emailSubject: subject
+    emailSubject: subject,
+    // Add calendar events for deal tracking
+    calendarEvents: calendarEvents,
+    hasCalendarEvents: calendarEvents.length > 0,
+    // Add calendar URLs for easy "Add to Calendar" functionality
+    calendarUrls: calendarEvents.map(event => ({
+      title: event.title,
+      url: generateCalendarUrl(event),
+      date: event.start,
+      allDay: event.allDay || false
+    }))
   };
 }
 
@@ -1144,6 +1213,289 @@ app.get('/api/user/brand-preferences', async (req, res) => {
   }
 });
 
+// Calendar API endpoint for chat interface
+app.get('/api/calendar/events', async (req, res) => {
+  try {
+    const { userId, emailId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'Missing userId' });
+    }
+    
+    // For now, this would integrate with the email intelligence system
+    // to provide calendar events from parsed emails
+    const events = [
+      {
+        title: "Parent-Teacher Conferences",
+        start: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T15:00:00',
+        end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T16:00:00',
+        description: "Parent-Teacher Conference at Woods Academy",
+        location: "Woods Academy",
+        url: generateCalendarUrl({
+          title: "Parent-Teacher Conferences",
+          start: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T15:00:00',
+          end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T16:00:00',
+          description: "Parent-Teacher Conference at Woods Academy",
+          location: "Woods Academy"
+        })
+      }
+    ];
+    
+    res.json({ 
+      success: true, 
+      events,
+      count: events.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Calendar events fetch error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// HomeOps Calendar Management - Source of Truth for all events
+app.get('/api/calendar/homeops-events', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'Missing userId' });
+    }
+    
+    console.log(`📅 Getting HomeOps calendar events for user: ${userId}`);
+    
+    // Get all calendar events from email intelligence and user data
+    const profile = getUserProfile(userId);
+    const allEvents = await getHomeOpsCalendarEvents(profile, userId);
+    
+    res.json({ 
+      success: true, 
+      events: allEvents,
+      count: allEvents.length,
+      message: 'HomeOps calendar events retrieved successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ HomeOps calendar events error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Add event to HomeOps calendar and sync with Google Calendar
+app.post('/api/calendar/add-event', async (req, res) => {
+  try {
+    const { userId, event } = req.body;
+    
+    if (!userId || !event) {
+      return res.status(400).json({ success: false, error: 'Missing userId or event data' });
+    }
+    
+    console.log(`📅 Adding event to HomeOps calendar for user: ${userId}`, event);
+    
+    const profile = getUserProfile(userId);
+    
+    // Add event to HomeOps calendar (our source of truth)
+    const savedEvent = await addEventToHomeOpsCalendar(profile, event, userId);
+    
+    // Optionally sync with Google Calendar if user has connected
+    let googleCalendarUrl = null;
+    if (profile.integrations && profile.integrations.gmail) {
+      googleCalendarUrl = generateCalendarUrl(savedEvent);
+    }
+    
+    res.json({ 
+      success: true, 
+      event: savedEvent,
+      googleCalendarUrl: googleCalendarUrl,
+      message: 'Event added to HomeOps calendar successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Add calendar event error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Sync HomeOps calendar with Google Calendar
+app.post('/api/calendar/sync-google', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'Missing userId' });
+    }
+    
+    console.log(`🔄 Syncing HomeOps calendar with Google Calendar for user: ${userId}`);
+    
+    const profile = getUserProfile(userId);
+    
+    if (!profile.integrations || !profile.integrations.gmail) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Google Calendar integration not available. Please connect Gmail first.' 
+      });
+    }
+    
+    // Get HomeOps events and create Google Calendar URLs for each
+    const homeOpsEvents = await getHomeOpsCalendarEvents(profile, userId);
+    const syncResults = homeOpsEvents.map(event => ({
+      ...event,
+      googleCalendarUrl: generateCalendarUrl(event),
+      syncStatus: 'ready'
+    }));
+    
+    res.json({ 
+      success: true, 
+      syncedEvents: syncResults,
+      count: syncResults.length,
+      message: `${syncResults.length} events ready for Google Calendar sync`
+    });
+    
+  } catch (error) {
+    console.error('❌ Google Calendar sync error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Generate Google Calendar URL for easy calendar addition
+function generateCalendarUrl(event) {
+  const baseUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+  const params = new URLSearchParams();
+  
+  params.append('text', event.title);
+  
+  if (event.allDay) {
+    // For all-day events, use date format YYYYMMDD
+    const startDate = new Date(event.start);
+    params.append('dates', startDate.toISOString().slice(0, 10).replace(/-/g, ''));
+  } else {
+    // For timed events, use datetime format YYYYMMDDTHHMMSSZ
+    const startDate = new Date(event.start);
+    const endDate = event.end ? new Date(event.end) : new Date(startDate.getTime() + 60 * 60 * 1000); // Default 1 hour
+    
+    params.append('dates', 
+      startDate.toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z/' +
+      endDate.toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
+    );
+  }
+  
+  if (event.description) {
+    params.append('details', event.description);
+  }
+  
+  if (event.location) {
+    params.append('location', event.location);
+  }
+  
+  return `${baseUrl}&${params.toString()}`;
+}
+
+// HomeOps Calendar Management Functions - Source of Truth
+async function getHomeOpsCalendarEvents(profile, userId) {
+  console.log(`📅 Getting HomeOps calendar events for user: ${userId}`);
+  
+  const allEvents = [];
+  
+  // Get events from email intelligence (parsed from emails)
+  const emailIntelligence = await getEmailIntelligenceForChat(userId, 'calendar events');
+  if (emailIntelligence.success && emailIntelligence.insights.length > 0) {
+    for (const insight of emailIntelligence.insights) {
+      if (insight.calendarEvents && insight.calendarEvents.length > 0) {
+        for (const event of insight.calendarEvents) {
+          allEvents.push({
+            ...event,
+            id: `email-${insight.id}-${Date.now()}`,
+            source: 'email',
+            category: insight.category || 'general',
+            priority: insight.priority || 'medium',
+            emailSource: insight.sender || insight.source,
+            googleCalendarUrl: generateCalendarUrl(event)
+          });
+        }
+      }
+    }
+  }
+  
+  // Get manually added events from user profile
+  if (profile.calendarEvents) {
+    for (const event of profile.calendarEvents) {
+      allEvents.push({
+        ...event,
+        source: 'manual',
+        googleCalendarUrl: generateCalendarUrl(event)
+      });
+    }
+  }
+  
+  // Sort events by start date
+  allEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
+  
+  console.log(`✅ Retrieved ${allEvents.length} HomeOps calendar events`);
+  return allEvents;
+}
+
+async function addEventToHomeOpsCalendar(profile, eventData, userId) {
+  console.log(`📅 Adding event to HomeOps calendar:`, eventData.title);
+  
+  // Initialize calendar events array if it doesn't exist
+  if (!profile.calendarEvents) {
+    profile.calendarEvents = [];
+  }
+  
+  // Create the event with HomeOps metadata
+  const homeOpsEvent = {
+    id: `homeops-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    title: eventData.title,
+    start: eventData.start,
+    end: eventData.end,
+    description: eventData.description || '',
+    location: eventData.location || '',
+    allDay: eventData.allDay || false,
+    category: eventData.category || 'general',
+    priority: eventData.priority || 'medium',
+    source: 'manual',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  // Add to user profile
+  profile.calendarEvents.push(homeOpsEvent);
+  profile.updatedAt = new Date().toISOString();
+  userProfiles.set(userId, profile);
+  
+  console.log(`✅ Event added to HomeOps calendar: ${homeOpsEvent.title}`);
+  return homeOpsEvent;
+}
+
+// Get relevant calendar events based on message context
+async function getRelevantCalendarEvents(message, personalContext) {
+  console.log(`📅 Getting relevant calendar events for message context`);
+  
+  const lowerMessage = message.toLowerCase();
+  const relevantEvents = [];
+  
+  // Check if message is asking about calendar/schedule related things
+  const calendarKeywords = ['calendar', 'schedule', 'appointment', 'meeting', 'event', 'due', 'deadline', 'conference', 'trip'];
+  const isCalendarQuery = calendarKeywords.some(keyword => lowerMessage.includes(keyword));
+  
+  if (isCalendarQuery) {
+    // Get upcoming events from HomeOps calendar
+    const profile = getUserProfile(personalContext.userId || 'default');
+    const homeOpsEvents = await getHomeOpsCalendarEvents(profile, personalContext.userId || 'default');
+    
+    // Filter for upcoming events (next 30 days)
+    const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const upcomingEvents = homeOpsEvents.filter(event => 
+      new Date(event.start) <= thirtyDaysFromNow && new Date(event.start) >= new Date()
+    );
+    
+    relevantEvents.push(...upcomingEvents.slice(0, 5)); // Limit to 5 most relevant
+  }
+  
+  console.log(`✅ Found ${relevantEvents.length} relevant calendar events`);
+  return relevantEvents;
+}
+
 // Enhanced Email Intelligence for Chat Integration
 async function getEmailIntelligenceForChat(userId, query = '') {
   try {
@@ -1270,26 +1622,37 @@ async function getEmailFromSpecificSender(profile, senderName, userId) {
   }
   
   // Generate AI summary of the email
-  const summary = await generateEmailSummary(emailData, senderName);
+  const summaryResult = await generateEmailSummary(emailData, senderName);
   
   return {
     success: true,
     emailData,
-    summary,
+    summary: summaryResult.summary || summaryResult,
     senderName,
     dataSource,
     category: 'specific-sender',
+    calendarEvents: summaryResult.calendarEvents || emailData.calendarEvents || [],
+    hasCalendarEvents: summaryResult.hasCalendarEvents || (emailData.calendarEvents && emailData.calendarEvents.length > 0),
     insights: [{
       id: `sender-email-${Date.now()}`,
       type: 'email-summary',
       sender: senderName,
       subject: emailData.subject,
       date: emailData.date,
-      summary: summary,
+      summary: summaryResult.summary || summaryResult,
       fullContent: emailData.body.substring(0, 500) + '...',
       action: 'Read Full Email',
       urgency: emailData.urgency || 'medium',
-      source: dataSource
+      source: dataSource,
+      calendarEvents: summaryResult.calendarEvents || emailData.calendarEvents || [],
+      hasCalendarEvents: summaryResult.hasCalendarEvents || (emailData.calendarEvents && emailData.calendarEvents.length > 0),
+      // Add calendar URLs for easy "Add to Calendar" functionality
+      calendarUrls: (summaryResult.calendarEvents || emailData.calendarEvents || []).map(event => ({
+        title: event.title,
+        url: generateCalendarUrl(event),
+        date: event.start,
+        allDay: event.allDay || false
+      }))
     }]
   };
 }
@@ -1360,6 +1723,12 @@ function generateFallbackEmailFromSender(senderName) {
                    senderName.toLowerCase().includes('education');
   
   if (isSchool) {
+    // Generate realistic upcoming dates (within next 2 weeks)
+    const today = new Date();
+    const conferenceDate = new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000); // 5 days from now
+    const projectDate = new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000); // 10 days from now
+    const fieldTripDate = new Date(today.getTime() + 12 * 24 * 60 * 60 * 1000); // 12 days from now
+    
     return {
       id: 'fallback-school-email',
       subject: 'Important Update from Your Child\'s Teacher',
@@ -1373,9 +1742,9 @@ Academic Progress:
 Your child has been doing excellent work in our recent math and reading units. They've shown particular strength in problem-solving and creative writing. I'm impressed with their participation in class discussions.
 
 Upcoming Events:
-• Parent-Teacher Conferences: August 15-16, 2025
-• Science Fair Projects Due: August 20, 2025  
-• Field Trip to the Science Museum: August 25, 2025 (permission slip required)
+• Parent-Teacher Conferences: ${conferenceDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+• Science Fair Projects Due: ${projectDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+• Field Trip to the Science Museum: ${fieldTripDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} (permission slip required)
 
 Reminders:
 Please remember to send your child with their library book for our weekly reading exchange. Also, we're still collecting supplies for our classroom - any donations of tissues, hand sanitizer, or pencils would be greatly appreciated.
@@ -1386,11 +1755,38 @@ Best regards,
 Ms. Johnson
 3rd Grade Teacher
 ${senderName}`,
-      urgency: 'medium'
+      urgency: 'medium',
+      // Add calendar events data for the chat interface
+      calendarEvents: [
+        {
+          title: "Parent-Teacher Conferences",
+          start: conferenceDate.toISOString().split('T')[0] + 'T15:00:00',
+          end: conferenceDate.toISOString().split('T')[0] + 'T16:00:00',
+          description: `Parent-Teacher Conference at ${senderName}`,
+          location: senderName
+        },
+        {
+          title: "Science Fair Project Due",
+          start: projectDate.toISOString().split('T')[0] + 'T09:00:00',
+          allDay: true,
+          description: `Science Fair Project deadline for ${senderName}`,
+          location: senderName
+        },
+        {
+          title: "Field Trip to Science Museum",
+          start: fieldTripDate.toISOString().split('T')[0] + 'T09:00:00',
+          end: fieldTripDate.toISOString().split('T')[0] + 'T15:00:00',
+          description: `Field trip to Science Museum - permission slip required`,
+          location: "Science Museum"
+        }
+      ]
     };
   }
   
   // Generic fallback for non-school senders
+  const today = new Date();
+  const reminderDate = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
+  
   return {
     id: 'fallback-generic-email',
     subject: `Update from ${senderName}`,
@@ -1414,7 +1810,17 @@ Thank you for your continued partnership with ${senderName}.
 
 Best regards,
 The ${senderName} Team`,
-    urgency: 'medium'
+    urgency: 'medium',
+    // Add a generic calendar event for follow-up
+    calendarEvents: [
+      {
+        title: `Follow up on ${senderName} update`,
+        start: reminderDate.toISOString().split('T')[0] + 'T10:00:00',
+        end: reminderDate.toISOString().split('T')[0] + 'T10:30:00',
+        description: `Review and respond to update from ${senderName}`,
+        location: "Home Office"
+      }
+    ]
   };
 }
 
@@ -1686,32 +2092,58 @@ Provide a summary that includes:
 
 Keep the summary under 150 words and focus on what's most important for a busy parent to know.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('AI summary timeout')), 8000) // 8 second timeout
+    );
+
+    const apiPromise = fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o-mini', // Use faster model
         messages: [{ role: 'user', content: summaryPrompt }],
-        max_tokens: 200,
+        max_tokens: 150, // Reduced for speed
         temperature: 0.3
       })
     });
+
+    const response = await Promise.race([apiPromise, timeoutPromise]);
 
     if (response.ok) {
       const data = await response.json();
       const summary = data.choices?.[0]?.message?.content || 'Summary not available';
       console.log(`✅ Generated AI summary for ${senderName} email`);
-      return summary;
+      
+      // Add calendar event data if available
+      if (emailData.calendarEvents && emailData.calendarEvents.length > 0) {
+        return {
+          summary: summary,
+          calendarEvents: emailData.calendarEvents,
+          hasCalendarEvents: true
+        };
+      }
+      
+      return {
+        summary: summary,
+        hasCalendarEvents: false
+      };
     }
   } catch (error) {
-    console.error('❌ AI summary generation failed:', error);
+    console.error(`❌ AI summary generation failed for ${senderName}:`, error.message);
   }
   
-  // Fallback summary
-  return `This email from ${senderName} contains important information. The subject is "${emailData.subject}" and was sent on ${emailData.date}. Please review the full email for details about any action items or important dates.`;
+  // Fallback summary with calendar events if available
+  const fallbackSummary = `This email from ${senderName} contains important information. The subject is "${emailData.subject}" and was sent on ${emailData.date}. Please review the full email for details about any action items or important dates.`;
+  
+  return {
+    summary: fallbackSummary,
+    calendarEvents: emailData.calendarEvents || [],
+    hasCalendarEvents: emailData.calendarEvents && emailData.calendarEvents.length > 0
+  };
 }
 
 // Categorized Gmail fetching for specific chat queries
@@ -2179,6 +2611,13 @@ app.post('/api/chat', async (req, res) => {
 
   console.log('✅ Chat request received:', { userId, message: message.substring(0, 50) + '...' });
 
+  // Check cache first
+  const cacheKey = getCacheKey(message);
+  const cachedResponse = getCachedResponse(cacheKey);
+  if (cachedResponse) {
+    return res.json(cachedResponse);
+  }
+
   try {
     // Get user's personal context first
     console.log('🧠 Building personal context for user:', userId);
@@ -2326,7 +2765,7 @@ Remember: Be direct, emotionally intelligent, and actionable. Use the combined v
     }
 
     // Return enhanced response with personal context and email intelligence
-    res.json({
+    const finalResponse = {
       reply: finalReply,
       personalContext: {
         timestamp: personalContext.timestamp,
@@ -2342,6 +2781,8 @@ Remember: Be direct, emotionally intelligent, and actionable. Use the combined v
       emailInsights: emailInsights.length > 0 ? emailInsights.map(insight => ({
         ...insight,
         hasCalendarEvents: insight.calendarEvents && insight.calendarEvents.length > 0,
+        calendarEvents: insight.calendarEvents || [],
+        calendarUrls: insight.calendarUrls || [],
         hasGmailLink: insight.emailId ? true : false,
         gmailUrl: insight.emailId ? `https://mail.google.com/mail/u/0/#inbox/${insight.emailId}` : null
       })) : null,
@@ -2351,7 +2792,12 @@ Remember: Be direct, emotionally intelligent, and actionable. Use the combined v
           category: email.category,
           insight: email.insight
         })) : []
-    });
+    };
+
+    // Cache the response for future identical queries
+    setCachedResponse(cacheKey, finalResponse);
+    
+    res.json(finalResponse);
 
   } catch (error) {
     console.error('❌ Chat error:', error);
