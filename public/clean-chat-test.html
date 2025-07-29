@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeOps Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .chat-container {
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            padding: 0 16px;
+            padding-bottom: 30px; /* Increased gap to prevent cutoff */
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
+        .messages-container {
+            flex: 1;
+            overflow-y: hidden; /* Disable scrolling initially */
+            overflow-x: hidden;
+            padding: 20px 24px 20px 24px;
+            scroll-behavior: smooth;
+            position: relative;
+            min-height: 0; /* Important for flex child */
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Enable scrolling after first interaction */
+        .messages-container.chat-started {
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin-bottom: 24px;
+            animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(16px) scale(0.98); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        .user-message {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 32px;
+        }
+        
+        .user-bubble {
+            background: rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            padding: 16px 24px;
+            border-radius: 20px 20px 4px 20px;
+            max-width: 75%;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+            letter-spacing: -0.01em;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+        
+        .assistant-message {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 32px;
+        }
+        
+        .assistant-bubble {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            padding: 20px 28px;
+            border-radius: 20px 20px 20px 4px;
+            max-width: 82%;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.6;
+            letter-spacing: -0.01em;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Better text formatting in bubbles */
+        .user-bubble p, .assistant-bubble p {
+            margin-bottom: 12px;
+        }
+        
+        .user-bubble p:last-child, .assistant-bubble p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .assistant-bubble strong {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+        }
+        
+        .assistant-bubble em {
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        
+        .thinking-indicator {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 24px;
+        }
+        
+        .thinking-bubble {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px) saturate(180%);
+            padding: 14px 20px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 400;
+            opacity: 0.7;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .dot {
+            width: 5px;
+            height: 5px;
+            background: currentColor;
+            border-radius: 50%;
+            animation: pulse 1.2s ease-in-out infinite both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.3s; }
+        .dot:nth-child(2) { animation-delay: -0.15s; }
+        
+        @keyframes pulse {
+            0%, 80%, 100% { 
+                opacity: 0.2; 
+                transform: scale(0.8);
+            }
+            40% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+        }
+        
+        .input-area {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(24px) saturate(180%);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 16px 0px;
+            margin: 0 -16px;
+            flex-shrink: 0;
+            z-index: 20;
+            width: calc(100% + 32px);
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+            max-width: 836px; /* Reduced to account for chat container padding and prevent overflow */
+            margin: 0 auto;
+            width: 100%;
+            padding: 0 24px;
+            box-sizing: border-box;
+        }
+        
+        .message-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px) saturate(180%);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            padding: 18px 24px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+            letter-spacing: -0.01em;
+            min-height: 60px;
+            max-height: 160px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: pre-wrap;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            font-family: inherit;
+            box-sizing: border-box;
+            outline: none;
+        }
+        
+        .message-input:empty:before {
+            content: attr(data-placeholder);
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 400;
+            pointer-events: none;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .send-button {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px) saturate(180%);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            flex-shrink: 0;
+        }
+        
+        .send-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05) translateY(-1px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .send-button:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.4);
+        }
+        
+        .send-button.empty {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .send-button.ready {
+            animation: readyPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes readyPulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            }
+            50% { 
+                box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+            }
+        }
+        
+        .send-icon {
+            width: 22px;
+            height: 22px;
+            color: #ffffff;
+            opacity: 0.9;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            opacity: 0.9;
+            font-size: 17px;
+            font-weight: 400;
+            margin: 5px 0 12px 0;
+            line-height: 1.7;
+            letter-spacing: -0.01em;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            color: rgba(255, 255, 255, 0.95);
+        }
+        
+        .prompt-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 8px 0 12px 0;
+            text-align: left;
+        }
+        
+        .prompt-category {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px) saturate(180%);
+            border-radius: 16px;
+            padding: 16px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .prompt-category:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+        
+        .category-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 12px;
+            opacity: 1;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .category-icon {
+            width: 18px;
+            height: 18px;
+            opacity: 1;
+        }
+        
+        .category-prompts {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.9;
+            color: rgba(255, 255, 255, 0.9);
+            font-style: normal;
+        }
+        
+        .example-query {
+            display: block;
+            padding: 8px 14px;
+            margin: 4px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .example-query::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .example-query:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.35);
+            color: #ffffff;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+        
+        .example-query:hover::before {
+            left: 100%;
+        }
+        
+        .example-query:active {
+            transform: translateY(-1px) scale(1.01);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        /* Improved scrollbar styling */
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .messages-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.24);
+            border-radius: 3px;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.32);
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .chat-container {
+                padding: 0 12px;
+                padding-bottom: 15px; /* Minimal gap for mobile navigation */
+            }
+            
+            .messages-container {
+                padding: 16px 12px 12px 12px;
+            }
+            
+            .input-area {
+                padding: 12px 0px;
+                margin: 0 -12px;
+                width: calc(100% + 24px);
+            }
+            
+            .input-container {
+                max-width: 100%;
+                padding: 0 12px;
+            }
+            
+            .prompt-categories {
+                gap: 12px;
+                margin: 6px 0 12px 0;
+            }
+            
+            .prompt-category {
+                padding: 12px 14px;
+            }
+            
+            .category-title {
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+            
+            .category-prompts {
+                font-size: 13px;
+            }
+            
+            .user-bubble,
+            .assistant-bubble {
+                max-width: 85%;
+                font-size: 15px;
+            }
+            
+            .message-input {
+                font-size: 16px; /* Prevent zoom on iOS */
+                padding: 14px 20px;
+                min-height: 48px;
+            }
+            
+            .send-button {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .send-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .welcome-message {
+                font-size: 16px;
+                margin: 4px 0 10px 0;
+            }
+        }
+        
+        /* Support for safe areas on mobile */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .chat-container {
+                padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            }
+            
+            @media (max-width: 768px) {
+                .chat-container {
+                    padding-bottom: calc(15px + env(safe-area-inset-bottom));
+                }
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="messages-container" id="messages">
+            <div class="welcome-message" id="welcomeSection">
+                Welcome to HomeOps, your personal chief of staff designed to lighten your mental load.<br><br>
+                
+                <div class="prompt-categories">
+                    <div class="prompt-category">
+                        <div class="category-title">
+                            <i data-lucide="calendar" class="category-icon"></i>
+                            Schedule & Planning
+                        </div>
+                        <div class="category-prompts">
+                            <span class="example-query" onclick="populateInput('What do I have going on this week?')">"What do I have going on this week?"</span>
+                            <span class="example-query" onclick="populateInput('Can you add soccer practice to my calendar?')">"Can you add soccer practice to my calendar?"</span>
+                        </div>
+                    </div>
+                    
+                    <div class="prompt-category">
+                        <div class="category-title">
+                            <i data-lucide="home" class="category-icon"></i>
+                            Home & Family
+                        </div>
+                        <div class="category-prompts">
+                            <span class="example-query" onclick="populateInput('Help me plan meals for the next 3 days')">"Help me plan meals for the next 3 days"</span>
+                            <span class="example-query" onclick="populateInput('Can you build me a to-do list for this weekend?')">"Can you build me a to-do list for this weekend?"</span>
+                            <span class="example-query" onclick="populateInput('Create a morning routine checklist')">"Create a morning routine checklist"</span>
+                        </div>
+                    </div>
+                    
+                    <div class="prompt-category">
+                        <div class="category-title">
+                            <i data-lucide="lightbulb" class="category-icon"></i>
+                            Smart Assistance
+                        </div>
+                        <div class="category-prompts">
+                            <span class="example-query" onclick="populateInput('I need a birthday gift idea for my 8-year-old')">"I need a birthday gift idea for my 8-year-old"</span>
+                            <span class="example-query" onclick="populateInput('Is there anything important from my inbox I should be aware of?')">"Is there anything important from my inbox I should be aware of?"</span>
+                            <span class="example-query" onclick="populateInput('How can I better manage my work-life balance?')">"How can I better manage my work-life balance?"</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <div class="input-container">
+                <div 
+                    class="message-input" 
+                    id="messageInput" 
+                    contenteditable="true"
+                    data-placeholder="What's happening in your world today?"
+                ></div>
+                <button class="send-button" onclick="sendMessage()">
+                    <i data-lucide="send" class="send-icon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+        
+        // Auto-resize for contenteditable div
+        const messageInput = document.getElementById('messageInput');
+        
+        function populateInput(text) {
+            const input = document.getElementById('messageInput');
+            input.textContent = text;
+            input.focus();
+            resizeInput();
+            updateSendButton();
+        }
+        
+        function updateSendButton() {
+            const input = document.getElementById('messageInput');
+            const sendButton = document.querySelector('.send-button');
+            
+            if (input.textContent.trim()) {
+                sendButton.classList.remove('empty');
+                sendButton.classList.add('ready');
+            } else {
+                sendButton.classList.remove('ready');
+                sendButton.classList.add('empty');
+            }
+        }
+        
+        function resizeInput() {
+            // Reset height to measure content
+            messageInput.style.height = '60px';
+            
+            // Get the scroll height and cap it at max height
+            const scrollHeight = messageInput.scrollHeight;
+            const maxHeight = 160;
+            const newHeight = Math.min(scrollHeight, maxHeight);
+            
+            messageInput.style.height = newHeight + 'px';
+        }
+        
+        // Handle input events for contenteditable
+        messageInput.addEventListener('input', () => {
+            resizeInput();
+            updateSendButton();
+        });
+        messageInput.addEventListener('paste', () => {
+            setTimeout(() => {
+                resizeInput();
+                updateSendButton();
+            }, 0);
+        });
+        
+        // Handle Enter key behavior
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Prevent HTML formatting in contenteditable
+        messageInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+            document.execCommand('insertText', false, text);
+        });
+        
+        async function sendMessage() {
+            const messagesContainer = document.getElementById('messages');
+            const input = document.getElementById('messageInput');
+            const message = input.textContent.trim();
+            
+            if (!message) return;
+            
+            // Enable scrolling after first interaction
+            messagesContainer.classList.add('chat-started');
+            
+            // Clear input and reset height
+            input.textContent = '';
+            input.style.height = '60px';
+            updateSendButton();
+            
+            // Update placeholder after first interaction
+            input.setAttribute('data-placeholder', 'Type your message...');
+            
+            // Hide welcome message after first interaction
+            const welcomeMessage = document.getElementById('welcomeSection');
+            if (welcomeMessage) {
+                welcomeMessage.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                welcomeMessage.style.opacity = '0';
+                welcomeMessage.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    welcomeMessage.style.display = 'none';
+                }, 300);
+            }
+            
+            // Add user message
+            addMessage(message, 'user');
+            
+            // Show thinking indicator
+            showThinking();
+            
+            try {
+                // Get user ID
+                let userId = localStorage.getItem('homeops_user_id');
+                if (!userId) {
+                    userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('homeops_user_id', userId);
+                }
+                
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: message,
+                        userId: userId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Remove thinking indicator
+                hideThinking();
+                
+                // Add assistant response
+                const reply = data.reply || data.response || "I'm here to help. Can you tell me more about what's going on?";
+                addMessage(reply, 'assistant');
+                
+            } catch (error) {
+                console.error('Chat error:', error);
+                hideThinking();
+                addMessage("I'm having trouble connecting right now. Let me try again in a moment.", 'assistant');
+            }
+        }
+        
+        function addMessage(text, type) {
+            const messagesContainer = document.getElementById('messages');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = `${type}-bubble`;
+            
+            // Clean and format the text properly
+            let cleanText = String(text || '')
+                .replace(/[\u2018\u2019]/g, "'")
+                .replace(/[\u201C\u201D]/g, '"')
+                .replace(/[\u2013\u2014]/g, '-')
+                .replace(/\u2026/g, '...')
+                .replace(/[\u00A0]/g, ' ')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+            
+            // Wrap in paragraph if needed
+            if (!cleanText.startsWith('<')) {
+                cleanText = `<p>${cleanText}</p>`;
+            }
+            
+            bubbleDiv.innerHTML = cleanText;
+            messageDiv.appendChild(bubbleDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            setTimeout(() => {
+                // Only scroll if chat has started
+                if (messagesContainer.classList.contains('chat-started')) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }, 50);
+        }
+        
+        function showThinking() {
+            const messagesContainer = document.getElementById('messages');
+            
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'thinking-indicator';
+            thinkingDiv.id = 'thinking';
+            
+            thinkingDiv.innerHTML = `
+                <div class="thinking-bubble">
+                    <div class="typing-dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(thinkingDiv);
+            // Only scroll if chat has started
+            if (messagesContainer.classList.contains('chat-started')) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+        
+        function hideThinking() {
+            const thinking = document.getElementById('thinking');
+            if (thinking) {
+                thinking.remove();
+            }
+        }
+    </script>
+</body>
+</html>

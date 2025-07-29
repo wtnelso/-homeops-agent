@@ -665,10 +665,51 @@
     <div class="mobile-content">
       <!-- Chat View -->
       <div id="chat-mobile" class="mobile-view">
-        <iframe src="/clean-chat-test.html" 
-                style="width: 100%; height: calc(100vh - 140px); border: none; background: transparent; margin: 0; padding: 0; position: absolute; top: 0; left: 0;"
-                onload="this.style.opacity='1'">
-        </iframe>
+        <div class="chat-messages-mobile">
+          <!-- Welcome Message -->
+          <div style="padding: 20px; background: rgba(255,255,255,0.1); margin: 8px 0; border-radius: 18px 18px 18px 4px; max-width: 85%; border: 1px solid rgba(255,255,255,0.1);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #8B5CF6, #06B6D4); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="home" style="width: 20px; height: 20px; color: white;"></i>
+              </div>
+              <div>
+                <div style="font-weight: 600; margin-bottom: 2px;">HomeOps Agent</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Your Life Intelligence Assistant</div>
+              </div>
+            </div>
+            
+            <div style="line-height: 1.5; margin-bottom: 12px;">
+              Hey! I'm your HomeOps Agent with multiple intelligence systems:
+            </div>
+            
+            <div style="display: grid; gap: 8px; margin-bottom: 16px;">
+              <div style="background: rgba(139, 92, 246, 0.2); padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                <strong><i data-lucide="brain" style="width: 16px; height: 16px;"></i> Life Intelligence:</strong> "How can I be less anxious?" - Evidence-based frameworks
+              </div>
+              <div style="background: rgba(34, 197, 94, 0.2); padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                <strong><i data-lucide="plane" style="width: 16px; height: 16px;"></i> Travel Intelligence:</strong> "Flight from NYC to London next week" - Real flight search
+              </div>
+              <div style="background: rgba(251, 191, 36, 0.2); padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                <strong><i data-lucide="shopping-bag" style="width: 16px; height: 16px;"></i> Commerce Intelligence:</strong> "Find a laptop under $1000" - Product research
+              </div>
+              <div style="background: rgba(59, 130, 246, 0.2); padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                <strong><i data-lucide="mail" style="width: 16px; height: 16px;"></i> Email Intelligence:</strong> Decode inbox manipulation & categorize signal vs noise
+              </div>
+            </div>
+            
+            <div style="font-size: 14px; color: rgba(255,255,255,0.9);">
+              Try any question or explore the sections below!
+            </div>
+          </div>
+        </div>
+        
+        <!-- Chat Input -->
+        <div class="chat-input-mobile">
+          <textarea class="mobile-input" placeholder="Type your message..." id="chatInput" rows="1"></textarea>
+          <button class="send-btn" onclick="sendMessage()">
+            <i data-lucide="send" style="width: 20px; height: 20px;"></i>
+          </button>
+        </div>
       </div>
       
       <!-- Email Decoder View -->
@@ -1679,38 +1720,109 @@
       }
     }
 
-    // Life Intelligence - Evidence-Based Framework System
+    // Enhanced Chat - Clean Professional Interface
     async function executeLifeIntelligence(message, messagesDiv) {
       console.log('🧠 executeLifeIntelligence called with:', message);
       
-      const lifeCard = `
-        <div style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 15px; padding: 20px; margin: 15px 0;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <span style="font-size: 24px;">🧠</span>
-            <strong style="font-size: 16px;">Life Intelligence</strong>
-            <span style="background: rgba(139, 92, 246, 0.6); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: auto;">FRAMEWORK-DRIVEN</span>
+      // Show user message
+      const userMessage = `
+        <div style="display: flex; justify-content: flex-end; margin: 20px 0;">
+          <div style="background: #3b82f6; color: white; padding: 12px 18px; border-radius: 20px; max-width: 70%; font-size: 15px; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            ${message}
           </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
-            <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-              <i data-lucide="brain-circuit" style="width: 20px; height: 20px;"></i>
-              HomeOps is thinking...
-            </div>
-            <div style="font-size: 14px; color: rgba(255,255,255,0.9); font-style: italic;">"${message}"</div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 8px;">Processing with evidence-based frameworks...</div>
-          </div>
-          <div id="life-intelligence-results" style="margin-top: 15px;"></div>
         </div>
       `;
       
-      messagesDiv.innerHTML += lifeCard;
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      // Show thinking indicator
+      const thinkingIndicator = `
+        <div id="thinking-indicator" style="display: flex; justify-content: flex-start; margin: 20px 0;">
+          <div style="background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); padding: 12px 18px; border-radius: 20px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+            <div style="width: 6px; height: 6px; background: #8b5cf6; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+            Thinking...
+          </div>
+        </div>
+        <style>
+          @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+          }
+        </style>
+      `;
       
+      messagesDiv.innerHTML += userMessage + thinkingIndicator;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
       try {
+        // Get or create user ID for this session
+        let userId = localStorage.getItem('homeops_user_id');
+        if (!userId) {
+          userId = 'mobile_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('homeops_user_id', userId);
+        }
+        
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             message: message,
+            userId: userId
+          })
+        });
+        
+        const data = await response.json();
+        console.log('🧠 Chat API response:', data);
+        
+        // Remove thinking indicator
+        const thinkingEl = document.getElementById('thinking-indicator');
+        if (thinkingEl) thinkingEl.remove();
+        
+        // Display clean AI response
+        const aiResponse = `
+          <div style="display: flex; justify-content: flex-start; margin: 20px 0;">
+            <div style="background: rgba(255,255,255,0.08); color: white; padding: 16px 18px; border-radius: 20px; max-width: 85%; font-size: 15px; line-height: 1.6; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              ${(data.reply || data.response || 'I\'m here to help you plan and organize your life. What would you like assistance with?').replace(/\n/g, '<br>')}
+            </div>
+          </div>
+        `;
+        
+        messagesDiv.innerHTML += aiResponse;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        
+      } catch (error) {
+        console.error('❌ Chat error:', error);
+        
+        // Remove thinking indicator
+        const thinkingEl = document.getElementById('thinking-indicator');
+        if (thinkingEl) thinkingEl.remove();
+        
+        // Show error message
+        const errorMessage = `
+          <div style="display: flex; justify-content: flex-start; margin: 20px 0;">
+            <div style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; padding: 16px 18px; border-radius: 20px; max-width: 85%; font-size: 15px;">
+              I'm having trouble connecting right now. Please try again in a moment.
+            </div>
+          </div>
+        `;
+        
+        messagesDiv.innerHTML += errorMessage;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+    }
+      
+      try {
+        // Get or create user ID for this session
+        let userId = localStorage.getItem('homeops_user_id');
+        if (!userId) {
+          userId = 'mobile_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('homeops_user_id', userId);
+        }
+        
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            message: message,
+            userId: userId,
             requestType: 'life_intelligence'
           })
         });

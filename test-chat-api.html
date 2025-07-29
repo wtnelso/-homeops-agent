@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat API Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: white; 
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #333; 
+            border-radius: 8px; 
+            background: #2a2a2a; 
+        }
+        button { 
+            padding: 10px 15px; 
+            margin: 5px; 
+            border: none; 
+            border-radius: 4px; 
+            background: #3b82f6; 
+            color: white; 
+            cursor: pointer; 
+        }
+        button:hover { background: #2563eb; }
+        .response { 
+            background: #111; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin: 10px 0; 
+            white-space: pre-wrap; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Chat API Direct Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Enhanced Chat with Personal Context</h2>
+        <button onclick="testPersonalContextChat()">Test "Help me plan my day"</button>
+        <button onclick="testKidsQuestion()">Test "What should I buy for my kids?"</button>
+        <button onclick="testLifeCoaching()">Test "I'm feeling overwhelmed"</button>
+        <div id="chatResults"></div>
+    </div>
+    
+    <script>
+        async function testPersonalContextChat() {
+            const resultDiv = document.getElementById('chatResults');
+            resultDiv.innerHTML = '<div style="color: #3b82f6;">Testing personal context chat...</div>';
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: 'test-chat-user',
+                        message: 'Help me plan my day based on what you know about me'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div style="color: #22c55e;">✅ Chat API Working!</div>
+                    <div class="response">
+                        <strong>Personal Context:</strong>
+                        - Time: ${data.personalContext?.timeOfDay || 'unknown'} on ${data.personalContext?.dayOfWeek || 'unknown'}
+                        - Has Preferences: ${data.personalContext?.hasPreferences || 'none'}
+                        - Has Emails: ${data.personalContext?.hasEmails || false}
+                        
+                        <strong>AI Response:</strong>
+                        ${data.reply}
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testKidsQuestion() {
+            const resultDiv = document.getElementById('chatResults');
+            resultDiv.innerHTML = '<div style="color: #3b82f6;">Testing kids-specific question...</div>';
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: 'test-chat-user',
+                        message: 'What should I buy for my kids aged 5 and 8? Keep it budget-friendly but quality.'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div style="color: #22c55e;">✅ Kids Question Test!</div>
+                    <div class="response">
+                        <strong>AI Response:</strong>
+                        ${data.reply}
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testLifeCoaching() {
+            const resultDiv = document.getElementById('chatResults');
+            resultDiv.innerHTML = '<div style="color: #3b82f6;">Testing life coaching persona...</div>';
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: 'test-chat-user',
+                        message: 'I feel overwhelmed with work and family. Help me prioritize and get back on track.'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div style="color: #22c55e;">✅ Life Coaching Test!</div>
+                    <div class="response">
+                        <strong>Mel/Gottman/Huberman Response:</strong>
+                        ${data.reply}
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

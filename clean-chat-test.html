@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Override Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: white; 
+        }
+        .chat-test {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #1a1a1a;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+        }
+        button {
+            padding: 12px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover { background: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="chat-test">
+        <h2>🧠 Clean Chat Test</h2>
+        <div id="messages" class="messages"></div>
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Ask me anything..." onkeypress="if(event.key==='Enter') testChat()">
+            <button onclick="testChat()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Clean chat implementation
+        async function testChat() {
+            const input = document.getElementById('messageInput');
+            const messagesDiv = document.getElementById('messages');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Clear input
+            input.value = '';
+            
+            // Show user message
+            const userMessage = document.createElement('div');
+            userMessage.style.cssText = 'display: flex; justify-content: flex-end; margin: 15px 0;';
+            userMessage.innerHTML = `
+                <div style="background: #3b82f6; color: white; padding: 12px 16px; border-radius: 20px; max-width: 70%; font-size: 15px; line-height: 1.4;">
+                    ${message}
+                </div>
+            `;
+            messagesDiv.appendChild(userMessage);
+            
+            // Show thinking indicator
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.id = 'thinking';
+            thinkingDiv.style.cssText = 'display: flex; justify-content: flex-start; margin: 15px 0;';
+            thinkingDiv.innerHTML = `
+                <div style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); padding: 12px 16px; border-radius: 20px; font-size: 14px;">
+                    <span style="animation: pulse 1.5s ease-in-out infinite;">●</span> Thinking...
+                </div>
+            `;
+            messagesDiv.appendChild(thinkingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                // Get or create user ID
+                let userId = localStorage.getItem('homeops_user_id');
+                if (!userId) {
+                    userId = 'test_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('homeops_user_id', userId);
+                }
+                
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: message,
+                        userId: userId
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('Chat response:', data);
+                
+                // Remove thinking indicator
+                document.getElementById('thinking').remove();
+                
+                // Show AI response
+                const aiMessage = document.createElement('div');
+                aiMessage.style.cssText = 'display: flex; justify-content: flex-start; margin: 15px 0;';
+                aiMessage.innerHTML = `
+                    <div style="background: rgba(255,255,255,0.1); color: white; padding: 16px; border-radius: 20px; max-width: 85%; font-size: 15px; line-height: 1.6;">
+                        ${(data.reply || data.response || 'I\'m here to help!').replace(/\n/g, '<br>')}
+                    </div>
+                `;
+                messagesDiv.appendChild(aiMessage);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                
+            } catch (error) {
+                console.error('Chat error:', error);
+                
+                // Remove thinking indicator
+                const thinking = document.getElementById('thinking');
+                if (thinking) thinking.remove();
+                
+                // Show error
+                const errorMessage = document.createElement('div');
+                errorMessage.style.cssText = 'display: flex; justify-content: flex-start; margin: 15px 0;';
+                errorMessage.innerHTML = `
+                    <div style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 16px; border-radius: 20px; max-width: 85%; font-size: 15px;">
+                        I'm having trouble connecting. Please try again.
+                    </div>
+                `;
+                messagesDiv.appendChild(errorMessage);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
