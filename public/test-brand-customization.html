@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Customization Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+        .test-button {
+            background: rgba(34, 197, 94, 0.3);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: rgba(34, 197, 94, 0.4);
+        }
+        .test-results {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎯 Brand Customization Feature Test</h1>
+        
+        <div class="test-section">
+            <h2>Test 1: Save Brand Preferences</h2>
+            <p>This test saves sample brand preferences to see how the AI extracts brand insights.</p>
+            <button class="test-button" onclick="testSaveBrandPreferences()">Save Test Preferences</button>
+            <div id="save-results" class="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test 2: Retrieve Brand Preferences</h2>
+            <p>This test retrieves the saved preferences to verify they were stored correctly.</p>
+            <button class="test-button" onclick="testGetBrandPreferences()">Get Preferences</button>
+            <div id="get-results" class="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test 3: Personalized Deal Generation</h2>
+            <p>This test simulates how deals would be personalized based on the preferences.</p>
+            <button class="test-button" onclick="testPersonalizedDeals()">Generate Personalized Deals</button>
+            <div id="deals-results" class="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test 4: Brand Insight Extraction</h2>
+            <p>This test shows how the system extracts meaningful insights from user text.</p>
+            <button class="test-button" onclick="testBrandInsightExtraction()">Test Insight Extraction</button>
+            <div id="insights-results" class="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test 5: Open Command Center with Personalization</h2>
+            <p>This opens the main Command Center to see personalized deals in action.</p>
+            <button class="test-button" onclick="openCommandCenter()">Open Command Center</button>
+        </div>
+    </div>
+
+    <script>
+        const testUserId = 'test-user-' + Date.now();
+        
+        async function testSaveBrandPreferences() {
+            const resultsDiv = document.getElementById('save-results');
+            resultsDiv.innerHTML = 'Testing brand preferences save...\n';
+            
+            const testData = {
+                userId: testUserId,
+                customizationText: `I love Apple products and have two kids (ages 8 and 12) who are into Nintendo games. We shop at Target and Costco regularly. I prefer organic food from Whole Foods and enjoy outdoor activities like hiking. I value quality over cheap prices and am interested in sustainable brands like Patagonia. I also cook frequently and need kitchen supplies.`
+            };
+            
+            try {
+                const response = await fetch('/api/user/brand-preferences', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultsDiv.innerHTML += `<span class="success">✅ SUCCESS!</span>\n`;
+                    resultsDiv.innerHTML += `User ID: ${testUserId}\n`;
+                    resultsDiv.innerHTML += `Extracted Brands: ${result.brandPreferences.extractedInsights.mentionedBrands.join(', ')}\n`;
+                    resultsDiv.innerHTML += `Has Kids: ${result.brandPreferences.extractedInsights.hasKids}\n`;
+                    resultsDiv.innerHTML += `Kids Age: ${result.brandPreferences.extractedInsights.kidsAge}\n`;
+                    resultsDiv.innerHTML += `Interests: ${result.brandPreferences.extractedInsights.interests.join(', ')}\n`;
+                    resultsDiv.innerHTML += `Budget Prefs: ${result.brandPreferences.extractedInsights.budgetPrefs.join(', ')}\n`;
+                } else {
+                    resultsDiv.innerHTML += `<span class="error">❌ ERROR: ${result.error}</span>\n`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML += `<span class="error">❌ NETWORK ERROR: ${error.message}</span>\n`;
+            }
+        }
+        
+        async function testGetBrandPreferences() {
+            const resultsDiv = document.getElementById('get-results');
+            resultsDiv.innerHTML = 'Retrieving brand preferences...\n';
+            
+            try {
+                const response = await fetch(`/api/user/brand-preferences?userId=${testUserId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.brandPreferences) {
+                        resultsDiv.innerHTML += `<span class="success">✅ PREFERENCES FOUND!</span>\n`;
+                        resultsDiv.innerHTML += `Text: "${result.brandPreferences.customizationText.substring(0, 100)}..."\n`;
+                        resultsDiv.innerHTML += `Last Updated: ${result.brandPreferences.lastUpdated}\n`;
+                        resultsDiv.innerHTML += `Brands Detected: ${result.brandPreferences.extractedInsights.mentionedBrands.length}\n`;
+                    } else {
+                        resultsDiv.innerHTML += `<span class="error">⚠️ No preferences found for user</span>\n`;
+                    }
+                } else {
+                    resultsDiv.innerHTML += `<span class="error">❌ ERROR: ${result.error}</span>\n`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML += `<span class="error">❌ NETWORK ERROR: ${error.message}</span>\n`;
+            }
+        }
+        
+        function testPersonalizedDeals() {
+            const resultsDiv = document.getElementById('deals-results');
+            resultsDiv.innerHTML = 'Simulating personalized deal generation...\n';
+            
+            // Simulate the personalization logic
+            const mockUserPrefs = {
+                customizationText: `I love Apple products and have two kids (ages 8 and 12) who are into Nintendo games. We shop at Target and Costco regularly. I prefer organic food from Whole Foods and enjoy outdoor activities like hiking. I value quality over cheap prices and am interested in sustainable brands like Patagonia.`
+            };
+            
+            const brandInsights = extractBrandInsights(mockUserPrefs.customizationText);
+            
+            const personalizedDeals = [
+                {
+                    title: "Apple Store Exclusive Deal",
+                    item: "AirPods Pro (2nd Generation)", 
+                    brand: "Apple",
+                    savings: "$70.00",
+                    reason: "Matches your love for Apple products"
+                },
+                {
+                    title: "Target Circle Family Deal",
+                    item: "Nintendo Switch Game Bundle",
+                    brand: "Nintendo", 
+                    savings: "$30.00",
+                    reason: "Perfect for your kids who love Nintendo games"
+                },
+                {
+                    title: "REI Co-op Member Exclusive",
+                    item: "Patagonia Down Jacket",
+                    brand: "Patagonia",
+                    savings: "$70.00", 
+                    reason: "Sustainable outdoor gear for your hiking adventures"
+                }
+            ];
+            
+            resultsDiv.innerHTML += `<span class="success">✅ PERSONALIZED DEALS GENERATED!</span>\n`;
+            resultsDiv.innerHTML += `Based on detected preferences:\n`;
+            resultsDiv.innerHTML += `- Brands: ${brandInsights.mentionedBrands.join(', ')}\n`;
+            resultsDiv.innerHTML += `- Interests: ${brandInsights.interests.join(', ')}\n`;
+            resultsDiv.innerHTML += `- Has Kids: ${brandInsights.hasKids}\n\n`;
+            
+            personalizedDeals.forEach((deal, index) => {
+                resultsDiv.innerHTML += `Deal ${index + 1}: ${deal.title}\n`;
+                resultsDiv.innerHTML += `  Item: ${deal.item}\n`;
+                resultsDiv.innerHTML += `  Brand: ${deal.brand}\n`;
+                resultsDiv.innerHTML += `  Savings: ${deal.savings}\n`;
+                resultsDiv.innerHTML += `  Why: ${deal.reason}\n\n`;
+            });
+        }
+        
+        function testBrandInsightExtraction() {
+            const resultsDiv = document.getElementById('insights-results');
+            resultsDiv.innerHTML = 'Testing brand insight extraction...\n';
+            
+            const testTexts = [
+                "I love Apple and shop at Costco with my 2 kids",
+                "Prefer organic foods from Whole Foods, into fitness and yoga",
+                "Budget-conscious shopper who loves deals at Target",
+                "Outdoor enthusiast who buys from REI and Patagonia"
+            ];
+            
+            testTexts.forEach((text, index) => {
+                const insights = extractBrandInsights(text);
+                resultsDiv.innerHTML += `\nTest ${index + 1}: "${text}"\n`;
+                resultsDiv.innerHTML += `  Brands: ${insights.mentionedBrands.join(', ') || 'none'}\n`;
+                resultsDiv.innerHTML += `  Interests: ${insights.interests.join(', ') || 'none'}\n`;
+                resultsDiv.innerHTML += `  Has Kids: ${insights.hasKids}\n`;
+                resultsDiv.innerHTML += `  Budget: ${insights.budgetPrefs.join(', ') || 'none'}\n`;
+            });
+        }
+        
+        function openCommandCenter() {
+            // Store test preferences in local storage for the Command Center to use
+            localStorage.setItem('homeops-brand-preferences', JSON.stringify({
+                customizationText: `I love Apple products and have two kids (ages 8 and 12) who are into Nintendo games. We shop at Target and Costco regularly. I prefer organic food from Whole Foods and enjoy outdoor activities like hiking. I value quality over cheap prices and am interested in sustainable brands like Patagonia.`,
+                lastUpdated: new Date().toISOString(),
+                userId: testUserId
+            }));
+            
+            // Open Command Center in new tab
+            window.open('/command-center.html', '_blank');
+        }
+        
+        // Helper function to extract brand insights (simplified version)
+        function extractBrandInsights(text) {
+            if (!text) return {};
+            
+            const lowerText = text.toLowerCase();
+            
+            const commonBrands = [
+                'apple', 'amazon', 'target', 'costco', 'whole foods', 'trader joes',
+                'nike', 'adidas', 'patagonia', 'north face', 'lululemon',
+                'disney', 'nintendo', 'sony', 'samsung', 'google',
+                'starbucks', 'chipotle', 'panera', 'rei', 'best buy'
+            ];
+            
+            const mentionedBrands = commonBrands.filter(brand => lowerText.includes(brand));
+            
+            const hasKids = /kids?|children|child|son|daughter|family/i.test(text);
+            const kidsAgeMatch = text.match(/age[sd]?\s*(\d+)/i);
+            const kidsAge = kidsAgeMatch ? parseInt(kidsAgeMatch[1]) : null;
+            
+            const interests = [];
+            const interestKeywords = {
+                'fitness': /fitness|gym|workout|exercise|running|yoga|sports/i,
+                'cooking': /cooking|kitchen|recipe|food|baking|chef/i,
+                'outdoor': /outdoor|hiking|camping|nature|adventure/i,
+                'tech': /tech|gadget|computer|phone|electronic|gaming/i,
+                'fashion': /fashion|clothes|style|outfit|clothing/i,
+                'home': /home|house|decor|furniture|garden|cleaning/i
+            };
+            
+            Object.entries(interestKeywords).forEach(([interest, regex]) => {
+                if (regex.test(text)) {
+                    interests.push(interest);
+                }
+            });
+            
+            const budgetPrefs = [];
+            const budgetKeywords = {
+                'premium': /premium|quality|high.end|luxury|expensive/i,
+                'budget': /budget|cheap|affordable|deal|discount|save/i,
+                'organic': /organic|natural|eco.friendly|sustainable|green/i
+            };
+            
+            Object.entries(budgetKeywords).forEach(([pref, regex]) => {
+                if (regex.test(text)) {
+                    budgetPrefs.push(pref);
+                }
+            });
+            
+            return {
+                mentionedBrands,
+                hasKids,
+                kidsAge,
+                interests,
+                budgetPrefs
+            };
+        }
+    </script>
+</body>
+</html>

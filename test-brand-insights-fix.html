@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Insights Error Fix Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: white; 
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #333; 
+            border-radius: 8px; 
+            background: #2a2a2a; 
+        }
+        .test-result { 
+            margin: 10px 0; 
+            padding: 10px; 
+            border-radius: 4px; 
+        }
+        .success { background: rgba(34, 197, 94, 0.2); }
+        .error { background: rgba(239, 68, 68, 0.2); }
+        .info { background: rgba(59, 130, 246, 0.2); }
+        button { 
+            padding: 10px 15px; 
+            margin: 5px; 
+            border: none; 
+            border-radius: 4px; 
+            background: #3b82f6; 
+            color: white; 
+            cursor: pointer; 
+        }
+        button:hover { background: #2563eb; }
+        pre { 
+            background: #111; 
+            padding: 10px; 
+            border-radius: 4px; 
+            overflow-x: auto; 
+            font-size: 12px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Brand Insights Error Fix Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Empty Brand Preferences</h2>
+        <button onclick="testEmptyPreferences()">Test Empty Preferences</button>
+        <div id="emptyPrefsResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Test Valid Brand Preferences</h2>
+        <button onclick="testValidPreferences()">Test Valid Preferences</button>
+        <div id="validPrefsResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Test Array Safety</h2>
+        <button onclick="testArraySafety()">Test Array Safety</button>
+        <div id="arraySafetyResult"></div>
+    </div>
+    
+    <script>
+        // Simulate the extractBrandInsights function
+        function extractBrandInsights(preferencesText) {
+            if (!preferencesText) {
+                return {
+                    mentionedBrands: [],
+                    hasKids: false,
+                    kidsAge: null,
+                    interests: [],
+                    budgetPrefs: [],
+                    rawText: ''
+                };
+            }
+            
+            const text = preferencesText.toLowerCase();
+            
+            // Extract mentioned brands
+            const commonBrands = [
+                'apple', 'amazon', 'target', 'costco', 'whole foods', 'trader joes',
+                'nike', 'adidas', 'patagonia', 'north face', 'lululemon',
+                'disney', 'nintendo', 'sony', 'samsung', 'google',
+                'starbucks', 'chipotle', 'panera', 'chick-fil-a',
+                'home depot', 'lowes', 'bed bath beyond', 'ikea',
+                'sephora', 'ulta', 'nordstrom', 'macys'
+            ];
+            
+            const mentionedBrands = commonBrands.filter(brand => text.includes(brand));
+            
+            // Extract family info
+            const hasKids = /kids?|children|child|son|daughter|family/i.test(preferencesText);
+            const kidsAgeMatch = preferencesText.match(/age[sd]?\s*(\d+)/i);
+            const kidsAge = kidsAgeMatch ? parseInt(kidsAgeMatch[1]) : null;
+            
+            // Extract interests
+            const interests = [];
+            const interestKeywords = {
+                'fitness': ['fitness', 'gym', 'workout', 'exercise', 'running', 'yoga'],
+                'cooking': ['cooking', 'kitchen', 'recipes', 'food', 'chef'],
+                'tech': ['tech', 'technology', 'gadgets', 'electronics', 'computer'],
+                'travel': ['travel', 'vacation', 'trip', 'adventure'],
+                'home': ['home', 'decor', 'furniture', 'interior', 'garden']
+            };
+            
+            Object.keys(interestKeywords).forEach(category => {
+                if (interestKeywords[category].some(keyword => text.includes(keyword))) {
+                    interests.push(category);
+                }
+            });
+            
+            // Extract budget preferences
+            const budgetPrefs = [];
+            const budgetKeywords = {
+                'budget-conscious': ['budget', 'cheap', 'affordable', 'discount', 'save money'],
+                'mid-range': ['mid-range', 'moderate', 'reasonable', 'quality'],
+                'premium': ['premium', 'high-end', 'luxury', 'expensive', 'quality']
+            };
+            
+            Object.keys(budgetKeywords).forEach(pref => {
+                if (budgetKeywords[pref].some(keyword => text.includes(keyword))) {
+                    budgetPrefs.push(pref);
+                }
+            });
+            
+            return {
+                mentionedBrands,
+                hasKids,
+                kidsAge,
+                interests,
+                budgetPrefs,
+                rawText: preferencesText
+            };
+        }
+        
+        // Simulate the problematic array access patterns
+        function testArrayAccess(brandInsights, dealTemplate) {
+            try {
+                let shouldInclude = false;
+                
+                // Test brand preferences (the line that was causing the error)
+                if (dealTemplate.brands && brandInsights.mentionedBrands && Array.isArray(brandInsights.mentionedBrands)) {
+                    shouldInclude = dealTemplate.brands.some(brand => 
+                        brandInsights.mentionedBrands.includes(brand)
+                    );
+                }
+                
+                // Test interests
+                if (dealTemplate.interests && brandInsights.interests && Array.isArray(brandInsights.interests)) {
+                    shouldInclude = shouldInclude || dealTemplate.interests.some(interest => 
+                        brandInsights.interests.includes(interest)
+                    );
+                }
+                
+                // Test budget preferences
+                if (dealTemplate.budgetPrefs && brandInsights.budgetPrefs && Array.isArray(brandInsights.budgetPrefs)) {
+                    shouldInclude = shouldInclude || dealTemplate.budgetPrefs.some(pref => 
+                        brandInsights.budgetPrefs.includes(pref)
+                    );
+                }
+                
+                // Test condition function
+                if (dealTemplate.condition) {
+                    shouldInclude = shouldInclude || dealTemplate.condition(brandInsights);
+                }
+                
+                return { success: true, shouldInclude, error: null };
+            } catch (error) {
+                return { success: false, shouldInclude: false, error: error.message };
+            }
+        }
+        
+        function testEmptyPreferences() {
+            const resultDiv = document.getElementById('emptyPrefsResult');
+            resultDiv.innerHTML = '<div class="info">Testing empty preferences...</div>';
+            
+            try {
+                // Test with empty string
+                const brandInsights = extractBrandInsights('');
+                
+                const dealTemplate = {
+                    brands: ['apple', 'nike'],
+                    interests: ['fitness', 'tech'],
+                    budgetPrefs: ['mid-range'],
+                    condition: (insights) => insights.hasKids === true
+                };
+                
+                const result = testArrayAccess(brandInsights, dealTemplate);
+                
+                resultDiv.innerHTML = `
+                    <div class="${result.success ? 'success' : 'error'}">
+                        ${result.success ? '✅' : '❌'} Empty Preferences Test
+                    </div>
+                    <pre>Brand Insights: ${JSON.stringify(brandInsights, null, 2)}</pre>
+                    <pre>Array Access Result: ${JSON.stringify(result, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        function testValidPreferences() {
+            const resultDiv = document.getElementById('validPrefsResult');
+            resultDiv.innerHTML = '<div class="info">Testing valid preferences...</div>';
+            
+            try {
+                // Test with actual preferences
+                const brandInsights = extractBrandInsights('I love Apple and Nike. I have kids aged 7. I like fitness and tech.');
+                
+                const dealTemplate = {
+                    brands: ['apple', 'nike'],
+                    interests: ['fitness', 'tech'],
+                    budgetPrefs: ['mid-range'],
+                    condition: (insights) => insights.hasKids === true
+                };
+                
+                const result = testArrayAccess(brandInsights, dealTemplate);
+                
+                resultDiv.innerHTML = `
+                    <div class="${result.success ? 'success' : 'error'}">
+                        ${result.success ? '✅' : '❌'} Valid Preferences Test
+                    </div>
+                    <pre>Brand Insights: ${JSON.stringify(brandInsights, null, 2)}</pre>
+                    <pre>Array Access Result: ${JSON.stringify(result, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        function testArraySafety() {
+            const resultDiv = document.getElementById('arraySafetyResult');
+            resultDiv.innerHTML = '<div class="info">Testing array safety...</div>';
+            
+            try {
+                const testCases = [
+                    { name: 'Null preferences', input: null },
+                    { name: 'Undefined preferences', input: undefined },
+                    { name: 'Empty string', input: '' },
+                    { name: 'Valid preferences', input: 'I love Apple and have kids' }
+                ];
+                
+                const results = testCases.map(testCase => {
+                    const brandInsights = extractBrandInsights(testCase.input);
+                    
+                    return {
+                        name: testCase.name,
+                        input: testCase.input,
+                        output: brandInsights,
+                        hasValidArrays: {
+                            mentionedBrands: Array.isArray(brandInsights.mentionedBrands),
+                            interests: Array.isArray(brandInsights.interests),
+                            budgetPrefs: Array.isArray(brandInsights.budgetPrefs)
+                        }
+                    };
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✅ Array Safety Tests Passed</div>
+                    <h4>Test Results:</h4>
+                    <pre>${JSON.stringify(results, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Email Integration Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: white; 
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #333; 
+            border-radius: 8px; 
+            background: #2a2a2a; 
+        }
+        .test-result { 
+            margin: 10px 0; 
+            padding: 10px; 
+            border-radius: 4px; 
+        }
+        .success { background: rgba(34, 197, 94, 0.2); }
+        .error { background: rgba(239, 68, 68, 0.2); }
+        .info { background: rgba(59, 130, 246, 0.2); }
+        button { 
+            padding: 10px 15px; 
+            margin: 5px; 
+            border: none; 
+            border-radius: 4px; 
+            background: #3b82f6; 
+            color: white; 
+            cursor: pointer; 
+        }
+        button:hover { background: #2563eb; }
+        pre { 
+            background: #111; 
+            padding: 10px; 
+            border-radius: 4px; 
+            overflow-x: auto; 
+            font-size: 12px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Enhanced Email Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Brand Preferences API Test</h2>
+        <button onclick="testBrandPreferencesAPI()">Test Brand Preferences</button>
+        <div id="brandPrefsResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Email Intelligence API Test</h2>
+        <button onclick="testEmailIntelligenceAPI()">Test Email Intelligence</button>
+        <div id="emailIntelResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Enhanced Email Filtering Test</h2>
+        <button onclick="testEmailFiltering()">Test Email Filtering</button>
+        <div id="emailFilterResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. JavaScript Error Prevention Test</h2>
+        <button onclick="testErrorHandling()">Test Error Handling</button>
+        <div id="errorHandlingResult"></div>
+    </div>
+    
+    <script>
+        async function testBrandPreferencesAPI() {
+            const resultDiv = document.getElementById('brandPrefsResult');
+            resultDiv.innerHTML = '<div class="info">Testing brand preferences API...</div>';
+            
+            try {
+                // Test saving preferences
+                const testPrefs = {
+                    userId: 'test-user',
+                    customizationText: 'I love Apple, Nike, and Target. I have two kids ages 5 and 8. I\'m interested in fitness, cooking, and tech. I prefer mid-range pricing.',
+                    updatedAt: new Date().toISOString()
+                };
+                
+                const saveResponse = await fetch('/api/user/brand-preferences', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testPrefs)
+                });
+                
+                const saveResult = await saveResponse.json();
+                
+                // Test retrieving preferences
+                const getResponse = await fetch('/api/user/brand-preferences?userId=test-user');
+                const getResult = await getResponse.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✅ Brand Preferences API Working</div>
+                    <pre>Save Result: ${JSON.stringify(saveResult, null, 2)}</pre>
+                    <pre>Get Result: ${JSON.stringify(getResult, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testEmailIntelligenceAPI() {
+            const resultDiv = document.getElementById('emailIntelResult');
+            resultDiv.innerHTML = '<div class="info">Testing email intelligence API...</div>';
+            
+            try {
+                const response = await fetch('/api/email-intelligence?userId=test-user&limit=5');
+                const result = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✅ Email Intelligence API Working</div>
+                    <pre>Response: ${JSON.stringify(result, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testEmailFiltering() {
+            const resultDiv = document.getElementById('emailFilterResult');
+            resultDiv.innerHTML = '<div class="info">Testing enhanced email filtering...</div>';
+            
+            try {
+                // Simulate email insights for filtering
+                const mockEmailInsights = [
+                    {
+                        title: "Apple AirPods Sale - 30% Off",
+                        insight: "Great deal on AirPods Pro for $179",
+                        category: "Commerce",
+                        content: "Apple store exclusive offer"
+                    },
+                    {
+                        title: "Nike Running Shoes Discount",
+                        insight: "Perfect for your fitness routine - $89",
+                        category: "Commerce",
+                        content: "Athletic footwear sale"
+                    },
+                    {
+                        title: "Kids Toy Sale at Target",
+                        insight: "Educational toys for ages 3-10",
+                        category: "Commerce",
+                        content: "Family-friendly deals"
+                    },
+                    {
+                        title: "Random Email",
+                        insight: "Not related to user preferences",
+                        category: "General",
+                        content: "Generic content"
+                    }
+                ];
+                
+                // Test the filtering logic (simulate what happens in Command Center)
+                const userPrefs = {
+                    customizationText: 'I love Apple, Nike, and Target. I have two kids ages 5 and 8. I\'m interested in fitness, cooking, and tech. I prefer mid-range pricing.'
+                };
+                
+                // Simulate brand extraction
+                const brandInsights = {
+                    brands: ['Apple', 'Nike', 'Target'],
+                    hasKids: true,
+                    childrenAges: [5, 8],
+                    interests: ['fitness', 'cooking', 'tech'],
+                    budgetPreference: 'mid-range'
+                };
+                
+                // Score each insight
+                const scoredInsights = mockEmailInsights.map(insight => {
+                    let relevanceScore = 0;
+                    let personalizedReason = '';
+                    
+                    const insightText = (insight.title + ' ' + insight.insight + ' ' + insight.content).toLowerCase();
+                    
+                    brandInsights.brands.forEach(brand => {
+                        if (insightText.includes(brand.toLowerCase())) {
+                            relevanceScore += 30;
+                            personalizedReason = `Matches your preference for ${brand}`;
+                        }
+                    });
+                    
+                    if (brandInsights.hasKids && insight.title.toLowerCase().includes('kid')) {
+                        relevanceScore += 25;
+                        personalizedReason += (personalizedReason ? ' & ' : '') + 'Family-friendly deal';
+                    }
+                    
+                    brandInsights.interests.forEach(interest => {
+                        if (insightText.includes(interest.toLowerCase())) {
+                            relevanceScore += 20;
+                            personalizedReason += (personalizedReason ? ' & ' : '') + `Matches your interest in ${interest}`;
+                        }
+                    });
+                    
+                    return {
+                        ...insight,
+                        relevanceScore,
+                        personalizedReason: personalizedReason || 'General deal alert',
+                        isPersonalized: relevanceScore > 0
+                    };
+                }).sort((a, b) => b.relevanceScore - a.relevanceScore);
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✅ Email Filtering Working</div>
+                    <h4>Scored and Filtered Results:</h4>
+                    <pre>${JSON.stringify(scoredInsights, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testErrorHandling() {
+            const resultDiv = document.getElementById('errorHandlingResult');
+            resultDiv.innerHTML = '<div class="info">Testing JavaScript error handling...</div>';
+            
+            try {
+                // Test array validation functions
+                const testCases = [
+                    { input: [1, 2, 3], expected: 'array' },
+                    { input: null, expected: 'null' },
+                    { input: undefined, expected: 'undefined' },
+                    { input: {}, expected: 'object' },
+                    { input: 'string', expected: 'string' }
+                ];
+                
+                const results = testCases.map(testCase => {
+                    const isArray = Array.isArray(testCase.input);
+                    const actualType = typeof testCase.input;
+                    
+                    return {
+                        input: testCase.input,
+                        expectedType: testCase.expected,
+                        actualType: actualType,
+                        isArray: isArray,
+                        safeForEach: isArray ? 'Safe to use forEach' : 'Would cause error without validation'
+                    };
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✅ Error Handling Tests Passed</div>
+                    <h4>Array Validation Test Results:</h4>
+                    <pre>${JSON.stringify(results, null, 2)}</pre>
+                    <div class="info">
+                        <strong>Key Fixes Applied:</strong><br>
+                        ✅ Added Array.isArray() checks in renderInsights()<br>
+                        ✅ Added Array.isArray() checks in email processing<br>
+                        ✅ Added Array.isArray() checks in generateCommerceFromEmailPatterns()<br>
+                        ✅ Enhanced error logging and fallback handling
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

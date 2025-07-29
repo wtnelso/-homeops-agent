@@ -219,7 +219,7 @@ function parseAIInsights(aiResponse) {
   return insights;
 }
 
-// Email Intelligence API - Now with REAL insights
+// Email Intelligence API - Now with REAL Gmail parsing
 app.get('/api/email-intelligence', async (req, res) => {
   try {
     const userId = req.query.userId || 'default';
@@ -228,19 +228,35 @@ app.get('/api/email-intelligence', async (req, res) => {
     
     console.log(`🧠 Getting REAL email intelligence for: ${userId}`);
     
-    // Set user credentials if available
+    // Try to get real Gmail data first
+    let insights = [];
+    let dataSource = 'fallback';
+    
     if (profile.integrations && profile.integrations.gmail) {
-      dataManager.setUserCredentials(userId, profile.integrations.gmail);
+      console.log('📧 Attempting Gmail API connection...');
+      try {
+        const gmailInsights = await fetchGmailInsights(profile.integrations.gmail, limit);
+        if (gmailInsights && gmailInsights.length > 0) {
+          insights = gmailInsights;
+          dataSource = 'real';
+          console.log(`✅ Retrieved ${insights.length} real Gmail insights`);
+        }
+      } catch (gmailError) {
+        console.error('❌ Gmail fetch failed:', gmailError.message);
+      }
     }
     
-    // Get real-time insights based on actual data
-    const insights = await dataManager.generateRealTimeInsights(userId, profile, limit);
+    // Fallback to generated insights if no real data
+    if (insights.length === 0) {
+      insights = dataManager.generateRealTimeInsights(userId, profile, limit);
+      console.log(`📦 Using ${insights.length} generated insights as fallback`);
+    }
     
     res.json({ 
       success: true, 
       insights, 
       userId,
-      dataSource: profile.integrations?.gmail ? 'real' : 'fallback'
+      dataSource
     });
     
   } catch (error) {
@@ -252,6 +268,216 @@ app.get('/api/email-intelligence', async (req, res) => {
     });
   }
 });
+
+// Enhanced Gmail fetching with commerce deal parsing
+async function fetchGmailInsights(credentials, limit = 10) {
+  console.log('🔍 Fetching Gmail insights with commerce parsing...');
+  
+  try {
+    // Set up OAuth client with user credentials
+    oauth2Client.setCredentials({
+      access_token: credentials.access_token,
+      refresh_token: credentials.refresh_token
+    });
+    
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    
+    // Search for recent emails with potential deals
+    const query = 'newer_than:3d (deal OR sale OR discount OR offer OR % off OR limited time OR exclusive)';
+    const emailList = await gmail.users.messages.list({
+      userId: 'me',
+      q: query,
+      maxResults: limit * 2 // Get more to filter for quality
+    });
+    
+    if (!emailList.data.messages) {
+      console.log('📭 No recent deal emails found');
+      return [];
+    }
+    
+    const insights = [];
+    
+    for (const message of emailList.data.messages.slice(0, limit)) {
+      try {
+        const email = await gmail.users.messages.get({
+          userId: 'me',
+          id: message.id,
+          format: 'full'
+        });
+        
+        const headers = email.data.payload.headers;
+        const subject = headers.find(h => h.name === 'Subject')?.value || '';
+        const from = headers.find(h => h.name === 'From')?.value || '';
+        const date = headers.find(h => h.name === 'Date')?.value || '';
+        
+        // Extract email body
+        let body = '';
+        if (email.data.payload.body?.data) {
+          body = Buffer.from(email.data.payload.body.data, 'base64').toString();
+        } else if (email.data.payload.parts) {
+          for (const part of email.data.payload.parts) {
+            if (part.mimeType === 'text/plain' && part.body?.data) {
+              body += Buffer.from(part.body.data, 'base64').toString();
+              break; // Just get the first text part
+            }
+          }
+        }
+        
+        // Parse as commerce deal if it looks like one
+        const dealInsight = parseEmailForCommerceDeal(subject, from, body, date);
+        if (dealInsight) {
+          insights.push(dealInsight);
+        }
+        
+      } catch (emailError) {
+        console.error(`❌ Error processing email ${message.id}:`, emailError.message);
+        continue;
+      }
+    }
+    
+    console.log(`✅ Parsed ${insights.length} commerce insights from Gmail`);
+    return insights;
+    
+  } catch (error) {
+    console.error('❌ Gmail API error:', error.message);
+    throw error;
+  }
+}
+
+// Parse individual email for commerce deal information
+function parseEmailForCommerceDeal(subject, from, body, date) {
+  console.log(`🔍 Parsing email: ${subject.substring(0, 50)}...`);
+  
+  // Extract brand name from sender
+  const brandMatch = from.match(/([^<@\s]+)@/);
+  const domain = from.match(/@([^>]+)>/);
+  let brand = 'Unknown';
+  
+  if (domain) {
+    const domainName = domain[1].split('.')[0];
+    brand = domainName.charAt(0).toUpperCase() + domainName.slice(1);
+  }
+  
+  // Common brand mappings
+  const brandMappings = {
+    'amazon': 'Amazon',
+    'target': 'Target',
+    'walmart': 'Walmart',
+    'costco': 'Costco',
+    'bestbuy': 'Best Buy',
+    'nike': 'Nike',
+    'apple': 'Apple',
+    'rei': 'REI',
+    'patagonia': 'Patagonia'
+  };
+  
+  const lowerDomain = (domain?.[1] || '').toLowerCase();
+  for (const [key, value] of Object.entries(brandMappings)) {
+    if (lowerDomain.includes(key)) {
+      brand = value;
+      break;
+    }
+  }
+  
+  // Extract pricing information
+  const fullText = `${subject} ${body}`;
+  const priceMatches = fullText.match(/\$\d+(?:\.\d{2})?/g) || [];
+  const percentageMatch = fullText.match(/(\d+)%\s*(?:off|discount)/i);
+  
+  let originalPrice = null;
+  let currentPrice = null;
+  let savings = null;
+  let discountPercent = null;
+  
+  if (percentageMatch) {
+    discountPercent = parseInt(percentageMatch[1]);
+  }
+  
+  if (priceMatches.length >= 2) {
+    // Assume higher price is original, lower is current
+    const prices = priceMatches.map(p => parseFloat(p.replace('$', ''))).sort((a, b) => b - a);
+    originalPrice = `$${prices[0].toFixed(2)}`;
+    currentPrice = `$${prices[1].toFixed(2)}`;
+    savings = `$${(prices[0] - prices[1]).toFixed(2)}`;
+  } else if (priceMatches.length === 1 && discountPercent) {
+    currentPrice = priceMatches[0];
+    const current = parseFloat(currentPrice.replace('$', ''));
+    const original = current / (1 - discountPercent / 100);
+    originalPrice = `$${original.toFixed(2)}`;
+    savings = `$${(original - current).toFixed(2)}`;
+  }
+  
+  // Extract product name
+  let product = 'Special Offer';
+  const productPatterns = [
+    /(?:deal on|sale on|save on)\s+([^.!,\n]{10,60})/i,
+    /([A-Z][A-Za-z\s]+(?:Pro|Plus|Max|Air|Mini|Ultra))/,
+    /(iPhone|iPad|MacBook|AirPods|Echo|Fire|Kindle)/i
+  ];
+  
+  for (const pattern of productPatterns) {
+    const match = fullText.match(pattern);
+    if (match) {
+      product = match[1].trim();
+      break;
+    }
+  }
+  
+  // Extract urgency/expiration
+  let urgency = 'Limited time offer';
+  const urgencyPatterns = [
+    /(?:ends|expires)\s+(?:in\s+)?(\d+\s+(?:hours?|days?))/i,
+    /(today only|this weekend only)/i,
+    /(while supplies last)/i
+  ];
+  
+  for (const pattern of urgencyPatterns) {
+    const match = fullText.match(pattern);
+    if (match) {
+      urgency = match[0];
+      break;
+    }
+  }
+  
+  // Determine if this looks like a legitimate deal
+  const dealKeywords = ['deal', 'sale', 'discount', 'offer', '% off', 'save', 'limited time'];
+  const hasKeywords = dealKeywords.some(keyword => 
+    fullText.toLowerCase().includes(keyword)
+  );
+  
+  if (!hasKeywords && !priceMatches.length) {
+    return null; // Doesn't look like a deal
+  }
+  
+  // Priority based on savings amount or discount percentage
+  let priority = 'Medium';
+  if (savings) {
+    const savingsAmount = parseFloat(savings.replace('$', ''));
+    if (savingsAmount > 50) priority = 'High';
+    else if (savingsAmount < 10) priority = 'Low';
+  } else if (discountPercent) {
+    if (discountPercent > 30) priority = 'High';
+    else if (discountPercent < 10) priority = 'Low';
+  }
+  
+  return {
+    title: `${brand} Deal Alert`,
+    category: 'Commerce',
+    date: new Date().toISOString().split('T')[0],
+    priority: priority,
+    insight: `${product} ${discountPercent ? `${discountPercent}% off` : ''} ${savings ? `Save ${savings}` : ''}`.trim(),
+    action: 'View Deal',
+    icon: 'tag',
+    brand: brand,
+    product: product,
+    originalPrice: originalPrice,
+    currentPrice: currentPrice,
+    savings: savings,
+    urgency: urgency,
+    source: `${brand} Email`,
+    emailSubject: subject
+  };
+}
 
 async function generateRealTimeInsights(profile, emailData, calendarData, limit) {
   // This is where the magic happens - real AI-powered insights
@@ -834,6 +1060,417 @@ app.post('/api/user/preferences', async (req, res) => {
     res.json({ success: true, preferences: profile.preferences });
   } catch (error) {
     console.error('Preferences update error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Brand Preferences Management
+app.post('/api/user/brand-preferences', async (req, res) => {
+  try {
+    const { userId, customizationText, lastUpdated } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'Missing userId' });
+    }
+    
+    if (!customizationText || customizationText.trim() === '') {
+      return res.status(400).json({ success: false, error: 'Missing customization text' });
+    }
+    
+    let profile = getUserProfile(userId);
+    if (!profile) {
+      // Create new profile if doesn't exist
+      profile = createUserProfile(userId, 'Anonymous User', 'anonymous@homeops.app');
+    }
+    
+    // Extract brand insights from the customization text
+    const brandInsights = extractBrandInsightsFromText(customizationText);
+    
+    // Update brand preferences in profile
+    profile.brandPreferences = {
+      customizationText: customizationText.trim(),
+      lastUpdated: lastUpdated || new Date().toISOString(),
+      extractedInsights: brandInsights,
+      updatedAt: new Date().toISOString()
+    };
+    
+    profile.updatedAt = new Date().toISOString();
+    userProfiles[userId] = profile;
+    
+    console.log(`✅ Brand preferences saved for user ${userId}:`, {
+      textLength: customizationText.length,
+      mentionedBrands: brandInsights.mentionedBrands?.length || 0,
+      interests: brandInsights.interests?.length || 0
+    });
+    
+    res.json({ 
+      success: true, 
+      brandPreferences: profile.brandPreferences,
+      message: 'Brand preferences saved successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Brand preferences save error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get brand preferences for a user
+app.get('/api/user/brand-preferences', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'Missing userId' });
+    }
+    
+    const profile = getUserProfile(userId);
+    if (!profile || !profile.brandPreferences) {
+      return res.json({ 
+        success: true, 
+        brandPreferences: null,
+        message: 'No brand preferences found'
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      brandPreferences: profile.brandPreferences
+    });
+    
+  } catch (error) {
+    console.error('❌ Brand preferences fetch error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Helper function to extract brand insights from customization text
+function extractBrandInsightsFromText(text) {
+  if (!text) return {};
+  
+  const lowerText = text.toLowerCase();
+  
+  // Common brands to detect
+  const commonBrands = [
+    'apple', 'amazon', 'target', 'costco', 'whole foods', 'trader joes',
+    'nike', 'adidas', 'patagonia', 'north face', 'lululemon',
+    'disney', 'nintendo', 'sony', 'samsung', 'google',
+    'starbucks', 'chipotle', 'panera', 'chick-fil-a',
+    'home depot', 'lowes', 'bed bath beyond', 'ikea',
+    'sephora', 'ulta', 'nordstrom', 'macys',
+    'rei', 'best buy', 'walmart', 'kroger'
+  ];
+  
+  const mentionedBrands = commonBrands.filter(brand => lowerText.includes(brand));
+  
+  // Extract family info
+  const hasKids = /kids?|children|child|son|daughter|family/i.test(text);
+  const kidsAgeMatch = text.match(/age[sd]?\s*(\d+)/i);
+  const kidsAge = kidsAgeMatch ? parseInt(kidsAgeMatch[1]) : null;
+  
+  // Extract interests
+  const interests = [];
+  const interestKeywords = {
+    'fitness': /fitness|gym|workout|exercise|running|yoga|sports/i,
+    'cooking': /cooking|kitchen|recipe|food|baking|chef/i,
+    'outdoor': /outdoor|hiking|camping|nature|adventure/i,
+    'tech': /tech|gadget|computer|phone|electronic|gaming/i,
+    'fashion': /fashion|clothes|style|outfit|clothing/i,
+    'home': /home|house|decor|furniture|garden|cleaning/i,
+    'health': /health|wellness|organic|natural/i,
+    'education': /education|school|learning|books/i
+  };
+  
+  Object.entries(interestKeywords).forEach(([interest, regex]) => {
+    if (regex.test(text)) {
+      interests.push(interest);
+    }
+  });
+  
+  // Extract budget/lifestyle preferences  
+  const budgetPrefs = [];
+  const budgetKeywords = {
+    'premium': /premium|quality|high.end|luxury|expensive/i,
+    'budget': /budget|cheap|affordable|deal|discount|save/i,
+    'organic': /organic|natural|eco.friendly|sustainable|green/i,
+    'bulk': /bulk|costco|warehouse|family.size|large/i,
+    'convenience': /convenient|time.saving|busy|quick|easy/i
+  };
+  
+  Object.entries(budgetKeywords).forEach(([pref, regex]) => {
+    if (regex.test(text)) {
+      budgetPrefs.push(pref);
+    }
+  });
+  
+  return {
+    mentionedBrands,
+    hasKids,
+    kidsAge,
+    interests,
+    budgetPrefs,
+    extractedAt: new Date().toISOString()
+  };
+}
+
+// User Feedback Collection Endpoint
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { userId, insightTitle, category, feedback, additionalFeedback, timestamp } = req.body;
+    
+    if (!userId || !insightTitle || !feedback) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: userId, insightTitle, feedback' 
+      });
+    }
+    
+    // Get or create user profile
+    let profile = getUserProfile(userId);
+    if (!profile) {
+      profile = createNewUserProfile(userId, { name: 'User', email: `${userId}@demo.com` });
+      userProfiles[userId] = profile;
+    }
+    
+    // Initialize feedback array if it doesn't exist
+    if (!profile.feedback) {
+      profile.feedback = [];
+    }
+    
+    // Create feedback entry
+    const feedbackEntry = {
+      id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      insightTitle: insightTitle,
+      category: category,
+      feedback: feedback, // 'helpful', 'not-helpful', or 'detailed'
+      additionalFeedback: additionalFeedback || '',
+      timestamp: timestamp || new Date().toISOString(),
+      processed: false
+    };
+    
+    // Add to user's feedback history
+    profile.feedback.push(feedbackEntry);
+    profile.updatedAt = new Date().toISOString();
+    
+    // Log for development
+    console.log(`📝 Feedback received from ${userId}:`, {
+      insight: insightTitle,
+      category: category,
+      feedback: feedback,
+      additional: additionalFeedback ? 'Yes' : 'No'
+    });
+    
+    // In production, this would:
+    // 1. Send to ML training pipeline
+    // 2. Update urgency classification models
+    // 3. Adjust personalization algorithms
+    // 4. Store in production database
+    
+    // Simulate learning process
+    setTimeout(() => {
+      console.log(`🧠 Processing feedback for user ${userId} - adjusting urgency models...`);
+      // This would trigger model retraining in production
+    }, 1000);
+    
+    res.json({ 
+      success: true, 
+      message: 'Feedback received and will be used to improve your experience',
+      feedbackId: feedbackEntry.id
+    });
+    
+  } catch (error) {
+    console.error('❌ Feedback submission error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Calendar Events Management API
+app.get('/api/calendar-events', async (req, res) => {
+  try {
+    const userId = req.query.userId || 'default';
+    
+    // Get user profile
+    const profile = getUserProfile(userId);
+    if (!profile) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User profile not found' 
+      });
+    }
+    
+    // Get calendar data from HomeOpsDataManager
+    const dataManager = new HomeOpsDataManager(userId, null);
+    const calendarData = await dataManager.getCalendarInsights();
+    
+    // Return formatted calendar events
+    res.json({
+      success: true,
+      events: calendarData.upcomingEvents || [],
+      weeklyLoad: calendarData.weeklyLoad || 65,
+      upcomingCount: calendarData.upcomingCount || 0,
+      message: 'Calendar events retrieved successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Calendar events fetch error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/calendar-events', async (req, res) => {
+  try {
+    const { userId, title, action, source } = req.body;
+    
+    if (!userId || !title || !action) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: userId, title, action' 
+      });
+    }
+    
+    // Get user profile
+    let profile = getUserProfile(userId);
+    if (!profile) {
+      profile = createNewUserProfile(userId, { name: 'User' });
+      userProfiles[userId] = profile;
+    }
+    
+    // Initialize calendar events array if it doesn't exist
+    if (!profile.calendarEvents) {
+      profile.calendarEvents = [];
+    }
+    
+    // Create new calendar event entry
+    const eventEntry = {
+      id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      title: title,
+      action: action, // 'add', 'prep_complete', 'reschedule'
+      source: source || 'manual',
+      timestamp: new Date().toISOString(),
+      status: 'active'
+    };
+    
+    // Add to user's calendar events
+    profile.calendarEvents.push(eventEntry);
+    profile.updatedAt = new Date().toISOString();
+    
+    console.log(`📅 Calendar action processed for ${userId}:`, {
+      title: title,
+      action: action,
+      source: source
+    });
+    
+    // In production, this would:
+    // 1. Integrate with Google Calendar API
+    // 2. Create actual calendar events
+    // 3. Set up notifications and reminders
+    // 4. Sync with other connected calendars
+    
+    res.json({ 
+      success: true, 
+      message: `Event "${title}" ${action} successfully`,
+      eventId: eventEntry.id
+    });
+    
+  } catch (error) {
+    console.error('❌ Calendar event creation error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.patch('/api/calendar-events', async (req, res) => {
+  try {
+    const { userId, eventTitle, action, newDateTime, displayTime, eventData } = req.body;
+    
+    if (!userId || !eventTitle || !action) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: userId, eventTitle, action' 
+      });
+    }
+    
+    // Get user profile
+    let profile = getUserProfile(userId);
+    if (!profile) {
+      profile = createNewUserProfile(userId, { name: 'User' });
+      userProfiles[userId] = profile;
+    }
+    
+    // Initialize calendar actions array if it doesn't exist
+    if (!profile.calendarActions) {
+      profile.calendarActions = [];
+    }
+    
+    let actionMessage = '';
+    let success = true;
+    
+    switch(action) {
+      case 'prep_complete':
+        // Mark preparation as complete
+        const prepAction = {
+          id: `prep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          eventTitle: eventTitle,
+          action: 'prep_complete',
+          timestamp: new Date().toISOString(),
+          eventData: eventData
+        };
+        profile.calendarActions.push(prepAction);
+        actionMessage = `Preparation marked complete for "${eventTitle}"`;
+        break;
+        
+      case 'reschedule':
+        // Process rescheduling
+        if (!newDateTime || !displayTime) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Missing reschedule data: newDateTime, displayTime' 
+          });
+        }
+        
+        const rescheduleAction = {
+          id: `reschedule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          eventTitle: eventTitle,
+          action: 'reschedule',
+          originalTime: eventData?.time || 'Unknown',
+          newDateTime: newDateTime,
+          displayTime: displayTime,
+          timestamp: new Date().toISOString(),
+          eventData: eventData
+        };
+        profile.calendarActions.push(rescheduleAction);
+        actionMessage = `Event "${eventTitle}" rescheduled to ${displayTime}`;
+        break;
+        
+      default:
+        return res.status(400).json({ 
+          success: false, 
+          error: `Unknown action: ${action}` 
+        });
+    }
+    
+    profile.updatedAt = new Date().toISOString();
+    
+    console.log(`📅 Calendar update processed for ${userId}:`, {
+      event: eventTitle,
+      action: action,
+      newTime: displayTime || 'N/A'
+    });
+    
+    // In production, this would:
+    // 1. Update Google Calendar events via API
+    // 2. Send confirmation notifications
+    // 3. Update related reminders and prep tasks
+    // 4. Sync changes across all connected platforms
+    
+    res.json({ 
+      success: success, 
+      message: actionMessage,
+      action: action,
+      eventTitle: eventTitle
+    });
+    
+  } catch (error) {
+    console.error('❌ Calendar event update error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
