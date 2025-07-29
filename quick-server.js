@@ -1504,8 +1504,10 @@ async function getEmailIntelligenceForChat(userId, query = '') {
     
     console.log(`🧠 Getting email intelligence for chat: ${userId}, query: "${query}"`);
     
-    // Check for specific sender queries (e.g., "last email from Woods Academy")
-    const senderMatch = query.match(/(?:email|message).*from\s+([^?]+?)(?:\?|$)/i);
+    // Check for specific sender queries (e.g., "last email from Woods Academy", "woods academy email")
+    const senderMatch = query.match(/(?:email|message).*from\s+([^?]+?)(?:\?|$)/i) ||
+                       query.match(/(?:last|recent)\s+([^?]+?)\s+email/i) ||
+                       query.match(/([^?]+?)\s+email.*(?:got|received)/i);
     if (senderMatch) {
       const senderName = senderMatch[1].trim();
       console.log(`🎯 Specific sender query detected: "${senderName}"`);
@@ -2651,7 +2653,9 @@ app.post('/api/chat', async (req, res) => {
     
     // Check if user is asking about emails, deals, bills, etc.
     const emailKeywords = ['email', 'deal', 'sale', 'bill', 'payment', 'school', 'delivery', 'package', 'appointment'];
+    const schoolKeywords = ['school', 'academy', 'teacher', 'education', 'class', 'parent', 'conference', 'woods'];
     const isEmailQuery = emailKeywords.some(keyword => message.toLowerCase().includes(keyword));
+    const isSchoolQuery = schoolKeywords.some(keyword => message.toLowerCase().includes(keyword));
     
     if (isEmailQuery) {
       console.log('📧 Email-related query detected, fetching email intelligence...');
@@ -2667,7 +2671,15 @@ Subject: ${emailIntelligence.emailData.subject}
 Date: ${emailIntelligence.emailData.date}
 Summary: ${emailIntelligence.summary}
 
-Provide a conversational response about this email content, highlighting key points and action items.`;
+${emailIntelligence.hasCalendarEvents ? `
+IMPORTANT CALENDAR EVENTS FOUND:
+${emailIntelligence.calendarEvents.map(event => 
+  `• ${event.title} - ${new Date(event.start).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${new Date(event.start).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
+).join('\n')}
+
+Focus your response on these key events and dates. Help the user understand what action items they need to prioritize.` : ''}
+
+Provide a conversational response about this email content, highlighting key points, action items, and calendar events.`;
         } else if (emailIntelligence.category === 'purchase-history') {
           emailContext = `\nPURCHASE HISTORY FROM ${emailIntelligence.retailerName.toUpperCase()}:
 Last Order: ${emailIntelligence.purchaseData.lastOrder.date} - ${emailIntelligence.purchaseData.lastOrder.amount}
@@ -2699,6 +2711,13 @@ CURRENT USER CONTEXT:
 ${personalContext.preferences.hasData ? `- Brand Preferences: ${personalContext.preferences.brands.customizationText}` : ''}
 ${personalContext.emails.hasData ? `- Recent Email Activity: ${personalContext.emails.recent.length} emails processed` : ''}
 ${emailContext}
+
+PRIORITY GUIDELINES:
+- If this is about school/education content, focus ONLY on school events, deadlines, and family priorities
+- Prioritize calendar events and important dates above all else
+- For school emails, highlight action items like conferences, permission slips, project due dates
+- Do NOT mention commerce deals or sales when discussing school/family content
+- Be helpful and focused on what matters most to busy parents
 
 Remember: Be direct, emotionally intelligent, and actionable. Use the combined voice of all 11 personalities to respond with sophisticated nuance.`;
     
@@ -2735,14 +2754,14 @@ Remember: Be direct, emotionally intelligent, and actionable. Use the combined v
 
     console.log('🎭 Generated response using sophisticated tone prompt');
 
-    // Generate commerce recommendations based on message content (but not for email/purchase queries)
+    // Generate commerce recommendations based on message content (but not for email/purchase/school queries)
     let commerceRecommendations = [];
-    if (emailInsights.length === 0) {
-      // Only generate commerce recommendations if no email insights were found
+    if (emailInsights.length === 0 && !isSchoolQuery) {
+      // Only generate commerce recommendations if no email insights were found AND it's not a school query
       commerceRecommendations = await generateCommerceRecommendations(message, personalContext);
       console.log('🛍️ Commerce recommendations generated:', commerceRecommendations.length, 'items');
     } else {
-      console.log('📧 Skipping commerce recommendations - email insights take priority');
+      console.log('📧 Skipping commerce recommendations - email insights or school query takes priority');
     }
     
     // Get calendar events if message is schedule-related
