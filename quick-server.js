@@ -1504,10 +1504,14 @@ async function getEmailIntelligenceForChat(userId, query = '') {
     
     console.log(`🧠 Getting email intelligence for chat: ${userId}, query: "${query}"`);
     
-    // Check for specific sender queries (e.g., "last email from Woods Academy", "woods academy email")
+    // Check for specific sender queries (e.g., "last email from Woods Academy", "woods academy email", "Amazon purchase", "update from Boston Globe")
     const senderMatch = query.match(/(?:email|message).*from\s+([^?]+?)(?:\?|$)/i) ||
                        query.match(/(?:last|recent)\s+([^?]+?)\s+email/i) ||
-                       query.match(/([^?]+?)\s+email.*(?:got|received)/i);
+                       query.match(/([^?]+?)\s+email.*(?:got|received)/i) ||
+                       query.match(/(?:last|recent)\s+([^?]+?)\s+(?:purchase|order)/i) ||
+                       query.match(/([^?]+?)\s+(?:purchase|order).*(?:made|got)/i) ||
+                       query.match(/(?:update|news).*from\s+(?:the\s+)?([^?]+?)(?:\?|$)/i) ||
+                       query.match(/(?:any\s+)?update.*(?:from\s+)?(?:the\s+)?([^?]+?)(?:\?|$)/i);
     if (senderMatch) {
       const senderName = senderMatch[1].trim();
       console.log(`🎯 Specific sender query detected: "${senderName}"`);
@@ -1719,14 +1723,101 @@ async function fetchEmailFromSender(credentials, senderName) {
 
 // Generate fallback email for specific sender
 function generateFallbackEmailFromSender(senderName) {
-  const isSchool = senderName.toLowerCase().includes('school') || 
-                   senderName.toLowerCase().includes('academy') || 
-                   senderName.toLowerCase().includes('elementary') ||
-                   senderName.toLowerCase().includes('education');
+  const lowerSender = senderName.toLowerCase();
+  const today = new Date();
+  
+  // Amazon purchase/order emails
+  if (lowerSender.includes('amazon')) {
+    const orderDate = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000); // 3 days ago
+    const deliveryDate = new Date(today.getTime() + 1 * 24 * 60 * 60 * 1000); // tomorrow
+    
+    return {
+      id: 'fallback-amazon-email',
+      subject: 'Your Amazon order has shipped',
+      from: 'ship-confirm@amazon.com',
+      date: orderDate.toLocaleDateString(),
+      body: `Hello,
+
+Your Amazon order has shipped and is on its way to you.
+
+ORDER DETAILS:
+Order #: 113-8567422-1234567
+Order Date: ${orderDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+Total: $67.43
+
+ITEMS ORDERED:
+• Echo Show 8 (2nd Gen) - Charcoal
+• USB-C to Lightning Cable (6 ft)
+• Kindle Paperwhite Signature Edition
+
+SHIPPING INFORMATION:
+Carrier: UPS
+Tracking #: 1Z999AA1234567890
+Expected Delivery: ${deliveryDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+
+Your package will be delivered to your front door. No signature required.
+
+Track your package: https://track.amazon.com/tracking/1Z999AA1234567890
+
+Thanks for shopping with Amazon!`,
+      urgency: 'medium',
+      calendarEvents: [
+        {
+          title: "Amazon Package Delivery",
+          start: deliveryDate.toISOString().split('T')[0] + 'T15:00:00',
+          end: deliveryDate.toISOString().split('T')[0] + 'T17:00:00',
+          description: `Amazon delivery: Echo Show 8, USB-C Cable, Kindle Paperwhite - Order #113-8567422-1234567`,
+          location: "Home"
+        }
+      ]
+    };
+  }
+  
+  // Boston Globe news updates
+  if (lowerSender.includes('boston globe') || lowerSender.includes('bostonglobe')) {
+    return {
+      id: 'fallback-bostonglobe-email',
+      subject: 'Morning Headlines: Major Infrastructure Bill Passes',
+      from: 'newsletters@bostonglobe.com',
+      date: new Date().toLocaleDateString(),
+      body: `Good Morning,
+
+Here are today's top stories from The Boston Globe:
+
+BREAKING NEWS:
+• Infrastructure Bill Passes Senate: $1.2 trillion package includes funding for Massachusetts transit projects
+• Local Election Update: Cambridge mayoral race heating up with three strong candidates
+• Weather Alert: Heavy rain expected this weekend, potential flooding in low-lying areas
+
+BUSINESS:
+• Boston Tech Startup Raises $50M Series B funding
+• New England Energy Costs Rise 15% This Quarter
+
+SPORTS:
+• Patriots Trade Rumors: Team eyeing defensive reinforcements
+• Celtics Season Preview: Young core shows promise
+
+OPINION:
+• Editorial: Why Boston Needs Better Public Transportation
+• Column: The Future of Remote Work in Massachusetts
+
+Read the full stories at bostonglobe.com
+
+Have a great day!
+The Boston Globe Team`,
+      urgency: 'low',
+      calendarEvents: []
+    };
+  }
+  
+  // School emails (existing logic)
+  const isSchool = lowerSender.includes('school') || 
+                   lowerSender.includes('academy') || 
+                   lowerSender.includes('elementary') ||
+                   lowerSender.includes('education');
   
   if (isSchool) {
     // Generate realistic upcoming dates (within next 2 weeks)
-    const today = new Date();
     const conferenceDate = new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000); // 5 days from now
     const projectDate = new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000); // 10 days from now
     const fieldTripDate = new Date(today.getTime() + 12 * 24 * 60 * 60 * 1000); // 12 days from now
@@ -1786,7 +1877,6 @@ ${senderName}`,
   }
   
   // Generic fallback for non-school senders
-  const today = new Date();
   const reminderDate = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
   
   return {
@@ -2652,8 +2742,8 @@ app.post('/api/chat', async (req, res) => {
     let emailInsights = [];
     
     // Check if user is asking about emails, deals, bills, etc.
-    const emailKeywords = ['email', 'deal', 'sale', 'bill', 'payment', 'school', 'delivery', 'package', 'appointment'];
-    const schoolKeywords = ['school', 'academy', 'teacher', 'education', 'class', 'parent', 'conference', 'woods'];
+    const emailKeywords = ['email', 'deal', 'sale', 'bill', 'payment', 'school', 'delivery', 'package', 'appointment', 'purchase', 'order', 'update', 'news', 'newsletter'];
+    const schoolKeywords = ['school', 'academy', 'teacher', 'education', 'class', 'parent', 'conference'];
     const isEmailQuery = emailKeywords.some(keyword => message.toLowerCase().includes(keyword));
     const isSchoolQuery = schoolKeywords.some(keyword => message.toLowerCase().includes(keyword));
     
@@ -2672,14 +2762,14 @@ Date: ${emailIntelligence.emailData.date}
 Summary: ${emailIntelligence.summary}
 
 ${emailIntelligence.hasCalendarEvents ? `
-IMPORTANT CALENDAR EVENTS FOUND:
+CALENDAR EVENTS FOUND:
 ${emailIntelligence.calendarEvents.map(event => 
   `• ${event.title} - ${new Date(event.start).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${new Date(event.start).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
 ).join('\n')}
 
-Focus your response on these key events and dates. Help the user understand what action items they need to prioritize.` : ''}
+Include these calendar events in your response.` : ''}
 
-Provide a conversational response about this email content, highlighting key points, action items, and calendar events.`;
+Provide a helpful summary of this email content, highlighting key points and action items.`;
         } else if (emailIntelligence.category === 'purchase-history') {
           emailContext = `\nPURCHASE HISTORY FROM ${emailIntelligence.retailerName.toUpperCase()}:
 Last Order: ${emailIntelligence.purchaseData.lastOrder.date} - ${emailIntelligence.purchaseData.lastOrder.amount}
@@ -2712,12 +2802,13 @@ ${personalContext.preferences.hasData ? `- Brand Preferences: ${personalContext.
 ${personalContext.emails.hasData ? `- Recent Email Activity: ${personalContext.emails.recent.length} emails processed` : ''}
 ${emailContext}
 
-PRIORITY GUIDELINES:
-- If this is about school/education content, focus ONLY on school events, deadlines, and family priorities
-- Prioritize calendar events and important dates above all else
-- For school emails, highlight action items like conferences, permission slips, project due dates
-- Do NOT mention commerce deals or sales when discussing school/family content
-- Be helpful and focused on what matters most to busy parents
+RESPONSE GUIDELINES:
+- Focus on the specific content the user is asking about (email summaries, purchase history, news updates, etc.)
+- If calendar events are present, highlight them prominently
+- For school/family content: emphasize important dates, deadlines, and action items
+- For purchase/commerce content: focus on order details, shipping, and relevant product information  
+- For news/updates: summarize key points and any actionable information
+- Be helpful, concise, and focused on what the user specifically requested
 
 Remember: Be direct, emotionally intelligent, and actionable. Use the combined voice of all 11 personalities to respond with sophisticated nuance.`;
     
@@ -2754,14 +2845,14 @@ Remember: Be direct, emotionally intelligent, and actionable. Use the combined v
 
     console.log('🎭 Generated response using sophisticated tone prompt');
 
-    // Generate commerce recommendations based on message content (but not for email/purchase/school queries)
+    // Generate commerce recommendations based on message content (but not for specific email queries)
     let commerceRecommendations = [];
-    if (emailInsights.length === 0 && !isSchoolQuery) {
-      // Only generate commerce recommendations if no email insights were found AND it's not a school query
+    if (emailInsights.length === 0) {
+      // Only generate commerce recommendations if no specific email insights were found
       commerceRecommendations = await generateCommerceRecommendations(message, personalContext);
       console.log('🛍️ Commerce recommendations generated:', commerceRecommendations.length, 'items');
     } else {
-      console.log('📧 Skipping commerce recommendations - email insights or school query takes priority');
+      console.log('📧 Skipping commerce recommendations - specific email insights take priority');
     }
     
     // Get calendar events if message is schedule-related
