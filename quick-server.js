@@ -304,7 +304,7 @@ app.get('/api/email-intelligence', async (req, res) => {
     
     // Fallback to generated insights if no real data
     if (insights.length === 0) {
-      insights = dataManager.generateRealTimeInsights(userId, profile, limit);
+      insights = await dataManager.generateRealTimeInsights(userId, profile, limit);
       console.log(`📦 Using ${insights.length} generated insights as fallback`);
     }
     
