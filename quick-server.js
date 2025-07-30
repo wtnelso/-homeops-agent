@@ -5,6 +5,32 @@ const fs = require('fs');
 const { google } = require('googleapis');
 const HomeOpsDataManager = require('./services/data-manager');
 
+// Initialize Firebase Admin for email storage and user data
+const admin = require('firebase-admin');
+let db = null;
+
+try {
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert('./homeops-web-firebase-adminsdk-fbsvc-0a737a8eee.json'),
+      databaseURL: "https://homeops-web-default-rtdb.firebaseio.com/"
+    });
+  }
+  db = admin.firestore();
+  console.log('✅ Firebase Admin initialized successfully');
+} catch (error) {
+  console.log('⚠️ Firebase Admin initialization failed:', error.message);
+  // Create mock db for development
+  db = {
+    collection: () => ({
+      doc: () => ({
+        set: () => Promise.resolve(),
+        get: () => Promise.resolve({ exists: false, data: () => null })
+      })
+    })
+  };
+}
+
 const app = express();
 const PORT = 3000;
 
@@ -867,8 +893,29 @@ async function handleOAuthCallback(req, res) {
     const { tokens } = await oauth2Client.getToken(code);
     console.log('✅ Received tokens:', Object.keys(tokens));
     
-    // Store tokens
+    // Store tokens in OAuth client
     oauth2Client.setCredentials(tokens);
+    
+    // Get user email for storage
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    const profile = await gmail.users.getProfile({ userId: 'me' });
+    const userEmail = profile.data.emailAddress;
+    console.log(`📧 Connected Gmail for: ${userEmail}`);
+    
+    // Store tokens in Firebase for persistent access
+    try {
+      await db.collection('gmail_tokens').doc(userEmail).set({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expiry_date: tokens.expiry_date,
+        token_type: tokens.token_type || 'Bearer',
+        stored_at: new Date().toISOString(),
+        user_email: userEmail
+      });
+      console.log('✅ Gmail tokens stored in Firebase for:', userEmail);
+    } catch (storeError) {
+      console.error('❌ Error storing tokens:', storeError.message);
+    }
     
     // Redirect based on state
     if (state === 'onboarding') {
@@ -1608,17 +1655,42 @@ async function getEmailFromSpecificSender(profile, senderName, userId) {
   let emailData = null;
   let dataSource = 'fallback';
   
-  // Try to get real Gmail data first
-  if (profile.integrations && profile.integrations.gmail) {
-    try {
-      emailData = await fetchEmailFromSender(profile.integrations.gmail, senderName);
+  // Try to get real Gmail data from Firebase tokens
+  try {
+    // Try default user email first, then any email in Firebase
+    const userEmail = 'oliverhbaron@gmail.com'; // Your email - later this can be dynamic
+    console.log(`🔍 Looking for Gmail tokens for: ${userEmail}`);
+    
+    const tokenDoc = await db.collection('gmail_tokens').doc(userEmail).get();
+    
+    if (tokenDoc.exists) {
+      console.log(`✅ Found Gmail tokens for: ${userEmail}`);
+      const tokens = tokenDoc.data();
+      
+      // Set up OAuth client with stored tokens
+      const gmailOAuth = new google.auth.OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET,
+        process.env.GMAIL_REDIRECT_URI
+      );
+      
+      gmailOAuth.setCredentials({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expiry_date: tokens.expiry_date
+      });
+      
+      // Fetch real email
+      emailData = await fetchRealEmailFromSender(gmailOAuth, senderName);
       if (emailData) {
         dataSource = 'real';
         console.log(`✅ Found real email from ${senderName}`);
       }
-    } catch (gmailError) {
-      console.error(`❌ Gmail fetch failed for ${senderName}:`, gmailError.message);
+    } else {
+      console.log(`❌ No Gmail tokens found for: ${userEmail}`);
     }
+  } catch (gmailError) {
+    console.error(`❌ Gmail fetch failed for ${senderName}:`, gmailError.message);
   }
   
   // Fallback to generated email if no real data
@@ -1627,8 +1699,13 @@ async function getEmailFromSpecificSender(profile, senderName, userId) {
     console.log(`📦 Using generated email from ${senderName}`);
   }
   
-  // Generate AI summary of the email
-  const summaryResult = await generateEmailSummary(emailData, senderName);
+  // Generate AI summary of the email with calendar extraction
+  const summaryResult = await generateEmailSummaryWithCalendar(
+    emailData.subject, 
+    emailData.from, 
+    emailData.body, 
+    senderName
+  );
   
   return {
     success: true,
@@ -1663,7 +1740,83 @@ async function getEmailFromSpecificSender(profile, senderName, userId) {
   };
 }
 
-// Fetch email from specific sender using Gmail API
+// Fetch real email from Gmail API
+async function fetchRealEmailFromSender(gmailOAuth, senderName) {
+  console.log(`🔍 Gmail API search for sender: ${senderName}`);
+  
+  try {
+    const gmail = google.gmail({ version: 'v1', auth: gmailOAuth });
+    
+    // Build search query for specific sender
+    const searchQuery = `from:${senderName} newer_than:30d`;
+    console.log(`📧 Gmail search query: ${searchQuery}`);
+    
+    const emailList = await gmail.users.messages.list({
+      userId: 'me',
+      q: searchQuery,
+      maxResults: 1
+    });
+    
+    if (!emailList.data.messages || emailList.data.messages.length === 0) {
+      console.log(`📭 No recent emails found from: ${senderName}`);
+      return null;
+    }
+    
+    // Get the most recent email
+    const message = emailList.data.messages[0];
+    const email = await gmail.users.messages.get({
+      userId: 'me',
+      id: message.id,
+      format: 'full'
+    });
+    
+    const headers = email.data.payload.headers;
+    const subject = headers.find(h => h.name === 'Subject')?.value || '';
+    const from = headers.find(h => h.name === 'From')?.value || '';
+    const date = headers.find(h => h.name === 'Date')?.value || '';
+    
+    // Extract email body
+    let body = '';
+    if (email.data.payload.body?.data) {
+      body = Buffer.from(email.data.payload.body.data, 'base64').toString();
+    } else if (email.data.payload.parts) {
+      for (const part of email.data.payload.parts) {
+        if (part.mimeType === 'text/plain' && part.body?.data) {
+          body += Buffer.from(part.body.data, 'base64').toString();
+        } else if (part.mimeType === 'text/html' && part.body?.data && !body) {
+          // Use HTML content if no plain text available
+          const htmlBody = Buffer.from(part.body.data, 'base64').toString();
+          // Basic HTML to text conversion
+          body = htmlBody
+            .replace(/<[^>]*>/g, ' ')          // Remove HTML tags
+            .replace(/&nbsp;/g, ' ')           // Replace non-breaking spaces
+            .replace(/&amp;/g, '&')            // Replace HTML entities
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/\s+/g, ' ')              // Collapse multiple spaces
+            .trim();
+        }
+      }
+    }
+    
+    console.log(`✅ Found real email: "${subject.substring(0, 50)}..."`);
+    
+    return {
+      id: email.data.id,
+      subject,
+      from,
+      date: new Date(date).toLocaleDateString(),
+      body,
+      raw: email.data
+    };
+    
+  } catch (error) {
+    console.error(`❌ Gmail API error for sender ${senderName}:`, error.message);
+    throw error;
+  }
+}
+
+// Fetch email from specific sender using Gmail API (legacy function)
 async function fetchEmailFromSender(credentials, senderName) {
   console.log(`🔍 Gmail API search for sender: ${senderName}`);
   
@@ -2810,6 +2963,10 @@ RESPONSE GUIDELINES:
 - For news/updates: summarize key points and any actionable information
 - Be helpful, concise, and focused on what the user specifically requested
 
+${emailInsights.length > 0 ? `
+OVERRIDE: For this email-focused query, respond with ONLY conversational text. Do NOT include any JSON formatting, code blocks, or arrays in your response. The user is asking about email content, so provide a natural, helpful summary without any technical formatting.
+` : ''}
+
 Remember: Be direct, emotionally intelligent, and actionable. Use the combined voice of all 11 personalities to respond with sophisticated nuance.`;
     
     // Enhanced chat response using sophisticated tone prompt with email context
@@ -3872,6 +4029,285 @@ function createNewUserProfile(userId, userData) {
     lastLogin: new Date().toISOString()
   };
 }
+
+// AI-powered email summary generation with calendar event extraction
+async function generateEmailSummaryWithCalendar(subject, from, body, senderName) {
+  try {
+    const prompt = `You are an email intelligence assistant. Analyze this email and provide a helpful summary.
+
+Email Details:
+Subject: ${subject}
+From: ${from}
+Content: ${body.substring(0, 1500)}
+
+Provide ONLY a conversational summary in plain text (no JSON, no code blocks, no formatting):
+- 2-3 sentences highlighting key points and any actions needed
+- If there are dates, appointments, or deadlines, mention them naturally
+- Focus on practical information that helps with mental load management
+- Be conversational and helpful
+
+Do NOT include any JSON formatting, brackets, or code blocks in your response.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 300,
+      temperature: 0.3
+    });
+
+    const summaryText = response.choices[0].message.content.trim();
+    
+    // Extract calendar events separately using a second AI call if needed
+    const calendarEvents = await extractCalendarEventsFromEmail(subject, body);
+    
+    return {
+      summary: summaryText,
+      calendarEvents: calendarEvents || [],
+      hasCalendarEvents: calendarEvents && calendarEvents.length > 0
+    };
+
+  } catch (error) {
+    console.error('❌ AI summary generation failed:', error);
+    return {
+      summary: `The email from ${senderName} is about: ${subject}. Please check the full email for details.`,
+      calendarEvents: [],
+      hasCalendarEvents: false
+    };
+  }
+}
+
+// Separate function to extract calendar events to avoid JSON parsing issues
+async function extractCalendarEventsFromEmail(subject, body) {
+  try {
+    const prompt = `Extract calendar events from this email. Look for dates, appointments, deadlines, or scheduled activities.
+
+Subject: ${subject}
+Content: ${body.substring(0, 1000)}
+
+If you find any calendar events, respond with ONLY valid JSON array:
+[
+  {
+    "title": "Event name",
+    "start": "2025-MM-DDTHH:mm:00",
+    "allDay": false,
+    "description": "Event details"
+  }
+]
+
+If no calendar events are found, respond with: []
+
+Important: Respond with ONLY the JSON array, no other text.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 300,
+      temperature: 0.1
+    });
+
+    try {
+      const events = JSON.parse(response.choices[0].message.content.trim());
+      
+      // Add Google Calendar URLs to events
+      if (Array.isArray(events) && events.length > 0) {
+        return events.map(event => ({
+          ...event,
+          googleCalendarUrl: generateCalendarUrl(event)
+        }));
+      }
+      
+      return [];
+    } catch (parseError) {
+      console.log('📅 No calendar events found or parsing failed');
+      return [];
+    }
+
+  } catch (error) {
+    console.error('❌ Calendar extraction failed:', error);
+    return [];
+  }
+}
+
+// Test Gmail Access endpoint
+app.get('/api/test-gmail', async (req, res) => {
+  try {
+    const userEmail = req.query.email || 'oliverhbaron@gmail.com'; // Default to your email
+    
+    console.log(`🧪 Testing Gmail access for: ${userEmail}`);
+    
+    // Get stored tokens from Firebase
+    const tokenDoc = await db.collection('gmail_tokens').doc(userEmail).get();
+    
+    if (!tokenDoc.exists) {
+      return res.json({ 
+        success: false, 
+        error: 'No Gmail tokens found. Please connect Gmail first.',
+        needsAuth: true
+      });
+    }
+    
+    const tokens = tokenDoc.data();
+    console.log('✅ Found stored tokens for:', userEmail);
+    
+    // Set up OAuth client with stored tokens
+    const testOAuth = new google.auth.OAuth2(
+      process.env.GMAIL_CLIENT_ID,
+      process.env.GMAIL_CLIENT_SECRET,
+      process.env.GMAIL_REDIRECT_URI
+    );
+    
+    testOAuth.setCredentials({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expiry_date: tokens.expiry_date
+    });
+    
+    const gmail = google.gmail({ version: 'v1', auth: testOAuth });
+    
+    // Test basic Gmail access
+    const profile = await gmail.users.getProfile({ userId: 'me' });
+    
+    // Get recent emails
+    const emailList = await gmail.users.messages.list({
+      userId: 'me',
+      maxResults: 5,
+      q: 'newer_than:7d'
+    });
+    
+    res.json({
+      success: true,
+      profile: {
+        email: profile.data.emailAddress,
+        totalMessages: profile.data.messagesTotal
+      },
+      recentEmails: emailList.data.messages?.length || 0,
+      message: 'Gmail access working!'
+    });
+    
+  } catch (error) {
+    console.error('❌ Gmail test error:', error);
+    res.json({
+      success: false,
+      error: error.message,
+      needsReauth: error.message.includes('invalid_grant') || error.message.includes('unauthorized')
+    });
+  }
+});
+
+// Real Gmail Email Summary endpoint - This is what you need!
+app.get('/api/email-summary', async (req, res) => {
+  try {
+    const { sender, userEmail = 'oliverhbaron@gmail.com' } = req.query;
+    
+    if (!sender) {
+      return res.status(400).json({ error: 'Sender parameter required' });
+    }
+    
+    console.log(`📧 Getting email summary from: ${sender} for user: ${userEmail}`);
+    
+    // Get stored tokens
+    const tokenDoc = await db.collection('gmail_tokens').doc(userEmail).get();
+    if (!tokenDoc.exists) {
+      return res.json({ 
+        success: false, 
+        error: 'Gmail not connected. Please authenticate first.',
+        needsAuth: true
+      });
+    }
+    
+    const tokens = tokenDoc.data();
+    
+    // Set up OAuth client
+    const gmailOAuth = new google.auth.OAuth2(
+      process.env.GMAIL_CLIENT_ID,
+      process.env.GMAIL_CLIENT_SECRET,
+      process.env.GMAIL_REDIRECT_URI
+    );
+    
+    gmailOAuth.setCredentials({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expiry_date: tokens.expiry_date
+    });
+    
+    const gmail = google.gmail({ version: 'v1', auth: gmailOAuth });
+    
+    // Search for emails from specific sender
+    const searchQuery = `from:${sender} newer_than:30d`;
+    const emailList = await gmail.users.messages.list({
+      userId: 'me',
+      q: searchQuery,
+      maxResults: 1
+    });
+    
+    if (!emailList.data.messages || emailList.data.messages.length === 0) {
+      return res.json({
+        success: false,
+        message: `No recent emails found from ${sender} in the last 30 days`
+      });
+    }
+    
+    // Get the most recent email
+    const message = emailList.data.messages[0];
+    const email = await gmail.users.messages.get({
+      userId: 'me',
+      id: message.id,
+      format: 'full'
+    });
+    
+    const headers = email.data.payload.headers;
+    const subject = headers.find(h => h.name === 'Subject')?.value || '';
+    const from = headers.find(h => h.name === 'From')?.value || '';
+    const date = headers.find(h => h.name === 'Date')?.value || '';
+    
+    // Extract email body
+    let body = '';
+    if (email.data.payload.body?.data) {
+      body = Buffer.from(email.data.payload.body.data, 'base64').toString();
+    } else if (email.data.payload.parts) {
+      for (const part of email.data.payload.parts) {
+        if (part.mimeType === 'text/plain' && part.body?.data) {
+          body += Buffer.from(part.body.data, 'base64').toString();
+        } else if (part.mimeType === 'text/html' && part.body?.data && !body) {
+          // Use HTML content if no plain text available
+          const htmlBody = Buffer.from(part.body.data, 'base64').toString();
+          // Basic HTML to text conversion
+          body = htmlBody
+            .replace(/<[^>]*>/g, ' ')          // Remove HTML tags
+            .replace(/&nbsp;/g, ' ')           // Replace non-breaking spaces
+            .replace(/&amp;/g, '&')            // Replace HTML entities
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/\s+/g, ' ')              // Collapse multiple spaces
+            .trim();
+        }
+      }
+    }
+    
+    // Generate AI summary with calendar extraction
+    const summary = await generateEmailSummaryWithCalendar(subject, from, body, sender);
+    
+    res.json({
+      success: true,
+      email: {
+        subject,
+        from,
+        date: new Date(date).toLocaleDateString(),
+        body: body.substring(0, 1000) + (body.length > 1000 ? '...' : '')
+      },
+      summary: summary.summary,
+      calendarEvents: summary.calendarEvents || [],
+      hasCalendarEvents: (summary.calendarEvents || []).length > 0
+    });
+    
+  } catch (error) {
+    console.error('❌ Email summary error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 HomeOps server running at http://localhost:${PORT}`);
