@@ -28,10 +28,7 @@ app.post('/api/decoder-cards', (req, res) => {
   res.json({ success: true, cards: [] });
 });
 
-app.post('/api/flight-search', (req, res) => {
-  console.log('✈️ Flight search API called');
-  res.json({ success: true, flights: [] });
-});
+// Removed flight search - not relevant to HomeOps core functionality
 
 app.post('/api/analyze-sample-email', (req, res) => {
   console.log('📋 Email analysis API called');
