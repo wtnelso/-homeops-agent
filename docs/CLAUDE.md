@@ -18,6 +18,14 @@ node quick-server.js
 
 # Development mode with auto-restart
 npm run dev
+
+# React App Development
+cd homeops-react-compatible
+npm install
+npm run build
+cd ..
+cp -r homeops-react-compatible/dist .
+node react-server.js
 ```
 
 ### Testing
@@ -42,9 +50,12 @@ git push origin main
 
 ## Key Files
 - `simple-server.js` - Basic server without external dependencies
-- `quick-server.js` - Full server with all integrations
+- `quick-server.js` - Full server with all integrations  
+- `react-server.js` - React app server (serves from dist/)
+- `homeops-react-compatible/` - React application source code
 - `services/` - Core business logic modules
-- `public/` - Frontend files
+- `public/` - Frontend files (legacy)
+- `dist/` - Built React application files
 - `.env.example` - Environment variable template
 
 ## Required Environment Variables

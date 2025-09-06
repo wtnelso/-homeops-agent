@@ -1,71 +1,27 @@
-# HomeOps Agent
+# React + TypeScript + Vite
 
-A comprehensive personal AI assistant for home operations management, focusing on email intelligence and family logistics coordination.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Quick Start
+Currently, two official plugins are available:
 
-```bash
-# Install dependencies
-npm install
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-# Start development server (simple mode)
-npm run dev -- --simple
+## Expanding the ESLint configuration
 
-# Start full server with all features
-npm start
+If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+
+- Configure the top-level `parserOptions` property like this:
+
+```js
+   parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    project: ['./tsconfig.json', './tsconfig.node.json'],
+    tsconfigRootDir: __dirname,
+   },
 ```
 
-## Project Structure
-
-```
-├── server.js              # Main server entry point
-├── simple-server.js       # Lightweight server for development
-├── quick-server.js        # Full-featured production server
-├── index.cjs              # Alternative entry point
-├── services/              # Core business logic
-│   ├── email-intelligence.js
-│   ├── commerce-intelligence.js
-│   └── data-manager.js
-├── routes/                # API route handlers
-├── public/                # Frontend files
-├── scripts/               # Build and utility scripts
-├── docs/                  # Documentation
-│   ├── setup/            # Setup guides
-│   ├── deployment/       # Deployment docs
-│   └── technical/        # Technical documentation
-├── tests/                 # Test files
-│   ├── unit/             # Unit tests
-│   └── html/             # HTML test pages
-└── archive/              # Legacy and backup files
-```
-
-## Key Features
-
-- **📧 Email Intelligence**: Smart categorization and analysis of emails
-- **🛍️ Commerce Intelligence**: Deal analysis and shopping insights
-- **📅 Calendar Integration**: Event extraction and scheduling
-- **🤖 AI Chat Interface**: Natural language queries and responses
-
-## Environment Setup
-
-Copy `.env.example` to `.env` and configure your API keys:
-
-- `OPENAI_API_KEY` - For AI processing
-- `GMAIL_CLIENT_ID` & `GMAIL_CLIENT_SECRET` - For email integration
-- Firebase credentials for data storage
-
-## Development
-
-- **Simple Mode**: `node simple-server.js` (no API keys required)
-- **Full Mode**: `node quick-server.js` (requires configuration)
-- **Auto-restart**: `npm run dev`
-
-## Deployment
-
-See `docs/deployment/` for deployment instructions.
-
-## Documentation
-
-- Setup guides: `docs/setup/`
-- Deployment: `docs/deployment/`
-- Technical docs: `docs/technical/`
+- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
+- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
+- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
