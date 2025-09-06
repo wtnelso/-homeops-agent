@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import jsconfigPaths from 'vite-jsconfig-paths';
 import svgr from 'vite-plugin-svgr';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
@@ -25,7 +26,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        '@ant-design/icons': path.resolve(__dirname, 'node_modules/@ant-design/icons')
+        '@ant-design/icons': path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'node_modules/@ant-design/icons')
         // Add more aliases as needed
       }
     },
