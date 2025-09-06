@@ -52,7 +52,7 @@
     "swiper": "^11.2.10",
     "swr": "^2.3.4",
     "tailwind-merge": "^3.3.1",
-    "vite": "^4.2.0",
+    "vite": "^5.4.0",
     "vite-jsconfig-paths": "^2.0.1",
     "web-vitals": "^4.2.4",
     "yup": "^1.6.1"
@@ -62,7 +62,7 @@
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "@vitejs/plugin-react": "^4.0.3",
+    "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.21",
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
