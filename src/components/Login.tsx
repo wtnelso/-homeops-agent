@@ -1,15 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ROUTES } from '../config/routes';
+import { ROUTES, IS_LIVE } from '../config/routes';
 import { auth } from '../lib/supabase';
-import Layout from './Layout';
+import { useAuth } from '../contexts/AuthContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (!loading && user) {
+      const redirectTo = IS_LIVE ? ROUTES.DASHBOARD : ROUTES.HOME;
+      navigate(redirectTo, { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +28,9 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
+      console.log('🔐 Testing email/password login...');
       const { data, error } = await auth.signIn(email, password);
+      console.log('📊 Email login result:', { data, error });
       
       if (error) {
         setError(error.message);
@@ -25,7 +38,10 @@ const Login: React.FC = () => {
       }
 
       if (data?.user) {
-        navigate(ROUTES.DASHBOARD);
+        console.log('✅ Email login successful');
+        // In staging, redirect to home page after login
+        const redirectTo = IS_LIVE ? ROUTES.DASHBOARD : ROUTES.HOME;
+        navigate(redirectTo);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -36,146 +52,214 @@ const Login: React.FC = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    console.log("🚀 Google sign in button clicked");
     try {
       setError('');
-      const { error } = await auth.signInWithGoogle();
       
-      if (error) {
-        setError(error.message);
+      console.log("📞 About to call auth.signInWithGoogle()");
+      const result = await auth.signInWithGoogle();
+      console.log("📊 signInWithGoogle result:", result);
+      
+      if (result.error) {
+        console.error("❌ OAuth error:", result.error);
+        setError(result.error.message);
+      } else {
+        console.log("✅ OAuth initiated successfully");
       }
-      // Note: Google OAuth will redirect automatically, so no manual navigation needed
+      
+      
     } catch (error) {
-      console.error('Google sign in error:', error);
+      console.error('💥 Google sign in error:', error);
       setError('Failed to sign in with Google. Please try again.');
     }
   };
 
   return (
-    <Layout>
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Form Panel - Full width on mobile, half on desktop */}
+      <div className="flex-1 flex flex-col lg:w-1/2">
+        {/* Mobile Header with Logo */}
+        <div className="lg:hidden py-6 px-4 sm:px-6 bg-gradient-to-r from-blue-600 to-purple-700">
+          <div className="flex items-center justify-center">
+            <img src="/favicon.ico" alt="HomeOps" className="w-8 h-8 mr-2" />
+            <h1 className="text-2xl font-bold text-white">HomeOps</h1>
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
+          <div className="mx-auto w-full max-w-sm lg:w-96">
+            {/* Back to dashboard link */}
+            <div className="mb-8">
+              <Link 
+                to={ROUTES.HOME} 
+                className="flex items-center text-sm text-gray-600 hover:text-gray-900"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Return home
+              </Link>
+            </div>
+
           <div>
-            <Link to={ROUTES.HOME} className="flex justify-center">
-              <div className="text-2xl font-bold">
-                <span className="text-slate-800">Home</span>
-                <span className="text-slate-500">Ops</span>
-              </div>
-            </Link>
-            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-slate-800">
-              Sign in to your account
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900">Sign In</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Enter your email and password to sign in!
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-            {error && (
-              <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
-                {error}
-              </div>
-            )}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700">
-                Email address
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-500 text-slate-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Enter your email"
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700">
-                  Password
-                </label>
-                <div className="text-sm">
-                  <Link to="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-                    Forgot your password?
-                  </Link>
-                </div>
-              </div>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  type="password"
-                  name="password"
-                  required
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-500 text-slate-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Enter your password"
-                />
-              </div>
-            </div>
-
-            <div>
+          <div className="mt-8">
+            {/* Social Login Buttons */}
+            <div className="mt-6">
               <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button"
+                onClick={() => {
+                  console.log('🖱️ Google button clicked!');
+                  console.log('🔍 handleGoogleSignIn function:', handleGoogleSignIn);
+                  console.log('🔍 auth object:', auth);
+                  handleGoogleSignIn().catch(err => console.error('🚨 Click handler error:', err));
+                }}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-500 hover:bg-gray-50"
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                <img src="/google-logo.svg" alt="Google" style={{ width: 18, height: 18 }} />
+                <span className="ml-2">Log in with Google</span>
               </button>
             </div>
 
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-300" />
+                  <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-slate-500">Or continue with</span>
+                  <span className="px-2 bg-white text-gray-500">Or</span>
+                </div>
+              </div>
+            </div>
+
+            <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
+              {error && (
+                <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email<span className="text-red-500">*</span>
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="info@gmail.com"
+                  />
                 </div>
               </div>
 
-              <div className="mt-6">
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password<span className="text-red-500">*</span>
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Enter your password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end">
+                <div className="text-sm">
+                  <Link to={ROUTES.RESET_PASSWORD} className="font-medium text-blue-600 hover:text-blue-500">
+                    Forgot password?
+                  </Link>
+                </div>
+              </div>
+
+              <div>
                 <button
-                  type="button"
-                  onClick={handleGoogleSignIn}
-                  className="w-full inline-flex justify-center py-2 px-4 border border-slate-300 rounded-md shadow-sm bg-white text-sm font-medium text-slate-500 hover:bg-slate-50"
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg className="h-5 w-5" viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    />
-                  </svg>
-                  Continue with Google
+                  {isLoading ? 'Signing in...' : 'Sign In'}
                 </button>
               </div>
-            </div>
-          </form>
+            </form>
 
-          <p className="mt-6 text-center text-sm text-slate-600">
-            Not a member?{' '}
-            <Link to={ROUTES.SIGNUP} className="font-medium text-indigo-600 hover:text-indigo-500">
-              Start a 14 day free trial
-            </Link>
-          </p>
+            <p className="mt-6 text-center text-sm text-gray-600">
+              Don't have an account?{' '}
+              <Link to={ROUTES.SIGNUP} className="font-medium text-blue-600 hover:text-blue-500">
+                Sign Up
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
-    </Layout>
+
+        {/* Mobile Footer */}
+        <div className="lg:hidden py-6 px-4 sm:px-6 bg-white">
+          <div className="text-center space-y-4">
+            <div className="flex justify-center space-x-8">
+              <Link to={ROUTES.PRIVACY} className="text-sm text-gray-500 hover:text-gray-700">
+                Privacy Policy
+              </Link>
+              <Link to={ROUTES.TERMS} className="text-sm text-gray-500 hover:text-gray-700">
+                Terms of Service
+              </Link>
+            </div>
+            <p className="text-sm text-gray-500">
+              Copyright © 2025 HomeOps. All rights reserved.
+            </p>
+            <p className="text-sm text-gray-500">
+              Made with ❤️ for modern families
+            </p>
+          </div>
+        </div>
+    </div>
+
+      {/* Right Panel - Branding (hidden on mobile) */}
+      <div className="hidden lg:block relative lg:w-1/2">
+        <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-blue-600 via-purple-700 to-blue-800 flex items-center justify-center">
+          <div className="text-center text-white">
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                <span className="text-2xl font-bold">H</span>
+              </div>
+              <h1 className="ml-3 text-3xl font-bold">HomeOps</h1>
+            </div>
+            <p className="text-lg text-blue-100 max-w-md">
+              HomeOps — The Mental Load OS
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

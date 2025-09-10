@@ -2,12 +2,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { NAV_ITEMS, ROUTES } from '../config/routes';
-import { IS_LIVE, IS_MOCK_LOGGED_IN } from '../config/vars';
+import { IS_LIVE } from '../config/vars';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navigation: React.FC = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isLoggedIn = IS_MOCK_LOGGED_IN; // TODO: Replace with real auth state
+  const { user, loading } = useAuth();
+  const isLoggedIn = !!user && !loading;
 
 const mainNavItems = IS_LIVE 
   ? NAV_ITEMS.filter((item) => item.path !== ROUTES.HOME && item.path !== ROUTES.DASHBOARD)
