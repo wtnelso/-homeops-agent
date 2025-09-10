@@ -44,7 +44,7 @@ const AuthCallback: React.FC = () => {
           
           // Simply check if user has completed onboarding
           try {
-            const { data: userData, error } = await supabase
+            const { data: userData } = await supabase
               .from('users')
               .select('account_id, accounts!inner(onboarded_at)')
               .eq('auth_id', data.session.user.id)
@@ -87,7 +87,7 @@ const AuthCallback: React.FC = () => {
 
     // Handle the auth callback
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, showToast]);
 
   if (processing) {
     return (

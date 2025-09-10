@@ -8,7 +8,7 @@ interface CalibrationStepProps {
   onNext: () => void;
 }
 
-const CalibrationStep: React.FC<CalibrationStepProps> = ({ data, onUpdate }) => {
+const CalibrationStep: React.FC<CalibrationStepProps> = ({ onUpdate }) => {
   const [currentEmail, setCurrentEmail] = useState(0);
   
   // Mock email data for calibration

@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { AccountIntegrationsService, IntegrationWithAccountStatus } from './accountIntegrationsService';
+import { AccountIntegrationsService } from './accountIntegrationsService';
 
 // Keep for backward compatibility
 export interface AvailableIntegration {
@@ -96,9 +96,7 @@ export class IntegrationsDataService {
 
       return {
         ...available,
-        isInstalled: !!userIntegration,
-        isEnabled: userIntegration?.enabled || false,
-        connectionStatus: userIntegration?.status || 'disconnected',
+        isConnected: userIntegration?.status === 'connected' || false,
         connectedAt: userIntegration?.connected_at || null,
         lastSyncAt: userIntegration?.last_sync_at || null,
         totalSyncs: userIntegration?.total_syncs || 0,

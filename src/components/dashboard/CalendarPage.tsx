@@ -11,7 +11,7 @@ interface Event {
 
 const CalendarPage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<Event[]>([
+  const [events] = useState<Event[]>([
     {
       id: '1',
       title: 'Family Dinner',

@@ -176,7 +176,7 @@ export class DatabaseIntegrationsService {
 
       // For now, we'll simulate a successful connection
       const updatedIntegration = await this.updateUserIntegration(userId, request.integration_id, {
-        status: 'connected' as const,
+        status: 'connected',
         connected_at: new Date().toISOString(),
         last_sync_at: new Date().toISOString(),
         last_error: null
@@ -197,13 +197,7 @@ export class DatabaseIntegrationsService {
   async disconnectIntegration(userId: string, integrationId: string): Promise<void> {
     // Clear tokens and update status
     await this.updateUserIntegration(userId, integrationId, {
-      status: 'disconnected' as const,
-      access_token: null,
-      refresh_token: null,
-      token_expires_at: null,
-      connected_account_id: null,
-      connected_account_email: null,
-      connected_account_name: null,
+      status: 'disconnected',
       last_error: null
     });
   }

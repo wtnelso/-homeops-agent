@@ -12,7 +12,7 @@ export interface AccountUpdateData {
 export interface UserUpdateData {
   name_user_provided?: string;
   avatar_url?: string;
-  avatar_user_provided?: string;
+  avatar_user_provided?: string | null;
   is_active?: boolean;
 }
 

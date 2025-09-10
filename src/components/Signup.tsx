@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../config/routes';
 import { auth } from '../lib/supabase';
+import { useToast } from '../contexts/ToastContext';
 import { Eye, EyeOff } from 'lucide-react';
 
 const Signup: React.FC = () => {
@@ -13,13 +14,16 @@ const Signup: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      const errorMessage = 'Passwords do not match';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       return;
     }
     
@@ -30,15 +34,18 @@ const Signup: React.FC = () => {
       
       if (error) {
         setError(error.message);
+        showToast(error.message, 'error');
         return;
       }
 
       if (data?.user) {
-        navigate(ROUTES.DASHBOARD);
+        navigate(ROUTES.DASHBOARD_HOME);
       }
     } catch (error) {
       console.error('Signup error:', error);
-      setError('An unexpected error occurred. Please try again.');
+      const errorMessage = 'An unexpected error occurred. Please try again.';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -55,14 +62,18 @@ const Signup: React.FC = () => {
       
       if (error) {
         console.error('❌ Google OAuth error:', error);
-        setError(error.message);
+        const errorMessage = 'Failed to sign up with Google. Please try again.';
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
       } else {
         console.log('✅ Google OAuth initiated successfully');
       }
       // Note: Google OAuth will redirect automatically, so no manual navigation needed
     } catch (error) {
       console.error('💥 Google sign up error:', error);
-      setError('Failed to sign up with Google. Please try again.');
+      const errorMessage = 'Failed to sign up with Google. Please try again.';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     }
   };
 

@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { LogOut, HelpCircle, User, Home } from 'lucide-react';
+import { LogOut, HelpCircle, User, Home, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../config/routes';
+import { AdminService } from '../../services/adminService';
 
 interface UserDropdownProps {
   showAccountSettings?: boolean;
@@ -18,10 +19,23 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { user, userData, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Check admin status when user data is available
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user?.email) {
+        const result = await AdminService.checkUserAdminStatusByEmail(user.email);
+        setIsAdmin(result.isAdmin);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [user?.email]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -78,6 +92,12 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
     } else {
       navigate(ROUTES.DASHBOARD_SETTINGS_ACCOUNT);
     }
+  };
+
+  const handleAdmin = () => {
+    console.log('Admin panel clicked');
+    setDropdownOpen(false);
+    navigate(ROUTES.ADMIN);
   };
 
   const handleSupport = () => {
@@ -197,6 +217,27 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
               Support
             </button>
           </div>
+
+          {/* Admin Panel */}
+          {isAdmin && (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-1 pb-1">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleAdmin();
+                }}
+                className="flex items-center w-full px-4 py-2.5 text-sm text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all duration-200 rounded-lg mx-1 hover:shadow-sm border border-purple-200 dark:border-purple-700/50"
+              >
+                <Shield className="w-4 h-4 mr-3" />
+                Admin Panel
+                <span className="ml-auto bg-purple-200 dark:bg-purple-800/50 text-purple-800 dark:text-purple-200 text-xs px-2 py-0.5 rounded-full font-medium">
+                  ADMIN
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* Logout */}
           <div className="border-t border-gray-200 dark:border-gray-700 pt-1">

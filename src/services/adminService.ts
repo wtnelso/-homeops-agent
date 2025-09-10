@@ -56,7 +56,7 @@ export class AdminService {
    */
   static async checkUserAdminStatusByEmail(email: string): Promise<AdminCheckResult> {
     try {
-      const { data: adminRecord, error } = await supabase
+      const { error } = await supabase
         .from('admin_users')
         .select('email')
         .eq('email', email.toLowerCase())

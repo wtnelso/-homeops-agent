@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES, IS_LIVE } from '../config/routes';
 import { auth } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
@@ -13,11 +14,12 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { showToast } = useToast();
 
   // Redirect if user is already authenticated
   useEffect(() => {
     if (!loading && user) {
-      const redirectTo = IS_LIVE ? ROUTES.DASHBOARD : ROUTES.HOME;
+      const redirectTo = IS_LIVE ? ROUTES.DASHBOARD_HOME : ROUTES.HOME;
       navigate(redirectTo, { replace: true });
     }
   }, [user, loading, navigate]);
@@ -34,18 +36,21 @@ const Login: React.FC = () => {
       
       if (error) {
         setError(error.message);
+        showToast(error.message, 'error');
         return;
       }
 
       if (data?.user) {
         console.log('✅ Email login successful');
         // In staging, redirect to home page after login
-        const redirectTo = IS_LIVE ? ROUTES.DASHBOARD : ROUTES.HOME;
+        const redirectTo = IS_LIVE ? ROUTES.DASHBOARD_HOME : ROUTES.HOME;
         navigate(redirectTo);
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('An unexpected error occurred. Please try again.');
+      const errorMessage = 'An unexpected error occurred. Please try again.';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +67,9 @@ const Login: React.FC = () => {
       
       if (result.error) {
         console.error("❌ OAuth error:", result.error);
-        setError(result.error?.message || 'OAuth error occurred');
+        const errorMessage = 'Failed to sign in with Google. Please try again.';
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
       } else {
         console.log("✅ OAuth initiated successfully");
       }
@@ -70,7 +77,9 @@ const Login: React.FC = () => {
       
     } catch (error) {
       console.error('💥 Google sign in error:', error);
-      setError('Failed to sign in with Google. Please try again.');
+      const errorMessage = 'Failed to sign in with Google. Please try again.';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     }
   };
 

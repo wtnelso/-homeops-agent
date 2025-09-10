@@ -166,6 +166,10 @@ export interface UpdateUserIntegrationRequest {
   settings?: Record<string, any>;
   enabled?: boolean;
   sync_frequency?: string;
+  status?: IntegrationStatus;
+  connected_at?: string;
+  last_sync_at?: string;
+  last_error?: string | null;
 }
 
 export interface IntegrationConnectionRequest {

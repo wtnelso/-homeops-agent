@@ -169,19 +169,6 @@ const FirstFetchStep: React.FC<FirstFetchStepProps> = ({ data, onUpdate, onNext 
     }
   };
 
-  const getCategoryTitle = (category: string) => {
-    const titles: { [key: string]: string } = {
-      education: 'Education & School',
-      family: 'Family Activities', 
-      scheduling: 'Schedule & Events',
-      shopping: 'Shopping & Commerce',
-      financial: 'Financial Services',
-      health: 'Health & Medical',
-      travel: 'Travel & Transportation',
-      other: 'Other'
-    };
-    return titles[category.toLowerCase()] || category;
-  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {

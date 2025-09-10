@@ -13,7 +13,7 @@ const ProfileSection: React.FC = () => {
   const [formData, setFormData] = useState({
     name_user_provided: userData?.user.name || '',
     avatar_url: userData?.user.avatar_url || '',
-    avatar_user_provided: userData?.user.avatar_user_provided || '',
+    avatar_user_provided: userData?.user.avatar_user_provided || null,
   });
 
   const handleSave = async () => {
@@ -63,12 +63,12 @@ const ProfileSection: React.FC = () => {
       if (uploadResult.success && uploadResult.url) {
         setFormData(prev => ({
           ...prev,
-          avatar_user_provided: uploadResult.url
+          avatar_user_provided: uploadResult.url || null
         }));
         
         // Auto-save the new avatar
         const result = await DataUpdateService.updateUserProfile({
-          avatar_user_provided: uploadResult.url
+          avatar_user_provided: uploadResult.url || null
         });
         
         if (result.success) {
@@ -98,11 +98,11 @@ const ProfileSection: React.FC = () => {
       // Update database
       setFormData(prev => ({
         ...prev,
-        avatar_user_provided: ''
+        avatar_user_provided: null
       }));
       
       const result = await DataUpdateService.updateUserProfile({
-        avatar_user_provided: ''
+        avatar_user_provided: null
       });
       
       if (result.success) {

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Check, CreditCard, Zap, Shield, Star } from 'lucide-react';
+import { Check, CreditCard, Shield, Star } from 'lucide-react';
 
 const PlanSection: React.FC = () => {
-  const [currentPlan, setCurrentPlan] = useState('free');
+  const [currentPlan] = useState('free');
   const [isAnnual, setIsAnnual] = useState(false);
   
   const plans = [
