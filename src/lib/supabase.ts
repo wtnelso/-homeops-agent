@@ -5,18 +5,16 @@ import { ROUTES } from '../config/routes';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Validate environment variables
-if (!supabaseUrl) {
-  console.error('Missing VITE_SUPABASE_URL environment variable');
-}
-if (!supabaseAnonKey) {
-  console.error('Missing VITE_SUPABASE_ANON_KEY environment variable');
-}
+// Debug logging to see what values we're getting
+console.log('🔧 Supabase Environment Debug:', {
+  hasUrl: !!supabaseUrl,
+  urlValue: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'undefined',
+  hasKey: !!supabaseAnonKey,
+  keyValue: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 10)}...` : 'undefined'
+});
 
-// Create Supabase client only if we have valid configuration
-export const supabase = (supabaseUrl && supabaseAnonKey) 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+// Create Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Auth helper functions
 export const auth = {
