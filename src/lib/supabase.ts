@@ -6,6 +6,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Debug logging to see what values we're getting
+console.log('🔧 All import.meta.env:', import.meta.env);
 console.log('🔧 Supabase Environment Debug:', {
   hasUrl: !!supabaseUrl,
   urlValue: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'undefined',
