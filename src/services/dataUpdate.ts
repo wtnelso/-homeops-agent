@@ -121,11 +121,11 @@ export class DataUpdateService {
         return { valid: false, error: 'Account name must be a string' };
       }
 
-      if (key === 'household_type' && value && !['single', 'couple', 'family', 'roommates'].includes(value)) {
+      if (key === 'household_type' && value && !['single', 'couple', 'family', 'roommates'].includes(value as string)) {
         return { valid: false, error: 'Invalid household type' };
       }
 
-      if (key === 'subscription_status' && value && !['active', 'inactive', 'suspended', 'cancelled'].includes(value)) {
+      if (key === 'subscription_status' && value && !['active', 'inactive', 'suspended', 'cancelled'].includes(value as string)) {
         return { valid: false, error: 'Invalid subscription status' };
       }
 

@@ -8,7 +8,7 @@ interface CalibrationStepProps {
   onNext: () => void;
 }
 
-const CalibrationStep: React.FC<CalibrationStepProps> = ({ data, onUpdate, onNext }) => {
+const CalibrationStep: React.FC<CalibrationStepProps> = ({ data, onUpdate }) => {
   const [currentEmail, setCurrentEmail] = useState(0);
   
   // Mock email data for calibration
@@ -29,7 +29,7 @@ const CalibrationStep: React.FC<CalibrationStepProps> = ({ data, onUpdate, onNex
     }
   ];
 
-  const handleClassification = (label: 'important' | 'noise' | 'later') => {
+  const handleClassification = (_label: 'important' | 'noise' | 'later') => {
     // Handle email classification logic here
     if (currentEmail < mockEmails.length - 1) {
       setCurrentEmail(prev => prev + 1);

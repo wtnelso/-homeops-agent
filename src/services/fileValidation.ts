@@ -146,7 +146,7 @@ export class FileValidationService {
 
     const allowedExtensions = ALLOWED_IMAGE_TYPES[mimeType as keyof typeof ALLOWED_IMAGE_TYPES]?.extensions;
     
-    if (!allowedExtensions || !allowedExtensions.includes(fileExtension)) {
+    if (!allowedExtensions || !allowedExtensions.includes(fileExtension as never)) {
       return {
         valid: false,
         error: `File extension "${fileExtension}" does not match declared type "${mimeType}"`

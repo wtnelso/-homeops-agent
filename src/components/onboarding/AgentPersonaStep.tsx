@@ -8,7 +8,7 @@ interface AgentPersonaStepProps {
   onNext: () => void;
 }
 
-const AgentPersonaStep: React.FC<AgentPersonaStepProps> = ({ data, onUpdate, onNext }) => {
+const AgentPersonaStep: React.FC<AgentPersonaStepProps> = ({ data, onUpdate }) => {
   const updateStyle = (key: keyof OnboardingData['agentProfile']['style'], value: number) => {
     onUpdate({
       agentProfile: {

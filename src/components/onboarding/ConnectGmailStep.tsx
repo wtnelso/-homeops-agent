@@ -10,7 +10,7 @@ interface ConnectGmailStepProps {
   onNext: () => void;
 }
 
-const ConnectGmailStep: React.FC<ConnectGmailStepProps> = ({ data, onUpdate, onNext }) => {
+const ConnectGmailStep: React.FC<ConnectGmailStepProps> = ({ data, onUpdate }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const { userData } = useAuth();

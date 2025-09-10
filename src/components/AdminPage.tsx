@@ -11,9 +11,10 @@ import {
   X,
   UserPlus
 } from 'lucide-react';
+import UserDropdown from './ui/UserDropdown';
 
 const AdminPage: React.FC = () => {
-  const { user, userData } = useAuth();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [adminEmails, setAdminEmails] = useState<string[]>([]);
   const [betaUsers, setBetaUsers] = useState<BetaUser[]>([]);
@@ -140,14 +141,17 @@ const AdminPage: React.FC = () => {
                 <p className="text-gray-600 dark:text-gray-400">HomeOps Administration</p>
               </div>
             </div>
-            <button
-              onClick={handleRefresh}
-              disabled={loading}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+              <UserDropdown />
+            </div>
           </div>
         </div>
       </div>

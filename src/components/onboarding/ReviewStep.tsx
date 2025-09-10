@@ -11,7 +11,7 @@ interface ReviewStepProps {
   onComplete: () => void;
 }
 
-const ReviewStep: React.FC<ReviewStepProps> = ({ data, onUpdate, onComplete }) => {
+const ReviewStep: React.FC<ReviewStepProps> = ({ data, onComplete }) => {
   const [isCompleting, setIsCompleting] = useState(false);
   const { user } = useAuth();
 

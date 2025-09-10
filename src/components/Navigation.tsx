@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react';
 import { NAV_ITEMS, ROUTES } from '../config/routes';
 import { IS_LIVE } from '../config/vars';
 import { useAuth } from '../contexts/AuthContext';
+import UserDropdown from './ui/UserDropdown';
 
 const Navigation: React.FC = () => {
   const location = useLocation();
@@ -66,12 +67,7 @@ const mainNavItems = IS_LIVE
           )}
           {IS_LIVE && isLoggedIn && (
             <div className="lg:hidden flex items-center mt-3">
-              <Link 
-                to={ROUTES.DASHBOARD} 
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Dashboard
-              </Link>
+              <UserDropdown />
             </div>
           )}
           {!IS_LIVE && (
@@ -98,12 +94,7 @@ const mainNavItems = IS_LIVE
         )}
         {IS_LIVE && isLoggedIn && (
           <div className="hidden lg:flex items-center">
-            <Link 
-              to={ROUTES.DASHBOARD} 
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Dashboard
-            </Link>
+            <UserDropdown />
           </div>
         )}
         {!IS_LIVE && (

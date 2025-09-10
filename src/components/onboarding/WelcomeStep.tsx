@@ -4,15 +4,15 @@ import { OnboardingData } from '../Onboarding';
 import { HOUSEHOLD_TYPES } from '../../config/constants';
 import TimezoneSelect from '../ui/TimezoneSelect';
 
-const WelcomeStep: React.FC<WelcomeStepProps> = ({ data, onUpdate, onNext }) => {
+interface WelcomeStepProps {
+  data: OnboardingData;
+  onUpdate: (updates: Partial<OnboardingData>) => void;
+  onNext: () => void;
+}
+
+const WelcomeStep: React.FC<WelcomeStepProps> = ({ data, onUpdate }) => {
   const [newKeyword, setNewKeyword] = useState('');
 
-  const handleNext = () => {
-    const keywords = data.importantKeywords || [];
-    if (data.name && data.timezone && data.householdType && keywords.length > 0) {
-      onNext();
-    }
-  };
 
   const addKeyword = () => {
     const trimmed = newKeyword.trim();

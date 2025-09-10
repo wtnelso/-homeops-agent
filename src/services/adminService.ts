@@ -230,7 +230,7 @@ export class AdminService {
    */
   static async checkBetaAccess(email: string): Promise<AdminCheckResult> {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('beta_users')
         .select('email')
         .eq('email', email.toLowerCase())

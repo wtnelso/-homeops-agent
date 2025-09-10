@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Zap, Mail, Users, ShoppingCart, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import { OnboardingData } from '../Onboarding';
 import { useAuth } from '../../contexts/AuthContext';
-import { EmailAnalysisService, EmailInsight, AnalysisResults } from '../../services/emailAnalysisService';
+import { EmailAnalysisService, AnalysisResults } from '../../services/emailAnalysisService';
 
 interface FirstFetchStepProps {
   data: OnboardingData;

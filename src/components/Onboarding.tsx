@@ -3,13 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, 
   ArrowLeft, 
-  Check, 
   Mail, 
   User, 
-  Clock, 
-  Home,
   Zap,
-  Settings,
   Brain,
   CheckCircle,
   LogOut
@@ -167,7 +163,7 @@ const Onboarding: React.FC = () => {
         }
 
         // Check if account has onboarded_at timestamp
-        const onboardedAt = data.accounts?.onboarded_at;
+        const onboardedAt = (data.accounts as any)?.onboarded_at;
         if (onboardedAt) {
           console.log('✅ User already onboarded, redirecting to dashboard');
           navigate(ROUTES.DASHBOARD_HOME);
@@ -287,7 +283,6 @@ const Onboarding: React.FC = () => {
     }
   };
 
-  const currentStepData = STEPS.find(step => step.id === currentStep);
 
   console.log('🎨 Onboarding render - currentStep:', currentStep, 'user:', !!user);
 

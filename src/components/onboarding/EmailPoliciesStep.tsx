@@ -8,7 +8,7 @@ interface EmailPoliciesStepProps {
   onNext: () => void;
 }
 
-const EmailPoliciesStep: React.FC<EmailPoliciesStepProps> = ({ data, onUpdate, onNext }) => {
+const EmailPoliciesStep: React.FC<EmailPoliciesStepProps> = ({ data, onUpdate }) => {
   const updatePolicy = (key: keyof OnboardingData['emailPolicies'], value: boolean) => {
     onUpdate({
       emailPolicies: {

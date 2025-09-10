@@ -1,6 +1,4 @@
-import React from 'react';
 import { Calendar } from 'lucide-react';
-import { Integration } from '../services/integrations';
 
 // Simplified integration interface for display purposes
 export interface IntegrationDisplay {
@@ -22,11 +20,7 @@ export const INTEGRATIONS_DATA: IntegrationDisplay[] = [
     id: 'gmail',
     name: 'Gmail',
     description: 'Connect Gmail to manage emails, send messages, and access your inbox directly from HomeOps.',
-    iconType: 'custom',
-    iconColor: 'text-red-600 dark:text-red-400',
-    bgColor: 'bg-red-50 dark:bg-red-900/20',
-    status: 'disconnected',
-    enabled: false,
+    image_url: null,
     category: 'email',
     isConnected: false
   },
@@ -34,11 +28,7 @@ export const INTEGRATIONS_DATA: IntegrationDisplay[] = [
     id: 'google_calendar',
     name: 'Google Calendar',
     description: 'Sync your Google Calendar to manage events, schedule meetings, and view your schedule.',
-    iconType: 'custom',
-    iconColor: 'text-blue-600 dark:text-blue-400',
-    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-    status: 'disconnected',
-    enabled: false,
+    image_url: null,
     category: 'calendar',
     isConnected: false
   }

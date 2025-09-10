@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle } from 'lucide-react';
-import { IntegrationDisplay, getIconComponent, customIcons } from '../../data/integrations';
+import { IntegrationDisplay, getIconComponent } from '../../data/integrations';
 import IntegrationDetailsModal from './IntegrationDetailsModal';
 
 interface IntegrationCardProps {

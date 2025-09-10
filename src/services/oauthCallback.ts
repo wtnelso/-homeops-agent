@@ -3,7 +3,6 @@
 // Handles OAuth callbacks and completes integration installation
 
 import { OAuthCoordinator } from '../config/oauth';
-import { UserSessionService } from './userSession';
 
 export class OAuthCallbackHandler {
   /**

@@ -13,8 +13,7 @@ import {
   User,
   MessageCircle,
   Calendar,
-  Mail,
-  Database
+  Mail
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 

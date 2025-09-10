@@ -8,7 +8,7 @@ interface ResultsStepProps {
   onNext: () => void;
 }
 
-const ResultsStep: React.FC<ResultsStepProps> = ({ data, onUpdate, onNext }) => {
+const ResultsStep: React.FC<ResultsStepProps> = () => {
   // Mock analysis results
   const analysisResults = {
     totalEmails: 247,

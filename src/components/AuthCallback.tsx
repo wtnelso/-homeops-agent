@@ -2,14 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ROUTES } from '../config/routes';
-import { UserSessionService } from '../services/userSession';
 import { useToast } from '../contexts/ToastContext';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
-  const { showToast } = useToast();
   const [processing, setProcessing] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -51,7 +50,7 @@ const AuthCallback: React.FC = () => {
               .eq('auth_id', data.session.user.id)
               .single();
 
-            if (!userData || !userData.accounts.onboarded_at) {
+            if (!userData || !(userData.accounts as any)?.onboarded_at) {
               // User needs onboarding
               console.log('🎯 User needs onboarding, redirecting...');
               

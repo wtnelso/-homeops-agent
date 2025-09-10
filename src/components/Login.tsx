@@ -62,7 +62,7 @@ const Login: React.FC = () => {
       
       if (result.error) {
         console.error("❌ OAuth error:", result.error);
-        setError(result.error.message);
+        setError(result.error?.message || 'OAuth error occurred');
       } else {
         console.log("✅ OAuth initiated successfully");
       }

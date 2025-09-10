@@ -1,4 +1,4 @@
-import { User, Clock, Home, Users, UserCheck } from 'lucide-react';
+import { User, Home, Users, UserCheck } from 'lucide-react';
 
 // Account name configuration
 export const ACCOUNT_NAME_CONFIG = {
