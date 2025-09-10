@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { ROUTES } from '../config/routes';
 
-// These should be added to your environment variables
-// Using placeholder values that won't cause URL construction errors
+// Environment variables for Supabase configuration
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
