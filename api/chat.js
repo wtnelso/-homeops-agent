@@ -17,6 +17,27 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Debug: Log all environment variables (mask sensitive ones)
+    console.log('=== ENVIRONMENT DEBUG ===');
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('VERCEL_ENV:', process.env.VERCEL_ENV);
+    
+    // Check specific variables we need
+    console.log('NEON_DATABASE_URL exists:', !!process.env.NEON_DATABASE_URL);
+    console.log('NEON_DATABASE_URL preview:', process.env.NEON_DATABASE_URL ? process.env.NEON_DATABASE_URL.substring(0, 30) + '...' : 'undefined');
+    console.log('OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
+    console.log('OPENAI_API_KEY preview:', process.env.OPENAI_API_KEY ? '***' + process.env.OPENAI_API_KEY.slice(-4) : 'undefined');
+    console.log('OPENAI_MODEL:', process.env.OPENAI_MODEL);
+    console.log('OPENAI_TEMPERATURE:', process.env.OPENAI_TEMPERATURE);
+    
+    // Log all env vars that might be relevant
+    Object.keys(process.env).filter(key => 
+      key.includes('NEON') || key.includes('OPENAI') || key.includes('DATABASE')
+    ).forEach(key => {
+      console.log(`${key}:`, key.includes('KEY') || key.includes('URL') ? '***masked***' : process.env[key]);
+    });
+    console.log('=== END ENVIRONMENT DEBUG ===');
+
     // Get environment variables
     const neonUrl = process.env.NEON_DATABASE_URL;
     const openaiApiKey = process.env.OPENAI_API_KEY;
