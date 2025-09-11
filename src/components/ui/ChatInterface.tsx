@@ -1,10 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader, RefreshCw, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import MessageBubble from './MessageBubble';
 import ChatInput from './ChatInput';
 import ConversationList from './ConversationList';
-import { EdgeFunctionChatService, ChatMessage, Conversation } from '../../services/edgeFunctionChatService';
+import { EdgeFunctionChatService } from '../../services/edgeFunctionChatService';
+
+// Import types from service
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+}
+
+interface Conversation {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+  last_message?: string;
+}
 
 interface ChatInterfaceProps {
   showConversationList?: boolean;
@@ -20,9 +37,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   triggerMessage = null
 }) => {
   // State management
-  const [conversations, setConversations] = useState<LocalConversation[]>([]);
-  const [currentConversation, setCurrentConversation] = useState<LocalConversation | null>(null);
-  const [messages, setMessages] = useState<LocalMessage[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingConversations, setLoadingConversations] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,8 +47,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Services
-  const { user, userData } = useAuth();
+  // Services - Authentication handled by EdgeFunctionChatService
   const [chatService] = useState(() => {
     try {
       return new EdgeFunctionChatService();
@@ -83,7 +99,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  const loadConversationMessages = async (conversationId: string) => {
+  const loadConversationMessages = async () => {
     if (!chatService) return;
 
     try {
@@ -106,7 +122,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const conversation = conversations.find(c => c.id === conversationId);
     if (conversation) {
       setCurrentConversation(conversation);
-      loadConversationMessages(conversationId);
+      loadConversationMessages();
     }
   };
 
@@ -267,7 +283,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               {currentConversation.title || 'Untitled Conversation'}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Started {currentConversation.created_at.toLocaleDateString()}
+              Started {new Date(currentConversation.created_at).toLocaleDateString()}
             </p>
           </div>
         )}

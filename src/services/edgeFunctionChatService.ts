@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+// Removed unused supabase import since we're using Vercel API routes
 import { UserSessionService } from './userSession';
 
 interface ChatMessage {
