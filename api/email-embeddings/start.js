@@ -98,7 +98,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const { user_id, user_plan } = authResult;
+    const { user_id, user_plan, user_account_id } = authResult;
     userId = user_id;
     console.log(`✅ Authenticated user ${user_id} with ${user_plan} plan`);
     
@@ -114,6 +114,7 @@ export default async function handler(req, res) {
     const permissionCheck = await validateUserPermissions(
       user_id, 
       account_id, 
+      user_account_id,
       user_plan,
       email_limit
     );
@@ -274,10 +275,10 @@ async function authenticateRequest(req) {
       };
     }
 
-    // Get user plan information from users table
+    // Get user plan and account information from users table
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('plan, monthly_api_calls, monthly_limit')
+      .select('plan, monthly_api_calls, monthly_limit, account_id')
       .eq('id', user.id)
       .single();
 
@@ -290,6 +291,7 @@ async function authenticateRequest(req) {
       user_id: user.id,
       user_email: user.email,
       user_plan: userData?.plan || 'free',
+      user_account_id: userData?.account_id,
       monthly_api_calls: userData?.monthly_api_calls || 0,
       monthly_limit: userData?.monthly_limit || 100
     };
@@ -307,7 +309,7 @@ async function authenticateRequest(req) {
  * Validates user permissions and calculates processing limits
  * Checks plan limits and current usage
  */
-async function validateUserPermissions(user_id, account_id, user_plan, requested_email_limit) {
+async function validateUserPermissions(user_id, account_id, user_account_id, user_plan, requested_email_limit) {
   try {
     // Determine plan limits
     const planLimits = {
@@ -318,15 +320,8 @@ async function validateUserPermissions(user_id, account_id, user_plan, requested
 
     const plan_limit = planLimits[user_plan] || planLimits.free;
 
-    // Check if user has access to this account
-    const { data: accountAccess, error: accessError } = await supabase
-      .from('accounts')
-      .select('id, account_name')
-      .eq('id', account_id)
-      .eq('owner_user_id', user_id) // Ensure user owns this account
-      .single();
-
-    if (accessError || !accountAccess) {
+    // Check if user has access to this account (simple comparison - no database query needed)
+    if (user_account_id !== account_id) {
       return {
         success: false,
         error: 'Access denied: Account not found or not owned by user'
