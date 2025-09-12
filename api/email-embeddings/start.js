@@ -196,11 +196,8 @@ export default async function handler(req, res) {
       execution_time: executionTime
     });
 
-    await timer.finish(true, {
-      job_id,
-      estimated_emails: allowed_email_limit,
-      batch_type
-    });
+    // Timer finish removed - using simple console logging
+    console.log(`✅ Job ${job_id} initiated successfully in ${executionTime}ms`);
 
     return res.status(200).json({
       success: true,
