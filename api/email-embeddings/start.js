@@ -279,11 +279,14 @@ async function authenticateRequest(req) {
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('plan, monthly_api_calls, monthly_limit, account_id')
-      .eq('id', user.id)
+      .eq('auth_id', user.id)
       .single();
 
     if (userError) {
-      console.warn('⚠️  Could not fetch user plan, defaulting to free');
+      console.warn('⚠️  Could not fetch user plan, defaulting to free. Error:', userError);
+      console.log('User auth ID:', user.id);
+    } else {
+      console.log('✅ Found user data:', userData);
     }
 
     return {
@@ -321,12 +324,17 @@ async function validateUserPermissions(user_id, account_id, user_account_id, use
     const plan_limit = planLimits[user_plan] || planLimits.free;
 
     // Check if user has access to this account (simple comparison - no database query needed)
+    console.log('🔍 Account validation:', { user_account_id, requested_account_id: account_id });
+    
     if (user_account_id !== account_id) {
+      console.log('❌ Account mismatch:', { user_account_id, requested_account_id: account_id });
       return {
         success: false,
         error: 'Access denied: Account not found or not owned by user'
       };
     }
+    
+    console.log('✅ Account validation passed');
 
     // Calculate allowed email limit
     const allowed_email_limit = requested_email_limit 
