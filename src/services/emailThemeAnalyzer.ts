@@ -31,10 +31,8 @@
 
 import { ChatOpenAI } from '@langchain/openai';
 import { ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate } from '@langchain/core/prompts';
-import { RunnableSequence, RunnableBranch, RunnablePassthrough } from '@langchain/core/runnables';
+import { RunnableSequence, RunnableBranch } from '@langchain/core/runnables';
 import { StringOutputParser, JsonOutputParser } from '@langchain/core/output_parsers';
-import { MemoryVectorStore } from 'langchain/vectorstores/memory';
-import { OpenAIEmbeddings } from '@langchain/openai';
 import { Document } from '@langchain/core/documents';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
@@ -56,10 +54,11 @@ const llm = new ChatOpenAI({
   openAIApiKey: process.env.OPENAI_API_KEY!,
 });
 
-const embeddings = new OpenAIEmbeddings({
-  modelName: 'text-embedding-3-small',
-  openAIApiKey: process.env.OPENAI_API_KEY!,
-});
+// Embeddings configuration - initialized when needed
+// const embeddings = new OpenAIEmbeddings({
+//   modelName: 'text-embedding-3-small', 
+//   openAIApiKey: process.env.OPENAI_API_KEY!,
+// });
 
 /**
  * Configuration constants for theme analysis
@@ -592,7 +591,14 @@ export class EmailThemeAnalyzer {
 
     } catch (error) {
       console.error('Theme detection chain failed:', error);
-      throw new Error(`Theme detection failed: ${error.message}`);
+      await ErrorLogger.logError(
+        LogLevel.ERROR,
+        LogCategory.AI_PROCESSING,
+        'Theme detection chain failed',
+        error as Error,
+        { email_id: 'unknown', operation: 'theme_detection' }
+      );
+      throw new Error(`Theme detection failed: ${(error as Error).message}`);
     }
   }
 

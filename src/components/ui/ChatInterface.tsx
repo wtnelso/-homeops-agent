@@ -4,6 +4,7 @@ import MessageBubble from './MessageBubble';
 import ChatInput from './ChatInput';
 import ConversationList from './ConversationList';
 import { EdgeFunctionChatService } from '../../services/edgeFunctionChatService';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Import types from service
 interface ChatMessage {
@@ -36,6 +37,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   className = '',
   triggerMessage = null
 }) => {
+  // Get user data for avatar
+  const { userData } = useAuth();
+  
   // State management
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
@@ -46,6 +50,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Get user avatar URL (prioritize user-provided avatar over auth avatar)
+  const userAvatarUrl = userData?.user?.avatar_user_provided || userData?.user?.avatar_url;
   
   // Services - Authentication handled by EdgeFunctionChatService
   const [chatService] = useState(() => {
@@ -323,6 +330,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <MessageBubble
               key={message.id}
               message={message}
+              userAvatarUrl={userAvatarUrl}
               onCopy={handleCopyMessage}
               onFeedback={handleMessageFeedback}
             />

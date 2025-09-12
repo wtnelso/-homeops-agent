@@ -5,6 +5,7 @@ import { ChatMessage } from '../../services/edgeFunctionChatService';
 interface MessageBubbleProps {
   message: ChatMessage;
   isLoading?: boolean;
+  userAvatarUrl?: string | null;
   onCopy?: (content: string) => void;
   onFeedback?: (messageId: string, feedback: 'positive' | 'negative') => void;
 }
@@ -12,6 +13,7 @@ interface MessageBubbleProps {
 const MessageBubble: React.FC<MessageBubbleProps> = ({ 
   message, 
   isLoading = false,
+  userAvatarUrl,
   onCopy,
   onFeedback
 }) => {
@@ -109,8 +111,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
       {/* User Avatar */}
       {isUser && (
-        <div className="flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full border border-gray-200 dark:border-gray-600 flex-shrink-0">
-          <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+        <div className="flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full border border-gray-200 dark:border-gray-600 flex-shrink-0 overflow-hidden">
+          {userAvatarUrl ? (
+            <img 
+              src={userAvatarUrl} 
+              alt="User Avatar" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to User icon if image fails to load
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+          ) : null}
+          <User className={`w-4 h-4 text-gray-600 dark:text-gray-400 ${userAvatarUrl ? 'hidden' : ''}`} />
         </div>
       )}
     </div>

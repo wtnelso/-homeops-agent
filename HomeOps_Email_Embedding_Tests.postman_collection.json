@@ -1,0 +1,413 @@
+{
+  "info": {
+    "name": "HomeOps Email Embedding Tests",
+    "description": "Complete test collection for the LangChain-powered email embedding API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "YOUR_SUPABASE_JWT_TOKEN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "account_id",
+      "value": "YOUR_ACCOUNT_UUID_HERE",
+      "type": "string"
+    },
+    {
+      "key": "job_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🚀 Start Email Processing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response indicates success\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "});",
+              "",
+              "pm.test(\"Job ID is returned\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.job_id).to.not.be.undefined;",
+              "    pm.expect(jsonData.job_id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);",
+              "    pm.collectionVariables.set(\"job_id\", jsonData.job_id);",
+              "});",
+              "",
+              "pm.test(\"Cost estimate is reasonable\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.estimated_cost_cents).to.be.a('number');",
+              "    pm.expect(jsonData.estimated_cost_cents).to.be.below(100); // Less than $1",
+              "});",
+              "",
+              "pm.test(\"Processing metadata is present\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.estimated_emails).to.be.a('number');",
+              "    pm.expect(jsonData.estimated_duration_minutes).to.be.a('number');",
+              "    pm.expect(jsonData.next_steps).to.be.an('object');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"account_id\": \"{{account_id}}\",\n  \"batch_type\": \"full\",\n  \"email_limit\": 5,\n  \"processing_options\": {\n    \"batch_size\": 2,\n    \"max_content_length\": 4000,\n    \"min_priority_score\": 0.1\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email-embeddings/start",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email-embeddings", "start"]
+        },
+        "description": "Initiates a real email embedding processing job with LangChain analysis"
+      }
+    },
+    {
+      "name": "📊 Check Processing Status",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response indicates success\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "});",
+              "",
+              "pm.test(\"Status is valid\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.be.oneOf([\"pending\", \"processing\", \"completed\", \"failed\"]);",
+              "});",
+              "",
+              "pm.test(\"Progress data is present\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.progress) {",
+              "        pm.expect(jsonData.progress.percentage).to.be.a('number');",
+              "        pm.expect(jsonData.progress.processed).to.be.a('number');",
+              "        pm.expect(jsonData.progress.total).to.be.a('number');",
+              "    }",
+              "});",
+              "",
+              "pm.test(\"Cost tracking is working\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.cost) {",
+              "        pm.expect(jsonData.cost.estimated_cents).to.be.a('number');",
+              "        pm.expect(jsonData.cost.actual_cents).to.be.a('number');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/email-embeddings/status?job_id={{job_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email-embeddings", "status"],
+          "query": [
+            {
+              "key": "job_id",
+              "value": "{{job_id}}"
+            }
+          ]
+        },
+        "description": "Polls the status of a processing job with real-time progress updates"
+      }
+    },
+    {
+      "name": "🔄 Medium Batch Test",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Medium batch accepted\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "    pm.expect(jsonData.estimated_emails).to.be.above(10);",
+              "});",
+              "",
+              "pm.test(\"Cost scales appropriately\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.estimated_cost_cents).to.be.above(10);",
+              "    pm.expect(jsonData.estimated_cost_cents).to.be.below(300); // Less than $3",
+              "});",
+              "",
+              "// Save job ID for status polling",
+              "const jsonData = pm.response.json();",
+              "if (jsonData.job_id) {",
+              "    pm.collectionVariables.set(\"medium_job_id\", jsonData.job_id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"account_id\": \"{{account_id}}\",\n  \"batch_type\": \"incremental\",\n  \"email_limit\": 25,\n  \"processing_options\": {\n    \"batch_size\": 5,\n    \"max_content_length\": 6000\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email-embeddings/start",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email-embeddings", "start"]
+        },
+        "description": "Tests medium-sized batch processing with realistic user workload"
+      }
+    },
+    {
+      "name": "❌ Test Error: No Auth",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Unauthorized access rejected\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test(\"Error message is informative\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.contain('Authorization');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"account_id\": \"{{account_id}}\",\n  \"batch_type\": \"full\",\n  \"email_limit\": 5\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email-embeddings/start",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email-embeddings", "start"]
+        },
+        "description": "Tests that unauthenticated requests are properly rejected"
+      }
+    },
+    {
+      "name": "❌ Test Error: Invalid Account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Invalid account rejected\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "",
+              "pm.test(\"Access denied message\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.contain('Access denied');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"account_id\": \"00000000-0000-0000-0000-000000000000\",\n  \"batch_type\": \"full\",\n  \"email_limit\": 5\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email-embeddings/start",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email-embeddings", "start"]
+        },
+        "description": "Tests that invalid account IDs are properly rejected"
+      }
+    },
+    {
+      "name": "❌ Test Error: Missing Account ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Missing account ID rejected\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test(\"Validation error message\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.contain('account_id');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"batch_type\": \"full\",\n  \"email_limit\": 5\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email-embeddings/start",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email-embeddings", "start"]
+        },
+        "description": "Tests input validation for required fields"
+      }
+    },
+    {
+      "name": "🔧 Test Concurrent Jobs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Concurrent job rejected\", function () {",
+              "    // Should be 409 if a job is already running, or 200 if no job active",
+              "    const status = pm.response.code;",
+              "    pm.expect(status).to.be.oneOf([200, 409]);",
+              "});",
+              "",
+              "if (pm.response.code === 409) {",
+              "    pm.test(\"Conflict message indicates active job\", function () {",
+              "        const jsonData = pm.response.json();",
+              "        pm.expect(jsonData.error).to.contain('already active');",
+              "        pm.expect(jsonData.active_job_id).to.not.be.undefined;",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"account_id\": \"{{account_id}}\",\n  \"batch_type\": \"full\",\n  \"email_limit\": 3\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email-embeddings/start",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email-embeddings", "start"]
+        },
+        "description": "Tests that concurrent jobs for the same account are prevented"
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Verify required variables are set",
+          "if (!pm.collectionVariables.get('access_token') || pm.collectionVariables.get('access_token') === 'YOUR_SUPABASE_JWT_TOKEN_HERE') {",
+          "    console.log('⚠️ Please set your access_token in collection variables');",
+          "}",
+          "",
+          "if (!pm.collectionVariables.get('account_id') || pm.collectionVariables.get('account_id') === 'YOUR_ACCOUNT_UUID_HERE') {",
+          "    console.log('⚠️ Please set your account_id in collection variables');",
+          "}",
+          "",
+          "console.log('🚀 Running email embedding test - Real AI processing will occur!');"
+        ]
+      }
+    }
+  ],
+  "protocolProfileBehavior": {
+    "disableBodyPruning": true
+  }
+}

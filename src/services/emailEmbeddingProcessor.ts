@@ -37,7 +37,7 @@ import {
   SystemMessagePromptTemplate 
 } from '@langchain/core/prompts';
 import { ChatOpenAI } from '@langchain/openai';
-import { RunnableSequence, RunnablePassthrough } from '@langchain/core/runnables';
+import { RunnableSequence } from '@langchain/core/runnables';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { z } from 'zod';
 import { ErrorLogger, LogLevel, LogCategory } from './errorLogger.js';
