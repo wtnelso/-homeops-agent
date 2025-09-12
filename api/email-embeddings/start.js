@@ -52,7 +52,6 @@ const PROCESSING_CONFIG = {
  */
 export default async function handler(req, res) {
   const startTime = Date.now();
-  const timer = { startTime: Date.now() }; // Simplified timer
   let userId = 'unknown';
   
   try {
