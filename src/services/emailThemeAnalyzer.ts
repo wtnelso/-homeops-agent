@@ -31,12 +31,11 @@
 
 import { ChatOpenAI } from '@langchain/openai';
 import { ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate } from '@langchain/core/prompts';
-import { RunnableSequence, RunnableBranch } from '@langchain/core/runnables';
+import { RunnableSequence } from '@langchain/core/runnables';
 import { StringOutputParser, JsonOutputParser } from '@langchain/core/output_parsers';
-import { Document } from '@langchain/core/documents';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { ErrorLogger, LogLevel, LogCategory } from './errorLogger.js';
+import { ErrorLogger, LogLevel, LogCategory } from './errorLogger';
 
 // Initialize clients
 const supabase = createClient(
@@ -55,10 +54,7 @@ const llm = new ChatOpenAI({
 });
 
 // Embeddings configuration - initialized when needed
-// const embeddings = new OpenAIEmbeddings({
-//   modelName: 'text-embedding-3-small', 
-//   openAIApiKey: process.env.OPENAI_API_KEY!,
-// });
+// Note: OpenAIEmbeddings import removed as not currently used
 
 /**
  * Configuration constants for theme analysis
@@ -566,7 +562,7 @@ export class EmailThemeAnalyzer {
     const themeChain = RunnableSequence.from([
       themeDetectionPrompt,
       llm,
-      new JsonOutputParser(ThemeDetectionSchema)
+      new JsonOutputParser()
     ]);
 
     try {
@@ -579,26 +575,33 @@ export class EmailThemeAnalyzer {
         content_summary: email.content_summary
       });
 
-      // Validate and clean the response
-      return {
-        detected_themes: result.detected_themes || {},
-        primary_theme: result.primary_theme || 'general',
-        secondary_themes: result.secondary_themes || [],
-        family_coordination_score: Math.max(0, Math.min(1, result.family_coordination_score || 0.5)),
-        automation_opportunities: result.automation_opportunities || [],
-        relationships_detected: result.relationships_detected || []
-      };
+      // Validate with Zod schema for better type safety
+      try {
+        const validatedResult = ThemeDetectionSchema.parse(result);
+        return validatedResult;
+      } catch (zodError) {
+        console.warn('Theme detection response validation failed, using fallback:', zodError);
+        return {
+          detected_themes: {},
+          primary_theme: 'general',
+          secondary_themes: [],
+          family_coordination_score: 0.5,
+          automation_opportunities: [],
+          relationships_detected: []
+        };
+      }
 
     } catch (error) {
       console.error('Theme detection chain failed:', error);
       await ErrorLogger.logError(
         LogLevel.ERROR,
-        LogCategory.AI_PROCESSING,
+        LogCategory.API_PERFORMANCE,
         'Theme detection chain failed',
         error as Error,
-        { email_id: 'unknown', operation: 'theme_detection' }
+        { operation: 'theme_detection' }
       );
-      throw new Error(`Theme detection failed: ${(error as Error).message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Theme detection failed: ${errorMessage}`);
     }
   }
 
@@ -665,9 +668,9 @@ export class EmailThemeAnalyzer {
    * Analyze relationships between this email and others in the user's account
    */
   private static async analyzeEmailRelationships(
-    email: EmailThemeInput,
-    themeAnalysis: any,
-    userId?: string
+    _email: EmailThemeInput,
+    _themeAnalysis: any,
+    _userId?: string
   ): Promise<any> {
     // For now, return basic relationship analysis
     // In full implementation, this would use vector similarity to find related emails
@@ -729,7 +732,7 @@ export class EmailThemeAnalyzer {
     const patternChain = RunnableSequence.from([
       patternAnalysisPrompt,
       llm,
-      new JsonOutputParser(PatternAnalysisSchema)
+      new JsonOutputParser()
     ]);
 
     try {
@@ -749,24 +752,48 @@ export class EmailThemeAnalyzer {
         temporal_data: JSON.stringify(temporalData, null, 2)
       });
 
-      return {
-        pattern_id: `${userId}_${themeCategory}_${Date.now()}`,
-        user_id: userId,
-        account_id: accountId,
-        pattern_type: themeCategory,
-        pattern_name: result.pattern_name || `${themeCategory} coordination`,
-        confidence_score: Math.max(0, Math.min(1, result.confidence_score || 0.5)),
-        frequency: result.frequency || 'ad-hoc',
-        trend_direction: result.trend_direction || 'stable',
-        supporting_emails: emails.map(e => e.gmail_message_id).slice(0, 20),
-        key_characteristics: result.key_characteristics || [],
-        coordination_requirements: result.coordination_requirements || [],
-        suggested_automations: result.suggested_automations || [],
-        stakeholders: result.stakeholders || [],
-        seasonal_factors: result.seasonal_factors || [],
-        first_detected: new Date().toISOString(),
-        last_updated: new Date().toISOString()
-      };
+      // Validate with Zod schema for better type safety
+      try {
+        const validatedResult = PatternAnalysisSchema.parse(result);
+        return {
+          pattern_id: `${userId}_${themeCategory}_${Date.now()}`,
+          user_id: userId,
+          account_id: accountId,
+          pattern_type: themeCategory,
+          pattern_name: validatedResult.pattern_name,
+          confidence_score: validatedResult.confidence_score,
+          frequency: validatedResult.frequency,
+          trend_direction: validatedResult.trend_direction,
+          supporting_emails: emails.map(e => e.gmail_message_id).slice(0, 20),
+          key_characteristics: validatedResult.key_characteristics,
+          coordination_requirements: validatedResult.coordination_requirements,
+          suggested_automations: validatedResult.suggested_automations,
+          stakeholders: validatedResult.stakeholders,
+          seasonal_factors: validatedResult.seasonal_factors || [],
+          first_detected: new Date().toISOString(),
+          last_updated: new Date().toISOString()
+        };
+      } catch (zodError) {
+        console.warn('Pattern analysis response validation failed, using fallback:', zodError);
+        return {
+          pattern_id: `${userId}_${themeCategory}_${Date.now()}`,
+          user_id: userId,
+          account_id: accountId,
+          pattern_type: themeCategory,
+          pattern_name: `${themeCategory} pattern`,
+          confidence_score: 0.3,
+          frequency: 'ad-hoc' as const,
+          trend_direction: 'stable' as const,
+          supporting_emails: emails.map(e => e.gmail_message_id).slice(0, 10),
+          key_characteristics: [`${emails.length} emails in ${themeCategory} theme`],
+          coordination_requirements: [],
+          suggested_automations: [],
+          stakeholders: [],
+          seasonal_factors: [],
+          first_detected: new Date().toISOString(),
+          last_updated: new Date().toISOString()
+        };
+      }
 
     } catch (error) {
       console.error(`Pattern analysis failed for ${themeCategory}:`, error);
@@ -866,7 +893,7 @@ export class EmailThemeAnalyzer {
     return intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
   }
 
-  private static async analyzeCrossPatternRelationships(patterns: FamilyPatternResult[], emails: any[]): Promise<any> {
+  private static async analyzeCrossPatternRelationships(_patterns: FamilyPatternResult[], _emails: any[]): Promise<any> {
     // Placeholder for cross-pattern analysis
     return {
       relationships: [],
@@ -874,7 +901,7 @@ export class EmailThemeAnalyzer {
     };
   }
 
-  private static enhancePatternsWithRelationships(patterns: FamilyPatternResult[], relationships: any): void {
+  private static enhancePatternsWithRelationships(_patterns: FamilyPatternResult[], _relationships: any): void {
     // Placeholder for relationship enhancement
   }
 
@@ -920,7 +947,7 @@ export class EmailThemeAnalyzer {
     }
   }
 
-  private static generatePatternInsights(patterns: FamilyPatternResult[], emails: any[]): any {
+  private static generatePatternInsights(patterns: FamilyPatternResult[], _emails: any[]): any {
     const strongestPatterns = patterns
       .filter(p => p.confidence_score > 0.7)
       .sort((a, b) => b.confidence_score - a.confidence_score)

@@ -446,7 +446,8 @@ export class ErrorLogger {
       await timer.finish(true, { operation });
       return result;
     } catch (error) {
-      await timer.finish(false, { operation, error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await timer.finish(false, { operation, error: errorMessage });
       await this.logError(
         LogLevel.ERROR,
         category,
@@ -558,7 +559,7 @@ export class ErrorLogger {
         'query_enhancement': 2000                  // 2 seconds max
       };
 
-      const sla = performanceSLAs[metrics.operation_name];
+      const sla = performanceSLAs[metrics.operation_name as keyof typeof performanceSLAs];
       if (sla && metrics.duration_ms > sla) {
         await this.logError(
           LogLevel.WARN,

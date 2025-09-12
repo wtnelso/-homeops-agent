@@ -56,7 +56,7 @@ interface TestingConfig {
 }
 
 const EmailTestingPage: React.FC = () => {
-  const { user, session, userData } = useAuth();
+  const { session, userData } = useAuth();
   const [job, setJob] = useState<ProcessingJob>({ status: 'idle' });
   const [config, setConfig] = useState<TestingConfig>({
     batch_type: 'full',

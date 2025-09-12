@@ -39,8 +39,7 @@ import {
 import { ChatOpenAI } from '@langchain/openai';
 import { RunnableSequence } from '@langchain/core/runnables';
 import { StringOutputParser } from '@langchain/core/output_parsers';
-import { z } from 'zod';
-import { ErrorLogger, LogLevel, LogCategory } from './errorLogger.js';
+// ErrorLogger import removed - not used in current implementation
 
 // Initialize clients
 const supabase = createClient(
@@ -90,40 +89,7 @@ const PROCESSING_CONFIG = {
   COMPRESSION_ENABLED: true,         // Compress detailed chunks
 } as const;
 
-/**
- * Zod schemas for structured LLM outputs
- */
-const ThemeAnalysisSchema = z.object({
-  themes: z.record(z.object({
-    confidence: z.number().min(0).max(1),
-    details: z.array(z.string()),
-    subcategories: z.array(z.string()).optional(),
-  })),
-  overall_category: z.string(),
-  family_relevance: z.number().min(0).max(1),
-  coordination_needs: z.array(z.string()),
-});
-
-const PriorityAnalysisSchema = z.object({
-  priority_score: z.number().min(0).max(1),
-  urgency_level: z.enum(['low', 'medium', 'high']),
-  importance_factors: z.array(z.string()),
-  time_sensitivity: z.string(),
-  stakeholders: z.array(z.string()),
-});
-
-const ActionItemsSchema = z.object({
-  actionable_items: z.array(z.object({
-    action: z.string(),
-    priority: z.enum(['low', 'medium', 'high']),
-    due_date: z.string().optional(),
-    assignee: z.string().optional(),
-    category: z.string(),
-  })),
-  follow_up_needed: z.boolean(),
-  coordination_required: z.boolean(),
-  automation_opportunities: z.array(z.string()),
-});
+// Zod schemas removed - using direct JSON parsing for LangChain outputs
 
 /**
  * Type definitions
@@ -238,7 +204,7 @@ export class EmailEmbeddingProcessor {
         subBatchResults.forEach((result, index) => {
           const email = subBatch[index];
           
-          if (result.status === 'fulfilled' && result.value.success) {
+          if (result.status === 'fulfilled' && result.value.success && result.value.data) {
             processed.push(result.value.data);
             totalCostCents += result.value.cost_cents;
             totalLLMCalls += result.value.llm_calls;
@@ -322,8 +288,8 @@ export class EmailEmbeddingProcessor {
    */
   private static async processEmail(
     email: EmailProcessingInput,
-    userId: string,
-    jobId: string
+    _userId: string,
+    _jobId: string
   ): Promise<{
     success: boolean;
     data?: ProcessedEmailOutput;
@@ -909,7 +875,7 @@ export class EmailEmbeddingProcessor {
   }
 
   private static extractBasicActionItems(email: EmailProcessingInput, content: string): any[] {
-    const actionItems = [];
+    const actionItems: any[] = [];
     const actionKeywords = ['rsvp', 'respond', 'sign', 'pay', 'attend', 'submit', 'register'];
     const text = (email.subject + ' ' + content).toLowerCase();
     
