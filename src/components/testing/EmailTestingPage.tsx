@@ -99,8 +99,21 @@ const EmailTestingPage: React.FC = () => {
     }
 
     try {
+      // Debug logging
+      console.log('🔍 Frontend debug - userData:', userData);
+      console.log('🔍 Frontend debug - account_id being sent:', userData.account.id);
+      console.log('🔍 Frontend debug - session token available:', !!session?.access_token);
+      
       addLog('🚀 Starting email embedding processing...');
+      addLog(`📤 Sending account_id: ${userData.account.id}`);
       setJob({ status: 'pending' });
+
+      const requestBody = {
+        account_id: userData.account.id,
+        ...config
+      };
+      
+      console.log('🔍 Frontend debug - request body:', requestBody);
 
       const response = await fetch('/api/email-embeddings/start', {
         method: 'POST',
@@ -108,14 +121,14 @@ const EmailTestingPage: React.FC = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token}`
         },
-        body: JSON.stringify({
-          account_id: userData.account.id,
-          ...config
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
       setApiResponse(data);
+      
+      console.log('🔍 Frontend debug - response status:', response.status);
+      console.log('🔍 Frontend debug - response data:', data);
 
       if (response.ok && data.success) {
         setJob({
