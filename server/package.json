@@ -1,0 +1,30 @@
+{
+  "name": "homeops-email-processor",
+  "version": "1.0.0",
+  "description": "Long-running email processing server with LangChain and OpenAI",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "email",
+    "langchain",
+    "openai",
+    "processing"
+  ],
+  "author": "HomeOps Agent",
+  "license": "ISC",
+  "dependencies": {
+    "@langchain/core": "^0.3.75",
+    "@langchain/openai": "^0.6.11",
+    "@neondatabase/serverless": "^1.0.1",
+    "@supabase/supabase-js": "^2.57.4",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "uuid": "^13.0.0"
+  }
+}
