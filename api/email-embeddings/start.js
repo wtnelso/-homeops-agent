@@ -285,8 +285,10 @@ async function authenticateRequest(req) {
     if (userError) {
       console.warn('⚠️  Could not fetch user plan, defaulting to free. Error:', userError);
       console.log('User auth ID:', user.id);
+      console.log('Full userError details:', JSON.stringify(userError, null, 2));
     } else {
       console.log('✅ Found user data:', userData);
+      console.log('User account_id from DB:', userData?.account_id);
     }
 
     return {
@@ -324,10 +326,21 @@ async function validateUserPermissions(user_id, account_id, user_account_id, use
     const plan_limit = planLimits[user_plan] || planLimits.free;
 
     // Check if user has access to this account (simple comparison - no database query needed)
-    console.log('🔍 Account validation:', { user_account_id, requested_account_id: account_id });
+    console.log('🔍 Account validation:', { 
+      user_account_id, 
+      requested_account_id: account_id,
+      user_account_id_type: typeof user_account_id,
+      requested_account_id_type: typeof account_id,
+      are_equal: user_account_id === account_id
+    });
     
     if (user_account_id !== account_id) {
-      console.log('❌ Account mismatch:', { user_account_id, requested_account_id: account_id });
+      console.log('❌ Account mismatch:', { 
+        user_account_id, 
+        requested_account_id: account_id,
+        user_account_id_type: typeof user_account_id,
+        requested_account_id_type: typeof account_id
+      });
       return {
         success: false,
         error: 'Access denied: Account not found or not owned by user'
