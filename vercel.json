@@ -7,6 +7,14 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/api/embeddings/:path*",
+      "destination": "https://homeops-agent-p7ru.onrender.com/api/embeddings/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "https://homeops-agent-p7ru.onrender.com/health"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
