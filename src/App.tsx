@@ -31,6 +31,9 @@ import OverviewPage from './components/dashboard/OverviewPage'
 import AnalyticsPage from './components/dashboard/AnalyticsPage'
 import ReportsPage from './components/dashboard/ReportsPage'
 
+// Testing components
+import EmailTestingPage from './components/testing/EmailTestingPage'
+
 // Settings page components
 import ProfileSection from './components/dashboard/settings/ProfileSection'
 import AccountSection from './components/dashboard/settings/AccountSection'
@@ -74,6 +77,7 @@ const AppContent = () => {
                     <Route path="overview" element={<OverviewPage />} />
                     <Route path="analytics" element={<AnalyticsPage />} />
                     <Route path="reports" element={<ReportsPage />} />
+                    <Route path="testing" element={<EmailTestingPage />} />
                     
                     {/* Settings with nested routes */}
                     <Route path="settings" element={<SettingsLayout />}>
