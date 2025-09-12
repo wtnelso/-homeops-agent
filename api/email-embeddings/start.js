@@ -369,8 +369,7 @@ async function validateUserPermissions(user_id, account_id, user_account_id, use
       allowed_email_limit,
       estimated_cost_cents,
       current_usage: current_monthly_processed,
-      plan_limit: monthly_limit,
-      account_name: accountAccess.account_name
+      plan_limit: monthly_limit
     };
 
   } catch (error) {
