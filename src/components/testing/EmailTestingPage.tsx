@@ -93,7 +93,7 @@ const EmailTestingPage: React.FC = () => {
   };
 
   const startProcessing = async () => {
-    if (!userData?.account?.id) {
+    if (!userData?.account_id) {
       addLog('No account ID available. Please ensure you are logged in.', 'error');
       return;
     }
@@ -109,7 +109,7 @@ const EmailTestingPage: React.FC = () => {
           'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
-          account_id: userData.account.id,
+          account_id: userData.account_id,
           ...config
         })
       });
