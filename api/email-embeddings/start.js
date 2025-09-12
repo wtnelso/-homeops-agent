@@ -29,7 +29,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { ErrorLogger, LogLevel, LogCategory } from '../../src/services/errorLogger.ts';
+// Note: ErrorLogger removed temporarily due to import issues in Vercel
 
 // Initialize Supabase client with service role for backend operations
 const supabase = createClient(
@@ -52,7 +52,7 @@ const PROCESSING_CONFIG = {
  */
 export default async function handler(req, res) {
   const startTime = Date.now();
-  const timer = ErrorLogger.createTimer('POST /api/email-embeddings/start');
+  const timer = { startTime: Date.now() }; // Simplified timer
   let userId = 'unknown';
   
   try {
@@ -102,17 +102,11 @@ export default async function handler(req, res) {
     userId = user_id;
     console.log(`✅ Authenticated user ${user_id} with ${user_plan} plan`);
     
-    await ErrorLogger.logError(
-      LogLevel.INFO,
-      LogCategory.API_PERFORMANCE,
-      `User ${user_id} initiated ${batch_type} email embedding job`,
-      undefined,
-      {
-        user_id,
-        operation: 'start_embedding_processing',
-        request_data: { batch_type, email_limit, account_id }
-      }
-    );
+    console.log(`User ${user_id} initiated ${batch_type} email embedding job`, {
+      user_id,
+      operation: 'start_embedding_processing', 
+      request_data: { batch_type, email_limit, account_id }
+    });
 
     // ============================================================
     // STEP 2: Validate user permissions and limits
@@ -193,10 +187,12 @@ export default async function handler(req, res) {
     console.log(`✅ Job ${job_id} initiated in ${executionTime}ms`);
 
     // Log successful API call
-    await ErrorLogger.logApiCall('email-embeddings/start', 'POST', 200, executionTime, user_id, {
+    console.log('API call successful:', {
+      endpoint: 'email-embeddings/start',
       job_id,
       estimated_emails: allowed_email_limit,
-      estimated_cost_cents
+      estimated_cost_cents,
+      execution_time: executionTime
     });
 
     await timer.finish(true, {
@@ -229,21 +225,17 @@ export default async function handler(req, res) {
     console.error('❌ Unexpected error in start endpoint:', error);
 
     // Log the error with full context
-    await ErrorLogger.logError(
-      LogLevel.ERROR,
-      LogCategory.API_PERFORMANCE,
-      'Email embedding start endpoint failed',
-      error,
-      {
-        user_id: userId,
-        function_name: 'start_embedding_processing',
-        execution_time_ms: executionTime,
-        request_data: req.body
-      }
-    );
+    console.error('Email embedding start endpoint failed:', error, {
+      user_id: userId,
+      function_name: 'start_embedding_processing',
+      execution_time_ms: executionTime,
+      request_data: req.body
+    });
 
-    await ErrorLogger.logApiCall('email-embeddings/start', 'POST', 500, executionTime, userId, {
-      error_message: error.message
+    console.error('API call failed:', {
+      endpoint: 'email-embeddings/start',
+      error_message: error.message,
+      execution_time: executionTime
     });
 
     return res.status(500).json({

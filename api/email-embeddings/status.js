@@ -23,7 +23,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { ErrorLogger, LogLevel, LogCategory } from '../../src/services/errorLogger.ts';
+// Note: ErrorLogger removed temporarily due to import issues in Vercel
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -89,7 +89,7 @@ function calculateETA(status, processed, total, started_at, avg_processing_rate 
  */
 export default async function handler(req, res) {
   const startTime = Date.now();
-  const timer = ErrorLogger.createTimer('GET /api/email-embeddings/status');
+  const timer = { startTime: Date.now() }; // Simplified timer
   let userId = 'unknown';
   let jobId = 'unknown';
   
@@ -298,20 +298,17 @@ export default async function handler(req, res) {
     console.log(`✅ Status fetched for job ${job_id} in ${executionTime}ms (${job.status}, ${progress_percentage}%)`);
 
     // Log successful API call
-    await ErrorLogger.logApiCall('email-embeddings/status', 'GET', 200, executionTime, userId, {
+    console.log('API call successful:', {
+      endpoint: 'email-embeddings/status',
       job_id,
       status: job.status,
       progress_percentage,
       processed_emails: job.processed_emails,
-      total_emails: job.total_emails
+      total_emails: job.total_emails,
+      execution_time: executionTime
     });
 
-    await timer.finish(true, {
-      job_id,
-      status: job.status,
-      progress_percentage,
-      user_id: userId
-    });
+    // Timer removed - using simple console logging
 
     return res.status(200).json(response);
 
@@ -320,30 +317,22 @@ export default async function handler(req, res) {
     console.error('❌ Unexpected error in status endpoint:', error);
 
     // Log the error with full context
-    await ErrorLogger.logError(
-      LogLevel.ERROR,
-      LogCategory.API_PERFORMANCE,
-      'Email embedding status endpoint failed',
-      error,
-      {
-        user_id: userId,
-        job_id: jobId,
-        function_name: 'get_embedding_status',
-        execution_time_ms: executionTime,
-        request_data: { job_id: req.query.job_id }
-      }
-    );
-
-    await ErrorLogger.logApiCall('email-embeddings/status', 'GET', 500, executionTime, userId, {
-      error_message: error.message,
-      job_id: jobId
+    console.error('Email embedding status endpoint failed:', error, {
+      user_id: userId,
+      job_id: jobId,
+      function_name: 'get_embedding_status',
+      execution_time_ms: executionTime,
+      request_data: { job_id: req.query.job_id }
     });
 
-    await timer.finish(false, {
+    console.error('API call failed:', {
+      endpoint: 'email-embeddings/status',
       error_message: error.message,
       job_id: jobId,
-      user_id: userId
+      execution_time: executionTime
     });
+
+    // Timer removed - using simple console logging
 
     return res.status(500).json({
       error: 'Internal server error',
