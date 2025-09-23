@@ -96,8 +96,9 @@ const MemorySection: React.FC = () => {
     <div className="settings-container">
       {/* Header */}
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          <span className="text-lg">🧠</span> Agent Memory
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+          <Brain className="h-5 w-5 mr-2" />
+          Agent Memory
         </h3>
         <p className="text-gray-600 dark:text-gray-400 text-sm">
           AI-extracted insights and information from your family communications

@@ -178,13 +178,30 @@ export class IntegrationsService {
 
   async checkIntegrationStatus(integrationId: string): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/${integrationId}/status`);
+      // Use the Render server OAuth status endpoint
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
+
+      // Get current user session data for account ID
+      const { UserSessionService } = await import('./userSession');
+      const sessionData = await UserSessionService.getUserSessionData();
+      if ('error' in sessionData) {
+        console.error('Failed to get user session data for status check');
+        return;
+      }
+
+      const response = await fetch(`${serverUrl}/api/oauth/status/${integrationId}`, {
+        method: 'GET',
+        headers: {
+          'x-account-id': sessionData.account.id
+        }
+      });
+
       if (response.ok) {
         const statusData = await response.json();
         const integration = this.integrations.get(integrationId);
-        if (integration) {
-          integration.status = statusData.status;
-          integration.lastSync = statusData.lastSync ? new Date(statusData.lastSync) : undefined;
+        if (integration && statusData.integration) {
+          integration.status = statusData.integration.connected ? 'connected' : 'disconnected';
+          integration.enabled = statusData.integration.connected;
         }
       }
     } catch (error) {

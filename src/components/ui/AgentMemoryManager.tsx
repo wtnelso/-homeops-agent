@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, CheckCircle, Clock, AlertCircle, Sparkles, Edit, Trash2, Eye } from 'lucide-react';
+import { Filter, CheckCircle, Clock, AlertCircle, Sparkles, Edit, Trash2, Eye, Heart, Calendar, Users, Target, Utensils, Hospital, GraduationCap, Briefcase, Palette, MessageCircle, Brain } from 'lucide-react';
 
 interface Memory {
   id: string;
@@ -114,20 +114,20 @@ const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ accountId, onMe
     }
   };
 
-  const getMemoryTypeEmoji = (type: string) => {
-    const typeMap: Record<string, string> = {
-      'preference': '❤️',
-      'schedule': '📅',
-      'family_member': '👥',
-      'activity': '🎯',
-      'food': '🍽️',
-      'health': '🏥',
-      'school': '🎓',
-      'work': '💼',
-      'hobby': '🎨',
-      'general': '💭'
+  const getMemoryTypeIcon = (type: string) => {
+    const iconMap: Record<string, React.ReactNode> = {
+      'preference': <Heart className="w-4 h-4 text-red-500" />,
+      'schedule': <Calendar className="w-4 h-4 text-blue-500" />,
+      'family_member': <Users className="w-4 h-4 text-green-500" />,
+      'activity': <Target className="w-4 h-4 text-purple-500" />,
+      'food': <Utensils className="w-4 h-4 text-orange-500" />,
+      'health': <Hospital className="w-4 h-4 text-red-500" />,
+      'school': <GraduationCap className="w-4 h-4 text-blue-500" />,
+      'work': <Briefcase className="w-4 h-4 text-gray-600" />,
+      'hobby': <Palette className="w-4 h-4 text-pink-500" />,
+      'general': <MessageCircle className="w-4 h-4 text-gray-500" />
     };
-    return typeMap[type] || '💭';
+    return iconMap[type] || <MessageCircle className="w-4 h-4 text-gray-500" />;
   };
 
   const getStatusBadge = (memory: Memory) => {
@@ -215,10 +215,10 @@ const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ accountId, onMe
             onChange={(e) => setSelectedType(e.target.value)}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
           >
-            <option value="all">🎯 All Types</option>
+            <option value="all">All Types</option>
             {memoryTypes.map(type => (
               <option key={type} value={type}>
-                {getMemoryTypeEmoji(type)} {type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                {type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </option>
             ))}
           </select>
@@ -229,10 +229,10 @@ const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ accountId, onMe
           onChange={(e) => setSelectedStatus(e.target.value)}
           className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
         >
-          <option value="all">📊 All Status</option>
-          <option value="active">✨ Active</option>
-          <option value="confirmed">✅ Confirmed</option>
-          <option value="expired">⏰ Expired</option>
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="expired">Expired</option>
         </select>
       </div>
 
@@ -259,7 +259,7 @@ const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ accountId, onMe
             {/* Memory Header */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center space-x-2">
-                <span className="text-xl">{getMemoryTypeEmoji(memory.memory_type)}</span>
+                {getMemoryTypeIcon(memory.memory_type)}
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400 capitalize">
                   {memory.memory_type.replace('_', ' ')}
                 </span>
@@ -351,7 +351,7 @@ const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ accountId, onMe
 
       {filteredMemories.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-4xl mb-4">🧠</div>
+          <Brain className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             No memories found
           </h3>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { User, Users, Clock, Calendar } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { DataUpdateService } from '../../../services/dataUpdate';
@@ -139,16 +140,18 @@ const ProfileSection: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          <span className="text-lg">👤</span> Profile Information
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
+          <User className="w-5 h-5" />
+          <span>Profile Information</span>
         </h3>
         <div className="space-y-6">
           
           {/* Name (editable) with Avatar */}
           <div className="grid grid-cols-2 gap-6 items-end">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <span className="text-base">👨‍👩‍👧‍👦</span> Full Name
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                <Users className="w-4 h-4" />
+                <span>Full Name</span>
               </label>
               <input
                 type="text"
@@ -171,8 +174,9 @@ const ProfileSection: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Last Login (read-only) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <span className="text-base">🕒</span> Last Login
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                <Clock className="w-4 h-4" />
+                <span>Last Login</span>
               </label>
               <input
                 type="text"
@@ -184,8 +188,9 @@ const ProfileSection: React.FC = () => {
 
             {/* Created At (read-only) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <span className="text-base">📅</span> Account Created
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                <Calendar className="w-4 h-4" />
+                <span>Account Created</span>
               </label>
               <input
                 type="text"

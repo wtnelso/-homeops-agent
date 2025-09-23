@@ -25,6 +25,8 @@ import { ToastProvider } from './contexts/ToastContext'
 
 // Dashboard page components
 import HomePage from './components/dashboard/HomePage'
+import FamilyPage from './components/dashboard/FamilyPage'
+import MemoryPage from './components/dashboard/MemoryPage'
 import CalendarPage from './components/dashboard/CalendarPage'
 import EmailPage from './components/dashboard/EmailPage'
 import OverviewPage from './components/dashboard/OverviewPage'
@@ -37,8 +39,6 @@ import EmailTestingPage from './components/testing/EmailTestingPage'
 // Settings page components
 import AccountSection from './components/dashboard/settings/AccountSection'
 import ProfileSection from './components/dashboard/settings/ProfileSection'
-import FamilyProfileSection from './components/dashboard/settings/FamilyProfileSection'
-import MemorySection from './components/dashboard/settings/MemorySection'
 import IntegrationsSection from './components/dashboard/settings/IntegrationsSection'
 
 import './App.css'
@@ -74,6 +74,8 @@ const AppContent = () => {
                     </ProtectedRoute>
                   }>
                     <Route path="home" element={<HomePage />} />
+                    <Route path="family" element={<FamilyPage />} />
+                    <Route path="memory" element={<MemoryPage />} />
                     <Route path="calendar" element={<CalendarPage />} />
                     <Route path="email" element={<EmailPage />} />
                     <Route path="overview" element={<OverviewPage />} />
@@ -84,9 +86,7 @@ const AppContent = () => {
                     {/* Settings with nested routes */}
                     <Route path="settings" element={<SettingsLayout />}>
                       <Route path="profile" element={<ProfileSection />} />
-                      <Route path="family" element={<FamilyProfileSection />} />
                       <Route path="account" element={<AccountSection />} />
-                      <Route path="memory" element={<MemorySection />} />
                       <Route path="integrations" element={<IntegrationsSection />} />
                     </Route>
                   </Route>

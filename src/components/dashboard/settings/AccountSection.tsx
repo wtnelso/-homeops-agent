@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Home, CheckCircle, Tag, Building, Globe } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { DataUpdateService } from '../../../services/dataUpdate';
 import { HOUSEHOLD_TYPES } from '../../../config/constants';
@@ -62,15 +63,17 @@ const AccountSection: React.FC = () => {
   return (
     <div className="settings-container">
       <div className="flex-1">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-          <span className="text-lg">🏠</span> Account Settings
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center space-x-2">
+          <Home className="w-5 h-5" />
+          <span>Account Settings</span>
         </h3>
 
         <div className="space-y-6">
           {/* Account Active Toggle - Top row */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              <span className="text-base">✅</span> Account Active
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4" />
+              <span>Account Active</span>
             </label>
             <div className="flex items-center">
               <button
@@ -102,8 +105,9 @@ const AccountSection: React.FC = () => {
           {/* Account Name and House Type - Same row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <span className="text-base">🏷️</span> Account Name
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                <Tag className="w-4 h-4" />
+                <span>Account Name</span>
               </label>
               <input
                 type="text"
@@ -118,8 +122,9 @@ const AccountSection: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <span className="text-base">🏡</span> House Type
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                <Building className="w-4 h-4" />
+                <span>House Type</span>
               </label>
               <select
                 value={formData.household_type}
@@ -139,8 +144,9 @@ const AccountSection: React.FC = () => {
           {/* Timezone - Left side of next row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <span className="text-base">🌍</span> Timezone
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                <Globe className="w-4 h-4" />
+                <span>Timezone</span>
               </label>
               <TimezoneSelect
                 value={formData.timezone}

@@ -1,5 +1,4 @@
 import { GMAIL_CONFIG } from '../config/integrations/gmail';
-import { AccountIntegrationsService } from './accountIntegrationsService';
 import { UserSessionService } from './userSession';
 
 export class GmailService {
@@ -17,9 +16,14 @@ export class GmailService {
   }
 
   static startOAuthFlow(): void {
+    const oauthUrl = this.buildOAuthUrl();
+    console.log('🚀 Gmail OAuth URL:', oauthUrl);
+    console.log('📋 Redirect URI:', GMAIL_CONFIG.redirectUri);
+    console.log('🔑 Client ID:', GMAIL_CONFIG.clientId);
+
     localStorage.setItem('oauth_integration_pending', 'gmail');
     localStorage.setItem('oauth_return_url', window.location.href);
-    window.location.href = this.buildOAuthUrl();
+    window.location.href = oauthUrl;
   }
 
   static async handleOAuthCallback(code: string): Promise<{ success: boolean; message?: string; error?: string }> {
@@ -32,15 +36,16 @@ export class GmailService {
         return { success: false, error: 'Failed to get user session data' };
       }
 
-      // Call the Supabase Edge Function to exchange the code for tokens
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gmail-oauth-exchange`, {
+      // Call the Render server OAuth endpoint to exchange the code for tokens
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
+      const response = await fetch(`${serverUrl}/api/oauth/exchange`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           code: code,
+          integrationId: 'gmail',
           accountId: sessionData.account.id,
           userId: sessionData.user.id
         })
@@ -74,17 +79,23 @@ export class GmailService {
         return { success: false, error: 'Failed to get user session data' };
       }
 
-      // TODO: Revoke tokens with Google API
-      // This is where you'd make a request to revoke the OAuth tokens
-      
-      // Update the integration status in database
-      const result = await AccountIntegrationsService.uninstallIntegration({
-        accountId: sessionData.account.id,
-        integrationId: 'gmail'
+      // Call the Render server OAuth disconnect endpoint
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
+      const response = await fetch(`${serverUrl}/api/oauth/disconnect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          accountId: sessionData.account.id,
+          integrationId: 'gmail'
+        })
       });
 
-      if (!result.success) {
-        return { success: false, error: result.error || 'Failed to disconnect Gmail in database' };
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('OAuth disconnect failed:', errorData);
+        return { success: false, error: errorData.error || 'Failed to disconnect Gmail' };
       }
       
       return { success: true, message: 'Gmail disconnected successfully' };

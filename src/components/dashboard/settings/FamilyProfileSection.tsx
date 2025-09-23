@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Heart, Baby, User, ChevronDown, ChevronRight, Plus, Edit, Trash2, Calendar, GraduationCap, Dumbbell, Palette, BookOpen, Users2, TreePine, Home, Heart as HeartIcon, Zap, School, Building, Building2, University, UserCheck, Crown, Dog, UserX } from 'lucide-react';
+import { Users, Heart, Baby, User, ChevronDown, ChevronRight, Plus, Edit, Trash2, Calendar, GraduationCap, Dumbbell, Palette, BookOpen, Users2, TreePine, Home, Heart as HeartIcon, Zap, School, Building, Building2, University, UserCheck, Crown, Dog, UserX, Target } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import AddMemberModal from '../../ui/AddMemberModal';
@@ -176,6 +176,19 @@ const FamilyProfileSection: React.FC = () => {
       'other': 'Other'
     };
     return activityTypeMap[type] || type;
+  };
+
+  const formatMemberType = (type: string): string => {
+    const memberTypeMap: { [key: string]: string } = {
+      'user': 'You',
+      'partner': 'Spouse/Partner',
+      'child': 'Child',
+      'pet': 'Pet',
+      'parent': 'Parent',
+      'sibling': 'Sibling',
+      'grandparent': 'Grandparent'
+    };
+    return memberTypeMap[type] || type;
   };
 
   const [activeTab, setActiveTab] = useState<'members' | 'activities'>('members');
@@ -778,7 +791,7 @@ const FamilyProfileSection: React.FC = () => {
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              <span className="text-lg">👥</span>
+              <Users className="w-5 h-5" />
               Family Members
             </button>
             <button
@@ -789,7 +802,7 @@ const FamilyProfileSection: React.FC = () => {
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              <span className="text-lg">🎯</span>
+              <Target className="w-5 h-5" />
               Family Activities
             </button>
           </div>
@@ -851,15 +864,9 @@ const FamilyProfileSection: React.FC = () => {
                           </div>
 
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                              {member.type === 'user' ? '👤 You' :
-                               member.type === 'partner' ? '💑 Spouse/Partner' :
-                               member.type === 'child' ? '👶 Child' :
-                               member.type === 'pet' ? '🐕 Pet' :
-                               member.type === 'parent' ? '👨‍👩‍👧‍👦 Parent' :
-                               member.type === 'sibling' ? '👫 Sibling' :
-                               member.type === 'grandparent' ? '👴 Grandparent' :
-                               `👤 ${member.type}`}
+                            <span className="text-sm text-gray-500 dark:text-gray-400 font-medium flex items-center space-x-2">
+                              {React.createElement(getMemberTypeIcon(member.type), { className: "w-4 h-4" })}
+                              <span>{formatMemberType(member.type)}</span>
                             </span>
                           </div>
 
@@ -868,7 +875,7 @@ const FamilyProfileSection: React.FC = () => {
                             {/* School badges - more prominent */}
                             {member.schools && member.schools.length > 0 && member.schools.map((school, schoolIdx) => (
                               <span key={schoolIdx} className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-3 py-1 rounded-full flex items-center gap-1 font-medium shadow-sm">
-                                🎓 {school.name}
+                                <GraduationCap className="w-3 h-3" /> {school.name}
                                 {school.grade && <span className="text-emerald-600 dark:text-emerald-400">• {school.grade}</span>}
                               </span>
                             ))}
@@ -876,7 +883,7 @@ const FamilyProfileSection: React.FC = () => {
                             {/* Activity count badge */}
                             {member.activities && member.activities.length > 0 && (
                               <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-3 py-1 rounded-full flex items-center gap-1 font-medium shadow-sm">
-                                🏃 {member.activities.length} {member.activities.length === 1 ? 'activity' : 'activities'}
+                                <Zap className="w-3 h-3" /> {member.activities.length} {member.activities.length === 1 ? 'activity' : 'activities'}
                               </span>
                             )}
                           </div>
@@ -1014,7 +1021,7 @@ const FamilyProfileSection: React.FC = () => {
                               }`}
                             >
                               <div className="flex items-center gap-2">
-                                <span className="text-base">🏃</span>
+                                <Zap className="w-4 h-4" />
                                 <h6 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                   Activities {member.activities?.length ? `(${member.activities.length})` : ''}
                                 </h6>
@@ -1165,7 +1172,7 @@ const FamilyProfileSection: React.FC = () => {
                               }`}
                             >
                               <div className="flex items-center gap-2">
-                                <span className="text-base">🎓</span>
+                                <GraduationCap className="w-4 h-4" />
                                 <h6 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                   Schools {member.schools?.length ? `(${member.schools.length})` : ''}
                                 </h6>
@@ -1299,7 +1306,7 @@ const FamilyProfileSection: React.FC = () => {
                   <div key={activityIndex} className="border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-25 dark:bg-gray-800/30">
                     <div className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
                       <div className="flex items-center gap-3">
-                        <span className="text-base">🎯</span>
+                        <Target className="w-4 h-4" />
                         <div>
                           <div className="font-medium text-gray-900 dark:text-white">
                             {activity.name || 'Unnamed Activity'}
@@ -1380,7 +1387,7 @@ const FamilyProfileSection: React.FC = () => {
                 ))
               ) : (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <span className="text-4xl opacity-50 block mb-2">🎯</span>
+                  <Target className="w-12 h-12 opacity-50 mx-auto mb-2" />
                   <p>No family activities added yet</p>
                   <p className="text-sm">Click "Add Family Activity" to get started</p>
                 </div>

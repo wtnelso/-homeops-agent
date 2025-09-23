@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, Sparkles } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { IntegrationDisplay } from '../../data/integrations';
 import IntegrationDetailsModal from './IntegrationDetailsModal';
 
@@ -19,22 +19,22 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   const getIntegrationCopy = (id: string, isConnected: boolean) => {
     const copies: Record<string, { title: string; valueProp: string; buttonText: string; connectedText: string }> = {
       'gmail': {
-        title: isConnected ? '📧 Smart Inbox Active!' : '📧 Unlock Smart Inbox',
+        title: isConnected ? 'Smart Inbox Active!' : 'Unlock Smart Inbox',
         valueProp: 'Transform email chaos into organized family tasks and reminders',
         buttonText: 'Activate Superpower',
-        connectedText: 'You\'re synced! ✨'
+        connectedText: 'You\'re synced!'
       },
       'google-calendar': {
-        title: isConnected ? '📅 Family Calendar Synced!' : '📅 Sync Family Calendar',
+        title: isConnected ? 'Family Calendar Synced!' : 'Sync Family Calendar',
         valueProp: 'Stay ahead of school schedules, activities, and family events',
         buttonText: 'Connect Calendar',
-        connectedText: 'Schedule mastered! 🎯'
+        connectedText: 'Schedule mastered!'
       },
       'default': {
-        title: isConnected ? `✅ ${integration.name} Connected!` : `🚀 Connect ${integration.name}`,
+        title: isConnected ? `${integration.name} Connected!` : `Connect ${integration.name}`,
         valueProp: 'Enhance your family\'s productivity and organization',
         buttonText: 'Unlock Power',
-        connectedText: 'Connected! 🎉'
+        connectedText: 'Connected!'
       }
     };
 
@@ -82,12 +82,6 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           </div>
         )}
 
-        {/* Sparkles for connected state */}
-        {isConnected && (
-          <div className="absolute top-2 left-2 animate-bounce">
-            <Sparkles className="w-4 h-4 text-yellow-400" />
-          </div>
-        )}
 
         {/* Icon */}
         <div className="flex justify-center mb-4">

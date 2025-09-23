@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Menu,
-  X
+  X,
+  MessageSquare,
+  Calendar,
+  Mail,
+  Settings,
+  Users,
+  Brain
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../config/routes';
@@ -11,7 +17,7 @@ import UserDropdown from './ui/UserDropdown';
 interface DashboardPage {
   id: string;
   title: string;
-  emoji: string;
+  icon: React.ComponentType<any>;
   description: string;
   path: string;
 }
@@ -33,28 +39,42 @@ const DashboardLayout: React.FC = () => {
     {
       id: 'home',
       title: 'Home',
-      emoji: '💬',
+      icon: MessageSquare,
       description: 'AI Assistant and quick actions',
       path: '/dashboard/home'
     },
     {
+      id: 'family',
+      title: 'Family Profile',
+      icon: Users,
+      description: 'Manage family members and profiles',
+      path: '/dashboard/family'
+    },
+    {
+      id: 'memory',
+      title: 'Agent Memory',
+      icon: Brain,
+      description: 'AI-extracted insights and information',
+      path: '/dashboard/memory'
+    },
+    {
       id: 'calendar',
       title: 'Calendar',
-      emoji: '📅',
+      icon: Calendar,
       description: 'Interactive calendar and events',
       path: '/dashboard/calendar'
     },
     {
       id: 'email',
       title: 'Email',
-      emoji: '📧',
+      icon: Mail,
       description: 'Email management and intelligence',
       path: '/dashboard/email'
     },
     {
       id: 'settings',
       title: 'Settings',
-      emoji: '⚙️',
+      icon: Settings,
       description: 'Dashboard and system settings',
       path: '/dashboard/settings'
     }
@@ -113,6 +133,7 @@ const DashboardLayout: React.FC = () => {
           {dashboardPages.map((page) => {
             const isActive = location.pathname === page.path ||
               (page.id === 'settings' && location.pathname.startsWith('/dashboard/settings'));
+            const IconComponent = page.icon;
 
             return (
               <button
@@ -127,9 +148,10 @@ const DashboardLayout: React.FC = () => {
                     ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm'
                   }
+                  ${(page.id === 'calendar' || page.id === 'email') ? 'hidden' : ''}
                 `}
               >
-                <span className="text-lg">{page.emoji}</span>
+                <IconComponent className="w-5 h-5" />
                 <div className="flex-1">
                   <span className={`font-semibold tracking-wide ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}`}>{page.title}</span>
                 </div>
@@ -177,7 +199,7 @@ const DashboardLayout: React.FC = () => {
             {currentPage && (
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-slate-100 dark:bg-gradient-to-br dark:from-blue-900/40 dark:to-slate-900/40 rounded-xl flex items-center justify-center shadow-md">
-                  <span className="text-lg">{currentPage.emoji}</span>
+                  <currentPage.icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{currentPage.title}</h2>

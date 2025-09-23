@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Link } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { IntegrationsDataService, IntegrationWithStatus } from '../../../services/integrationsData';
 import { AccountIntegrationsService } from '../../../services/accountIntegrationsService';
 import { OAuthCoordinator } from '../../../config/oauth';
 import IntegrationCard from '../../ui/IntegrationCard';
+import Loader from '../../ui/Loader';
 
 const IntegrationsSection: React.FC = () => {
   const { userData, refreshUserData } = useAuth();
   const [integrationsWithStatus, setIntegrationsWithStatus] = useState<IntegrationWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingIntegration, setProcessingIntegration] = useState<string | null>(null);
 
   useEffect(() => {
     loadIntegrationsData();
@@ -47,6 +51,9 @@ const IntegrationsSection: React.FC = () => {
       console.error('Missing integration, account, or user data');
       return;
     }
+
+    // Set processing state
+    setProcessingIntegration(integrationId);
 
     try {
       if (integration.isConnected) {
@@ -98,6 +105,9 @@ const IntegrationsSection: React.FC = () => {
       }
     } catch (error) {
       console.error('Error handling integration connection:', error);
+    } finally {
+      // Clear processing state
+      setProcessingIntegration(null);
     }
   };
 
@@ -110,8 +120,9 @@ const IntegrationsSection: React.FC = () => {
     <div className="h-[44rem] flex flex-col space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          <span className="text-lg">🔗</span> Unlock Your Family Superpowers
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+          <Link className="w-5 h-5" />
+          <span>Unlock Your Family Superpowers</span>
         </h3>
         <p className="text-gray-600 dark:text-gray-400 text-sm">
           Connect your favorite apps to make family life effortless and organized
@@ -155,6 +166,18 @@ const IntegrationsSection: React.FC = () => {
             );
           })}
         </div>
+      )}
+
+      {/* Full-page processing overlay using Portal */}
+      {processingIntegration && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="text-center">
+              <Loader size="lg" />
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

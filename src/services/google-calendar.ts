@@ -63,23 +63,25 @@ export class GoogleCalendarService {
         userId: sessionData.user.id
       });
 
-      // Call the Supabase Edge Function to exchange the code for tokens
-      const exchangeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-oauth-exchange`;
+      // Call the Render server OAuth endpoint to exchange the code for tokens
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
+      const exchangeUrl = `${serverUrl}/api/oauth/exchange`;
       console.log('🔄 Calling token exchange endpoint:', exchangeUrl);
       console.log('📤 Exchange payload:', {
         code: code ? `${code.substring(0, 10)}...` : 'NO CODE',
         accountId: sessionData.account.id,
-        userId: sessionData.user.id
+        userId: sessionData.user.id,
+        integrationId: 'google-calendar'
       });
-      
+
       const response = await fetch(exchangeUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           code: code,
+          integrationId: 'google-calendar',
           accountId: sessionData.account.id,
           userId: sessionData.user.id
         })
@@ -122,15 +124,39 @@ export class GoogleCalendarService {
     }
   }
 
-  static async disconnect(): Promise<{ success: boolean; message?: string }> {
+  static async disconnect(): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
-      // TODO: Revoke tokens and cleanup
       console.log('Disconnecting Google Calendar');
-      
+
+      // Get current user session data
+      const sessionData = await UserSessionService.getUserSessionData();
+      if ('error' in sessionData) {
+        return { success: false, error: 'Failed to get user session data' };
+      }
+
+      // Call the Render server OAuth disconnect endpoint
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
+      const response = await fetch(`${serverUrl}/api/oauth/disconnect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          accountId: sessionData.account.id,
+          integrationId: 'google-calendar'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('OAuth disconnect failed:', errorData);
+        return { success: false, error: errorData.error || 'Failed to disconnect Google Calendar' };
+      }
+
       return { success: true, message: 'Google Calendar disconnected successfully' };
     } catch (error) {
       console.error('Google Calendar disconnect error:', error);
-      return { success: false, message: 'Failed to disconnect Google Calendar' };
+      return { success: false, error: 'Failed to disconnect Google Calendar' };
     }
   }
 }

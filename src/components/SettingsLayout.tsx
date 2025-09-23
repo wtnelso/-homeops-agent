@@ -1,11 +1,12 @@
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { User, Home, Link } from 'lucide-react';
 import { ROUTES } from '../config/routes';
 
 interface SettingsTab {
   id: string;
   label: string;
-  emoji: string;
+  icon: React.ComponentType<any>;
   path: string;
 }
 
@@ -21,11 +22,9 @@ const SettingsLayout: React.FC = () => {
   }, [location.pathname, navigate]);
 
   const settingsTabs: SettingsTab[] = [
-    { id: 'profile', label: 'Profile', emoji: '👤', path: ROUTES.DASHBOARD_SETTINGS_PROFILE },
-    { id: 'account', label: 'Account', emoji: '🏠', path: ROUTES.DASHBOARD_SETTINGS_ACCOUNT },
-    { id: 'family', label: 'Family Profile', emoji: '👥', path: ROUTES.DASHBOARD_SETTINGS_FAMILY },
-    { id: 'memory', label: 'Agent Memory', emoji: '🧠', path: ROUTES.DASHBOARD_SETTINGS_MEMORY },
-    { id: 'integrations', label: 'Integrations', emoji: '🔗', path: ROUTES.DASHBOARD_SETTINGS_INTEGRATIONS }
+    { id: 'profile', label: 'Profile', icon: User, path: ROUTES.DASHBOARD_SETTINGS_PROFILE },
+    { id: 'account', label: 'Account', icon: Home, path: ROUTES.DASHBOARD_SETTINGS_ACCOUNT },
+    { id: 'integrations', label: 'Connectors', icon: Link, path: ROUTES.DASHBOARD_SETTINGS_INTEGRATIONS }
   ];
 
   return (
@@ -37,6 +36,7 @@ const SettingsLayout: React.FC = () => {
             <nav className="space-y-1">
               {settingsTabs.map((tab) => {
                 const isActive = location.pathname === tab.path;
+                const IconComponent = tab.icon;
 
                 return (
                   <button
@@ -50,7 +50,7 @@ const SettingsLayout: React.FC = () => {
                       }
                     `}
                   >
-                    <span className="text-lg">{tab.emoji}</span>
+                    <IconComponent className="w-5 h-5" />
                     <span className="font-medium">{tab.label}</span>
                   </button>
                 );

@@ -111,20 +111,9 @@ export class OAuthCallbackHandler {
    * Get the stored return URL and clean it up
    */
   static getReturnUrl(): string {
-    const returnUrl = localStorage.getItem('oauth_return_url');
     localStorage.removeItem('oauth_return_url');
-    
-    if (!returnUrl) {
-      return '/dashboard/home';
-    }
-    
-    // If it's a full URL, extract just the pathname
-    try {
-      const url = new URL(returnUrl);
-      return url.pathname;
-    } catch {
-      // If it's not a valid URL, assume it's already a pathname
-      return returnUrl.startsWith('/') ? returnUrl : '/dashboard/home';
-    }
+
+    // Always redirect to integrations page after OAuth
+    return '/dashboard/settings/integrations';
   }
 }

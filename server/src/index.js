@@ -20,6 +20,7 @@ console.log('✅ Agent memory routes imported successfully');
 import semanticSearchRoutes from './routes/semanticSearch.js';
 import profileRoutes from './routes/profile.js';
 import profileSuggestionsRoutes from './routes/profileSuggestions.js';
+import oauthRoutes from './routes/oauth.js';
 import { SERVER_CONFIG, validateServerConfig } from './config/serverConfig.js';
 import { MemoryCleanupService } from './services/memoryCleanupService.js';
 import { initializeServer } from './serverInit.js';
@@ -58,6 +59,7 @@ app.use('/api/agent-memory', agentMemoryRoutes);
 app.use('/api/semantic-search', semanticSearchRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/profile-suggestions', profileSuggestionsRoutes);
+app.use('/api/oauth', oauthRoutes);
 app.use('/health', healthRoutes);
 
 // Root endpoint
@@ -75,7 +77,8 @@ app.get('/', (req, res) => {
       agentMemory: '/api/agent-memory',
       semanticSearch: '/api/semantic-search',
       profile: '/api/profile',
-      profileSuggestions: '/api/profile-suggestions'
+      profileSuggestions: '/api/profile-suggestions',
+      oauth: '/api/oauth'
     }
   });
 });

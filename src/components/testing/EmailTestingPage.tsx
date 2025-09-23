@@ -6,17 +6,18 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Play, 
-  RefreshCw, 
-  AlertCircle, 
-  CheckCircle, 
+import {
+  Play,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle,
   Clock,
   Brain,
   BarChart3,
   Settings,
   Eye,
-  Download
+  Download,
+  Info
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -86,10 +87,18 @@ const EmailTestingPage: React.FC = () => {
     };
   }, [isPolling, job.job_id]);
 
+  const getLogIcon = (type: 'info' | 'success' | 'error') => {
+    switch (type) {
+      case 'success': return '✓';
+      case 'error': return '✗';
+      default: return 'ℹ';
+    }
+  };
+
   const addLog = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
     const timestamp = new Date().toLocaleTimeString();
-    const emoji = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
-    setLogs(prev => [...prev, `${timestamp} ${emoji} ${message}`]);
+    const icon = getLogIcon(type);
+    setLogs(prev => [...prev, `${timestamp} ${icon} ${message}`]);
   };
 
   const startProcessing = async () => {
