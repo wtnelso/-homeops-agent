@@ -139,14 +139,16 @@ const ProfileSection: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Profile Information</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <span className="text-lg">👤</span> Profile Information
+        </h3>
         <div className="space-y-6">
           
           {/* Name (editable) with Avatar */}
           <div className="grid grid-cols-2 gap-6 items-end">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Full Name
+                <span className="text-base">👨‍👩‍👧‍👦</span> Full Name
               </label>
               <input
                 type="text"
@@ -170,7 +172,7 @@ const ProfileSection: React.FC = () => {
             {/* Last Login (read-only) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Last Login
+                <span className="text-base">🕒</span> Last Login
               </label>
               <input
                 type="text"
@@ -183,7 +185,7 @@ const ProfileSection: React.FC = () => {
             {/* Created At (read-only) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Account Created
+                <span className="text-base">📅</span> Account Created
               </label>
               <input
                 type="text"
@@ -201,7 +203,11 @@ const ProfileSection: React.FC = () => {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              saving
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>

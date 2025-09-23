@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { AdminService } from '../services/adminService';
 import { BETA_MODE } from '../config/routes';
 import { LogOut, Mail, Shield } from 'lucide-react';
+import { PageLoader } from './ui/Loader';
 
 interface BetaGateProps {
   children: React.ReactNode;
@@ -68,14 +69,7 @@ const BetaGate: React.FC<BetaGateProps> = ({ children }) => {
 
   // Show loading state while checking authentication and beta access
   if (authLoading || betaLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-slate-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Verifying access...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader text="Verifying access..." />;
   }
 
   // If not authenticated, let the auth system handle redirect

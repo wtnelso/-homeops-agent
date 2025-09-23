@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { 
-  Home, 
-  BarChart3, 
-  FileText, 
-  Settings, 
+import {
+  Home,
+  BarChart3,
+  FileText,
   Menu,
   X,
   ChevronDown,
@@ -24,7 +23,6 @@ import EmailPage from './dashboard/EmailPage';
 import OverviewPage from './dashboard/OverviewPage';
 import AnalyticsPage from './dashboard/AnalyticsPage';
 import ReportsPage from './dashboard/ReportsPage';
-import SettingsPage from './dashboard/SettingsPage';
 
 interface DashboardPage {
   id: string;
@@ -103,13 +101,6 @@ const Dashboard: React.FC = () => {
       icon: FileText,
       component: ReportsPage,
       description: 'Generate and view reports'
-    },
-    {
-      id: 'settings',
-      title: 'Settings',
-      icon: Settings,
-      component: SettingsPage,
-      description: 'Dashboard and system settings'
     }
   ];
 

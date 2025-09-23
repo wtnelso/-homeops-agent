@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  Settings, 
+import {
   Menu,
-  X,
-  MessageCircle,
-  Calendar,
-  Mail
+  X
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../config/routes';
@@ -15,7 +11,7 @@ import UserDropdown from './ui/UserDropdown';
 interface DashboardPage {
   id: string;
   title: string;
-  icon: React.ElementType;
+  emoji: string;
   description: string;
   path: string;
 }
@@ -37,28 +33,28 @@ const DashboardLayout: React.FC = () => {
     {
       id: 'home',
       title: 'Home',
-      icon: MessageCircle,
+      emoji: '💬',
       description: 'AI Assistant and quick actions',
       path: '/dashboard/home'
     },
     {
       id: 'calendar',
       title: 'Calendar',
-      icon: Calendar,
+      emoji: '📅',
       description: 'Interactive calendar and events',
       path: '/dashboard/calendar'
     },
     {
       id: 'email',
       title: 'Email',
-      icon: Mail,
+      emoji: '📧',
       description: 'Email management and intelligence',
       path: '/dashboard/email'
     },
     {
       id: 'settings',
       title: 'Settings',
-      icon: Settings,
+      emoji: '⚙️',
       description: 'Dashboard and system settings',
       path: '/dashboard/settings'
     }
@@ -115,10 +111,9 @@ const DashboardLayout: React.FC = () => {
         {/* Navigation */}
         <nav className="px-4 py-6 space-y-1">
           {dashboardPages.map((page) => {
-            const Icon = page.icon;
-            const isActive = location.pathname === page.path || 
+            const isActive = location.pathname === page.path ||
               (page.id === 'settings' && location.pathname.startsWith('/dashboard/settings'));
-            
+
             return (
               <button
                 key={page.id}
@@ -134,7 +129,7 @@ const DashboardLayout: React.FC = () => {
                   }
                 `}
               >
-                <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <span className="text-lg">{page.emoji}</span>
                 <div className="flex-1">
                   <span className={`font-semibold tracking-wide ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}`}>{page.title}</span>
                 </div>
@@ -176,13 +171,13 @@ const DashboardLayout: React.FC = () => {
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-hidden">
           {/* Mobile Page Header */}
           <div className="lg:hidden mb-6">
             {currentPage && (
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-slate-100 dark:bg-gradient-to-br dark:from-blue-900/40 dark:to-slate-900/40 rounded-xl flex items-center justify-center shadow-md">
-                  <currentPage.icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <span className="text-lg">{currentPage.emoji}</span>
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{currentPage.title}</h2>

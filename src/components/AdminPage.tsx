@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { AdminService, BetaUser } from '../services/adminService';
 import { useToast } from '../contexts/ToastContext';
-import { 
-  Shield, 
-  Users, 
+import {
+  Shield,
+  Users,
   Mail,
   RefreshCw,
   Plus,
@@ -12,6 +12,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import UserDropdown from './ui/UserDropdown';
+import { PageLoader, InlineLoader } from './ui/Loader';
 
 const AdminPage: React.FC = () => {
   const { user } = useAuth();
@@ -116,14 +117,7 @@ const AdminPage: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-slate-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading admin panel...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader text="Loading admin panel..." />;
   }
 
   return (
@@ -147,7 +141,7 @@ const AdminPage: React.FC = () => {
                 disabled={loading}
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                {loading ? <InlineLoader size="xs" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                 Refresh
               </button>
               <UserDropdown />

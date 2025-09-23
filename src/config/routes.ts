@@ -15,6 +15,8 @@ export const ROUTES = {
   DASHBOARD_SETTINGS: '/dashboard/settings',
   DASHBOARD_SETTINGS_PROFILE: '/dashboard/settings/profile',
   DASHBOARD_SETTINGS_ACCOUNT: '/dashboard/settings/account',
+  DASHBOARD_SETTINGS_FAMILY: '/dashboard/settings/family',
+  DASHBOARD_SETTINGS_MEMORY: '/dashboard/settings/memory',
   DASHBOARD_SETTINGS_NOTIFICATIONS: '/dashboard/settings/notifications',
   DASHBOARD_SETTINGS_INTEGRATIONS: '/dashboard/settings/integrations',
   DASHBOARD_SETTINGS_PLAN: '/dashboard/settings/plan',

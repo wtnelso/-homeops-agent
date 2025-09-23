@@ -35,8 +35,10 @@ import ReportsPage from './components/dashboard/ReportsPage'
 import EmailTestingPage from './components/testing/EmailTestingPage'
 
 // Settings page components
-import ProfileSection from './components/dashboard/settings/ProfileSection'
 import AccountSection from './components/dashboard/settings/AccountSection'
+import ProfileSection from './components/dashboard/settings/ProfileSection'
+import FamilyProfileSection from './components/dashboard/settings/FamilyProfileSection'
+import MemorySection from './components/dashboard/settings/MemorySection'
 import IntegrationsSection from './components/dashboard/settings/IntegrationsSection'
 
 import './App.css'
@@ -82,7 +84,9 @@ const AppContent = () => {
                     {/* Settings with nested routes */}
                     <Route path="settings" element={<SettingsLayout />}>
                       <Route path="profile" element={<ProfileSection />} />
+                      <Route path="family" element={<FamilyProfileSection />} />
                       <Route path="account" element={<AccountSection />} />
+                      <Route path="memory" element={<MemorySection />} />
                       <Route path="integrations" element={<IntegrationsSection />} />
                     </Route>
                   </Route>

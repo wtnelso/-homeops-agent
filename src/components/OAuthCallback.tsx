@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { OAuthCallbackHandler } from '../services/oauthCallback';
+import Loader from './ui/Loader';
 
 const OAuthCallback: React.FC = () => {
   const { provider } = useParams<{ provider: string }>();
@@ -65,10 +66,7 @@ const OAuthCallback: React.FC = () => {
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <h2 className="mt-4 text-lg font-medium text-gray-900">
-                Processing OAuth callback...
-              </h2>
+              <Loader size="lg" text="Processing OAuth callback..." />
               <p className="mt-2 text-sm text-gray-600">
                 Setting up your {provider} integration
               </p>

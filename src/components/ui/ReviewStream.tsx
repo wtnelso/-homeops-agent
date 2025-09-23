@@ -37,7 +37,7 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
       ...suggestion.suggested_data,
       saveAs: determineSaveType(suggestion.suggestion_type, suggestion.suggested_data),
       selectedMemberId: '',
-      expirationDate: getDefaultExpiration(suggestion.suggestion_type),
+      expirationDate: suggestion.suggested_data.default_expiration || getDefaultExpiration(suggestion.suggestion_type, suggestion.suggested_data),
       customExpiration: ''
     });
   };
@@ -103,12 +103,24 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
     }
   };
 
-  const getDefaultExpiration = (suggestionType: string): string => {
+  const getDefaultExpiration = (suggestionType: string, suggestionData?: any): string => {
     switch (suggestionType) {
-      case 'family_info': return 'school_year';
-      case 'preference_update': return '1year';
+      case 'family_info': return 'school-year';
+      case 'preference_update':
+        // Never expire critical preferences
+        if (suggestionData?.preference_type) {
+          const prefType = suggestionData.preference_type.toLowerCase();
+          if (prefType === 'allergy' ||
+              prefType === 'allergies' ||
+              prefType === 'dietary_restriction' ||
+              prefType === 'dietary_restrictions' ||
+              prefType === 'emergency_contact') {
+            return 'never';
+          }
+        }
+        return '1-year';
       case 'contact_add': return 'never';
-      default: return '6months';
+      default: return '6-months';
     }
   };
 
@@ -517,29 +529,10 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
             {reviewData && (
               <div className="px-5 pb-5 border-t border-gray-100 dark:border-gray-700">
                 <div className="pt-4 space-y-4">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Review and edit the information below before approving
-                    </p>
-                  </div>
 
                   {/* Dynamic form fields based on suggestion type */}
                   {currentSuggestion.suggestion_type === 'family_info' && (
                     <div className="space-y-3">
-                      {/* Member selection for family info */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          <User className="h-4 w-4 mr-1 inline text-gray-500" />
-                          Family Member:
-                        </label>
-                        <input
-                          type="text"
-                          value={reviewData.member_name || ''}
-                          onChange={(e) => setReviewData({ ...reviewData, member_name: e.target.value })}
-                          className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Enter family member name"
-                        />
-                      </div>
                       {reviewData.birthday && (
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -569,6 +562,36 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
                           />
                         </div>
                       )}
+                      {reviewData.age && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <User className="h-4 w-4 mr-1 inline text-gray-500" />
+                            Age:
+                          </label>
+                          <input
+                            type="number"
+                            value={reviewData.age || ''}
+                            onChange={(e) => setReviewData({ ...reviewData, age: e.target.value })}
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter age"
+                          />
+                        </div>
+                      )}
+                      {reviewData.grade && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <GraduationCap className="h-4 w-4 mr-1 inline text-gray-500" />
+                            Grade:
+                          </label>
+                          <input
+                            type="text"
+                            value={reviewData.grade || ''}
+                            onChange={(e) => setReviewData({ ...reviewData, grade: e.target.value })}
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter grade"
+                          />
+                        </div>
+                      )}
                       {reviewData.activity && (
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -584,6 +607,70 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
                           />
                         </div>
                       )}
+                      {reviewData.activity_type && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <Calendar className="h-4 w-4 mr-1 inline text-gray-500" />
+                            Activity Type:
+                          </label>
+                          <input
+                            type="text"
+                            value={reviewData.activity_type || ''}
+                            onChange={(e) => setReviewData({ ...reviewData, activity_type: e.target.value })}
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter activity type"
+                          />
+                        </div>
+                      )}
+                      {reviewData.schedule && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <Calendar className="h-4 w-4 mr-1 inline text-gray-500" />
+                            Schedule:
+                          </label>
+                          <input
+                            type="text"
+                            value={reviewData.schedule || ''}
+                            onChange={(e) => setReviewData({ ...reviewData, schedule: e.target.value })}
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter schedule"
+                          />
+                        </div>
+                      )}
+
+                      {/* Expiration for Family Info */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          📅 Valid until:
+                        </label>
+                        <select
+                          value={reviewData.expirationDate || 'school-year'}
+                          onChange={(e) => setReviewData({ ...reviewData, expirationDate: e.target.value })}
+                          className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="never">No Expiration</option>
+                          <option value="1-month">1 Month ({new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                          <option value="3-months">3 Months ({new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                          <option value="6-months">6 Months ({new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                          <option value="school-year">School Year ({new Date(new Date().getFullYear() + (new Date().getMonth() >= 5 ? 1 : 0), 5, 30).toLocaleDateString()})</option>
+                          <option value="1-year">1 Year ({new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                          <option value="custom">Custom Date</option>
+                        </select>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Set expiration for temporary information like schedules and activities. Permanent details like birthdays have no expiration.
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+                          🧠 AI smartly determined the valid by date
+                        </p>
+                        {reviewData.expirationDate === 'custom' && (
+                          <input
+                            type="date"
+                            value={reviewData.customExpiration || ''}
+                            onChange={(e) => setReviewData({ ...reviewData, customExpiration: e.target.value })}
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -693,44 +780,43 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
                           rows={2}
                         />
                       </div>
+
+                      {/* Expiration for Preference Update */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          📅 Valid until:
+                        </label>
+                        <select
+                          value={reviewData.expirationDate || 'school-year'}
+                          onChange={(e) => setReviewData({ ...reviewData, expirationDate: e.target.value })}
+                          className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="never">No Expiration</option>
+                          <option value="1-month">1 Month ({new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                          <option value="3-months">3 Months ({new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                          <option value="6-months">6 Months ({new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                          <option value="school-year">School Year ({new Date(new Date().getFullYear() + (new Date().getMonth() >= 5 ? 1 : 0), 5, 30).toLocaleDateString()})</option>
+                          <option value="1-year">1 Year ({new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                          <option value="custom">Custom Date</option>
+                        </select>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Set expiration for temporary information like schedules and activities. Permanent details like birthdays have no expiration.
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+                          🧠 AI smartly determined the valid by date
+                        </p>
+                        {reviewData.expirationDate === 'custom' && (
+                          <input
+                            type="date"
+                            value={reviewData.customExpiration || ''}
+                            onChange={(e) => setReviewData({ ...reviewData, customExpiration: e.target.value })}
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        )}
+                      </div>
                     </div>
                   )}
 
-                  {/* Expiration for Context */}
-                  {reviewData.saveAs === 'context' && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        📅 Valid until:
-                      </label>
-                      <select
-                        value={reviewData.expirationDate || 'school_year'}
-                        onChange={(e) => setReviewData({ ...reviewData, expirationDate: e.target.value })}
-                        className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="none">No Expiration</option>
-                        <option value="1month">1 Month ({new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
-                        <option value="3months">3 Months ({new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
-                        <option value="6months">6 Months ({new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
-                        <option value="school_year">School Year ({new Date(new Date().getFullYear() + (new Date().getMonth() >= 5 ? 1 : 0), 5, 30).toLocaleDateString()})</option>
-                        <option value="1year">1 Year ({new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
-                        <option value="custom">Custom Date</option>
-                      </select>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Set expiration for temporary information like schedules and activities. Permanent details like birthdays have no expiration.
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 italic">
-                        🧠 AI smartly determined the valid by date
-                      </p>
-                      {reviewData.expirationDate === 'custom' && (
-                        <input
-                          type="date"
-                          value={reviewData.customExpiration || ''}
-                          onChange={(e) => setReviewData({ ...reviewData, customExpiration: e.target.value })}
-                          className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             )}

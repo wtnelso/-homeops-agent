@@ -193,12 +193,12 @@ const PlanSection: React.FC = () => {
                 onClick={() => handleUpgrade(plan.id)}
                 disabled={currentPlan === plan.id}
                 className={`
-                  w-full py-2 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center
+                  w-full py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm
                   ${currentPlan === plan.id
-                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                    ? 'border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed bg-gray-50 dark:bg-gray-700'
                     : plan.id === 'free'
-                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    ? 'border border-gray-400 text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-700'
+                    : 'border border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900/20'
                   }
                 `}
               >

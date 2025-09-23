@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { AdminService } from '../services/adminService';
 import { ROUTES } from '../config/routes';
+import { PageLoader } from './ui/Loader';
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -41,14 +42,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 
   // Show loading state while checking authentication and admin status
   if (authLoading || adminLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-slate-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Verifying access...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader text="Verifying access..." />;
   }
 
   // If not authenticated, redirect to login but preserve the intended admin path

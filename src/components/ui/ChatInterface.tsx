@@ -3,7 +3,7 @@ import { Loader, RefreshCw, AlertCircle } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 import ChatInput from './ChatInput';
 import ConversationList from './ConversationList';
-import { EdgeFunctionChatService } from '../../services/edgeFunctionChatService';
+import { RenderChatService } from '../../services/edgeFunctionChatService';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Import types from service
@@ -47,17 +47,43 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [loading, setLoading] = useState(false);
   const [loadingConversations, setLoadingConversations] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingStatus, setLoadingStatus] = useState<string>('');
+  const [typingMessage, setTypingMessage] = useState<string>('');
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typewriterRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Typewriter effect hook
+  const typewriterEffect = (text: string, speed: number = 8) => {
+    return new Promise<void>((resolve) => {
+      let index = 0;
+
+      // Clear typing message first and wait for React to process
+      setTypingMessage('');
+
+      const typeChar = () => {
+        if (index < text.length) {
+          setTypingMessage(prev => prev + text.charAt(index));
+          index++;
+          typewriterRef.current = setTimeout(typeChar, speed);
+        } else {
+          resolve();
+        }
+      };
+
+      // Add a small delay to ensure React state has updated
+      typewriterRef.current = setTimeout(typeChar, speed + 50);
+    });
+  };
   
   // Get user avatar URL (prioritize user-provided avatar over auth avatar)
   const userAvatarUrl = userData?.user?.avatar_user_provided || userData?.user?.avatar_url;
   
-  // Services - Authentication handled by EdgeFunctionChatService
+  // Services - Authentication handled by RenderChatService
   const [chatService] = useState(() => {
     try {
-      return new EdgeFunctionChatService();
+      return new RenderChatService();
     } catch (error) {
       console.error('Failed to initialize Edge Function Chat Service:', error);
       return null;
@@ -86,6 +112,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       handleSendMessage(triggerMessage);
     }
   }, [triggerMessage]);
+
+  // Cleanup typewriter timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typewriterRef.current) {
+        clearTimeout(typewriterRef.current);
+      }
+    };
+  }, []);
 
   const loadConversations = async () => {
     if (!chatService) return;
@@ -141,27 +176,114 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     setLoading(true);
     setError(null);
+    setLoadingStatus('Processing your message...');
+    setTypingMessage('');
+
+    // Clear any existing typewriter
+    if (typewriterRef.current) {
+      clearTimeout(typewriterRef.current);
+    }
+
+    // Immediately add user message to UI for better UX
+    const userMessage: ChatMessage = {
+      id: `temp-${Date.now()}`, // Temporary ID, will be replaced by server response
+      role: 'user',
+      content: messageText,
+      timestamp: new Date(),
+      metadata: { temporary: true }
+    };
+
+    // Add user message immediately to current messages
+    setMessages(prevMessages => [...prevMessages, userMessage]);
 
     try {
+      // Update status to show AI is working
+      setLoadingStatus('Analyzing your message...');
+
+      // Brief delay to show the first status
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setLoadingStatus('Searching for relevant information...');
+
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setLoadingStatus('Generating response...');
+
       const result = await chatService.sendMessage(
-        messageText, 
+        messageText,
         currentConversation?.id
       );
 
       if (result.success && result.conversationId && result.messages) {
-        // Update messages
-        setMessages(result.messages);
+        // Debug: Log conversation state
+        console.log('🔄 Chat Response:', {
+          conversationId: result.conversationId,
+          currentConversationId: currentConversation?.id,
+          messageCount: result.messages.length,
+          messages: result.messages.map(m => ({ role: m.role, content: m.content.substring(0, 50) + '...' }))
+        });
 
-        // If new conversation was created, refresh conversations list
-        if (!currentConversation || currentConversation.id !== result.conversationId) {
-          await loadConversations();
-          const conversation = conversations.find(c => c.id === result.conversationId);
-          if (conversation) {
-            setCurrentConversation(conversation);
-          }
+        // Get the latest AI response
+        const latestAiMessage = result.messages?.find(
+          (msg, index) => msg.role === 'assistant' && index === result.messages!.length - 1
+        );
+
+        if (latestAiMessage) {
+          // Show messages without the AI response first
+          const messagesWithoutLatestAi = result.messages.slice(0, -1);
+          setMessages(messagesWithoutLatestAi);
+
+          // Show typing status
+          setLoadingStatus('');
+          setLoading(false);
+
+          // Add the AI message that will be typed out
+          const typingAiMessage: ChatMessage = {
+            id: latestAiMessage.id,
+            role: 'assistant',
+            content: latestAiMessage.content, // Full content, but we'll show it progressively
+            timestamp: latestAiMessage.timestamp,
+            metadata: { ...latestAiMessage.metadata, typing: true }
+          };
+
+          setMessages(prev => [...prev, typingAiMessage]);
+
+          // Start typewriter effect
+          await typewriterEffect(latestAiMessage.content);
+
+          // Mark typing as complete
+          setTypingMessage('');
+          const finalMessages = result.messages.map(msg =>
+            msg.id === latestAiMessage.id
+              ? { ...msg, metadata: { ...msg.metadata, typing: false } }
+              : msg
+          );
+          setMessages(finalMessages);
         } else {
+          // Fallback: just set all messages
+          setMessages(result.messages);
+        }
+
+        // If new conversation was created, refresh conversations list and set current conversation
+        if (!currentConversation || currentConversation.id !== result.conversationId) {
+          console.log('🔄 Creating/switching to new conversation:', result.conversationId);
+
+          // Create a temporary conversation object to set immediately
+          const newConversation: Conversation = {
+            id: result.conversationId,
+            title: messageText.substring(0, 50) + (messageText.length > 50 ? '...' : ''),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            message_count: result.messages.length
+          };
+
+          // Set the current conversation immediately
+          setCurrentConversation(newConversation);
+
+          // Refresh conversations list in the background
+          loadConversations();
+        } else {
+          console.log('🔄 Continuing existing conversation:', result.conversationId);
           // Refresh the conversation list to update timestamps
-          await loadConversations();
+          loadConversations();
         }
       } else {
         setError(result.error || 'Failed to send message');
@@ -170,6 +292,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       setError(error.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
+      setLoadingStatus('');
+      setTypingMessage('');
     }
   };
 
@@ -249,7 +373,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className={`h-full flex bg-gray-50 dark:bg-gray-900 ${className}`}>
+    <div className={`h-full flex bg-white dark:bg-gray-900 ${className}`}>
       {/* Conversation Sidebar */}
       {showConversationList && (
         <div className="w-80 flex-shrink-0 border-r border-gray-200 dark:border-gray-700">
@@ -283,42 +407,30 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
         )}
 
-        {/* Chat Header */}
-        {currentConversation && (
-          <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
-            <h2 className="font-medium text-gray-900 dark:text-white truncate">
-              {currentConversation.title || 'Untitled Conversation'}
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Started {new Date(currentConversation.created_at).toLocaleDateString()}
-            </p>
-          </div>
-        )}
-
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div
+          className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 min-h-0 chat-scrollbar"
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#d1d5db #f9fafb'
+          }}
+        >
           {messages.length === 0 && !loading && (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900/20 rounded-full flex items-center justify-center mb-4">
-                <img src="/favicon.ico" alt="HomeOps" className="w-8 h-8" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Welcome to HomeOps AI
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-                I'm here to help you manage your home operations, family logistics, and daily tasks. How can I assist you today?
-              </p>
-              
+            <div className="flex flex-col items-center justify-center h-full text-center px-4 max-w-2xl mx-auto">
+              <h1 className="text-3xl sm:text-4xl font-medium text-gray-900 dark:text-white mb-8">
+                HomeOps AI
+              </h1>
+
               {initialPrompts.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                   {initialPrompts.slice(0, 4).map((prompt, index) => (
                     <button
                       key={index}
                       onClick={() => handleSendMessage(prompt)}
                       disabled={loading}
-                      className="p-3 text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-brand-300 dark:hover:border-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-4 text-left bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{prompt}</p>
+                      <p className="text-gray-700 text-sm leading-relaxed group-hover:text-gray-900">{prompt}</p>
                     </button>
                   ))}
                 </div>
@@ -326,25 +438,50 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
           )}
 
-          {messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              userAvatarUrl={userAvatarUrl}
-              onCopy={handleCopyMessage}
-              onFeedback={handleMessageFeedback}
-            />
-          ))}
+          {messages.map((message) => {
+            // If this is an assistant message being typed, show the typing version
+            if (message.role === 'assistant' && message.metadata?.typing && typingMessage) {
+              return (
+                <div key={message.id} className="flex gap-3 justify-start animate-fade-in">
+                  <div className="flex items-center justify-center w-8 h-8 bg-brand-100 dark:bg-brand-900/20 rounded-full border border-brand-200 dark:border-brand-700">
+                    <img src="/favicon.ico" alt="HomeOps" className="w-4 h-4" />
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-3 rounded-lg flex-1 max-w-none">
+                    <div className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">
+                      {typingMessage}
+                      <span className="animate-pulse">|</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                userAvatarUrl={userAvatarUrl}
+                onCopy={handleCopyMessage}
+                onFeedback={handleMessageFeedback}
+              />
+            );
+          })}
 
           {loading && (
-            <div className="flex gap-3 justify-start">
+            <div className="flex gap-3 justify-start animate-fade-in">
               <div className="flex items-center justify-center w-8 h-8 bg-brand-100 dark:bg-brand-900/20 rounded-full border border-brand-200 dark:border-brand-700">
                 <img src="/favicon.ico" alt="HomeOps" className="w-4 h-4" />
               </div>
               <div className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-3 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <Loader className="w-4 h-4 animate-spin text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">AI is thinking...</span>
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {loadingStatus || 'AI is thinking...'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -354,12 +491,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
 
         {/* Input Area */}
-        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
-          <ChatInput
-            onSend={handleSendMessage}
-            loading={loading}
-            suggestions={messages.length === 0 ? initialPrompts.slice(0, 3) : []}
-          />
+        <div className="flex-shrink-0 p-4 bg-white dark:bg-gray-900">
+          <div className="max-w-3xl mx-auto">
+            <ChatInput
+              onSend={handleSendMessage}
+              loading={loading}
+              suggestions={messages.length === 0 ? [] : []}
+            />
+          </div>
         </div>
       </div>
     </div>

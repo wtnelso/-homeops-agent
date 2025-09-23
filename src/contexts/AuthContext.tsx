@@ -2,18 +2,22 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase, auth } from '../lib/supabase'
 import { UserSessionService, UserSessionData } from '../services/userSession'
+import { ProfileData } from '../services/accountProfileService'
 
 interface AuthContextType {
   user: User | null
   session: Session | null
   userData: UserSessionData | null
+  profileData: ProfileData | null
   userDataLoading: boolean
   loading: boolean
   signIn: (email: string, password: string) => Promise<any>
   signUp: (email: string, password: string) => Promise<any>
   signInWithGoogle: () => Promise<any>
   signOut: () => Promise<any>
-  refreshUserData: () => Promise<void>
+  refreshUserData: () => Promise<UserSessionData | null>
+  silentRefreshUserData: () => Promise<void>
+  updateProfileData: (freshProfileData: ProfileData) => void
   isOnboardingRequired: () => boolean
   isEmailVerified: () => boolean
   getActiveIntegrations: () => any[]
@@ -33,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [userData, setUserData] = useState<UserSessionData | null>(null)
+  const [profileData, setProfileData] = useState<ProfileData | null>(null)
   const [userDataLoading, setUserDataLoading] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -46,22 +51,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if ('error' in data) {
         console.error('Error fetching user data:', data.error)
         setUserData(null)
+        setProfileData(null)
       } else {
         console.log('Fetched user data:', data) // Debug log
         setUserData(data)
+        setProfileData(data.profileData)
       }
     } catch (error) {
       console.error('Unexpected error fetching user data:', error)
       setUserData(null)
+      setProfileData(null)
     } finally {
       setUserDataLoading(false)
     }
   }
 
   // Helper function to refresh user data
-  const refreshUserData = async (): Promise<void> => {
+  const refreshUserData = async (): Promise<UserSessionData | null> => {
     if (user) {
-      await fetchUserData()
+      const data = await UserSessionService.getUserSessionData()
+
+      if ('error' in data) {
+        console.error('Error fetching user data:', data.error)
+        setUserData(null)
+        setProfileData(null)
+        return null
+      } else {
+        console.log('Fetched fresh user data:', data)
+        setUserData(data)
+        setProfileData(data.profileData)
+        return data
+      }
+    }
+    return null
+  }
+
+  // Silent refresh without loading state (for save operations)
+  const silentRefreshUserData = async (): Promise<void> => {
+    if (user) {
+      try {
+        const data = await UserSessionService.getUserSessionData()
+
+        if ('error' in data) {
+          console.error('Error fetching user data:', data.error)
+        } else {
+          setUserData(data)
+          setProfileData(data.profileData)
+        }
+      } catch (error) {
+        console.error('Unexpected error fetching user data:', error)
+      }
+    }
+  }
+
+  // Function to update profile data directly (from save API responses)
+  const updateProfileData = (freshProfileData: ProfileData): void => {
+    if (userData) {
+      console.log('📝 Updating profile data directly from API response');
+      setUserData(prevData => ({
+        ...prevData!,
+        profileData: freshProfileData
+      }));
+      setProfileData(freshProfileData);
     }
   }
 
@@ -120,6 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, clearing user data')
         setUserData(null)
+        setProfileData(null)
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
         console.log('Token refreshed, updating user data')
         fetchUserData()
@@ -133,6 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     session,
     userData,
+    profileData,
     userDataLoading,
     loading,
     signIn: auth.signIn,
@@ -140,6 +193,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithGoogle: auth.signInWithGoogle,
     signOut: auth.signOut,
     refreshUserData,
+    silentRefreshUserData,
+    updateProfileData,
     isOnboardingRequired,
     isEmailVerified,
     getActiveIntegrations,

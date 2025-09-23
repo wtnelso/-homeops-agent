@@ -7,6 +7,7 @@ import TimezoneSelect from '../../ui/TimezoneSelect';
 const AccountSection: React.FC = () => {
   const { userData, refreshUserData } = useAuth();
   const [saving, setSaving] = useState(false);
+
   const [formData, setFormData] = useState({
     account_name: userData?.account.account_name || '',
     household_type: userData?.account.household_type || '',
@@ -16,7 +17,7 @@ const AccountSection: React.FC = () => {
 
   const handleSave = async () => {
     if (!userData) return;
-    
+
     setSaving(true);
     try {
       const result = await DataUpdateService.updateUserAndAccount(
@@ -27,7 +28,7 @@ const AccountSection: React.FC = () => {
           timezone: formData.timezone
         }
       );
-      
+
       if (result.success) {
         // Refresh user data to get updated values
         await refreshUserData();
@@ -59,28 +60,31 @@ const AccountSection: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Account Settings</h3>
+    <div className="settings-container">
+      <div className="flex-1">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+          <span className="text-lg">🏠</span> Account Settings
+        </h3>
+
         <div className="space-y-6">
           {/* Account Active Toggle - Top row */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Account Active
+              <span className="text-base">✅</span> Account Active
             </label>
             <div className="flex items-center">
               <button
                 type="button"
                 onClick={() => handleFieldChange('is_active', !formData.is_active)}
                 className={`
-                  relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent 
+                  relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent
                   transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                   ${formData.is_active ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}
                 `}
               >
                 <span
                   className={`
-                    pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 
+                    pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0
                     transition duration-200 ease-in-out
                     ${formData.is_active ? 'translate-x-5' : 'translate-x-0'}
                   `}
@@ -99,7 +103,7 @@ const AccountSection: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Account Name
+                <span className="text-base">🏷️</span> Account Name
               </label>
               <input
                 type="text"
@@ -115,7 +119,7 @@ const AccountSection: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                House Type
+                <span className="text-base">🏡</span> House Type
               </label>
               <select
                 value={formData.household_type}
@@ -136,7 +140,7 @@ const AccountSection: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Timezone
+                <span className="text-base">🌍</span> Timezone
               </label>
               <TimezoneSelect
                 value={formData.timezone}
@@ -146,17 +150,21 @@ const AccountSection: React.FC = () => {
             </div>
             <div></div> {/* Empty div to maintain grid structure */}
           </div>
-        </div>
 
-        {/* Save Button */}
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
+          {/* Save Button */}
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                saving
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

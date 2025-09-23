@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { accountProfileService, ProfileData } from './accountProfileService';
 
 export interface UserSessionData {
   user: {
@@ -12,6 +13,7 @@ export interface UserSessionData {
     email_verified: boolean;
     last_login_at: string | null;
     created_at: string;
+    account_id: string;
   };
   account: {
     id: string;
@@ -53,6 +55,7 @@ export interface UserSessionData {
     email_verified: boolean;
     created_at: string;
   }>;
+  profileData: ProfileData | null;
 }
 
 export interface UserSessionError {
@@ -61,6 +64,7 @@ export interface UserSessionError {
   account: null;
   integrations: [];
   team_members: [];
+  profileData: null;
 }
 
 export class UserSessionService {
@@ -75,7 +79,8 @@ export class UserSessionService {
         user: null,
         account: null,
         integrations: [],
-        team_members: []
+        team_members: [],
+        profileData: null
       };
     }
 
@@ -91,7 +96,8 @@ export class UserSessionService {
           user: null,
           account: null,
           integrations: [],
-          team_members: []
+          team_members: [],
+          profileData: null
         };
       }
       
@@ -114,7 +120,8 @@ export class UserSessionService {
             user: null,
             account: null,
             integrations: [],
-            team_members: []
+            team_members: [],
+            profileData: null
           };
         }
         return {
@@ -122,7 +129,8 @@ export class UserSessionService {
           user: null,
           account: null,
           integrations: [],
-          team_members: []
+          team_members: [],
+          profileData: null
         };
       }
 
@@ -154,6 +162,21 @@ export class UserSessionService {
         console.error('Error fetching team members:', teamError);
       }
 
+      // Get account profile data
+      let profileData: ProfileData | null = null;
+      try {
+        console.log('Fetching profile data for account:', userData.account_id);
+        const profileResult = await accountProfileService.getProfile(userData.account_id);
+        if (profileResult.success && profileResult.profile) {
+          profileData = profileResult.profile;
+          console.log('Profile data loaded successfully');
+        } else {
+          console.log('No profile data found or error:', profileResult.error);
+        }
+      } catch (profileError) {
+        console.error('Error fetching profile data:', profileError);
+      }
+
       return {
         user: {
           id: userData.id,
@@ -166,6 +189,7 @@ export class UserSessionService {
           email_verified: userData.email_verified,
           last_login_at: userData.last_login_at,
           created_at: userData.created_at,
+          account_id: userData.account_id,
         },
         account: userData.accounts ? {
           id: userData.accounts.id,
@@ -220,7 +244,8 @@ export class UserSessionService {
           is_active: tm.is_active,
           email_verified: tm.email_verified,
           created_at: tm.created_at,
-        })) || []
+        })) || [],
+        profileData
       };
     } catch (err) {
       console.error('Unexpected error fetching user session data:', err);
@@ -229,7 +254,8 @@ export class UserSessionService {
         user: null,
         account: null,
         integrations: [],
-        team_members: []
+        team_members: [],
+        profileData: null
       };
     }
   }

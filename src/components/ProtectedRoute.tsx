@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { ROUTES } from '../config/routes';
+import { PageLoader } from './ui/Loader';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -25,12 +26,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     }
   }, [userData, isOnboardingRequired, location.pathname, showToast]);
 
-  if (loading || (user && userDataLoading)) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
+  if (loading) {
+    return <PageLoader text="Loading your account..." />;
   }
 
   if (!user) {

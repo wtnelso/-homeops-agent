@@ -11,7 +11,7 @@
  * Processing flow:
  * 1. Validate user authentication and permissions
  * 2. Create processing job record in database
- * 3. Trigger Supabase Edge Function for heavy processing
+ * 3. Trigger Render.com server for heavy processing
  * 4. Return job ID immediately to user
  * 
  * Expected costs per invocation:
@@ -493,30 +493,37 @@ async function createProcessingJob(
 }
 
 /**
- * Triggers background processing via Supabase Edge Function
+ * Triggers background processing via Render.com server
  * Non-blocking call that initiates heavy AI processing
  */
 async function triggerBackgroundProcessing(job_id, user_id, account_id, batch_type, processing_options) {
   try {
     console.log(`🔄 Triggering background processing for job ${job_id}...`);
 
-    // Call Supabase Edge Function asynchronously
-    // This function will handle the heavy AI processing
-    const { data, error } = await supabase.functions.invoke('process-email-embeddings', {
-      body: {
+    // Call Render server for heavy AI processing
+    // Use environment variable or fallback to direct URL
+    const renderUrl = process.env.RENDER_SERVER_URL || 'https://homeops-agent-p7ru.onrender.com';
+    
+    const response = await fetch(`${renderUrl}/api/embeddings/process`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         job_id,
-        user_id,
-        account_id,
+        account_id,  // Note: using account_id instead of user_id for Render server
         batch_type,
         processing_options
-      }
+      })
     });
 
-    if (error) {
-      console.error('❌ Failed to invoke edge function:', error);
-      throw new Error(`Edge function error: ${error.message}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Failed to call Render server:', response.status, errorText);
+      throw new Error(`Render server error: ${response.status} ${errorText}`);
     }
 
+    const data = await response.json();
     console.log(`✅ Background processing triggered for job ${job_id}`);
     return { success: true, data };
 

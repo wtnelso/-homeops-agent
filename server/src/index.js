@@ -13,18 +13,36 @@ import express from 'express';
 import cors from 'cors';
 import embeddingRoutes from './routes/embeddings.js';
 import healthRoutes from './routes/health.js';
+import chatRoutes from './routes/chat.js';
+import conversationRoutes from './routes/conversations.js';
+import agentMemoryRoutes from './routes/agentMemory.js';
+console.log('✅ Agent memory routes imported successfully');
+import semanticSearchRoutes from './routes/semanticSearch.js';
+import profileRoutes from './routes/profile.js';
+import profileSuggestionsRoutes from './routes/profileSuggestions.js';
+import { SERVER_CONFIG, validateServerConfig } from './config/serverConfig.js';
+import { MemoryCleanupService } from './services/memoryCleanupService.js';
+import { initializeServer } from './serverInit.js';
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+
+// Validate configuration before starting
+try {
+  validateServerConfig();
+  console.log('✅ Server configuration validated');
+} catch (error) {
+  console.error('❌ Configuration validation failed:', error.message);
+  process.exit(1);
+}
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://dev.homeops.ai',
-  credentials: true
+  origin: SERVER_CONFIG.CORS.ALLOWED_ORIGINS,
+  credentials: SERVER_CONFIG.CORS.CREDENTIALS
 }));
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: SERVER_CONFIG.REQUEST_LIMITS.JSON_LIMIT }));
+app.use(express.urlencoded({ extended: SERVER_CONFIG.REQUEST_LIMITS.URL_ENCODED_EXTENDED }));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -34,6 +52,12 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/embeddings', embeddingRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/conversations', conversationRoutes);
+app.use('/api/agent-memory', agentMemoryRoutes);
+app.use('/api/semantic-search', semanticSearchRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/profile-suggestions', profileSuggestionsRoutes);
 app.use('/health', healthRoutes);
 
 // Root endpoint
@@ -45,7 +69,13 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString(),
     endpoints: {
       health: '/health',
-      embeddings: '/api/embeddings'
+      embeddings: '/api/embeddings',
+      chat: '/api/chat',
+      conversations: '/api/conversations',
+      agentMemory: '/api/agent-memory',
+      semanticSearch: '/api/semantic-search',
+      profile: '/api/profile',
+      profileSuggestions: '/api/profile-suggestions'
     }
   });
 });
@@ -71,11 +101,26 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 HomeOps Email Processing Server running on port ${PORT}`);
+app.listen(SERVER_CONFIG.PORT, '0.0.0.0', async () => {
+  console.log(`🚀 HomeOps Email Processing Server running on port ${SERVER_CONFIG.PORT}`);
   console.log(`📅 Started at: ${new Date().toISOString()}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🌍 Environment: ${SERVER_CONFIG.ENVIRONMENT}`);
+  console.log(`🔗 Health check: http://localhost:${SERVER_CONFIG.PORT}/health`);
+  console.log(`🌐 CORS origins:`, SERVER_CONFIG.CORS.ALLOWED_ORIGINS);
+
+  // Initialize server services (Redis queues, etc.)
+  try {
+    await initializeServer();
+  } catch (error) {
+    console.error('❌ Failed to initialize server services:', error);
+  }
+
+  // Start memory management services
+  try {
+    MemoryCleanupService.startAll();
+  } catch (error) {
+    console.error('❌ Failed to start memory management services:', error);
+  }
 });
 
 // Graceful shutdown

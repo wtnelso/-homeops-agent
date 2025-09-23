@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ROUTES } from '../config/routes';
 import { useToast } from '../contexts/ToastContext';
+import Loader from './ui/Loader';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
@@ -95,10 +96,7 @@ const AuthCallback: React.FC = () => {
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <h2 className="mt-4 text-lg font-medium text-gray-900">
-                Completing sign in...
-              </h2>
+              <Loader size="lg" text="Completing sign in..." />
               <p className="mt-2 text-sm text-gray-600">
                 Please wait while we complete your authentication
               </p>

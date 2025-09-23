@@ -1,4 +1,4 @@
-// Removed unused supabase import since we're using Vercel API routes
+// Render server-based chat service for LangChain-powered AI conversations
 import { UserSessionService } from './userSession';
 
 interface ChatMessage {
@@ -18,7 +18,7 @@ interface Conversation {
   last_message?: string;
 }
 
-export class EdgeFunctionChatService {
+export class RenderChatService {
   private async getUserData() {
     // Use your existing user session service instead of making additional DB calls
     const sessionData = await UserSessionService.getUserSessionData();
@@ -42,8 +42,12 @@ export class EdgeFunctionChatService {
     try {
       const { userId, accountId } = await this.getUserData();
 
-      // Use Vercel API route instead of Supabase Edge Functions
-      const response = await fetch('/api/chat', {
+      // Use Express server for LangChain-powered chat with tools
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
+      console.log('🚀 Sending chat request to:', `${serverUrl}/api/chat`);
+      console.log('📤 Request payload:', { message: message.substring(0, 50) + '...', conversationId, accountId });
+
+      const response = await fetch(`${serverUrl}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -51,10 +55,11 @@ export class EdgeFunctionChatService {
         body: JSON.stringify({
           message,
           conversationId,
-          userId,
-          accountId
+          accountId // Only accountId needed, not userId
         })
       });
+
+      console.log('📥 Response status:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -62,6 +67,7 @@ export class EdgeFunctionChatService {
       }
 
       const data = await response.json();
+      console.log('✅ Chat response received:', { success: data.success, messageCount: data.messages?.length });
 
       return {
         success: data.success,
@@ -72,6 +78,7 @@ export class EdgeFunctionChatService {
         }))
       };
     } catch (error: any) {
+      console.error('❌ Chat request failed:', error);
       return {
         success: false,
         error: error.message || 'Failed to send message'
@@ -87,14 +94,14 @@ export class EdgeFunctionChatService {
     try {
       const { userId, accountId } = await this.getUserData();
 
-      const response = await fetch('/api/conversations', {
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
+      const response = await fetch(`${serverUrl}/api/conversations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           action: 'list',
-          userId,
           accountId,
           limit
         })
@@ -123,16 +130,15 @@ export class EdgeFunctionChatService {
     error?: string;
   }> {
     try {
-      const { userId } = await this.getUserData();
 
-      const response = await fetch('/api/conversations', {
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
+      const response = await fetch(`${serverUrl}/api/conversations`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          conversationId,
-          userId
+          conversationId
         })
       });
 
@@ -156,16 +162,15 @@ export class EdgeFunctionChatService {
     error?: string;
   }> {
     try {
-      const { userId } = await this.getUserData();
 
-      const response = await fetch('/api/conversations', {
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
+      const response = await fetch(`${serverUrl}/api/conversations`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           conversationId,
-          userId,
           title
         })
       });

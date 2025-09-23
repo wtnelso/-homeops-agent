@@ -90,7 +90,7 @@ const IntegrationDetailsModal: React.FC<IntegrationDetailsModalProps> = ({
           {/* Integration Details */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Integration Details
+              <span className="text-lg">📋</span> Integration Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -131,7 +131,7 @@ const IntegrationDetailsModal: React.FC<IntegrationDetailsModalProps> = ({
           {integration.how_it_works && (
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                How It Works
+                <span className="text-lg">⚙️</span> How It Works
               </h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {integration.how_it_works}
@@ -144,7 +144,7 @@ const IntegrationDetailsModal: React.FC<IntegrationDetailsModalProps> = ({
           {integration.required_scopes && integration.required_scopes.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Required Permissions
+                <span className="text-lg">🔐</span> Required Permissions
               </h3>
               <div className="space-y-2">
                 {integration.required_scopes.map((scope, index) => (
@@ -163,7 +163,7 @@ const IntegrationDetailsModal: React.FC<IntegrationDetailsModalProps> = ({
         <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-400 text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-700/50 rounded-lg transition-colors text-sm font-medium"
           >
             Close
           </button>

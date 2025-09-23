@@ -1,16 +1,11 @@
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  User, 
-  Database,
-  Building
-} from 'lucide-react';
 import { ROUTES } from '../config/routes';
 
 interface SettingsTab {
   id: string;
   label: string;
-  icon: React.ElementType;
+  emoji: string;
   path: string;
 }
 
@@ -26,9 +21,11 @@ const SettingsLayout: React.FC = () => {
   }, [location.pathname, navigate]);
 
   const settingsTabs: SettingsTab[] = [
-    { id: 'profile', label: 'Profile', icon: User, path: ROUTES.DASHBOARD_SETTINGS_PROFILE },
-    { id: 'account', label: 'Account', icon: Building, path: ROUTES.DASHBOARD_SETTINGS_ACCOUNT },
-    { id: 'integrations', label: 'Integrations', icon: Database, path: ROUTES.DASHBOARD_SETTINGS_INTEGRATIONS }
+    { id: 'profile', label: 'Profile', emoji: '👤', path: ROUTES.DASHBOARD_SETTINGS_PROFILE },
+    { id: 'account', label: 'Account', emoji: '🏠', path: ROUTES.DASHBOARD_SETTINGS_ACCOUNT },
+    { id: 'family', label: 'Family Profile', emoji: '👥', path: ROUTES.DASHBOARD_SETTINGS_FAMILY },
+    { id: 'memory', label: 'Agent Memory', emoji: '🧠', path: ROUTES.DASHBOARD_SETTINGS_MEMORY },
+    { id: 'integrations', label: 'Integrations', emoji: '🔗', path: ROUTES.DASHBOARD_SETTINGS_INTEGRATIONS }
   ];
 
   return (
@@ -39,9 +36,8 @@ const SettingsLayout: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
             <nav className="space-y-1">
               {settingsTabs.map((tab) => {
-                const Icon = tab.icon;
                 const isActive = location.pathname === tab.path;
-                
+
                 return (
                   <button
                     key={tab.id}
@@ -54,7 +50,7 @@ const SettingsLayout: React.FC = () => {
                       }
                     `}
                   >
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} />
+                    <span className="text-lg">{tab.emoji}</span>
                     <span className="font-medium">{tab.label}</span>
                   </button>
                 );
@@ -65,7 +61,7 @@ const SettingsLayout: React.FC = () => {
 
         {/* Settings Content */}
         <div className="flex-1">
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
             <Outlet />
           </div>
         </div>

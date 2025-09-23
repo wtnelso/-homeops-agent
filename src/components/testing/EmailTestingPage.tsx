@@ -115,7 +115,10 @@ const EmailTestingPage: React.FC = () => {
       
       console.log('🔍 Frontend debug - request body:', requestBody);
 
-      const response = await fetch('/api/email-embeddings/start', {
+      const apiUrl = `${import.meta.env.VITE_RENDER_SERVER_URL}/api/embeddings/process`;
+      console.log(`🔧 API URL: ${apiUrl}`);
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +155,7 @@ const EmailTestingPage: React.FC = () => {
 
   const pollJobStatus = async (jobId: string) => {
     try {
-      const response = await fetch(`/api/email-embeddings/status?job_id=${jobId}`, {
+      const response = await fetch(`${import.meta.env.VITE_RENDER_SERVER_URL}/api/embeddings/status/${jobId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session?.access_token}`

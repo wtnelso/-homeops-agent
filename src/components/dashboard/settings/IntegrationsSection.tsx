@@ -107,10 +107,15 @@ const IntegrationsSection: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="h-[44rem] flex flex-col space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Integrations</h3>
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <span className="text-lg">🔗</span> Unlock Your Family Superpowers
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
+          Connect your favorite apps to make family life effortless and organized
+        </p>
       </div>
 
       {/* Integrations Grid */}
