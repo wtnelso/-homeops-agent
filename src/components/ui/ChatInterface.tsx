@@ -56,7 +56,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [suggestionMode, setSuggestionMode] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [pendingSuggestionsCount, setPendingSuggestionsCount] = useState(0);
-  const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+  const [suggestionExiting, setSuggestionExiting] = useState(false);
   const [currentSuggestionIndex, setCurrentSuggestionIndex] = useState(0);
   const [reviewData, setReviewData] = useState<any>(null);
 
@@ -258,11 +258,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   const exitSuggestionMode = () => {
-    setSuggestionMode(false);
-    setSuggestions([]);
-    setCurrentSuggestionIndex(0);
-    setShowExitConfirmation(false);
-    loadSuggestionsCount(); // Refresh count
+    // Start exit animation
+    setSuggestionExiting(true);
+
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+      setSuggestionMode(false);
+      setSuggestions([]);
+      setCurrentSuggestionIndex(0);
+      setSuggestionExiting(false);
+      loadSuggestionsCount(); // Refresh count
+    }, 300); // Match animation duration
   };
 
   const navigateToSuggestion = (direction: 'prev' | 'next') => {
@@ -408,6 +414,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (!chatService) {
       setError('Chat service not available');
       return;
+    }
+
+    // If suggestion mode is open, close it when user sends a message
+    if (suggestionMode) {
+      exitSuggestionMode();
     }
 
     setLoading(true);
@@ -645,10 +656,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
         {/* Messages Area */}
         <div
-          className={`p-3 sm:p-4 min-h-0 ${
+          className={`p-3 sm:p-4 min-h-0 h-[70vh] overflow-y-auto transition-all duration-500 ease-in-out ${
             suggestionMode
-              ? 'h-[70vh] overflow-y-auto'
-              : 'flex-1 overflow-y-auto space-y-3 sm:space-y-4 chat-scrollbar'
+              ? 'opacity-100'
+              : 'space-y-3 sm:space-y-4 chat-scrollbar opacity-100'
           }`}
           style={{
             scrollbarWidth: 'thin',
@@ -663,9 +674,37 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
               {initialPrompts.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                  {initialPrompts.slice(0, 4).map((prompt, index) => (
+                  {/* Review Profile Suggestions - replaces first prompt */}
+                  <button
+                    onClick={enterSuggestionMode}
+                    disabled={loading || loadingSuggestions}
+                    className={`p-4 text-left bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:shadow-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group ${
+                      loadingSuggestions ? 'scale-95 bg-gray-50' : 'hover:scale-105'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full">
+                        {loadingSuggestions ? (
+                          <RefreshCw className="w-4 h-4 text-gray-600 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-4 h-4 text-gray-600" />
+                        )}
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-medium text-gray-700 text-sm leading-relaxed group-hover:text-gray-900">
+                          {loadingSuggestions ? 'Loading Suggestions...' : 'Review Profile Suggestions'}
+                        </h3>
+                        <p className="text-xs text-gray-500 group-hover:text-gray-700">
+                          {loadingSuggestions ? 'Gathering your profile data' : "See what we've learned about you"}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Remaining 3 prompts */}
+                  {initialPrompts.slice(1, 4).map((prompt, index) => (
                     <button
-                      key={index}
+                      key={index + 1}
                       onClick={() => handleSendMessage(prompt)}
                       disabled={loading}
                       className="p-4 text-left bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
@@ -676,33 +715,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 </div>
               )}
 
-              {/* Suggestion Mode Prompt */}
-              {(pendingSuggestionsCount > 0 || true) && (
-                <div className="mt-8 w-full max-w-md mx-auto">
-                  <button
-                    onClick={enterSuggestionMode}
-                    disabled={loading || loadingSuggestions}
-                    className="w-full p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl hover:from-blue-100 hover:to-purple-100 hover:border-blue-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
-                  >
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">
-                        <Sparkles className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="text-left">
-                        <h3 className="font-medium text-gray-900 group-hover:text-blue-900">
-                          Review Profile Suggestions
-                        </h3>
-                        <p className="text-sm text-gray-600 group-hover:text-blue-700">
-                          {pendingSuggestionsCount > 0
-                            ? `${pendingSuggestionsCount} pending suggestion${pendingSuggestionsCount === 1 ? '' : 's'}`
-                            : 'See what we\'ve learned about you'
-                          }
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              )}
             </div>
           )}
 
@@ -718,12 +730,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
           {/* Suggestion Mode View */}
           {suggestionMode && suggestions.length > 0 && (
-            <div className="flex flex-col h-full max-w-5xl mx-auto px-4 py-4">
+            <div className={`flex flex-col h-full max-w-5xl mx-auto px-4 py-4 ${
+              suggestionExiting ? 'animate-fade-out' : 'animate-fade-in'
+            }`}>
               {/* Header */}
               <div className="flex items-center justify-between w-full py-2 flex-shrink-0">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Profile Suggestions</h2>
                 <button
-                  onClick={() => setShowExitConfirmation(true)}
+                  onClick={exitSuggestionMode}
                   className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -732,7 +746,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
               {/* Current Suggestion Card - Scrollable */}
               <div className="flex-1 flex flex-col min-h-0 mb-1">
-                <div className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full max-h-[600px]">
+                <div
+                  key={currentSuggestionIndex}
+                  className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full max-h-[600px]"
+                >
                   {/* Card Content - Scrollable */}
                   <div className="flex-1 overflow-y-auto">
                     <div className="p-4">
@@ -1000,25 +1017,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 )}
                     </div>
                   </div>
-                </div>
 
                   {/* Action Buttons - Fixed at bottom */}
                   <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleSuggestionResponse(suggestions[currentSuggestionIndex], 'reject')}
-                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
-                    >
-                      <XCircle className="w-4 h-4" />
-                      Dismiss
-                    </button>
-                    <button
-                      onClick={() => handleSuggestionResponse(suggestions[currentSuggestionIndex], 'accept')}
-                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      Accept
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => handleSuggestionResponse(suggestions[currentSuggestionIndex], 'reject')}
+                        className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        Dismiss
+                      </button>
+                      <button
+                        onClick={() => handleSuggestionResponse(suggestions[currentSuggestionIndex], 'accept')}
+                        className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Accept
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1064,37 +1081,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
           )}
 
-          {/* Exit Confirmation Modal */}
-          {showExitConfirmation && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4">
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Exit Suggestion Mode?
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    You have {suggestions.length - currentSuggestionIndex} suggestions remaining. Are you sure you want to exit?
-                  </p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setShowExitConfirmation(false)}
-                      className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                    >
-                      Continue
-                    </button>
-                    <button
-                      onClick={exitSuggestionMode}
-                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      Exit
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {!suggestionMode && messages.map((message) => {
+          {!suggestionMode && (
+            <div className="max-w-4xl mx-auto px-4 space-y-4">
+              {messages.map((message) => {
             // If this is an assistant message being typed, show the typing version
             if (message.role === 'assistant' && message.metadata?.typing && typingMessage) {
               return (
@@ -1121,29 +1111,31 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 onFeedback={handleMessageFeedback}
               />
             );
-          })}
+              })}
 
-          {loading && (
-            <div className="flex gap-3 justify-start animate-fade-in">
-              <div className="flex items-center justify-center w-8 h-8 bg-brand-100 dark:bg-brand-900/20 rounded-full border border-brand-200 dark:border-brand-700">
-                <img src="/favicon.ico" alt="HomeOps" className="w-4 h-4" />
-              </div>
-              <div className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-3 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+              {loading && (
+                <div className="flex gap-3 justify-start animate-fade-in">
+                  <div className="flex items-center justify-center w-8 h-8 bg-brand-100 dark:bg-brand-900/20 rounded-full border border-brand-200 dark:border-brand-700">
+                    <img src="/favicon.ico" alt="HomeOps" className="w-4 h-4" />
                   </div>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {loadingStatus || 'AI is thinking...'}
-                  </span>
+                  <div className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-3 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                      </div>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {loadingStatus || 'AI is thinking...'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              <div ref={messagesEndRef} />
             </div>
           )}
-
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Input Area */}

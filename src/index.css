@@ -145,6 +145,10 @@
     animation: fade-in 0.3s ease-in-out;
   }
 
+  .animate-fade-out {
+    animation: fade-out 0.3s ease-in-out;
+  }
+
   @keyframes fade-in {
     0% {
       opacity: 0;
@@ -156,25 +160,17 @@
     }
   }
 
-  /* ReviewStream card animations */
-  .animate-slide-in-from-right {
-    animation: slide-in-from-right 0.6s ease-out;
-  }
-
-  @keyframes slide-in-from-right {
+  @keyframes fade-out {
     0% {
-      opacity: 0;
-      transform: translateX(100%) scale(0.95);
-    }
-    60% {
-      opacity: 0.8;
-      transform: translateX(-5%) scale(1.02);
+      opacity: 1;
+      transform: translateY(0);
     }
     100% {
-      opacity: 1;
-      transform: translateX(0) scale(1);
+      opacity: 0;
+      transform: translateY(-10px);
     }
   }
+
 
   /* Enhanced button hover animations */
   .suggestion-button {

@@ -117,27 +117,27 @@ const IntegrationsSection: React.FC = () => {
   };
 
   return (
-    <div className="h-[44rem] flex flex-col space-y-6">
+    <div className="h-[44rem] flex flex-col space-y-4 px-4 sm:px-6 lg:px-0">
       {/* Header */}
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
           <Link className="w-5 h-5" />
-          <span>Unlock Your Family Superpowers</span>
+          <span className="text-sm sm:text-lg">Unlock Your Family Superpowers</span>
         </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
+        <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
           Connect your favorite apps to make family life effortless and organized
         </p>
       </div>
 
       {/* Integrations Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[1, 2, 3].map(i => (
             <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-48"></div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {integrationsWithStatus.map((integration) => {
             const integrationProps = {
               id: integration.id,
