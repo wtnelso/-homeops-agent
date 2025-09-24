@@ -52,6 +52,7 @@ import { EmailRoutingEngine } from '../config/emailRoutingConfig.js';
 import { profileSuggestionsService } from './profileSuggestionsService.js';
 import { RedisProfileCache } from './redisProfileCache.js';
 import { enhancedMapPreferenceType } from '../utils/preferenceTypeMapper.js';
+import { parseActivitySchedule, convertBirthdayToMonthDay, normalizeGradeText } from '../utils/scheduleParser.js';
 dotenv.config();
 
 // Polyfill fetch for OpenAI SDK compatibility with Node.js 20
@@ -1287,10 +1288,75 @@ export class EmailEmbeddingProcessor {
             }
           }
 
+          // Parse schedule data if present
+          let enhancedSuggestionData = { ...familySuggestion };
+
+          if (familySuggestion.schedule) {
+            try {
+              const parsedSchedule = parseActivitySchedule(
+                familySuggestion.schedule,
+                familySuggestion.activity || familySuggestion.activity_type
+              );
+
+              // Add parsed schedule fields to suggestion data
+              if (parsedSchedule.days && parsedSchedule.days.length > 0) {
+                enhancedSuggestionData.days = parsedSchedule.days;
+              }
+              if (parsedSchedule.time) {
+                enhancedSuggestionData.schedule_time = parsedSchedule.time;
+              }
+              if (parsedSchedule.location) {
+                enhancedSuggestionData.location = parsedSchedule.location;
+              }
+
+              console.log(`📅 Parsed schedule for ${familySuggestion.member_name}:`, {
+                original: familySuggestion.schedule,
+                days: parsedSchedule.days,
+                time: parsedSchedule.time,
+                location: parsedSchedule.location
+              });
+
+            } catch (error) {
+              console.error('❌ Error parsing schedule data:', error);
+            }
+          }
+
+          // Convert full birthday dates to privacy-safe month-day format
+          if (familySuggestion.birthday) {
+            try {
+              const convertedBirthday = convertBirthdayToMonthDay(familySuggestion.birthday);
+              if (convertedBirthday !== familySuggestion.birthday) {
+                enhancedSuggestionData.birthday = convertedBirthday;
+                console.log(`🎂 Converted birthday for ${familySuggestion.member_name}:`, {
+                  original: familySuggestion.birthday,
+                  converted: convertedBirthday
+                });
+              }
+            } catch (error) {
+              console.error('❌ Error converting birthday data:', error);
+            }
+          }
+
+          // Normalize grade text to structured format
+          if (familySuggestion.grade) {
+            try {
+              const normalizedGrade = normalizeGradeText(familySuggestion.grade);
+              enhancedSuggestionData.grade = normalizedGrade;
+              if (normalizedGrade !== familySuggestion.grade) {
+                console.log(`🎓 Normalized grade for ${familySuggestion.member_name}:`, {
+                  original: familySuggestion.grade,
+                  normalized: normalizedGrade
+                });
+              }
+            } catch (error) {
+              console.error('❌ Error normalizing grade data:', error);
+            }
+          }
+
           await profileSuggestionsService.createSuggestion({
             accountId: this.config.account_id,
             suggestionType: suggestionType,
-            suggestedData: familySuggestion,
+            suggestedData: enhancedSuggestionData,
             confidenceScore: decision.confidence,
             sourceEmailId: email.id,
             sourceEmailSubject: email.subject,

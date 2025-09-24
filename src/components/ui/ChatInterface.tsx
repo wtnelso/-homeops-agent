@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { RefreshCw, AlertCircle, Sparkles, X, CheckCircle, XCircle, Users, User, Heart, Brain, ChevronLeft, ChevronRight, Cake, GraduationCap, Phone, Calendar, Mail, CalendarDays, Type, FileText } from 'lucide-react';
+import { RefreshCw, AlertCircle, Sparkles, X, CheckCircle, XCircle, Users, User, Heart, Brain, ChevronLeft, ChevronRight, Cake, GraduationCap, Phone, Calendar, Mail, CalendarDays, Type, FileText, Clock } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 import ChatInput from './ChatInput';
 import ConversationList from './ConversationList';
@@ -58,6 +58,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [pendingSuggestionsCount, setPendingSuggestionsCount] = useState(0);
   const [suggestionExiting, setSuggestionExiting] = useState(false);
   const [currentSuggestionIndex, setCurrentSuggestionIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [reviewData, setReviewData] = useState<any>(null);
 
   // Refs
@@ -151,7 +152,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       saveAs: determineSaveType(suggestion.suggestion_type, suggestion.suggested_data),
       selectedMemberId: '',
       expirationDate: suggestion.suggested_data.default_expiration || getDefaultExpiration(suggestion.suggestion_type, suggestion.suggested_data),
-      customExpiration: ''
+      customExpiration: '',
+      // Initialize structured schedule from parsed data if available
+      structuredSchedule: {
+        days: suggestion.suggested_data.days || [],
+        time: suggestion.suggested_data.schedule_time || ''
+      }
     });
   };
 
@@ -272,11 +278,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   const navigateToSuggestion = (direction: 'prev' | 'next') => {
-    if (direction === 'prev' && currentSuggestionIndex > 0) {
-      setCurrentSuggestionIndex(currentSuggestionIndex - 1);
-    } else if (direction === 'next' && currentSuggestionIndex < suggestions.length - 1) {
-      setCurrentSuggestionIndex(currentSuggestionIndex + 1);
-    }
+    setIsTransitioning(true);
+
+    setTimeout(() => {
+      if (direction === 'prev' && currentSuggestionIndex > 0) {
+        setCurrentSuggestionIndex(currentSuggestionIndex - 1);
+      } else if (direction === 'next' && currentSuggestionIndex < suggestions.length - 1) {
+        setCurrentSuggestionIndex(currentSuggestionIndex + 1);
+      }
+
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 100);
+    }, 200);
   };
 
   const handleSuggestionResponse = async (suggestion: ProfileSuggestion, response: 'accept' | 'reject') => {
@@ -329,7 +343,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           {data.relationship && <p><span className="font-medium">Relationship:</span> {data.relationship}</p>}
           {data.age && <p><span className="font-medium">Age:</span> {data.age}</p>}
           {data.school && <p><span className="font-medium">School:</span> {data.school}</p>}
-          {data.details && <p><span className="font-medium">Details:</span> {data.details}</p>}
+          {data.details && <p><span className="font-bold">Details:</span> {data.details}</p>}
         </div>
       );
     }
@@ -349,8 +363,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (suggestion.suggestion_type === 'preference_update') {
       return (
         <div className="space-y-2">
-          {data.preference_type && <p><span className="font-medium">Type:</span> {data.preference_type}</p>}
-          {data.value && <p><span className="font-medium">Value:</span> {data.value}</p>}
+          {data.preference_type && <p><span className="font-bold">Type:</span> {data.preference_type}</p>}
+          {data.value && <p><span className="font-bold">Value:</span> {data.value}</p>}
           {data.description && <p><span className="font-medium">Description:</span> {data.description}</p>}
         </div>
       );
@@ -744,39 +758,57 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 </button>
               </div>
 
-              {/* Current Suggestion Card - Scrollable */}
+              {/* Current Suggestion Card - With Carousel Transform */}
               <div className="flex-1 flex flex-col min-h-0 mb-1">
-                <div
-                  key={currentSuggestionIndex}
-                  className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full max-h-[600px]"
-                >
-                  {/* Card Content - Scrollable */}
-                  <div className="flex-1 overflow-y-auto">
-                    <div className="p-4">
-                      <div className="flex items-center gap-3 mb-4">
-                        {suggestions[currentSuggestionIndex].suggestion_type === 'family_info' && <Users className="w-6 h-6 text-blue-500" />}
-                        {suggestions[currentSuggestionIndex].suggestion_type === 'contact_add' && <User className="w-6 h-6 text-green-500" />}
-                        {suggestions[currentSuggestionIndex].suggestion_type === 'preference_update' && <Heart className="w-6 h-6 text-pink-500" />}
-                        {!['family_info', 'contact_add', 'preference_update'].includes(suggestions[currentSuggestionIndex].suggestion_type) && <Brain className="w-6 h-6 text-orange-500" />}
+                <div className={`suggestions-carousel ${isTransitioning ? 'transitioning' : ''}`}>
+                  <div
+                    key={currentSuggestionIndex}
+                    className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-[450px]"
+                  >
+                    {/* Fixed Header */}
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {suggestions[currentSuggestionIndex].suggestion_type === 'family_info' && <Users className="w-6 h-6 text-blue-500" />}
+                          {suggestions[currentSuggestionIndex].suggestion_type === 'contact_add' && <User className="w-6 h-6 text-green-500" />}
+                          {suggestions[currentSuggestionIndex].suggestion_type === 'preference_update' && <Heart className="w-6 h-6 text-pink-500" />}
+                          {!['family_info', 'contact_add', 'preference_update'].includes(suggestions[currentSuggestionIndex].suggestion_type) && <Brain className="w-6 h-6 text-orange-500" />}
 
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
-                          {suggestions[currentSuggestionIndex].suggestion_type.replace('_', ' ')}
-                        </h3>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
+                            {suggestions[currentSuggestionIndex].suggestion_type.replace('_', ' ')}
+                          </h3>
+                        </div>
+
+                        {/* Family Member Name - Top Right */}
+                        {suggestions[currentSuggestionIndex].suggestion_type === 'family_info' && reviewData?.member_name && (
+                          <div className="p-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-blue-600" />
+                              <span className="text-sm font-bold text-blue-800 dark:text-blue-200">Family Member:</span>
+                              <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">{reviewData.member_name}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
+                    </div>
+
+                    {/* Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto">
+                      <div className="p-4">
 
                       {/* Editable Form Fields */}
                 {reviewData && (
-                  <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-6">
                       {/* Left Column - Header Info */}
                       <div className="space-y-3">
                         <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Suggestion Details</h4>
                         <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
                           {suggestions[currentSuggestionIndex].source_email_subject && (
                             <div className="flex items-start gap-2">
-                              <Mail className="h-4 w-4 mt-0.5 text-gray-500" />
+                              <Mail className="h-4 w-4 mt-0.5 text-blue-600" />
                               <div>
-                                <span className="font-medium">Source:</span>
+                                <span className="font-bold">Source:</span>
                                 <p className="text-xs mt-1">{suggestions[currentSuggestionIndex].source_email_subject}</p>
                               </div>
                             </div>
@@ -794,25 +826,107 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       <div className="space-y-3">
                         {/* Dynamic form fields based on suggestion type */}
                         {suggestions[currentSuggestionIndex].suggestion_type === 'family_info' && (
-                          <>
-                            {reviewData.birthday && (
+                          <div className="space-y-3">
+
+                            {(reviewData.birthday || reviewData.age) && (
                               <div className="flex items-center gap-3">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
-                                  <Cake className="h-4 w-4 mr-1 inline text-gray-500" />
-                                  Birthday:
-                                </label>
-                                <input
-                                  type="date"
-                                  value={reviewData.birthday || ''}
-                                  onChange={(e) => setReviewData({ ...reviewData, birthday: e.target.value })}
-                                  className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
+                                {reviewData.birthday ? (
+                                  // Both birthday and age present - birthday takes primary space, age on right
+                                  <>
+                                    <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                      <Cake className="h-4 w-4 mr-1 inline text-pink-500" />
+                                      Birthday:
+                                    </label>
+                                    <div className="flex gap-2">
+                                      <select
+                                        value={(() => {
+                                          const date = reviewData.birthday ? new Date(reviewData.birthday + 'T00:00:00') : null;
+                                          return date ? (date.getMonth() + 1).toString().padStart(2, '0') : '';
+                                        })()}
+                                        onChange={(e) => {
+                                          const currentDate = reviewData.birthday ? new Date(reviewData.birthday + 'T00:00:00') : new Date();
+                                          const day = currentDate.getDate().toString().padStart(2, '0');
+                                          const month = e.target.value.padStart(2, '0');
+                                          const newBirthday = `--${month}-${day}`;
+                                          setReviewData({ ...reviewData, birthday: newBirthday });
+                                        }}
+                                        className="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      >
+                                        <option value="">Month</option>
+                                        <option value="01">January</option>
+                                        <option value="02">February</option>
+                                        <option value="03">March</option>
+                                        <option value="04">April</option>
+                                        <option value="05">May</option>
+                                        <option value="06">June</option>
+                                        <option value="07">July</option>
+                                        <option value="08">August</option>
+                                        <option value="09">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                      </select>
+                                      <select
+                                        value={(() => {
+                                          const date = reviewData.birthday ? new Date(reviewData.birthday + 'T00:00:00') : null;
+                                          return date ? date.getDate().toString().padStart(2, '0') : '';
+                                        })()}
+                                        onChange={(e) => {
+                                          const currentDate = reviewData.birthday ? new Date(reviewData.birthday + 'T00:00:00') : new Date();
+                                          const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+                                          const day = e.target.value.padStart(2, '0');
+                                          const newBirthday = `--${month}-${day}`;
+                                          setReviewData({ ...reviewData, birthday: newBirthday });
+                                        }}
+                                        className="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      >
+                                        <option value="">Day</option>
+                                        {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                                          <option key={day} value={day.toString().padStart(2, '0')}>
+                                            {day}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+
+                                    {reviewData.age && (
+                                      <>
+                                        <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-20 flex-shrink-0 ml-6">
+                                          <User className="h-4 w-4 mr-1 inline text-green-500" />
+                                          Age:
+                                        </label>
+                                        <input
+                                          type="number"
+                                          value={reviewData.age || ''}
+                                          onChange={(e) => setReviewData({ ...reviewData, age: e.target.value })}
+                                          className="w-20 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                          placeholder="Age"
+                                        />
+                                      </>
+                                    )}
+                                  </>
+                                ) : (
+                                  // Only age present - age takes full width
+                                  <>
+                                    <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                      <User className="h-4 w-4 mr-1 inline text-green-500" />
+                                      Age:
+                                    </label>
+                                    <input
+                                      type="number"
+                                      value={reviewData.age || ''}
+                                      onChange={(e) => setReviewData({ ...reviewData, age: e.target.value })}
+                                      className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Enter age"
+                                    />
+                                  </>
+                                )}
                               </div>
                             )}
                             {reviewData.school && (
                               <div className="flex items-center gap-3">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
-                                  <GraduationCap className="h-4 w-4 mr-1 inline text-gray-500" />
+                                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                  <GraduationCap className="h-4 w-4 mr-1 inline text-blue-500" />
                                   School:
                                 </label>
                                 <input
@@ -824,44 +938,237 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                 />
                               </div>
                             )}
-                            {reviewData.age && (
+                            {reviewData.grade && (
                               <div className="flex items-center gap-3">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
-                                  <User className="h-4 w-4 mr-1 inline text-gray-500" />
-                                  Age:
+                                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                  <GraduationCap className="h-4 w-4 mr-1 inline text-indigo-500" />
+                                  Grade:
                                 </label>
-                                <input
-                                  type="number"
-                                  value={reviewData.age || ''}
-                                  onChange={(e) => setReviewData({ ...reviewData, age: e.target.value })}
+                                <select
+                                  value={reviewData.grade || ''}
+                                  onChange={(e) => setReviewData({ ...reviewData, grade: e.target.value })}
                                   className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder="Enter age"
-                                />
+                                >
+                                  <option value="">Select Grade</option>
+                                  <option value="Preschool">Preschool</option>
+                                  <option value="Kindergarten">Kindergarten</option>
+                                  <option value="1st">1st Grade</option>
+                                  <option value="2nd">2nd Grade</option>
+                                  <option value="3rd">3rd Grade</option>
+                                  <option value="4th">4th Grade</option>
+                                  <option value="5th">5th Grade</option>
+                                  <option value="6th">6th Grade</option>
+                                  <option value="7th">7th Grade</option>
+                                  <option value="8th">8th Grade</option>
+                                  <option value="9th">9th Grade</option>
+                                  <option value="10th">10th Grade</option>
+                                  <option value="11th">11th Grade</option>
+                                  <option value="12th">12th Grade</option>
+                                </select>
                               </div>
                             )}
-                            {reviewData.activity && (
+                            {reviewData.activity_type && (
                               <div className="flex items-center gap-3">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
-                                  <Calendar className="h-4 w-4 mr-1 inline text-gray-500" />
+                                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                  <Calendar className="h-4 w-4 mr-1 inline text-purple-500" />
                                   Activity:
                                 </label>
                                 <input
                                   type="text"
-                                  value={reviewData.activity || ''}
-                                  onChange={(e) => setReviewData({ ...reviewData, activity: e.target.value })}
+                                  value={reviewData.activity_type || ''}
+                                  onChange={(e) => setReviewData({ ...reviewData, activity_type: e.target.value })}
                                   className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                   placeholder="Enter activity"
                                 />
                               </div>
                             )}
-                          </>
+                            {(reviewData.structuredSchedule?.days?.length > 0 || reviewData.structuredSchedule?.time) && (
+                              <div className="space-y-3">
+                                {/* Days picker - always show if we have structured schedule data */}
+                                <div className="flex items-center gap-3">
+                                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                    <Calendar className="h-4 w-4 mr-1 inline text-blue-500" />
+                                    Days:
+                                  </label>
+                                  <div className="flex flex-wrap gap-1">
+                                    {(() => {
+                                      const allDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                                      const dayLabels = {
+                                        monday: 'Mon',
+                                        tuesday: 'Tue',
+                                        wednesday: 'Wed',
+                                        thursday: 'Thu',
+                                        friday: 'Fri',
+                                        saturday: 'Sat',
+                                        sunday: 'Sun'
+                                      };
+
+                                      const toggleDay = (day: string) => {
+                                        const currentDays = reviewData.structuredSchedule?.days || [];
+                                        const newDays = currentDays.includes(day)
+                                          ? currentDays.filter((d: string) => d !== day)
+                                          : [...currentDays, day];
+
+                                        setReviewData({
+                                          ...reviewData,
+                                          structuredSchedule: {
+                                            ...reviewData.structuredSchedule,
+                                            days: newDays
+                                          }
+                                        });
+                                      };
+
+                                      return allDays.map((day: string) => {
+                                        const isSelected = reviewData.structuredSchedule?.days?.includes(day);
+                                        const dayLabel = dayLabels[day as keyof typeof dayLabels];
+                                        return (
+                                          <button
+                                            key={day}
+                                            type="button"
+                                            onClick={() => toggleDay(day)}
+                                            className={`px-2 py-1 text-xs font-medium rounded-md border transition-all ${
+                                              isSelected
+                                                ? 'bg-blue-600 text-white border-blue-600'
+                                                : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-400'
+                                            }`}
+                                          >
+                                            {dayLabel}
+                                          </button>
+                                        );
+                                      });
+                                    })()}
+                                  </div>
+                                </div>
+
+                                {/* Time picker and Expires - conditional layout */}
+                                <div className="flex items-center gap-3">
+                                  {reviewData.structuredSchedule?.time ? (
+                                    // Both time and expires present - time takes primary space, expires on right
+                                    <>
+                                      <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                        <Clock className="h-4 w-4 mr-1 inline text-orange-500" />
+                                        Time:
+                                      </label>
+                                      <input
+                                        type="time"
+                                        value={(() => {
+                                          // Convert time like "3:30pm" to 24-hour format "15:30" for the time input
+                                          const time = reviewData.structuredSchedule?.time || '';
+                                          if (!time) return '';
+
+                                          const match = time.match(/(\d{1,2}):?(\d{0,2})\s*(am|pm|a\.m\.|p\.m\.)/i);
+                                          if (match) {
+                                            let hours = parseInt(match[1]);
+                                            const minutes = match[2] ? match[2].padStart(2, '0') : '00';
+                                            const period = match[3].toLowerCase();
+
+                                            if (period.includes('pm') && hours !== 12) hours += 12;
+                                            if (period.includes('am') && hours === 12) hours = 0;
+
+                                            return `${hours.toString().padStart(2, '0')}:${minutes}`;
+                                          }
+
+                                          return time; // Fallback for 24-hour format
+                                        })()}
+                                        onChange={(e) => {
+                                          // Convert 24-hour format back to 12-hour format for consistency
+                                          const time24 = e.target.value; // e.g., "15:30"
+                                          if (!time24) {
+                                            setReviewData({
+                                              ...reviewData,
+                                              structuredSchedule: {
+                                                ...reviewData.structuredSchedule,
+                                                time: ''
+                                              }
+                                            });
+                                            return;
+                                          }
+
+                                          const [hours, minutes] = time24.split(':');
+                                          const hour24 = parseInt(hours);
+                                          const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+                                          const period = hour24 >= 12 ? 'pm' : 'am';
+
+                                          const time12 = `${hour12}:${minutes}${period}`;
+                                          setReviewData({
+                                            ...reviewData,
+                                            structuredSchedule: {
+                                              ...reviewData.structuredSchedule,
+                                              time: time12
+                                            }
+                                          });
+                                        }}
+                                        className="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-36"
+                                      />
+
+                                      {/* Expires field on the right */}
+                                      <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-20 flex-shrink-0 ml-6">
+                                        <CalendarDays className="h-4 w-4 mr-1 inline text-orange-500" />
+                                        Expires:
+                                      </label>
+                                      <select
+                                        value={reviewData.expirationDate || getDefaultExpiration(suggestions[currentSuggestionIndex].suggestion_type, reviewData)}
+                                        onChange={(e) => setReviewData({ ...reviewData, expirationDate: e.target.value })}
+                                        className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      >
+                                        <option value="never">No Expiration</option>
+                                        <option value="1-month">1 Month ({new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                                        <option value="3-months">3 Months ({new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                                        <option value="6-months">6 Months ({new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                                        <option value="school-year">School Year ({new Date(new Date().getFullYear() + (new Date().getMonth() >= 5 ? 1 : 0), 5, 30).toLocaleDateString()})</option>
+                                        <option value="1-year">1 Year ({new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                                        <option value="custom">Custom Date</option>
+                                      </select>
+                                    </>
+                                  ) : (
+                                    // Only expires present - expires takes full width
+                                    <>
+                                      <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                        <CalendarDays className="h-4 w-4 mr-1 inline text-orange-500" />
+                                        Expires:
+                                      </label>
+                                      <select
+                                        value={reviewData.expirationDate || getDefaultExpiration(suggestions[currentSuggestionIndex].suggestion_type, reviewData)}
+                                        onChange={(e) => setReviewData({ ...reviewData, expirationDate: e.target.value })}
+                                        className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      >
+                                        <option value="never">No Expiration</option>
+                                        <option value="1-month">1 Month ({new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                                        <option value="3-months">3 Months ({new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                                        <option value="6-months">6 Months ({new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                                        <option value="school-year">School Year ({new Date(new Date().getFullYear() + (new Date().getMonth() >= 5 ? 1 : 0), 5, 30).toLocaleDateString()})</option>
+                                        <option value="1-year">1 Year ({new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
+                                        <option value="custom">Custom Date</option>
+                                      </select>
+                                    </>
+                                  )}
+                                </div>
+
+                                {/* Custom expiration date field - separate row when needed */}
+                                {reviewData.expirationDate === 'custom' && (
+                                  <div className="flex items-center gap-3 mt-2">
+                                    <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                      <Calendar className="h-4 w-4 mr-1 inline text-indigo-500" />
+                                      Date:
+                                    </label>
+                                    <input
+                                      type="date"
+                                      value={reviewData.customExpiration || ''}
+                                      onChange={(e) => setReviewData({ ...reviewData, customExpiration: e.target.value })}
+                                      className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         )}
 
                         {suggestions[currentSuggestionIndex].suggestion_type === 'contact_add' && (
                           <>
                             {reviewData.name && (
                               <div className="flex items-center gap-3">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
                                   <User className="h-4 w-4 mr-1 inline text-gray-500" />
                                   Name:
                                 </label>
@@ -876,7 +1183,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                             )}
                             {reviewData.phone && (
                               <div className="flex items-center gap-3">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
                                   <Phone className="h-4 w-4 mr-1 inline text-gray-500" />
                                   Phone:
                                 </label>
@@ -891,7 +1198,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                             )}
                             {reviewData.email && (
                               <div className="flex items-center gap-3">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
                                   <Mail className="h-4 w-4 mr-1 inline text-gray-500" />
                                   Email:
                                 </label>
@@ -906,7 +1213,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                             )}
                             {reviewData.role && (
                               <div className="flex items-center gap-3">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
                                   <User className="h-4 w-4 mr-1 inline text-gray-500" />
                                   Role:
                                 </label>
@@ -925,8 +1232,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         {suggestions[currentSuggestionIndex].suggestion_type === 'preference_update' && (
                           <>
                             <div className="flex items-center gap-3">
-                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
-                                <Type className="h-4 w-4 mr-1 inline text-gray-500" />
+                              <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                <Type className="h-4 w-4 mr-1 inline text-blue-500" />
                                 Type:
                               </label>
                               <select
@@ -934,6 +1241,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                 onChange={(e) => setReviewData({ ...reviewData, preference_type: e.target.value })}
                                 className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               >
+                                <option value="emergency_contact">Emergency Contact</option>
                                 <option value="dietary_restrictions">Dietary Restrictions</option>
                                 <option value="allergies">Allergies</option>
                                 <option value="communication_preference">Communication Preference</option>
@@ -947,8 +1255,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                               </select>
                             </div>
                             <div className="flex items-center gap-3">
-                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
-                                <FileText className="h-4 w-4 mr-1 inline text-gray-500" />
+                              <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">
+                                <FileText className="h-4 w-4 mr-1 inline text-green-500" />
                                 Value:
                               </label>
                               <input
@@ -960,8 +1268,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                               />
                             </div>
                             <div className="flex items-start gap-3">
-                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0 pt-1.5">
-                                <FileText className="h-4 w-4 mr-1 inline text-gray-500" />
+                              <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-32 flex-shrink-0 pt-1.5">
+                                <FileText className="h-4 w-4 mr-1 inline text-purple-500" />
                                 Details:
                               </label>
                               <textarea
@@ -975,42 +1283,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                           </>
                         )}
 
-                        {/* Expiration field */}
-                        <div>
-                          <div className="flex items-center gap-3">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
-                              <CalendarDays className="h-4 w-4 mr-1 inline text-gray-500" />
-                              Expires:
-                            </label>
-                            <select
-                              value={reviewData.expirationDate || getDefaultExpiration(suggestions[currentSuggestionIndex].suggestion_type, reviewData)}
-                              onChange={(e) => setReviewData({ ...reviewData, expirationDate: e.target.value })}
-                              className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                              <option value="never">No Expiration</option>
-                              <option value="1-month">1 Month ({new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
-                              <option value="3-months">3 Months ({new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
-                              <option value="6-months">6 Months ({new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
-                              <option value="school-year">School Year ({new Date(new Date().getFullYear() + (new Date().getMonth() >= 5 ? 1 : 0), 5, 30).toLocaleDateString()})</option>
-                              <option value="1-year">1 Year ({new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
-                              <option value="custom">Custom Date</option>
-                            </select>
-                          </div>
-                          {reviewData.expirationDate === 'custom' && (
-                            <div className="flex items-center gap-3 mt-2">
-                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 w-20 flex-shrink-0">
-                                <Calendar className="h-4 w-4 mr-1 inline text-gray-500" />
-                                Date:
-                              </label>
-                              <input
-                                type="date"
-                                value={reviewData.customExpiration || ''}
-                                onChange={(e) => setReviewData({ ...reviewData, customExpiration: e.target.value })}
-                                className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              />
-                            </div>
-                          )}
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -1036,6 +1308,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         Accept
                       </button>
                     </div>
+                  </div>
                   </div>
                 </div>
               </div>
