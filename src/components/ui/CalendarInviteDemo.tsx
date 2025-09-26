@@ -72,14 +72,6 @@ const CalendarInviteDemo: React.FC = () => {
               console.log('Calendar invite accepted (demo)');
               alert('Calendar invite accepted! 🎉');
             }}
-            onDecline={() => {
-              console.log('Calendar invite declined (demo)');
-              alert('Calendar invite declined');
-            }}
-            onCopyToCalendar={() => {
-              console.log('Calendar data copied (demo)');
-              alert('Calendar data copied to clipboard! 📋');
-            }}
             onEdit={(updatedData) => {
               console.log('Calendar invite edited (demo):', updatedData);
               alert(`Event updated!\nTitle: ${updatedData.title}\nTime: ${updatedData.time}`);

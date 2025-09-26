@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ArrowRight, Check, X, Rocket, User, Users, Crown } from 'lucide-react';
 import Header from '../shared/Header';
 import './PricingPage.css';

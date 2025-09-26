@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Check, X, Copy, ExternalLink, Edit2, Save, Send } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, X, ExternalLink, Edit2, Save, Send } from 'lucide-react';
 
 export interface CalendarInviteData {
   title: string;
@@ -15,8 +15,6 @@ export interface CalendarInviteData {
 interface CalendarInviteMessageProps {
   inviteData: CalendarInviteData;
   onAccept?: () => void;
-  onDecline?: () => void;
-  onCopyToCalendar?: () => void;
   onEdit?: (updatedData: CalendarInviteData) => void;
   showActions?: boolean;
   allowEditing?: boolean;
@@ -25,8 +23,6 @@ interface CalendarInviteMessageProps {
 const CalendarInviteMessage: React.FC<CalendarInviteMessageProps> = ({
   inviteData,
   onAccept,
-  onDecline,
-  onCopyToCalendar,
   onEdit,
   showActions = true,
   allowEditing = true
@@ -55,27 +51,6 @@ const CalendarInviteMessage: React.FC<CalendarInviteMessageProps> = ({
     onAccept?.();
   };
 
-  const handleDecline = () => {
-    setStatus('declined');
-    onDecline?.();
-  };
-
-  const handleCopyToCalendar = () => {
-    // Create calendar URL or copy calendar data
-    const calendarData = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//HomeOps//Calendar Event//EN
-BEGIN:VEVENT
-SUMMARY:${inviteData.title}
-DTSTART:${new Date(inviteData.date).toISOString().replace(/[-:]/g, '').split('.')[0]}Z
-DESCRIPTION:${inviteData.description || ''}
-LOCATION:${inviteData.location || ''}
-END:VEVENT
-END:VCALENDAR`;
-
-    navigator.clipboard.writeText(calendarData);
-    onCopyToCalendar?.();
-  };
 
   const handleEdit = () => {
     setIsEditing(true);

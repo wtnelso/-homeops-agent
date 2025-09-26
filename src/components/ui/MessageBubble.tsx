@@ -128,14 +128,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 console.log('Calendar invite sent:', message.id);
                 onCalendarSent?.(message.id);
               }}
-              onDecline={() => {
-                // Handle calendar invite decline
-                console.log('Calendar invite declined:', message.id);
-              }}
-              onCopyToCalendar={() => {
-                // Handle copying to calendar
-                console.log('Calendar invite copied:', message.id);
-              }}
             />
           </div>
         )}
