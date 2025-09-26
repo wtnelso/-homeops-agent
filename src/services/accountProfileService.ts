@@ -6,11 +6,12 @@
 
 interface DataSource {
   type: 'manual' | 'chat' | 'email';
-  reference_id?: string;
-  content?: string;
-  email_subject?: string;
+  source_id?: string;
   timestamp?: string;
   confidence?: number;
+  updated_at?: string;
+  original_text?: string;
+  email_subject?: string;
 }
 
 interface ProfileData {
@@ -20,14 +21,31 @@ interface ProfileData {
     user?: boolean; // true if this is the account user
     order?: number; // for display ordering
     age?: number;
-    birthday?: string;
+    birthday?: { month: string; day: string };
     email?: string;
     pet_type?: string; // Only for pets - dog, cat, etc.
+    source?: {
+      type: 'manual' | 'chat' | 'email';
+      reference_id?: string;
+      content?: string;
+      email_subject?: string;
+      timestamp?: string;
+      confidence?: number;
+    };
     schools?: Array<{
       name: string;
       type?: string;
       email_domain?: string;
       grade?: string;
+      source?: {
+        type: 'manual' | 'chat' | 'email';
+        source_id?: string;
+        timestamp?: string;
+        confidence?: number;
+        updated_at?: string;
+        original_text?: string;
+        email_subject?: string;
+      };
     }>;
     activities?: Array<{
       name: string;
@@ -35,6 +53,15 @@ interface ProfileData {
       frequency?: string;
       days?: string[];
       end_date?: string;
+      source?: {
+        type: 'manual' | 'chat' | 'email';
+        source_id?: string;
+        timestamp?: string;
+        confidence?: number;
+        updated_at?: string;
+        original_text?: string;
+        email_subject?: string;
+      };
     }>;
   }>;
   activities: {

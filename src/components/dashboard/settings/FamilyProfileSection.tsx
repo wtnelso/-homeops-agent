@@ -8,6 +8,7 @@ import AddHobbyModal from '../../ui/AddHobbyModal';
 import AddSchoolModal from '../../ui/AddSchoolModal';
 import DeleteConfirmationModal from '../../ui/DeleteConfirmationModal';
 import SourceIndicator from '../../ui/SourceIndicator';
+import { ProfileData } from '../../../services/accountProfileService';
 import { accountProfileService } from '../../../services/accountProfileService';
 
 // Helper function to get activity type styling and icon
@@ -328,11 +329,11 @@ const FamilyProfileSection: React.FC = () => {
     // Preserve existing source or add manual source for edits
     if (!updatedMember.source) {
       updatedMember.source = {
-        type: 'manual',
+        type: 'manual' as const,
         timestamp: new Date().toISOString(),
         confidence: 1.0,
-        source_id: null,
-        original_text: null
+        source_id: undefined,
+        original_text: undefined
       };
     } else {
       // Update timestamp for edits

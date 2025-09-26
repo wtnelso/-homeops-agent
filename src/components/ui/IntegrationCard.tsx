@@ -15,33 +15,10 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Helper function to get playful copy and value props for each integration
-  const getIntegrationCopy = (id: string, isConnected: boolean) => {
-    const copies: Record<string, { title: string; valueProp: string; buttonText: string; connectedText: string }> = {
-      'gmail': {
-        title: isConnected ? 'Smart Inbox Active!' : 'Unlock Smart Inbox',
-        valueProp: 'Transform email chaos into organized family tasks and reminders',
-        buttonText: 'Activate Superpower',
-        connectedText: 'You\'re synced!'
-      },
-      'google-calendar': {
-        title: isConnected ? 'Family Calendar Synced!' : 'Sync Family Calendar',
-        valueProp: 'Stay ahead of school schedules, activities, and family events',
-        buttonText: 'Connect Calendar',
-        connectedText: 'Schedule mastered!'
-      },
-      'default': {
-        title: isConnected ? `${integration.name} Connected!` : `Connect ${integration.name}`,
-        valueProp: 'Enhance your family\'s productivity and organization',
-        buttonText: 'Unlock Power',
-        connectedText: 'Connected!'
-      }
-    };
-
-    return copies[id] || copies['default'];
-  };
-
-  const copy = getIntegrationCopy(integration.id, integration.isConnected);
+  // Use database properties directly
+  const isConnected = integration.isConnected ?? false;
+  const title = isConnected ? `${integration.name} Connected!` : `Connect ${integration.name}`;
+  const buttonText = isConnected ? 'Disconnect' : 'Connect';
   const renderIcon = () => {
     if (integration.image_url) {
       return (
@@ -63,7 +40,6 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     }
   };
 
-  const isConnected = integration.isConnected;
 
   return (
     <>
@@ -96,20 +72,20 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
             {integration.name}
           </h3>
           <p className="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400">
-            {copy.title}
+            {title}
           </p>
         </div>
 
         {/* Value Proposition */}
         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center leading-relaxed mb-3 sm:mb-4 font-medium">
-          {copy.valueProp}
+          {integration.description}
         </p>
 
         {/* Connected Success Message */}
         {isConnected && (
           <div className="text-center mb-3 sm:mb-4">
             <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-              {copy.connectedText}
+              Connected!
             </span>
           </div>
         )}
@@ -133,7 +109,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
                 : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg'
             }`}
           >
-            {isConnected ? 'Disconnect' : copy.buttonText}
+            {isConnected ? 'Disconnect' : buttonText}
           </button>
         </div>
       </div>

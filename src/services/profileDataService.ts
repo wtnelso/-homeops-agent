@@ -14,10 +14,18 @@ interface FamilyMember {
   order?: number; // for display ordering
   email?: string;
   age?: number;
-  birthday?: string;
+  birthday?: { month: string; day: string };
   pet_type?: string; // Only for pets - dog, cat, etc.
   schools?: School[];
   activities?: Activity[];
+  source?: {
+    type: string;
+    timestamp: string;
+    confidence: number;
+    source_id?: string | null;
+    original_text?: string | null;
+    updated_at?: string;
+  };
 }
 
 interface School {
@@ -210,7 +218,7 @@ class ProfileDataService {
 
       if (result.success) {
         console.log('✅ Activity added to member successfully');
-        return { success: true, profile: result.profile };
+        return { success: true };
       } else {
         console.error('❌ Failed to add activity to member:', result.error);
         return { success: false, error: result.error };
@@ -464,7 +472,7 @@ class ProfileDataService {
 
       if (result.success) {
         console.log('✅ Activity updated for member successfully');
-        return { success: true, profile: result.profile };
+        return { success: true };
       } else {
         console.error('❌ Failed to update activity for member:', result.error);
         return { success: false, error: result.error };
