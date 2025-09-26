@@ -41,7 +41,7 @@ export const SERVER_CONFIG = {
 
   // Supabase configuration
   SUPABASE: {
-    URL: process.env.VITE_SUPABASE_URL,
+    URL: process.env.SUPABASE_URL,
     SERVICE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY
   },
 

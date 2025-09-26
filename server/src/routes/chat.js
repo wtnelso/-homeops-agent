@@ -219,7 +219,7 @@ router.post('/', async (req, res) => {
 
     // Create LangChain tools for the AI agent (now that we have accountId)
     const tools = CONVERSATION_CONFIG.ENABLE_LANGCHAIN_TOOLS
-      ? createChatTools(accountId, process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, openaiApiKey)
+      ? createChatTools(accountId, process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, openaiApiKey)
       : [];
 
     const llm = new ChatOpenAI({
