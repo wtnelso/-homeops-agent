@@ -71,14 +71,14 @@ const SourceViewModal: React.FC<SourceViewModalProps> = ({
 
           {/* Content */}
           <div className="px-6 py-4">
-            {source.type === 'chat' && source.content && (
+            {source.type === 'chat' && source.original_text && (
               <div className="space-y-4">
                 <div className="rounded-lg bg-gray-50 dark:bg-gray-700 p-4">
                   <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                     Conversation Content
                   </h4>
                   <div className="whitespace-pre-wrap text-sm text-gray-900 dark:text-white">
-                    {source.content}
+                    {source.original_text}
                   </div>
                 </div>
                 {source.confidence && (
@@ -111,17 +111,17 @@ const SourceViewModal: React.FC<SourceViewModalProps> = ({
                       <span className="text-sm text-gray-900 dark:text-white">{source.email_subject}</span>
                     </div>
                   )}
-                  {source.reference_id && (
+                  {source.source_id && (
                     <div className="mb-2">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Email ID: </span>
-                      <span className="text-sm font-mono text-gray-600 dark:text-gray-400">{source.reference_id}</span>
+                      <span className="text-sm font-mono text-gray-600 dark:text-gray-400">{source.source_id}</span>
                     </div>
                   )}
                   <div className="mt-3">
                     <button
                       onClick={() => {
                         // TODO: Navigate to email view or open in email client
-                        console.log('Navigate to email:', source.reference_id);
+                        console.log('Navigate to email:', source.source_id);
                       }}
                       className="inline-flex items-center space-x-2 rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
                     >

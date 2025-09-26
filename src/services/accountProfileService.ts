@@ -26,11 +26,12 @@ interface ProfileData {
     pet_type?: string; // Only for pets - dog, cat, etc.
     source?: {
       type: 'manual' | 'chat' | 'email';
-      reference_id?: string;
-      content?: string;
-      email_subject?: string;
+      source_id?: string;
       timestamp?: string;
       confidence?: number;
+      updated_at?: string;
+      original_text?: string;
+      email_subject?: string;
     };
     schools?: Array<{
       name: string;

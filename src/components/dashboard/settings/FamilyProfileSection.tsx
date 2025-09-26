@@ -8,7 +8,6 @@ import AddHobbyModal from '../../ui/AddHobbyModal';
 import AddSchoolModal from '../../ui/AddSchoolModal';
 import DeleteConfirmationModal from '../../ui/DeleteConfirmationModal';
 import SourceIndicator from '../../ui/SourceIndicator';
-import { ProfileData } from '../../../services/accountProfileService';
 import { accountProfileService } from '../../../services/accountProfileService';
 
 // Helper function to get activity type styling and icon
@@ -282,16 +281,16 @@ const FamilyProfileSection: React.FC = () => {
         day: memberData.birthday_day || ''
       },
       source: {
-        type: 'manual',
+        type: 'manual' as const,
         timestamp: new Date().toISOString(),
         confidence: 1.0,
-        source_id: null,
-        original_text: null
+        source_id: undefined,
+        original_text: undefined
       }
     };
 
     // Add to existing members array
-    const updatedMembers = [...profileData.members, newMember];
+    const updatedMembers = [...(profileData?.members || []), newMember];
 
     const updateData = {
       members: updatedMembers
@@ -299,7 +298,7 @@ const FamilyProfileSection: React.FC = () => {
 
     console.log('📦 Adding new member:', newMember);
 
-    const result = await accountProfileService.updateProfile(userData.user.account_id, updateData);
+    const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
 
     if (result.success) {
       showToast('New member added successfully!', 'success');
@@ -313,7 +312,7 @@ const FamilyProfileSection: React.FC = () => {
 
   // Edit existing member (called by modal)
   const handleEditMember = async (memberData: any) => {
-    const existingMember = profileData.members[editingMemberIndex];
+    const existingMember = profileData?.members?.[editingMemberIndex];
     const updatedMember = {
       ...existingMember,
       name: memberData.name,
@@ -341,7 +340,7 @@ const FamilyProfileSection: React.FC = () => {
     }
 
     // Update the specific member in the array
-    const updatedMembers = [...profileData.members];
+    const updatedMembers = [...(profileData?.members || [])];
     updatedMembers[editingMemberIndex] = updatedMember;
 
     const updateData = {
@@ -350,7 +349,7 @@ const FamilyProfileSection: React.FC = () => {
 
     console.log('📝 Updating member:', updatedMember);
 
-    const result = await accountProfileService.updateProfile(userData.user.account_id, updateData);
+    const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
 
     if (result.success) {
       showToast('Member updated successfully!', 'success');
@@ -386,7 +385,7 @@ const FamilyProfileSection: React.FC = () => {
 
     try {
       // Remove the member from the array
-      const updatedMembers = profileData.members.filter((_, i) => i !== index);
+      const updatedMembers = (profileData?.members || []).filter((_, i) => i !== index);
 
       const updateData = {
         members: updatedMembers
@@ -394,7 +393,7 @@ const FamilyProfileSection: React.FC = () => {
 
       console.log('🗑️ Deleting member:', member.name);
 
-      const result = await accountProfileService.updateProfile(userData.user.account_id, updateData);
+      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
 
       if (result.success) {
         showToast(`${member.name || 'Member'} deleted successfully!`, 'success');
@@ -429,7 +428,7 @@ const FamilyProfileSection: React.FC = () => {
   // Handle hobby add/edit
   const handleHobbySubmit = async (hobbyData: any) => {
     try {
-      const updatedMembers = [...profileData.members];
+      const updatedMembers = [...(profileData?.members || [])];
       const member = updatedMembers[editingHobbyMemberIndex];
 
       if (!member.activities) {
@@ -440,11 +439,11 @@ const FamilyProfileSection: React.FC = () => {
       const activityWithSource = {
         ...hobbyData,
         source: {
-          type: 'manual',
+          type: 'manual' as const,
           timestamp: new Date().toISOString(),
           confidence: 1.0,
-          source_id: null,
-          original_text: null
+          source_id: undefined,
+          original_text: undefined
         }
       };
 
@@ -461,7 +460,7 @@ const FamilyProfileSection: React.FC = () => {
       }
 
       const updateData = { members: updatedMembers };
-      const result = await accountProfileService.updateProfile(userData.user.account_id, updateData);
+      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
 
       if (result.success) {
         showToast(`Activity ${editingHobby ? 'updated' : 'added'} successfully!`, 'success');
@@ -499,7 +498,7 @@ const FamilyProfileSection: React.FC = () => {
   // Handle school add/edit
   const handleSchoolSubmit = async (schoolData: any) => {
     try {
-      const updatedMembers = [...profileData.members];
+      const updatedMembers = [...(profileData?.members || [])];
       const member = updatedMembers[editingSchoolMemberIndex];
 
       if (!member.schools) {
@@ -510,11 +509,11 @@ const FamilyProfileSection: React.FC = () => {
       const schoolWithSource = {
         ...schoolData,
         source: {
-          type: 'manual',
+          type: 'manual' as const,
           timestamp: new Date().toISOString(),
           confidence: 1.0,
-          source_id: null,
-          original_text: null
+          source_id: undefined,
+          original_text: undefined
         }
       };
 
@@ -531,7 +530,7 @@ const FamilyProfileSection: React.FC = () => {
       }
 
       const updateData = { members: updatedMembers };
-      const result = await accountProfileService.updateProfile(userData.user.account_id, updateData);
+      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
 
       if (result.success) {
         showToast(`School ${editingSchool ? 'updated' : 'added'} successfully!`, 'success');
@@ -574,11 +573,11 @@ const FamilyProfileSection: React.FC = () => {
       const activityWithSource = {
         ...hobbyData,
         source: {
-          type: 'manual',
+          type: 'manual' as const,
           timestamp: new Date().toISOString(),
           confidence: 1.0,
-          source_id: null,
-          original_text: null
+          source_id: undefined,
+          original_text: undefined
         }
       };
 
@@ -596,7 +595,7 @@ const FamilyProfileSection: React.FC = () => {
       }
 
       const updateData = { activities: updatedActivities };
-      const result = await accountProfileService.updateProfile(userData.user.account_id, updateData as any);
+      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData as any);
 
       if (result.success) {
         showToast(`Family activity ${editingFamilyHobby ? 'updated' : 'added'} successfully!`, 'success');
@@ -638,7 +637,7 @@ const FamilyProfileSection: React.FC = () => {
     if (!profileData || !deleteItem) return;
 
     try {
-      const updatedMembers = [...profileData.members];
+      const updatedMembers = [...(profileData?.members || [])];
       const member = { ...updatedMembers[deleteItem.memberIndex] };
 
       if (member.activities && member.activities.length > deleteItem.itemIndex) {
@@ -648,7 +647,7 @@ const FamilyProfileSection: React.FC = () => {
       updatedMembers[deleteItem.memberIndex] = member;
 
       const updateData = { members: updatedMembers };
-      const result = await accountProfileService.updateProfile(userData.user.account_id, updateData);
+      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
 
       if (result.success) {
         showToast('Activity deleted successfully!', 'success');
@@ -702,7 +701,7 @@ const FamilyProfileSection: React.FC = () => {
     if (!profileData || !deleteItem) return;
 
     try {
-      const updatedMembers = [...profileData.members];
+      const updatedMembers = [...(profileData?.members || [])];
       const member = { ...updatedMembers[deleteItem.memberIndex] };
 
       if (member.schools && member.schools.length > deleteItem.itemIndex) {
@@ -712,7 +711,7 @@ const FamilyProfileSection: React.FC = () => {
       updatedMembers[deleteItem.memberIndex] = member;
 
       const updateData = { members: updatedMembers };
-      const result = await accountProfileService.updateProfile(userData.user.account_id, updateData);
+      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
 
       if (result.success) {
         showToast('School deleted successfully!', 'success');
@@ -739,7 +738,7 @@ const FamilyProfileSection: React.FC = () => {
       }
 
       const updateData = { activities: updatedActivities };
-      const result = await accountProfileService.updateProfile(userData.user.account_id, updateData as any);
+      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData as any);
 
       if (result.success) {
         showToast('Family activity deleted successfully!', 'success');
@@ -992,7 +991,7 @@ const FamilyProfileSection: React.FC = () => {
                             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
                               <SourceIndicator
                                 source={{
-                                  type: member.source.type || 'manual',
+                                  type: (member.source.type || 'manual') as 'email' | 'manual' | 'chat',
                                   confidence: member.source.confidence,
                                   timestamp: member.source.timestamp,
                                   email_subject: member.source.email_subject,
@@ -1113,7 +1112,7 @@ const FamilyProfileSection: React.FC = () => {
                                             {activity.source && (
                                               <SourceIndicator
                                                 source={{
-                                                  type: activity.source.type || 'manual',
+                                                  type: (activity.source.type || 'manual') as 'email' | 'manual' | 'chat',
                                                   confidence: activity.source.confidence,
                                                   timestamp: activity.source.timestamp,
                                                   email_subject: activity.source.email_subject,
@@ -1270,7 +1269,7 @@ const FamilyProfileSection: React.FC = () => {
                                           <div className="mt-2">
                                             <SourceIndicator
                                               source={{
-                                                type: school.source.type || 'manual',
+                                                type: (school.source.type || 'manual') as 'email' | 'manual' | 'chat',
                                                 confidence: school.source.confidence,
                                                 timestamp: school.source.timestamp,
                                                 email_subject: school.source.email_subject,
@@ -1350,7 +1349,7 @@ const FamilyProfileSection: React.FC = () => {
                             {activity.source && (
                               <SourceIndicator
                                 source={{
-                                  type: activity.source.type || 'manual',
+                                  type: (activity.source.type || 'manual') as 'email' | 'manual' | 'chat',
                                   confidence: activity.source.confidence,
                                   timestamp: activity.source.timestamp,
                                   email_subject: activity.source.email_subject,

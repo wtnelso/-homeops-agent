@@ -43,38 +43,9 @@ const AuthCallback: React.FC = () => {
         if (data.session) {
           console.log('✅ Authentication successful:', data.session.user.email);
           
-          // Simply check if user has completed onboarding
-          try {
-            const { data: userData } = await supabase
-              .from('users')
-              .select('account_id, accounts!inner(onboarded_at)')
-              .eq('auth_id', data.session.user.id)
-              .single();
-
-            if (!userData || !(userData.accounts as any)?.onboarded_at) {
-              // User needs onboarding
-              console.log('🎯 User needs onboarding, redirecting...');
-              
-              // Check if user has started onboarding (has saved progress in localStorage)
-              const savedStep = localStorage.getItem('homeops_onboarding_step');
-              const savedData = localStorage.getItem('homeops_onboarding_data');
-              
-              if (savedStep && savedData) {
-                // User has partially completed onboarding, show toast
-                showToast('Please complete onboarding before using HomeOps', 'warning');
-              }
-              
-              navigate(ROUTES.ONBOARDING, { replace: true });
-            } else {
-              // User has completed onboarding
-              console.log('🏠 User onboarded, redirecting to dashboard');
-              navigate(ROUTES.DASHBOARD_HOME, { replace: true });
-            }
-          } catch (fetchError) {
-            console.error('Error checking onboarding status:', fetchError);
-            // Default to onboarding if there's an error
-            navigate(ROUTES.ONBOARDING, { replace: true });
-          }
+          // Redirect authenticated user to dashboard
+          console.log('🏠 User authenticated, redirecting to dashboard');
+          navigate(ROUTES.DASHBOARD_HOME, { replace: true });
         } else {
           console.log('⚠️ No session found, redirecting to login');
           navigate(ROUTES.LOGIN, { replace: true });
