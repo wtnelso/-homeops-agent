@@ -10,6 +10,7 @@ export interface DemoMessage {
 export class DemoChatService {
   private static instance: DemoChatService;
   private messageHistory: DemoMessage[] = [];
+  private resetTimestamp: number = Date.now();
 
   static getInstance(): DemoChatService {
     if (!DemoChatService.instance) {
@@ -22,6 +23,8 @@ export class DemoChatService {
   async sendMessage(userMessage: string): Promise<{
     success: boolean;
     messages: DemoMessage[];
+    nextQuestion?: string;
+    calendarInvite?: any;
   }> {
     // Add user message
     const userMsg: DemoMessage = {
@@ -34,8 +37,8 @@ export class DemoChatService {
     this.messageHistory.push(userMsg);
 
     // Find scripted response or use fallback
-    const scriptedResponse = findDemoResponse(userMessage);
-    const assistantContent = scriptedResponse || getDemoFallback();
+    const demoResult = findDemoResponse(userMessage);
+    const assistantContent = demoResult?.response || getDemoFallback();
 
     // Simulate AI thinking delay
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -52,7 +55,9 @@ export class DemoChatService {
 
     return {
       success: true,
-      messages: [...this.messageHistory]
+      messages: [...this.messageHistory],
+      nextQuestion: demoResult?.nextQuestion,
+      calendarInvite: demoResult?.calendarInvite
     };
   }
 
@@ -64,9 +69,15 @@ export class DemoChatService {
   // Reset demo for fresh presentation
   resetDemo(): void {
     this.messageHistory = [];
+    this.resetTimestamp = Date.now();
     // Clear demo onboarding completion flag
     localStorage.removeItem('demo-onboarding-completed');
     console.log('🎬 Demo reset - ready for fresh presentation with default prompts');
+  }
+
+  // Get reset timestamp for triggering re-renders
+  getResetTimestamp(): number {
+    return this.resetTimestamp;
   }
 
   // Check if demo onboarding should be launched

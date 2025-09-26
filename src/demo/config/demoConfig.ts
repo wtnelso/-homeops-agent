@@ -137,6 +137,23 @@ Would you like me to help you email Emma's piano teacher about schedule adjustme
       keywords: ['homework', 'too much', 'stressed', 'activities', 'emma', 'busy']
     },
     {
+      id: 'whats-going-on',
+      userMessage: "What's going on this week?",
+      assistantResponse: `Here's what's happening this week from your emails:
+
+**🚨 Urgent:**
+• Jake's field trip permission slip due Friday
+• Piano payment $120 due tomorrow
+
+**📅 This Week:**
+• Emma's soccer game Saturday + team potluck (you're bringing drinks)
+• Parent-teacher conference signup for Emma's math class
+
+*I filtered through 47 emails to find these priority items.*`,
+      keywords: ['what\'s going on this week', 'going on this week', 'what\'s happening this week'],
+      nextQuestion: "Yes, create a calendar invite for that"
+    },
+    {
       id: 'bills-due',
       userMessage: "What bills do I need to pay?",
       assistantResponse: `Here are your upcoming payments:
@@ -155,6 +172,34 @@ Would you like me to help you email Emma's piano teacher about schedule adjustme
 - Soccer has a sibling discount available for Jake next season
 - School lunch auto-reload is available to avoid running low`,
       keywords: ['bills', 'pay', 'payment', 'money', 'due', 'cost']
+    },
+    {
+      id: 'calendar-invite',
+      userMessage: "Yes, create a calendar invite for that",
+      assistantResponse: `Perfect! I've created a calendar invite for Emma's parent-teacher conference.`,
+      keywords: ['yes', 'create', 'calendar', 'invite', 'that'],
+      calendarInvite: {
+        title: "Parent-Teacher Conference - Emma Thompson (Math)",
+        date: "2024-03-15T15:30:00.000Z",
+        time: "3:30 PM - 4:00 PM",
+        location: "Westwood Middle School, Room 204",
+        description: "Math performance review for Emma Thompson. Recent topics: fractions, homework completion, quiz improvement strategies.",
+        attendees: ["Sarah Thompson", "Michael Thompson", "Mrs. Johnson (Math Teacher)"],
+        duration: "30 minutes"
+      }
+    },
+    {
+      id: 'weekend-calendar',
+      userMessage: "what's on the calendar for next weekend?",
+      assistantResponse: `It looks like you're all free next weekend! No scheduled activities or appointments.
+
+Based on your family's interests, this might be a good time for:
+🥾 **Hiking** - Perfect weather forecast for outdoor activities
+🎮 **Family game time** - Emma's been wanting to try that new board game
+⚽ **Soccer practice** - Jake could use some extra practice before his tournament
+
+Would you like me to help you plan something specific?`,
+      keywords: ['weekend', 'calendar', 'next weekend', 'what\'s on']
     }
   ],
 
@@ -172,16 +217,53 @@ export const isDemoMode = (userEmail: string | null | undefined): boolean => {
 };
 
 // Helper function to find matching demo response
-export const findDemoResponse = (userInput: string): string | null => {
+export const findDemoResponse = (userInput: string): { response: string; nextQuestion?: string; calendarInvite?: any } | null => {
   const input = userInput.toLowerCase();
 
+  // Simple exact matching for specific demo flows
+  if (input === "what's going on this week?") {
+    const conversation = DEMO_CONFIG.DEMO_CONVERSATIONS.find(c => c.id === 'whats-going-on');
+    if (conversation) {
+      return {
+        response: conversation.assistantResponse,
+        nextQuestion: (conversation as any).nextQuestion
+      };
+    }
+  }
+
+  if (input === "yes, create a calendar invite for that") {
+    const conversation = DEMO_CONFIG.DEMO_CONVERSATIONS.find(c => c.id === 'calendar-invite');
+    if (conversation) {
+      return {
+        response: conversation.assistantResponse,
+        nextQuestion: (conversation as any).nextQuestion,
+        calendarInvite: (conversation as any).calendarInvite
+      };
+    }
+  }
+
+  if (input === "what's on the calendar for next weekend?") {
+    const conversation = DEMO_CONFIG.DEMO_CONVERSATIONS.find(c => c.id === 'weekend-calendar');
+    if (conversation) {
+      return {
+        response: conversation.assistantResponse,
+        nextQuestion: (conversation as any).nextQuestion
+      };
+    }
+  }
+
+  // Fallback to keyword matching for other conversations
   for (const conversation of DEMO_CONFIG.DEMO_CONVERSATIONS) {
     const hasKeyword = conversation.keywords.some(keyword =>
       input.includes(keyword.toLowerCase())
     );
 
     if (hasKeyword) {
-      return conversation.assistantResponse;
+      return {
+        response: conversation.assistantResponse,
+        nextQuestion: (conversation as any).nextQuestion,
+        calendarInvite: (conversation as any).calendarInvite
+      };
     }
   }
 

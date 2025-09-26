@@ -132,17 +132,68 @@ const ConnectGmailStep: React.FC<ConnectGmailStepProps> = ({ onUpdate }) => {
           </div>
         </div>
 
-        {/* Connect Button */}
-        {connectionStatus !== 'connected' && (
-          <button
-            onClick={handleConnect}
-            disabled={isConnecting}
-            className="w-full flex items-center justify-center py-3 px-4 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-          >
-            <img src="/google-logo.svg" alt="Google" className="w-5 h-5 mr-3" />
-            <span className="font-medium">{isConnecting ? 'Connecting...' : 'Connect with Google'}</span>
-          </button>
-        )}
+        {/* Gmail Integration Tile */}
+        <div className={`bg-white dark:bg-gray-800 rounded-2xl border p-6 hover:shadow-lg transition-all duration-500 relative transform hover:scale-105 max-w-md mx-auto ${
+          connectionStatus === 'connected'
+            ? 'border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10'
+            : 'border-gray-200 dark:border-gray-700'
+        }`}>
+
+          {/* Success Animation Badge */}
+          {connectionStatus === 'connected' && (
+            <div className="absolute top-4 right-4 animate-pulse">
+              <div className="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center shadow-lg">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          )}
+
+          {/* Icon */}
+          <div className="flex justify-center mb-4">
+            <div className={`${connectionStatus === 'connected' ? 'animate-pulse' : ''}`}>
+              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl flex items-center justify-center">
+                <Mail className="w-8 h-8 text-white" />
+              </div>
+            </div>
+          </div>
+
+          {/* Integration Name */}
+          <div className="text-center mb-2">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+              Gmail
+            </h3>
+            <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+              {connectionStatus === 'connected' ? 'Gmail Connected!' : 'Connect Gmail'}
+            </p>
+          </div>
+
+          {/* Value Proposition */}
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center leading-relaxed mb-4 font-medium">
+            Smart email insights and intelligent family communication management
+          </p>
+
+          {/* Connected Success Message */}
+          {connectionStatus === 'connected' && (
+            <div className="text-center mb-4">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                Connected!
+              </span>
+            </div>
+          )}
+
+          {/* Bottom Actions */}
+          {connectionStatus !== 'connected' && (
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+              <button
+                onClick={handleConnect}
+                disabled={isConnecting}
+                className="w-full px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 transform hover:scale-105 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isConnecting ? 'Connecting...' : 'Connect with Google'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

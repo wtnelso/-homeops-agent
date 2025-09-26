@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏠 HomeOps - Enhanced Navigation Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    .mobile-view {
+      display: none;
+      height: 100%;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    
+    .mobile-view.active {
+      display: block !important;
+    }
+    
+    .mobile-nav {
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
+      display: flex;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      min-height: 70px;
+    }
+    
+    .nav-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 12px;
+    }
+    
+    .nav-btn.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+    
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Content Area -->
+  <div>
+    <!-- Home Base View -->
+    <div id="home-mobile" class="mobile-view active">
+      <div style="padding: 16px;">
+        <!-- Home Base Header with distinctive branding -->
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: center; box-shadow: 0 8px 32px rgba(245, 158, 11, 0.3);">
+          <div style="font-size: 32px; margin-bottom: 8px;">🏠</div>
+          <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Home Base</h2>
+          <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 16px; font-weight: 500;">Your Family Operations Command Center</p>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;">
+          <div style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 4px;">3</div>
+            <div style="font-size: 12px; text-transform: uppercase; color: rgba(255,255,255,0.7);">Decoded Emails</div>
+          </div>
+          <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 4px;">5</div>
+            <div style="font-size: 12px; text-transform: uppercase; color: rgba(255,255,255,0.7);">Upcoming Events</div>
+          </div>
+        </div>
+        
+        <!-- Success Message -->
+        <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: center;">
+          <div style="font-size: 20px; margin-bottom: 8px;">🎉</div>
+          <h3 style="margin: 0 0 8px 0; color: #22c55e;">ChatGPT Guidance Successfully Implemented!</h3>
+          <p style="margin: 0; font-size: 14px;">This is the enhanced Home Base dashboard with intelligent navigation.</p>
+        </div>
+        
+        <!-- Navigation Test -->
+        <div style="background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px;">
+          <h4 style="margin: 0 0 12px 0;">✅ Navigation Features:</h4>
+          <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
+            <li>🏠 Home Base (this view) - Intelligent dashboard</li>
+            <li>💬 Chat - AI assistance</li>
+            <li>📧 Decoder - Email intelligence</li>
+            <li>📅 Calendar - Schedule management</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Chat View -->
+    <div id="chat-mobile" class="mobile-view">
+      <div style="padding: 16px; text-align: center;">
+        <h2>💬 Chat View</h2>
+        <p>This is the Chat interface</p>
+      </div>
+    </div>
+    
+    <!-- Decoder View -->
+    <div id="decoder-mobile" class="mobile-view">
+      <div style="padding: 16px; text-align: center;">
+        <h2>📧 Email Decoder</h2>
+        <p>This is the Email Intelligence interface</p>
+      </div>
+    </div>
+    
+    <!-- Calendar View -->
+    <div id="calendar-mobile" class="mobile-view">
+      <div style="padding: 16px; text-align: center;">
+        <h2>📅 Calendar View</h2>
+        <p>This is the Calendar interface</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bottom Navigation -->
+  <div class="mobile-nav">
+    <button class="nav-btn active" onclick="showView('home-mobile', this)">
+      <span class="nav-icon">🏠</span>
+      Home
+    </button>
+    <button class="nav-btn" onclick="showView('chat-mobile', this)">
+      <span class="nav-icon">💬</span>
+      Chat
+    </button>
+    <button class="nav-btn" onclick="showView('decoder-mobile', this)">
+      <span class="nav-icon">📧</span>
+      Decoder
+    </button>
+    <button class="nav-btn" onclick="showView('calendar-mobile', this)">
+      <span class="nav-icon">📅</span>
+      Calendar
+    </button>
+  </div>
+  
+  <script>
+    // Simple navigation function
+    function showView(viewId, button) {
+      console.log('Switching to view:', viewId);
+      
+      // Hide all views
+      document.querySelectorAll('.mobile-view').forEach(view => {
+        view.classList.remove('active');
+      });
+      
+      // Remove active from all nav buttons
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Show selected view
+      const targetView = document.getElementById(viewId);
+      if (targetView) {
+        targetView.classList.add('active');
+      }
+      
+      // Activate nav button
+      if (button) {
+        button.classList.add('active');
+      }
+      
+      console.log('View switched to:', viewId);
+    }
+    
+    console.log('🎉 Enhanced Navigation Test Page Loaded!');
+  </script>
+</body>
+</html>

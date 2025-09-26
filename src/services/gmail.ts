@@ -22,7 +22,18 @@ export class GmailService {
     console.log('🔑 Client ID:', GMAIL_CONFIG.clientId);
 
     localStorage.setItem('oauth_integration_pending', 'gmail');
-    localStorage.setItem('oauth_return_url', window.location.href);
+
+    // Store the current URL for return, with special handling for onboarding
+    const currentUrl = window.location.href;
+    console.log('💾 Storing return URL:', currentUrl);
+
+    // If we're in onboarding, store additional context
+    if (currentUrl.includes('/onboarding') || currentUrl.includes('step=')) {
+      console.log('📋 Detected onboarding flow, storing onboarding context');
+      localStorage.setItem('oauth_from_onboarding', 'true');
+    }
+
+    localStorage.setItem('oauth_return_url', currentUrl);
     window.location.href = oauthUrl;
   }
 

@@ -3,6 +3,7 @@ import { RefreshCw, AlertCircle, Sparkles, X, CheckCircle, XCircle, Users, User,
 import MessageBubble from './MessageBubble';
 import ChatInput from './ChatInput';
 import ConversationList from './ConversationList';
+import { CalendarInviteData } from './CalendarInviteMessage';
 import { RenderChatService } from '../../services/edgeFunctionChatService';
 import { useAuth } from '../../contexts/AuthContext';
 import { profileSuggestionsService, ProfileSuggestion } from '../../services/profileSuggestionsService';
@@ -16,6 +17,7 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   metadata?: Record<string, any>;
+  calendarInvite?: CalendarInviteData;
 }
 
 interface Conversation {
@@ -57,6 +59,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [loadingStatus, setLoadingStatus] = useState<string>('');
   const [typingMessage, setTypingMessage] = useState<string>('');
   const [showUserDataLoader, setShowUserDataLoader] = useState(false);
+  const [demoResetTimestamp, setDemoResetTimestamp] = useState<number>(0);
+  const [demoTypingText, setDemoTypingText] = useState<string | null>(null);
 
   // Suggestion mode state
   const [suggestions, setSuggestions] = useState<ProfileSuggestion[]>([]);
@@ -77,8 +81,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typewriterRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Handle demo typing completion
+  const handleDemoTypingComplete = () => {
+    setDemoTypingText(null);
+  };
+
   // Typewriter effect hook
-  const typewriterEffect = (text: string, speed: number = 8) => {
+  const typewriterEffect = (text: string, speed: number = 3) => {
     return new Promise<void>((resolve) => {
       if (text.length === 0) {
         resolve();
@@ -167,8 +176,37 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       setMessages(convertedMessages);
       setConversations([]); // No conversations in demo mode
       setCurrentConversation(null);
+
+      // Reset chat interface state to initial state
+      setSuggestionMode(false);
+      setPromptsAnimating(false);
+      setShowPromptsHeader(false);
+      setLoading(false);
+      setError(null);
+      setTypingMessage('');
+    }
+  }, [isCurrentlyInDemo, demoResetTimestamp]);
+
+  // Initialize demo reset timestamp on mount for demo users
+  useEffect(() => {
+    if (isCurrentlyInDemo && demoResetTimestamp === 0) {
+      setDemoResetTimestamp(demoChatService.getResetTimestamp());
     }
   }, [isCurrentlyInDemo]);
+
+  // Monitor demo resets to trigger refresh
+  useEffect(() => {
+    if (isCurrentlyInDemo) {
+      const interval = setInterval(() => {
+        const currentTimestamp = demoChatService.getResetTimestamp();
+        if (currentTimestamp !== demoResetTimestamp) {
+          setDemoResetTimestamp(currentTimestamp);
+        }
+      }, 100); // Check every 100ms
+
+      return () => clearInterval(interval);
+    }
+  }, [isCurrentlyInDemo, demoResetTimestamp]);
 
   // Load suggestions count when user data is available
   useEffect(() => {
@@ -566,6 +604,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             metadata: {} // Ensure metadata exists
           }));
 
+          // If there's a calendar invite, add it as a separate message
+          if (result.calendarInvite) {
+            const calendarMessage: ChatMessage = {
+              id: `calendar-invite-${Date.now()}`,
+              role: 'assistant' as const,
+              content: '', // Empty content for calendar invite only message
+              timestamp: new Date(),
+              metadata: {},
+              calendarInvite: result.calendarInvite
+            };
+            convertedMessages.push(calendarMessage);
+          }
+
           // Handle typing for the assistant's response
           const lastMessage = convertedMessages[convertedMessages.length - 1];
           if (lastMessage && lastMessage.role === 'assistant') {
@@ -575,6 +626,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
             // Use unified typing handler
             await handleTypedResponse(lastMessage, convertedMessages);
+
+            // After response is typed, trigger next question typing if available
+            if (result.nextQuestion) {
+              console.log('🎬 Demo: Starting input typing for:', result.nextQuestion);
+              setTimeout(() => {
+                setDemoTypingText(result.nextQuestion!);
+              }, 500); // 0.5 second delay after response completes
+            }
           } else {
             // No assistant message to type, just set all messages
             setMessages(convertedMessages);
@@ -729,6 +788,28 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     console.log(`Message ${messageId} feedback:`, feedback);
   };
 
+  const handleCalendarSent = (messageId: string) => {
+    // Replace the calendar invite message with a "Calendar invite sent!" message
+    setMessages(prevMessages => {
+      return prevMessages.map(msg => {
+        if (msg.id === messageId && msg.calendarInvite) {
+          // Replace with a simple confirmation message
+          return {
+            ...msg,
+            content: "Calendar invite sent!",
+            calendarInvite: undefined // Remove the calendar invite data
+          };
+        }
+        return msg;
+      });
+    });
+
+    // After a short delay, start typing the next message
+    setTimeout(() => {
+      setDemoTypingText("what's on the calendar for next weekend?");
+    }, 1000); // 1 second delay after the calendar invite is sent
+  };
+
   if (!chatService) {
     return (
       <div className={`flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900 ${className}`}>
@@ -751,7 +832,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className={`h-full flex bg-white dark:bg-gray-900 ${className}`}>
+    <div className={`h-full flex bg-white dark:bg-gray-900 w-full max-w-full overflow-x-hidden ${className}`}>
       {/* User Data Loading Overlay */}
       {showUserDataLoader && (
         <SubtleOverlay text="Loading user data..." />
@@ -773,7 +854,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       )}
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden">
         {/* Error Banner */}
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-700 p-4">
@@ -797,7 +878,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             suggestionMode
               ? 'opacity-100'
               : 'space-y-3 sm:space-y-4 chat-scrollbar opacity-100'
-          }`}
+          } ${showPromptsHeader && messages.length > 0 ? 'pt-20' : ''}`}
           style={{
             scrollbarWidth: 'thin',
             scrollbarColor: '#d1d5db #f9fafb'
@@ -980,7 +1061,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
           {/* Suggestion Mode View */}
           {suggestionMode && suggestions.length > 0 && (
-            <div className={`flex flex-col h-full max-w-5xl mx-auto px-4 py-4 ${
+            <div className={`flex flex-col h-full w-full max-w-4xl mx-auto px-2 sm:px-4 py-4 overflow-hidden ${
               suggestionExiting ? 'animate-fade-out' : 'animate-fade-in'
             }`}>
               {/* Header */}
@@ -995,14 +1076,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </div>
 
               {/* Current Suggestion Card - With Carousel Transform */}
-              <div className="flex-1 flex flex-col min-h-0 mb-1">
-                <div className={`suggestions-carousel ${isTransitioning ? 'transitioning' : ''}`}>
+              <div className="flex-1 flex flex-col min-h-0 mb-1 w-full overflow-hidden">
+                <div className={`suggestions-carousel w-full overflow-hidden ${isTransitioning ? 'transitioning' : ''}`}>
                   <div
                     key={currentSuggestionIndex}
-                    className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-[450px]"
+                    className="w-full max-w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-[450px]"
                   >
                     {/* Fixed Header */}
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+                    <div className="p-2 sm:p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           {suggestions[currentSuggestionIndex].suggestion_type === 'family_info' && <Users className="w-6 h-6 text-blue-500" />}
@@ -1029,13 +1110,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     </div>
 
                     {/* Scrollable Content */}
-                    <div className="flex-1 overflow-y-auto">
-                      <div className="p-4">
+                    <div className="flex-1 overflow-y-auto w-full max-w-full">
+                      <div className="p-2 sm:p-4">
 
                       {/* Editable Form Fields */}
                 {reviewData && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-6">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
                       {/* Left Column - Header Info */}
                       <div className="space-y-3">
                         <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Suggestion Details</h4>
@@ -1152,7 +1233,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                       type="number"
                                       value={reviewData.age || ''}
                                       onChange={(e) => setReviewData({ ...reviewData, age: e.target.value })}
-                                      className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      className="w-full max-w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                       placeholder="Enter age"
                                     />
                                   </>
@@ -1388,7 +1469,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                       <select
                                         value={reviewData.expirationDate || getDefaultExpiration(suggestions[currentSuggestionIndex].suggestion_type, reviewData)}
                                         onChange={(e) => setReviewData({ ...reviewData, expirationDate: e.target.value })}
-                                        className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full max-w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                       >
                                         <option value="never">No Expiration</option>
                                         <option value="1-month">1 Month ({new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
@@ -1409,7 +1490,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                       <select
                                         value={reviewData.expirationDate || getDefaultExpiration(suggestions[currentSuggestionIndex].suggestion_type, reviewData)}
                                         onChange={(e) => setReviewData({ ...reviewData, expirationDate: e.target.value })}
-                                        className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full max-w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                       >
                                         <option value="never">No Expiration</option>
                                         <option value="1-month">1 Month ({new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()})</option>
@@ -1434,7 +1515,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                       type="date"
                                       value={reviewData.customExpiration || ''}
                                       onChange={(e) => setReviewData({ ...reviewData, customExpiration: e.target.value })}
-                                      className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      className="w-full max-w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                   </div>
                                 )}
@@ -1593,25 +1674,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </div>
 
               {/* Navigation Controls */}
-              <div className="flex items-center justify-between w-full py-2 flex-shrink-0">
+              <div className="flex items-center justify-center w-full py-2 flex-shrink-0 gap-2 sm:gap-4 px-2">
                 <button
                   onClick={() => navigateToSuggestion('prev')}
                   disabled={currentSuggestionIndex === 0}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 font-medium border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 font-medium border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-sm flex-shrink-0"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  Previous
+                  <span className="hidden sm:inline">Previous</span>
                 </button>
 
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink">
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">
                     {currentSuggestionIndex + 1} of {suggestions.length}
                   </span>
-                  <div className="flex gap-1.5">
-                    {suggestions.map((_, index) => (
+                  <div className="flex gap-1 sm:gap-1.5 overflow-hidden">
+                    {suggestions.slice(0, 8).map((_, index) => (
                       <div
                         key={index}
-                        className={`w-2.5 h-2.5 rounded-full transition-all duration-200 ${
+                        className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-200 flex-shrink-0 ${
                           index === currentSuggestionIndex
                             ? 'bg-blue-500 scale-110 shadow-md'
                             : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
@@ -1624,9 +1705,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <button
                   onClick={() => navigateToSuggestion('next')}
                   disabled={currentSuggestionIndex === suggestions.length - 1}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 font-medium border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 font-medium border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-sm flex-shrink-0"
                 >
-                  Next
+                  <span className="hidden sm:inline">Next</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -1661,6 +1742,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 userAvatarUrl={userAvatarUrl}
                 onCopy={handleCopyMessage}
                 onFeedback={handleMessageFeedback}
+                onCalendarSent={handleCalendarSent}
               />
             );
               })}
@@ -1703,6 +1785,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   ? "Account is inactive. Go to Settings to activate your account."
                   : "Type your message..."
               }
+              demoTypingText={isCurrentlyInDemo ? demoTypingText : null}
+              onDemoTypingComplete={handleDemoTypingComplete}
             />
           </div>
         </div>

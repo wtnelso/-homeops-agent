@@ -66,7 +66,8 @@ export class OAuthCallbackHandler {
 
       // Clear pending integration after successful processing
       localStorage.removeItem('oauth_integration_pending');
-      console.log('🧽 Cleared pending integration from localStorage');
+      localStorage.removeItem('oauth_from_onboarding');
+      console.log('🧽 Cleared pending integration and context from localStorage');
 
       return {
         success: result.success,
@@ -111,9 +112,17 @@ export class OAuthCallbackHandler {
    * Get the stored return URL and clean it up
    */
   static getReturnUrl(): string {
+    const returnUrl = localStorage.getItem('oauth_return_url');
     localStorage.removeItem('oauth_return_url');
 
-    // Always redirect to integrations page after OAuth
+    // If we have a stored return URL, use it
+    if (returnUrl) {
+      console.log('🔄 Using stored return URL:', returnUrl);
+      return returnUrl;
+    }
+
+    // Default fallback to integrations page
+    console.log('🔄 No stored return URL, defaulting to integrations');
     return '/dashboard/settings/integrations';
   }
 }

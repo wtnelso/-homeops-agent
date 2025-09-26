@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeOps</title>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .mobile-app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .mobile-header {
+      background: rgba(255,255,255,0.1);
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(10px);
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    
+    .mobile-content {
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .mobile-view {
+      display: none;
+      height: 100%;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .mobile-view.active {
+      display: block;
+    }
+    
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .chat-messages-mobile {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 20px;
+    }
+    
+    .message {
+      margin-bottom: 15px;
+      padding: 12px 16px;
+      border-radius: 18px;
+      max-width: 85%;
+    }
+    
+    .message.user {
+      background: rgba(255,255,255,0.2);
+      margin-left: auto;
+      text-align: right;
+    }
+    
+    .message.assistant {
+      background: rgba(255,255,255,0.1);
+      margin-right: auto;
+    }
+    
+    .chat-input-container {
+      display: flex;
+      gap: 10px;
+      padding: 15px 0;
+    }
+    
+    #chatInput {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 25px;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-size: 16px;
+    }
+    
+    #chatInput::placeholder {
+      color: rgba(255,255,255,0.7);
+    }
+    
+    .send-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .mobile-nav {
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      backdrop-filter: blur(10px);
+    }
+    
+    .nav-btn {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .nav-btn.active {
+      color: white;
+      background: rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-app">
+    <div class="mobile-header">
+      <div class="logo">HomeOps</div>
+    </div>
+
+    <div class="mobile-content">
+      <!-- Chat View -->
+      <div id="chat-mobile" class="mobile-view active">
+        <div class="chat-container">
+          <div class="chat-messages-mobile"></div>
+          <div class="chat-input-container">
+            <input type="text" id="chatInput" placeholder="Ask HomeOps anything...">
+            <button class="send-btn" onclick="sendMessage()">
+              <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email View -->
+      <div id="email-mobile" class="mobile-view">
+        <h2>Email Intelligence</h2>
+        <p>Email management features will be here.</p>
+      </div>
+
+      <!-- Calendar View -->
+      <div id="calendar-mobile" class="mobile-view">
+        <h2>Calendar Intelligence</h2>
+        <p>Calendar features will be here.</p>
+      </div>
+
+      <!-- Services View -->
+      <div id="services-mobile" class="mobile-view">
+        <h2>Services</h2>
+        <p>Additional services will be here.</p>
+      </div>
+    </div>
+
+    <div class="mobile-nav">
+      <button class="nav-btn active" onclick="showView('chat-mobile', this)">
+        <i data-lucide="message-circle" style="width: 20px; height: 20px;"></i>
+        Chat
+      </button>
+      <button class="nav-btn" onclick="showView('email-mobile', this)">
+        <i data-lucide="mail" style="width: 20px; height: 20px;"></i>
+        Email
+      </button>
+      <button class="nav-btn" onclick="showView('calendar-mobile', this)">
+        <i data-lucide="calendar" style="width: 20px; height: 20px;"></i>
+        Calendar
+      </button>
+      <button class="nav-btn" onclick="showView('services-mobile', this)">
+        <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
+        Services
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function showView(viewId, button) {
+      console.log('🔄 showView called:', viewId);
+      
+      // Hide all views
+      document.querySelectorAll('.mobile-view').forEach(view => {
+        view.classList.remove('active');
+      });
+      
+      // Remove active from all nav buttons
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Show selected view
+      const targetView = document.getElementById(viewId);
+      if (targetView) {
+        targetView.classList.add('active');
+      }
+      
+      // Set button as active
+      if (button) {
+        button.classList.add('active');
+      }
+    }
+
+    function sendMessage() {
+      console.log('🚀 sendMessage called');
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+      
+      if (!message) return;
+      
+      addMessage('user', message);
+      input.value = '';
+      
+      // Check for commerce intelligence
+      if (message.toLowerCase().includes('gift') || 
+          message.toLowerCase().includes('buy') || 
+          message.toLowerCase().includes('shop') ||
+          message.toLowerCase().includes('birthday')) {
+        executeCommerceIntelligence(message);
+      } else {
+        sendToHomeOpsChat(message);
+      }
+    }
+
+    function addMessage(sender, content) {
+      console.log('💬 addMessage called:', sender);
+      const messagesDiv = document.querySelector('.chat-messages-mobile');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${sender}`;
+      messageDiv.innerHTML = content;
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function executeCommerceIntelligence(message) {
+      console.log('🛍️ executeCommerceIntelligence called');
+      
+      const commerceCard = `
+        <div style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 15px; padding: 20px; margin: 15px 0;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <i data-lucide="shopping-bag" style="width: 24px; height: 24px;"></i>
+            <strong style="font-size: 16px;">🎯 Commerce Intelligence</strong>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+            <div style="font-weight: 600; margin-bottom: 8px;">🎁 Finding perfect gift ideas...</div>
+            <div style="font-size: 14px; color: rgba(255,255,255,0.9);">${message}</div>
+          </div>
+          <div id="commerce-results" style="margin-top: 15px;"></div>
+        </div>
+      `;
+      
+      addMessage('assistant', commerceCard);
+      setTimeout(() => lucide.createIcons(), 100);
+      
+      // Call API
+      fetch('/api/commerce-profile/recommendations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: 'demo_user', context: message })
+      })
+      .then(response => response.json())
+      .then(data => {
+        let results = '';
+        if (data.success && data.recommendations) {
+          data.recommendations.forEach(rec => {
+            results += `
+              <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin: 10px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                  <div style="flex: 1;">
+                    <strong style="color: #ffffff;">${rec.product}</strong>
+                    <div style="color: #22c55e; font-weight: 600;">${rec.price_range}</div>
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin: 8px 0;">${rec.description}</div>
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.7);">✨ ${rec.why_perfect}</div>
+                  </div>
+                  <button onclick="window.open('https://amazon.com/s?k=${encodeURIComponent(rec.product)}', '_blank')" 
+                          style="background: #ff9500; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-left: 10px;">
+                    Quick Buy
+                  </button>
+                </div>
+              </div>
+            `;
+          });
+        }
+        document.getElementById('commerce-results').innerHTML = results;
+        setTimeout(() => lucide.createIcons(), 100);
+      })
+      .catch(error => {
+        console.error('Commerce API error:', error);
+        document.getElementById('commerce-results').innerHTML = `
+          <div style="color: #f87171; padding: 10px;">
+            Unable to get recommendations right now. Please try again.
+          </div>
+        `;
+      });
+    }
+
+    async function sendToHomeOpsChat(message) {
+      try {
+        addMessage('assistant', 'Thinking...');
+        
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: message })
+        });
+
+        const data = await response.json();
+        
+        // Remove thinking message
+        const messages = document.querySelectorAll('.message.assistant');
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage && lastMessage.textContent.includes('Thinking...')) {
+          lastMessage.remove();
+        }
+        
+        addMessage('assistant', data.response || 'Sorry, I couldn\'t process that right now.');
+        
+      } catch (error) {
+        console.error('Chat error:', error);
+        addMessage('assistant', 'Sorry, I\'m having trouble right now. Please try again.');
+      }
+    }
+
+    // Enter key support
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // Initialize icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>

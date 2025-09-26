@@ -20,6 +20,8 @@ import { ROUTES } from '../../config/routes';
 import TimezoneSelect from '../ui/TimezoneSelect';
 import { saveOnboardingToMemory, completeOnboarding } from '../../services/onboardingService';
 import { isDemoMode, DEMO_CONFIG } from '../../demo/config/demoConfig';
+import { IntegrationsDataService, IntegrationWithStatus } from '../../services/integrationsData';
+import IntegrationDetailsModal from '../ui/IntegrationDetailsModal';
 
 // Simplified onboarding data structure
 export interface SimplifiedOnboardingData {
@@ -81,6 +83,9 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
   const [newMember, setNewMember] = useState({ name: '', relationship: 'child' as const, age: '', grade: '' });
   const [newItem, setNewItem] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gmailIntegration, setGmailIntegration] = useState<IntegrationWithStatus | null>(null);
+  const [loadingIntegration, setLoadingIntegration] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { userData } = useAuth();
   const navigate = useNavigate();
 
@@ -113,6 +118,62 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
       });
     }
   }, [isCurrentlyInDemo]);
+
+  // Load Gmail integration data
+  useEffect(() => {
+    const loadGmailIntegration = async () => {
+      setLoadingIntegration(true);
+      try {
+        if (!userData?.account?.id) {
+          setGmailIntegration(null);
+          return;
+        }
+
+        // Get integrations data for the account
+        const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.account.id);
+
+        // Find Gmail integration
+        const gmail = integrations.find(integration => integration.id === 'gmail');
+        setGmailIntegration(gmail || null);
+      } catch (error) {
+        console.error('Error loading Gmail integration data:', error);
+        setGmailIntegration(null);
+      } finally {
+        setLoadingIntegration(false);
+      }
+    };
+
+    loadGmailIntegration();
+  }, [userData]);
+
+  // Check for OAuth return and refresh integration status
+  useEffect(() => {
+    const checkOAuthReturn = () => {
+      // Check if user just returned from OAuth flow
+      const wasFromOnboarding = localStorage.getItem('oauth_from_onboarding');
+      if (wasFromOnboarding) {
+        console.log('🔄 User returned from OAuth to onboarding, refreshing integration status');
+        localStorage.removeItem('oauth_from_onboarding');
+
+        // Reload integration data after a short delay to ensure server has processed
+        setTimeout(() => {
+          if (userData?.account?.id) {
+            IntegrationsDataService.getIntegrationsForAccount(userData.account.id)
+              .then(integrations => {
+                const gmail = integrations.find(integration => integration.id === 'gmail');
+                setGmailIntegration(gmail || null);
+                console.log('✅ Refreshed Gmail integration status after OAuth return');
+              })
+              .catch(error => {
+                console.error('Error refreshing Gmail integration after OAuth:', error);
+              });
+          }
+        }, 1000);
+      }
+    };
+
+    checkOAuthReturn();
+  }, []); // Run once on component mount
 
   const updateData = (updates: Partial<SimplifiedOnboardingData>) => {
     setData(prev => ({ ...prev, ...updates }));
@@ -150,6 +211,43 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
   const removeFromList = (listName: keyof SimplifiedOnboardingData, value: string) => {
     const currentList = data[listName] as string[];
     updateData({ [listName]: currentList.filter(item => item !== value) });
+  };
+
+  const handleGmailConnect = async (integrationId: string) => {
+    // Handle Gmail connection using the same logic as IntegrationsSection
+    const { OAuthCoordinator } = await import('../../config/oauth');
+    const { AccountIntegrationsService } = await import('../../services/accountIntegrationsService');
+
+    if (!userData?.account?.id || !userData?.user?.id) {
+      console.error('Missing account or user data');
+      return;
+    }
+
+    try {
+      if (OAuthCoordinator.requiresOAuth(integrationId)) {
+        // OAuth flow will handle the connection and call our callback
+        OAuthCoordinator.startFlow(integrationId);
+      } else {
+        // Handle non-OAuth connection
+        const result = await AccountIntegrationsService.installIntegration({
+          accountId: userData.account.id,
+          integrationId: integrationId,
+          installedByUserId: userData.user.id
+        });
+
+        if (result.success) {
+          console.log('Integration installed successfully');
+          // Reload integration data
+          const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.account.id);
+          const gmail = integrations.find(integration => integration.id === 'gmail');
+          setGmailIntegration(gmail || null);
+        } else {
+          console.error('Failed to install integration:', result.error);
+        }
+      }
+    } catch (error) {
+      console.error('Error handling integration connection:', error);
+    }
   };
 
   const handleComplete = async () => {
@@ -546,52 +644,133 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
 
             {/* Step 3: Connect & Chat */}
             {currentStep === 3 && (
-              <div className="space-y-6 text-center">
-                <MessageCircle className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <div className="space-y-4 text-center">
+                <MessageCircle className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   You're all set! 🎉
                 </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
+                <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
                   Connect Gmail and start chatting with your AI assistant
                 </p>
 
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 mb-4">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
                     What happens next?
                   </h3>
-                  <div className="space-y-2 text-left max-w-md mx-auto">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm">1</div>
-                      <span className="text-gray-700 dark:text-gray-300">Connect your Gmail account securely</span>
+                  <div className="space-y-1 text-left max-w-md mx-auto">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs">1</div>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Connect your Gmail account securely</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm">2</div>
-                      <span className="text-gray-700 dark:text-gray-300">Start chatting immediately with your AI assistant</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs">2</div>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Start chatting immediately with your AI assistant</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm">3</div>
-                      <span className="text-gray-700 dark:text-gray-300">AI learns and improves through conversation</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs">3</div>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">AI learns and improves through conversation</span>
                     </div>
                   </div>
                 </div>
 
-                <button
-                  onClick={handleComplete}
-                  disabled={isSubmitting}
-                  className="w-full max-w-md px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all transform hover:scale-105"
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Setting up...
+                {/* Gmail Integration Tile - Compact IntegrationCard styling */}
+                {loadingIntegration ? (
+                  <div className="max-w-xs mx-auto mb-3">
+                    <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-xl h-36"></div>
+                  </div>
+                ) : gmailIntegration ? (
+                  <div className="max-w-xs mx-auto mb-3">
+                    {/* Compact Integration Card with same structure as IntegrationCard */}
+                    <div className={`bg-white dark:bg-gray-800 rounded-xl border p-3 hover:shadow-lg transition-all duration-500 relative transform hover:scale-105 ${
+                      gmailIntegration.isConnected
+                        ? 'border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}>
+
+                      {/* Success Animation Badge */}
+                      {gmailIntegration.isConnected && (
+                        <div className="absolute top-2 right-2 animate-pulse">
+                          <div className="w-5 h-5 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center shadow-lg">
+                            <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Icon - Use Gmail logo or fallback */}
+                      <div className="flex justify-center mb-2">
+                        <div className={`${gmailIntegration.isConnected ? 'animate-pulse' : ''}`}>
+                          {gmailIntegration.image_url ? (
+                            <img
+                              src={gmailIntegration.image_url}
+                              alt="Gmail icon"
+                              className="w-10 h-10 object-contain"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                              <div className="text-gray-600 dark:text-gray-400 font-semibold text-xs text-center">
+                                Gmail
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Integration Name */}
+                      <div className="text-center mb-2">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                          {gmailIntegration.name}
+                        </h3>
+                        <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                          {gmailIntegration.isConnected ? `${gmailIntegration.name} Connected!` : `Connect ${gmailIntegration.name}`}
+                        </p>
+                      </div>
+
+                      {/* Value Proposition */}
+                      <p className="text-xs text-gray-600 dark:text-gray-400 text-center leading-relaxed mb-2 font-medium">
+                        {gmailIntegration.description}
+                      </p>
+
+                      {/* Connected Success Message */}
+                      {gmailIntegration.isConnected && (
+                        <div className="text-center mb-2">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                            Connected!
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Bottom Actions */}
+                      <div className="flex flex-col gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                        {/* Learn More Button */}
+                        <button
+                          onClick={() => setIsModalOpen(true)}
+                          className="w-full px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 rounded-md hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+                        >
+                          Learn More
+                        </button>
+
+                        {/* Connect/Disconnect Button */}
+                        <button
+                          onClick={() => handleGmailConnect(gmailIntegration.id)}
+                          className={`w-full px-2 py-1 rounded-md font-medium text-xs transition-all duration-200 transform hover:scale-105 ${
+                            gmailIntegration.isConnected
+                              ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                              : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg'
+                          }`}
+                        >
+                          {gmailIntegration.isConnected ? 'Disconnect' : 'Connect'}
+                        </button>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      Connect Gmail & Start Chatting
-                      <ArrowRight className="w-5 h-5" />
-                    </div>
-                  )}
-                </button>
+                  </div>
+                ) : (
+                  <div className="max-w-xs mx-auto mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800">
+                    <p className="text-center text-yellow-700 dark:text-yellow-300 text-xs">
+                      Gmail integration data not available.
+                    </p>
+                  </div>
+                )}
+
               </div>
             )}
 
@@ -609,7 +788,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
                 <div />
               )}
 
-              {currentStep < 3 && (
+              {currentStep < 3 ? (
                 <button
                   onClick={() => setCurrentStep(prev => prev + 1)}
                   disabled={!canProceed()}
@@ -618,11 +797,51 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
                   {currentStep === 1 ? 'Add Context' : 'Connect & Chat'}
                   <ArrowRight className="w-4 h-4" />
                 </button>
+              ) : (
+                !loadingIntegration && gmailIntegration?.isConnected && (
+                  <button
+                    onClick={handleComplete}
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Setting up...
+                      </>
+                    ) : (
+                      <>
+                        Start chatting with HomeOps
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                )
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Integration Details Modal */}
+      {gmailIntegration && (
+        <IntegrationDetailsModal
+          integration={{
+            id: gmailIntegration.id,
+            name: gmailIntegration.name,
+            description: gmailIntegration.description,
+            long_description: gmailIntegration.long_description,
+            platform_url: gmailIntegration.platform_url,
+            how_it_works: gmailIntegration.how_it_works,
+            image_url: gmailIntegration.image_url,
+            category: gmailIntegration.category,
+            required_scopes: gmailIntegration.required_scopes,
+            isConnected: gmailIntegration.isConnected
+          }}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

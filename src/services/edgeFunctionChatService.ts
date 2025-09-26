@@ -1,7 +1,7 @@
 // Render server-based chat service for LangChain-powered AI conversations
 import { UserSessionService } from './userSession';
 
-interface ChatMessage {
+export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -18,6 +18,15 @@ interface ChatMessage {
       meetingLink?: string;
       duration?: string;
     };
+  };
+  calendarInvite?: {
+    title: string;
+    date: string;
+    time: string;
+    location?: string;
+    description?: string;
+    attendees?: string[];
+    duration?: string;
   };
 }
 
@@ -202,4 +211,4 @@ export class RenderChatService {
   }
 }
 
-export { type ChatMessage, type Conversation };
+export { type Conversation };

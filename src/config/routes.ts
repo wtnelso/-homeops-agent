@@ -5,6 +5,7 @@ export const BETA_MODE = import.meta.env.VITE_BETA_MODE === 'TRUE' || false;
 // Application route configuration
 export const ROUTES = {
   HOME: '/',
+  HOMEPAGE: '/homepage',
   DASHBOARD: '/dashboard',
   DASHBOARD_HOME: '/dashboard/home',
   DASHBOARD_CALENDAR: '/dashboard/calendar',
@@ -36,6 +37,7 @@ export const ROUTES = {
 // Page titles configuration
 export const PAGE_TITLES = {
   HOME: 'HomeOps - AI-Powered Family Operations',
+  HOMEPAGE: 'HomeOps - Mental Load Operating System for High Performing Families',
   DASHBOARD: 'Dashboard - HomeOps',
   PRICING: 'Pricing - HomeOps',
   ABOUT: 'About - HomeOps', 

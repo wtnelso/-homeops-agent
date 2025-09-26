@@ -9,6 +9,7 @@ interface MessageBubbleProps {
   userAvatarUrl?: string | null;
   onCopy?: (content: string) => void;
   onFeedback?: (messageId: string, feedback: 'positive' | 'negative') => void;
+  onCalendarSent?: (messageId: string) => void;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -16,14 +17,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   isLoading = false,
   userAvatarUrl,
   onCopy,
-  onFeedback
+  onFeedback,
+  onCalendarSent
 }) => {
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
   const isSystem = message.role === 'system';
 
   // Check if this is a calendar invite message
-  const isCalendarInvite = message.metadata?.type === 'calendar_invite';
+  const isCalendarInvite = message.calendarInvite !== undefined;
 
   const handleCopy = () => {
     if (onCopy) {
@@ -54,29 +56,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
       {/* Message Content */}
       <>
-        {isCalendarInvite && message.metadata?.calendarData ? (
-          <div className="w-full max-w-[90%]">
-            <CalendarInviteMessage
-              inviteData={message.metadata.calendarData as CalendarInviteData}
-              onAccept={() => {
-                // Handle calendar invite acceptance
-                console.log('Calendar invite accepted:', message.id);
-              }}
-              onDecline={() => {
-                // Handle calendar invite decline
-                console.log('Calendar invite declined:', message.id);
-              }}
-              onCopyToCalendar={() => {
-                // Handle copying to calendar
-                console.log('Calendar invite copied:', message.id);
-              }}
-            />
-            {/* Timestamp for calendar invites */}
-            <p className="text-xs mt-2 text-gray-500 dark:text-gray-400">
-              {formatTimestamp(message.timestamp)}
-            </p>
-          </div>
-        ) : (
+        {/* Regular message content - only show if there's actual content */}
+        {message.content.trim() && (
           <div
             className={`max-w-[80%] p-3 rounded-lg relative ${
               isUser
@@ -134,6 +115,28 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             <div className="mt-1 text-xs opacity-50">
               {isAssistant && '🤖'}
             </div>
+          </div>
+        )}
+
+        {/* Calendar invite (if present) - shown below the regular message */}
+        {isCalendarInvite && message.calendarInvite && (
+          <div className={`max-w-[80%] ${message.content.trim() ? 'mt-3' : ''}`}>
+            <CalendarInviteMessage
+              inviteData={message.calendarInvite as CalendarInviteData}
+              onAccept={() => {
+                // Handle calendar invite sending
+                console.log('Calendar invite sent:', message.id);
+                onCalendarSent?.(message.id);
+              }}
+              onDecline={() => {
+                // Handle calendar invite decline
+                console.log('Calendar invite declined:', message.id);
+              }}
+              onCopyToCalendar={() => {
+                // Handle copying to calendar
+                console.log('Calendar invite copied:', message.id);
+              }}
+            />
           </div>
         )}
 

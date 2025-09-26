@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Landing from './components/Landing'
+import Homepage from './components/marketing/Homepage'
 import DashboardLayout from './components/DashboardLayout'
 import SettingsLayout from './components/SettingsLayout'
-import Pricing from './components/Pricing'
+import PricingPage from './components/marketing/PricingPage'
 import About from './components/About'
 import Contact from './components/Contact'
 import Login from './components/Login'
@@ -19,8 +19,10 @@ import AdminPage from './components/AdminPage'
 import BetaGate from './components/BetaGate'
 import StagingBanner from './components/StagingBanner'
 import { ROUTES, IS_LIVE } from './config/routes'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
+import { isDemoMode } from './demo/config/demoConfig'
+import { demoChatService } from './demo/services/demoChatService'
 
 // Dashboard page components
 import HomePage from './components/dashboard/HomePage'
@@ -44,16 +46,28 @@ import './App.css'
 
 const AppContent = () => {
   const isStaging = import.meta.env.VITE_APP_ENV === 'STAGING';
-  
+  const { userData } = useAuth();
+  const isCurrentlyInDemo = isDemoMode(userData?.user?.email);
+
+  const handleResetDemo = () => {
+    demoChatService.resetDemo();
+    window.location.reload();
+  };
+
   return (
     <>
-      {isStaging && <StagingBanner />}
+      {isStaging && (
+        <StagingBanner
+          isDemoMode={isCurrentlyInDemo}
+          onResetDemo={isCurrentlyInDemo ? handleResetDemo : undefined}
+        />
+      )}
       <div style={{ marginTop: isStaging ? '40px' : '0' }}>
         <Router>
           <RouteGuard>
             <BetaGate>
               <Routes>
-              <Route path={ROUTES.HOME} element={<Landing />} />
+              <Route path={ROUTES.HOME} element={<Homepage />} />
               {IS_LIVE && (
                 <>
                   <Route path={ROUTES.OAUTH_CALLBACK} element={<OAuthCallback />} />
@@ -90,7 +104,7 @@ const AppContent = () => {
                     </AdminRoute>
                   } />
                   
-                  <Route path={ROUTES.PRICING} element={<Pricing />} />
+                  <Route path={ROUTES.PRICING} element={<PricingPage />} />
                   <Route path={ROUTES.ABOUT} element={<About />} />
                   <Route path={ROUTES.CONTACT} element={<Contact />} />
                   <Route path={ROUTES.SIGNUP} element={<Signup />} />

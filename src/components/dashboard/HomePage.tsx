@@ -5,7 +5,7 @@ const HomePage: React.FC = () => {
 
   const initialPrompts = [
     'What\'s on my kid\'s schedule next week?',
-    'Do I have any bills due soon?',
+    'What\'s going on this week?',
     'What are the upcoming school events I need to know about?',
     'Are there any important appointments coming up?',
     'Help me organize my family calendar',

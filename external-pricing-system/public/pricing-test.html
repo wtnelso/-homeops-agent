@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Test - HomeOps.AI</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f0f23;
+            color: #e2e8f0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .test-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin: 10px 10px 10px 0;
+            transition: all 0.3s ease;
+        }
+        .test-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+        .checklist {
+            background: rgba(30, 41, 59, 0.4);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .checklist h3 {
+            color: #6366f1;
+            margin-bottom: 15px;
+        }
+        .checklist ul {
+            list-style: none;
+        }
+        .checklist li {
+            margin-bottom: 8px;
+        }
+        .checklist li::before {
+            content: "✅ ";
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎯 HomeOps.AI Pricing Page - Test Suite</h1>
+        
+        <p>This test page helps verify that all pricing page components are working correctly in your HomeOps.AI setup.</p>
+        
+        <div class="checklist">
+            <h3>📋 Test Checklist</h3>
+            <ul>
+                <li>Pricing page loads at <code>/pricing</code></li>
+                <li>Navigation includes pricing link</li>
+                <li>Monthly/Annual toggle works</li>
+                <li>All three plans display correctly</li>
+                <li>CTA buttons redirect to onboarding</li>
+                <li>FAQ accordions expand/collapse</li>
+                <li>Responsive design on mobile</li>
+                <li>Analytics tracking works</li>
+                <li>Lucide icons load properly</li>
+                <li>Purple gradient theme matches</li>
+            </ul>
+        </div>
+        
+        <h2>🔗 Quick Test Links</h2>
+        <a href="/pricing" class="test-link">🎯 Pricing Page</a>
+        <a href="/homepage" class="test-link">🏠 Homepage</a>
+        <a href="/onboarding" class="test-link">📝 Onboarding</a>
+        <a href="/" class="test-link">📊 Main Dashboard</a>
+        
+        <h2>📱 Mobile Testing</h2>
+        <p>
+            <strong>Desktop:</strong> Resize your browser window to test responsive breakpoints<br>
+            <strong>Mobile:</strong> Open on your phone or use browser dev tools (F12) to simulate mobile devices
+        </p>
+        
+        <h2>🧪 Feature Testing Guide</h2>
+        
+        <div class="checklist">
+            <h3>Billing Toggle</h3>
+            <ul>
+                <li>Click monthly/annual toggle</li>
+                <li>Verify prices update correctly</li>
+                <li>Check savings badges appear for annual</li>
+                <li>Ensure smooth animation</li>
+            </ul>
+        </div>
+        
+        <div class="checklist">
+            <h3>Plan Selection</h3>
+            <ul>
+                <li>Click "Get Started Free" on Starter plan</li>
+                <li>Click "Start Free Trial" on other plans</li>
+                <li>Verify loading state appears briefly</li>
+                <li>Check redirect to onboarding with plan params</li>
+            </ul>
+        </div>
+        
+        <div class="checklist">
+            <h3>FAQ Interaction</h3>
+            <ul>
+                <li>Click FAQ questions to expand</li>
+                <li>Verify only one opens at a time</li>
+                <li>Check smooth expand/collapse animation</li>
+                <li>Test on both desktop and mobile</li>
+            </ul>
+        </div>
+        
+        <h2>🔧 Developer Notes</h2>
+        <div class="checklist">
+            <h3>Files Created</h3>
+            <ul>
+                <li><code>/public/pricing.html</code> - Main pricing page</li>
+                <li><code>/public/pricing.css</code> - Pricing-specific styles</li>
+                <li><code>/public/pricing.js</code> - Interactive functionality</li>
+                <li><code>/pricing</code> route added to quick-server.js</li>
+                <li><code>/api/analytics</code> endpoint for tracking</li>
+            </ul>
+        </div>
+        
+        <div class="checklist">
+            <h3>Integration Points</h3>
+            <ul>
+                <li>Homepage navigation updated with pricing link</li>
+                <li>Onboarding flow supports plan parameters</li>
+                <li>Analytics tracking for conversion optimization</li>
+                <li>Mobile-first responsive design</li>
+                <li>Lucide icons for consistency</li>
+            </ul>
+        </div>
+        
+        <p style="margin-top: 30px; text-align: center; color: #94a3b8;">
+            <em>Built for HomeOps.AI - Mental Load Operating System for High Performing Families</em>
+        </p>
+    </div>
+    
+    <script>
+        // Log test page load
+        console.log('🧪 HomeOps Pricing Test Suite Loaded');
+        console.log('📊 Current URL:', window.location.href);
+        console.log('📱 Viewport:', window.innerWidth + 'x' + window.innerHeight);
+        
+        // Simple analytics test
+        if (window.fetch) {
+            fetch('/api/analytics', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    event: 'test_page_view',
+                    properties: {
+                        page: 'pricing_test',
+                        test_suite: true
+                    }
+                })
+            }).then(response => response.json())
+              .then(data => console.log('✅ Analytics test successful:', data))
+              .catch(error => console.log('❌ Analytics test failed:', error));
+        }
+    </script>
+</body>
+</html>

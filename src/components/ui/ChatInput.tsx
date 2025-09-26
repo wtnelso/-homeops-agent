@@ -9,6 +9,8 @@ interface ChatInputProps {
   placeholder?: string;
   maxLength?: number;
   suggestions?: string[];
+  demoTypingText?: string | null;
+  onDemoTypingComplete?: () => void;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
@@ -18,12 +20,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
   loading = false,
   placeholder = "Type your message...",
   maxLength = 2000,
-  suggestions = []
+  suggestions = [],
+  demoTypingText = null,
+  onDemoTypingComplete
 }) => {
   const [input, setInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isTypingDemo, setIsTypingDemo] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current;
@@ -36,6 +42,40 @@ const ChatInput: React.FC<ChatInputProps> = ({
   useEffect(() => {
     adjustTextareaHeight();
   }, [input]);
+
+  // Demo typing effect
+  useEffect(() => {
+    console.log('🎬 ChatInput: useEffect triggered with demoTypingText:', demoTypingText);
+    if (demoTypingText) {
+      console.log('🎬 ChatInput: Starting demo typing for:', demoTypingText);
+      setIsTypingDemo(true);
+      setInput(''); // Clear current input
+
+      let currentIndex = 0;
+      const typeNextChar = () => {
+        if (currentIndex < demoTypingText.length) {
+          const newText = demoTypingText.substring(0, currentIndex + 1);
+          console.log('🎬 ChatInput: Typing char:', newText);
+          setInput(newText);
+          currentIndex++;
+          typingTimeoutRef.current = setTimeout(typeNextChar, 20); // 20ms per character
+        } else {
+          console.log('🎬 ChatInput: Demo typing complete');
+          setIsTypingDemo(false);
+          onDemoTypingComplete?.();
+        }
+      };
+
+      // Start typing after a short delay
+      typingTimeoutRef.current = setTimeout(typeNextChar, 200);
+    }
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [demoTypingText, onDemoTypingComplete]);
 
   const handleSend = () => {
     if (!input.trim() || disabled || loading) return;
@@ -75,6 +115,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    // Prevent user input during demo typing
+    if (isTypingDemo) return;
+
     const value = e.target.value;
     if (value.length <= maxLength) {
       setInput(value);
@@ -148,7 +191,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
             disabled={disabled || loading}
-            placeholder={loading ? "AI is thinking..." : placeholder}
+            placeholder={loading ? "AI is thinking..." : isTypingDemo ? "" : placeholder}
             className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 pr-12 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all resize-none min-h-[48px] max-h-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
             rows={1}
           />

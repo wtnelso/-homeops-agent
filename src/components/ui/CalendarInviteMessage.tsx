@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Check, X, Copy, ExternalLink, Edit2, Save } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Check, X, Copy, ExternalLink, Edit2, Save, Send } from 'lucide-react';
 
 export interface CalendarInviteData {
   title: string;
@@ -31,7 +31,7 @@ const CalendarInviteMessage: React.FC<CalendarInviteMessageProps> = ({
   showActions = true,
   allowEditing = true
 }) => {
-  const [status, setStatus] = useState<'pending' | 'accepted' | 'declined'>('pending');
+  const [status, setStatus] = useState<'pending' | 'accepted' | 'declined' | 'sent'>('pending');
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<CalendarInviteData>(inviteData);
 
@@ -51,7 +51,7 @@ const CalendarInviteMessage: React.FC<CalendarInviteMessageProps> = ({
   };
 
   const handleAccept = () => {
-    setStatus('accepted');
+    setStatus('sent');
     onAccept?.();
   };
 
@@ -96,7 +96,9 @@ END:VCALENDAR`;
   };
 
   return (
-    <div className="w-full max-w-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden animate-unfurl">
+    <div className={`w-full max-w-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden transition-all duration-500 ${
+      status === 'sent' ? 'animate-collapse opacity-60 scale-95' : 'animate-unfurl'
+    }`}>
       {/* Header */}
       <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-3 border-b border-blue-200 dark:border-blue-700">
         <div className="flex items-center gap-2">
@@ -115,11 +117,13 @@ END:VCALENDAR`;
           )}
           {status !== 'pending' && !isEditing && (
             <span className={`ml-auto text-xs px-2 py-1 rounded-full ${
-              status === 'accepted'
+              status === 'sent'
+                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                : status === 'accepted'
                 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                 : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
             }`}>
-              {status === 'accepted' ? 'Accepted' : 'Declined'}
+              {status === 'sent' ? 'Sent!' : status === 'accepted' ? 'Accepted' : 'Declined'}
             </span>
           )}
         </div>
@@ -309,24 +313,10 @@ END:VCALENDAR`;
             <>
               <button
                 onClick={handleAccept}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
               >
-                <Check className="w-4 h-4" />
-                Accept
-              </button>
-              <button
-                onClick={handleDecline}
-                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
-              >
-                <X className="w-4 h-4" />
-                Decline
-              </button>
-              <button
-                onClick={handleCopyToCalendar}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
-                title="Copy to Calendar"
-              >
-                <Copy className="w-4 h-4" />
+                <Send className="w-4 h-4" />
+                Send
               </button>
             </>
           )}
@@ -336,11 +326,15 @@ END:VCALENDAR`;
       {/* Status message for non-pending states */}
       {status !== 'pending' && (
         <div className={`px-4 pb-4 text-center text-sm ${
-          status === 'accepted'
+          status === 'sent'
+            ? 'text-blue-600 dark:text-blue-400'
+            : status === 'accepted'
             ? 'text-green-600 dark:text-green-400'
             : 'text-gray-500 dark:text-gray-400'
         }`}>
-          {status === 'accepted'
+          {status === 'sent'
+            ? '📧 Calendar invite sent successfully!'
+            : status === 'accepted'
             ? '✓ You have accepted this invite'
             : '✗ You have declined this invite'
           }

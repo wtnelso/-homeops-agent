@@ -136,8 +136,8 @@ const DashboardLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-slate-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col font-family-inter">
-      {/* Demo Banner - only show in demo mode */}
-      {isCurrentlyInDemo && (
+      {/* Demo Banner - only show in demo mode when not in staging */}
+      {isCurrentlyInDemo && import.meta.env.VITE_APP_ENV !== 'STAGING' && (
         <DemoBanner onResetDemo={handleResetDemo} />
       )}
 
