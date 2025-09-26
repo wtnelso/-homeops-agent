@@ -66,11 +66,32 @@ export const ACCOUNT_PROFILE_SCHEMA = {
           school: { type: 'string', example: 'Lincoln Elementary' },
           activities: {
             type: 'array',
-            items: { type: 'string' },
-            example: ['soccer', 'piano lessons']
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', example: 'Soccer practice' },
+                type: { type: 'string', example: 'sport', enum: ['sport', 'creative', 'educational', 'social', 'outdoor', 'indoor', 'fitness', 'faith', 'hobby', 'other'] },
+                frequency: { type: 'string', example: 'Weekly', enum: ['Daily', 'Weekly', 'Bi-weekly', 'Monthly', 'Seasonal', 'Occasional'] },
+                days: { type: 'array', items: { type: 'string' }, example: ['Tuesday', 'Thursday'] },
+                end_date: { type: 'string', format: 'date', example: '2025-09-24' },
+                source: {
+                  type: 'object',
+                  properties: {
+                    type: { type: 'string', example: 'ai_suggestion' },
+                    source_id: { type: 'string' },
+                    timestamp: { type: 'string', format: 'date-time' },
+                    confidence: { type: 'number', example: 0.9 },
+                    updated_at: { type: 'string', format: 'date-time' },
+                    email_subject: { type: 'string' },
+                    original_text: { type: 'string' }
+                  }
+                }
+              }
+            }
           },
           schedule: {
             type: 'object',
+            description: 'Weekly schedule - can store both legacy string format and new structured format',
             properties: {
               monday: { type: 'string', example: 'Soccer practice 4-5pm' },
               tuesday: { type: 'string', example: 'Piano lesson 3:30pm' },
@@ -113,6 +134,14 @@ export const ACCOUNT_PROFILE_SCHEMA = {
           schedule: { type: 'string', example: 'Walk at 7am and 6pm daily' }
         }
       }
+    },
+    keywords: {
+      type: 'array',
+      label: 'Family Keywords',
+      description: 'Important keywords for AI agent to detect relevant information in emails and conversations',
+      editable: true,
+      items: { type: 'string' },
+      example: ['Lincoln Elementary', 'soccer practice', 'piano lessons', '@school.edu', 'Mrs. Johnson', 'Community Center', 'dance studio']
     }
   },
 
@@ -133,7 +162,8 @@ export const ACCOUNT_PROFILE_SCHEMA = {
           duration: { type: 'string', example: '1 hour' },
           location: { type: 'string', example: 'Home' },
           participants: { type: 'array', items: { type: 'string' }, example: ['John', 'Jane', 'Johnny'] },
-          notes: { type: 'string', example: 'Usually cook together' }
+          notes: { type: 'string', example: 'Usually cook together' },
+          expires_at: { type: 'string', format: 'date-time', description: 'When this recurring event expires (e.g., end of season, school year)' }
         }
       }
     },

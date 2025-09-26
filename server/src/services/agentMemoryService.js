@@ -770,7 +770,7 @@ export class AgentMemoryService {
       }
     }
 
-    console.log(`🧠 Extracted ${storedMemories.length} memories from ${role} message`);
+    console.log(`🧠 Extracted ${storedMemories.length} memories from ${sourceContext} message`);
     return storedMemories;
   }
 }

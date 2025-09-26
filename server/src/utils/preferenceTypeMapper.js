@@ -44,12 +44,22 @@ const PREFERENCE_TYPE_PATTERNS = {
     /\b(device\s+time|electronic\s+time|digital\s+time)\b/i
   ],
 
+  emergency_contact: [
+    /\b(emergency\s+contact|emergency\s+information)\b/i,
+    /\b(primary\s+contact|emergency\s+person|contact\s+in\s+case)\b/i,
+    /\b(school\s+emergenc|medical\s+emergenc|urgent\s+contact)\b/i,
+    /\b(mom|dad|parent|guardian).*contact/i,
+    /\b(contact.*mom|contact.*dad|contact.*parent)/i,
+    /\b(first\s+to\s+contact|who\s+to\s+call|notify\s+first)\b/i,
+    /\b(emergency.*update|contact.*update).*emergency/i
+  ],
+
   communication_preference: [
     /\b(text\s+me|call\s+me|email\s+me|contact\s+me)\b/i,
     /\b(prefer\s+(text|call|email)|best\s+way\s+to\s+reach)\b/i,
     /\b(communication|contact\s+preference|reach\s+out)\b/i,
     /\b(don't\s+call|no\s+calls|text\s+only|email\s+only)\b/i,
-    /\b(emergency\s+contact|urgent\s+matter)\b/i
+    /\b(how\s+to\s+contact|contact\s+method)\b/i
   ],
 
   transportation: [
@@ -107,6 +117,7 @@ function mapPreferenceType(text, context = '') {
 
   // Fallback: check for exact matches in common terms
   const exactMatches = {
+    'emergency': 'emergency_contact',
     'dietary': 'dietary_restrictions',
     'diet': 'dietary_restrictions',
     'food': 'dietary_restrictions',
@@ -141,6 +152,7 @@ function getPreferenceExpiration(preferenceType) {
     // Permanent preferences - unlikely to change
     'dietary_restrictions': 'never',
     'allergies': 'never',
+    'emergency_contact': 'never',
 
     // Semi-permanent - might change but usually last years
     'communication_preference': 'never',
@@ -196,6 +208,7 @@ function enhancedMapPreferenceType(preferenceText, preferenceValue, emailSubject
  */
 function getPreferenceTypeDisplay(type) {
   const displayMap = {
+    'emergency_contact': 'Emergency Contact',
     'dietary_restrictions': 'Dietary Restrictions',
     'bedtime': 'Bedtime Schedule',
     'screen_time': 'Screen Time Limits',

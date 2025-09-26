@@ -106,6 +106,14 @@ export class FamilyProfileSyncService {
             activityText += ` (${activity.frequency})`;
           }
 
+          // Clean activity object by removing source metadata and extracting expires_at
+          const cleanActivity = { ...activity };
+          delete cleanActivity.source;
+
+          // Extract expires_at for the agent_memory table column
+          const expiresAt = cleanActivity.expires_at;
+          delete cleanActivity.expires_at;
+
           memories.push({
             account_id: accountId,
             key: `member_${member.id}_activity_${index}`,
@@ -113,7 +121,7 @@ export class FamilyProfileSyncService {
               text: activityText,
               member_name: member.name,
               member_id: member.id,
-              activity: activity
+              activity: cleanActivity
             },
             memory_type: 'activity',
             confidence_score: 0.9,
@@ -124,7 +132,8 @@ export class FamilyProfileSyncService {
             content_hash: contentHash,
             status: 'active',
             created_at: timestamp,
-            updated_at: timestamp
+            updated_at: timestamp,
+            expires_at: expiresAt
           });
         });
       }
@@ -140,6 +149,10 @@ export class FamilyProfileSyncService {
             schoolText += ` (${school.type})`;
           }
 
+          // Clean school object by removing source metadata
+          const cleanSchool = { ...school };
+          delete cleanSchool.source;
+
           memories.push({
             account_id: accountId,
             key: `member_${member.id}_school_${index}`,
@@ -147,7 +160,7 @@ export class FamilyProfileSyncService {
               text: schoolText,
               member_name: member.name,
               member_id: member.id,
-              school: school
+              school: cleanSchool
             },
             memory_type: 'education',
             confidence_score: 0.9,
@@ -233,12 +246,12 @@ export class FamilyProfileSyncService {
                 INSERT INTO agent_memory (
                   account_id, key, value, memory_type,
                   confidence_score, priority, source_type, source_id,
-                  family_member_id, content_hash, status, created_at, updated_at
+                  family_member_id, content_hash, status, created_at, updated_at, expires_at
                 ) VALUES (
                   ${memory.account_id}, ${memory.key}, ${JSON.stringify(memory.value)},
                   ${memory.memory_type}, ${memory.confidence_score}, ${memory.priority},
                   ${memory.source_type}, ${memory.source_id}, ${memory.family_member_id},
-                  ${memory.content_hash}, ${memory.status}, ${memory.created_at}, ${memory.updated_at}
+                  ${memory.content_hash}, ${memory.status}, ${memory.created_at}, ${memory.updated_at}, ${memory.expires_at}
                 )
                 ON CONFLICT (account_id, memory_type, key)
                 DO UPDATE SET
@@ -250,7 +263,8 @@ export class FamilyProfileSyncService {
                   family_member_id = EXCLUDED.family_member_id,
                   content_hash = EXCLUDED.content_hash,
                   status = EXCLUDED.status,
-                  updated_at = EXCLUDED.updated_at
+                  updated_at = EXCLUDED.updated_at,
+                  expires_at = EXCLUDED.expires_at
               `;
             }
 

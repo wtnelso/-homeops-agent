@@ -132,4 +132,39 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+// Complete user onboarding
+router.post('/complete-onboarding', async (req, res) => {
+  try {
+    console.log('🎉 Profile API: Complete onboarding request');
+
+    const { account_id } = req.body;
+
+    if (!account_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Account ID required'
+      });
+    }
+
+    // For now, just log the completion
+    // In a full implementation, you might update a user status in Supabase
+    // or perform additional setup tasks
+    console.log(`✅ User onboarding completed for account: ${account_id}`);
+    console.log(`📅 Completed at: ${new Date().toISOString()}`);
+
+    res.json({
+      success: true,
+      message: 'Onboarding completed successfully',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Complete onboarding API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 export default router;

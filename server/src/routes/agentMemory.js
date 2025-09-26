@@ -42,6 +42,54 @@ router.get('/', async (req, res) => {
   }
 });
 
+// POST /api/agent-memory/store - Store new memory
+router.post('/store', async (req, res) => {
+  console.log('💾 POST /api/agent-memory/store called with body:', req.body);
+  try {
+    const {
+      account_id,
+      memory_type,
+      key,
+      value,
+      source_type = 'manual',
+      source_id = null,
+      confidence_score = null,
+      priority = null,
+      expires_at = null,
+      tags = []
+    } = req.body;
+
+    if (!account_id || !memory_type || !key || value === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'Account ID, memory type, key, and value are required'
+      });
+    }
+
+    const result = await AgentMemoryService.addMemory({
+      account_id,
+      memory_type,
+      key,
+      value,
+      source_type,
+      source_id,
+      confidence_score,
+      priority,
+      expires_at,
+      tags
+    });
+
+    console.log('✅ Memory stored successfully:', result);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('❌ Error in POST /agent-memory/store:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 // DELETE /api/agent-memory - Delete specific memory
 router.delete('/', async (req, res) => {
   try {

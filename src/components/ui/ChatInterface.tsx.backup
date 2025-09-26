@@ -532,36 +532,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     proceedWithMessage(messageText);
   };
 
-  // Unified typing handler for both demo and regular modes
-  const handleTypedResponse = async (aiMessage: ChatMessage, allMessages: ChatMessage[]) => {
-    // Show messages without the AI response first
-    const messagesWithoutLatestAi = allMessages.slice(0, -1);
-
-    // Create the typing AI message
-    const typingAiMessage: ChatMessage = {
-      id: aiMessage.id,
-      role: 'assistant',
-      content: aiMessage.content,
-      timestamp: aiMessage.timestamp,
-      metadata: { ...aiMessage.metadata, typing: true }
-    };
-
-    // Set messages with typing message
-    setMessages([...messagesWithoutLatestAi, typingAiMessage]);
-
-    // Start typewriter effect
-    await typewriterEffect(aiMessage.content);
-
-    // Mark typing as complete
-    const finalMessages = allMessages.map(msg =>
-      msg.id === aiMessage.id
-        ? { ...msg, metadata: { ...msg.metadata, typing: false } }
-        : msg
-    );
-    setMessages(finalMessages);
-    setTypingMessage('');
-  };
-
   const proceedWithMessage = async (messageText: string) => {
     // Check demo mode status RIGHT NOW when message is sent (not on render)
     const isDemoMode = userData?.user?.email === DEMO_EMAIL;
@@ -612,25 +582,44 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             metadata: {} // Ensure metadata exists
           }));
 
-          // Handle typing for the assistant's response
+          // Type out the assistant's response
           const lastMessage = convertedMessages[convertedMessages.length - 1];
           if (lastMessage && lastMessage.role === 'assistant') {
-            // Clear loading state before typing starts
-            setLoading(false);
-            setLoadingStatus('');
+            // Show messages without the AI response first (like regular flow)
+            const messagesWithoutLatestAi = convertedMessages.slice(0, -1);
 
-            // Use unified typing handler
-            await handleTypedResponse(lastMessage, convertedMessages);
+            // Create the typing AI message
+            const typingAiMessage: ChatMessage = {
+              id: lastMessage.id,
+              role: 'assistant',
+              content: lastMessage.content,
+              timestamp: lastMessage.timestamp,
+              metadata: { typing: true }
+            };
+
+            // Set messages with typing message in one operation
+            setMessages([...messagesWithoutLatestAi, typingAiMessage]);
+
+            // Start typewriter effect
+            await typewriterEffect(lastMessage.content);
+
+            // Mark typing as complete
+            const finalMessages = convertedMessages.map(msg =>
+              msg.id === lastMessage.id
+                ? { ...msg, metadata: { typing: false } }
+                : msg
+            );
+            setMessages(finalMessages);
+            setTypingMessage('');
           } else {
             // No assistant message to type, just set all messages
             setMessages(convertedMessages);
-            setLoading(false);
-            setLoadingStatus('');
           }
-        } else {
-          setLoading(false);
-          setLoadingStatus('');
         }
+
+        // Mark loading as complete for demo mode
+        setLoading(false);
+        setLoadingStatus('');
 
         // Early return for demo mode to prevent executing regular chat logic
         return;
@@ -672,17 +661,39 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         );
 
         if (latestAiMessage) {
-          // Clear loading state before typing starts
-          setLoading(false);
-          setLoadingStatus('');
+          // Show messages without the AI response first
+          const messagesWithoutLatestAi = result.messages.slice(0, -1);
+          setMessages(messagesWithoutLatestAi);
 
-          // Use unified typing handler
-          await handleTypedResponse(latestAiMessage, result.messages);
+          // Show typing status
+          setLoadingStatus('');
+          setLoading(false);
+
+          // Add the AI message that will be typed out
+          const typingAiMessage: ChatMessage = {
+            id: latestAiMessage.id,
+            role: 'assistant',
+            content: latestAiMessage.content, // Full content, but we'll show it progressively
+            timestamp: latestAiMessage.timestamp,
+            metadata: { ...latestAiMessage.metadata, typing: true }
+          };
+
+          setMessages(prev => [...prev, typingAiMessage]);
+
+          // Start typewriter effect
+          await typewriterEffect(latestAiMessage.content);
+
+          // Mark typing as complete - update metadata first, then clear typing message
+          const finalMessages = result.messages.map(msg =>
+            msg.id === latestAiMessage.id
+              ? { ...msg, metadata: { ...msg.metadata, typing: false } }
+              : msg
+          );
+          setMessages(finalMessages);
+          setTypingMessage('');
         } else {
           // Fallback: just set all messages
           setMessages(result.messages);
-          setLoading(false);
-          setLoadingStatus('');
         }
 
         // If new conversation was created, refresh conversations list and set current conversation
@@ -710,14 +721,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         }
         } else {
           setError(result.error || 'Failed to send message');
-          setLoading(false);
-          setLoadingStatus('');
         }
       }
     } catch (error: any) {
       setError(error.message || 'An unexpected error occurred');
       setLoading(false);
+    } finally {
       setLoadingStatus('');
+      setTypingMessage('');
     }
   };
 

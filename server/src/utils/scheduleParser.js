@@ -334,6 +334,106 @@ function normalizeGradeText(gradeText) {
   return gradeText;
 }
 
+/**
+ * Transform activity from profile format to UI form format
+ * @param {Object} activityData - Activity data from profile
+ * @returns {Object} Activity data formatted for UI form
+ */
+function transformActivityForUIForm(activityData) {
+  if (!activityData) return null;
+
+  const {
+    name = '',
+    schedule = {},
+    expires_at = null,
+    type: existingType = null
+  } = activityData;
+
+  // Map lowercase days to capitalized format for UI
+  const standardizeDays = (days = []) => {
+    const dayMapping = {
+      'monday': 'Monday',
+      'tuesday': 'Tuesday',
+      'wednesday': 'Wednesday',
+      'thursday': 'Thursday',
+      'friday': 'Friday',
+      'saturday': 'Saturday',
+      'sunday': 'Sunday'
+    };
+    return days.map(day => dayMapping[day.toLowerCase()] || day);
+  };
+
+  // Infer activity type from name if not provided
+  const inferActivityType = (activityName, existingType) => {
+    if (existingType) return existingType;
+
+    const nameLC = activityName.toLowerCase();
+    if (nameLC.includes('soccer') || nameLC.includes('football') || nameLC.includes('basketball') ||
+        nameLC.includes('tennis') || nameLC.includes('baseball') || nameLC.includes('sport')) {
+      return 'sport';
+    }
+    if (nameLC.includes('piano') || nameLC.includes('guitar') || nameLC.includes('music') ||
+        nameLC.includes('art') || nameLC.includes('draw') || nameLC.includes('paint')) {
+      return 'creative';
+    }
+    if (nameLC.includes('tutor') || nameLC.includes('class') || nameLC.includes('lesson') ||
+        nameLC.includes('school') || nameLC.includes('homework')) {
+      return 'educational';
+    }
+    if (nameLC.includes('church') || nameLC.includes('sunday school') || nameLC.includes('bible')) {
+      return 'faith';
+    }
+    if (nameLC.includes('gym') || nameLC.includes('workout') || nameLC.includes('fitness')) {
+      return 'fitness';
+    }
+    return 'other';
+  };
+
+  // Infer frequency from schedule data
+  const inferFrequency = (scheduleData) => {
+    const { days = [], raw_text = '' } = scheduleData;
+    const text = raw_text.toLowerCase();
+
+    if (text.includes('daily') || text.includes('every day')) {
+      return 'Daily';
+    }
+    if (text.includes('biweekly') || text.includes('every other week')) {
+      return 'Bi-weekly';
+    }
+    if (text.includes('monthly')) {
+      return 'Monthly';
+    }
+    if (days.length === 1) {
+      return 'Weekly';
+    }
+    if (days.length > 1) {
+      return 'Weekly'; // Multiple days per week still counts as weekly frequency
+    }
+    return 'Weekly'; // Default fallback
+  };
+
+  // Convert expires_at to end_date format (YYYY-MM-DD)
+  const formatEndDate = (expiresAt) => {
+    if (!expiresAt) return '';
+    try {
+      const date = new Date(expiresAt);
+      return date.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+    } catch (error) {
+      console.warn('Error formatting expires_at date:', error);
+      return '';
+    }
+  };
+
+  // Return standardized format for UI form
+  return {
+    name: name,
+    type: inferActivityType(name, existingType),
+    frequency: inferFrequency(schedule),
+    days: standardizeDays(schedule.days || []),
+    end_date: formatEndDate(expires_at)
+  };
+}
+
 export {
   parseActivitySchedule,
   parseActivityFromText,
@@ -341,5 +441,6 @@ export {
   convertSuggestionToActivity,
   mergeActivityIntoProfile,
   convertBirthdayToMonthDay,
-  normalizeGradeText
+  normalizeGradeText,
+  transformActivityForUIForm
 };

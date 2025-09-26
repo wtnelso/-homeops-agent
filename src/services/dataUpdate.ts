@@ -3,6 +3,7 @@ import { ROUTES } from '../config/routes';
 
 export interface AccountUpdateData {
   account_name?: string;
+  agent_name?: string;
   household_type?: string;
   timezone?: string;
   subscription_status?: string;
@@ -119,6 +120,10 @@ export class DataUpdateService {
       // Validate specific field constraints
       if (key === 'account_name' && value && typeof value !== 'string') {
         return { valid: false, error: 'Account name must be a string' };
+      }
+
+      if (key === 'agent_name' && value && typeof value !== 'string') {
+        return { valid: false, error: 'Agent name must be a string' };
       }
 
       if (key === 'household_type' && value && !['single', 'couple', 'family', 'roommates'].includes(value as string)) {

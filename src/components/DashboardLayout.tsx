@@ -8,11 +8,18 @@ import {
   Mail,
   Settings,
   Users,
-  Brain
+  Brain,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAdminStatus } from '../hooks/useAdminStatus';
 import { ROUTES } from '../config/routes';
 import UserDropdown from './ui/UserDropdown';
+import CalendarInviteDemo from './ui/CalendarInviteDemo';
+import OnboardingModal from './ui/OnboardingModal';
+import { isDemoMode } from '../demo/config/demoConfig';
+import DemoBanner from '../demo/components/DemoBanner';
+import { demoChatService } from '../demo/services/demoChatService';
 
 interface DashboardPage {
   id: string;
@@ -24,7 +31,9 @@ interface DashboardPage {
 
 const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [onboardingModalOpen, setOnboardingModalOpen] = useState<boolean>(false);
   const { userData } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdminStatus();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -92,10 +101,48 @@ const DashboardLayout: React.FC = () => {
     navigate(ROUTES.DASHBOARD_SETTINGS_ACCOUNT);
   };
 
+  const handleLaunchOnboarding = () => {
+    setOnboardingModalOpen(true);
+  };
+
+  const handleOnboardingComplete = () => {
+    setOnboardingModalOpen(false);
+    // Mark demo onboarding as completed if in demo mode
+    if (isCurrentlyInDemo) {
+      demoChatService.markOnboardingCompleted();
+    }
+  };
+
+  const handleResetDemo = () => {
+    demoChatService.resetDemo();
+    // Relaunch onboarding immediately
+    setOnboardingModalOpen(true);
+  };
+
+  // Check if current user is in demo mode
+  const isCurrentlyInDemo = isDemoMode(userData?.user?.email);
+
+  // Auto-launch onboarding for demo users on first visit
+  useEffect(() => {
+    if (isCurrentlyInDemo && demoChatService.shouldLaunchOnboarding()) {
+      // Small delay to ensure UI is ready
+      setTimeout(() => {
+        setOnboardingModalOpen(true);
+      }, 500);
+    }
+  }, [isCurrentlyInDemo]);
+
   const currentPage = getCurrentPage();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-slate-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex font-family-inter">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-slate-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col font-family-inter">
+      {/* Demo Banner - only show in demo mode */}
+      {isCurrentlyInDemo && (
+        <DemoBanner onResetDemo={handleResetDemo} />
+      )}
+
+      {/* Main Dashboard Layout */}
+      <div className="flex flex-1">
       {/* Mobile Sidebar Overlay */}
       <div className={`lg:hidden fixed inset-0 z-50 ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
@@ -187,6 +234,21 @@ const DashboardLayout: React.FC = () => {
 
             {/* Right side with user menu */}
             <div className="flex items-center space-x-4">
+              {/* Calendar Demo button - only show on Home page and for admins */}
+              {currentPage?.id === 'home' && isAdmin && !adminLoading && <CalendarInviteDemo />}
+
+              {/* Admin-only onboarding launch button */}
+              {isAdmin && !adminLoading && (
+                <button
+                  onClick={handleLaunchOnboarding}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  title="Launch Onboarding (Admin Only)"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Onboarding</span>
+                </button>
+              )}
+
               <UserDropdown onAccountSettings={handleAccountSettings} />
             </div>
           </div>
@@ -214,7 +276,13 @@ const DashboardLayout: React.FC = () => {
           </div>
         </main>
       </div>
+      </div>
 
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={onboardingModalOpen}
+        onClose={handleOnboardingComplete}
+      />
     </div>
   );
 };

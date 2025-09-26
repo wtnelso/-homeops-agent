@@ -254,18 +254,13 @@ const Login: React.FC = () => {
 
       {/* Right Panel - Branding (hidden on mobile) */}
       <div className="hidden lg:block relative lg:w-1/2">
-        <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-blue-600 via-purple-700 to-blue-800 flex items-center justify-center">
-          <div className="text-center text-white">
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                <span className="text-2xl font-bold">H</span>
-              </div>
-              <h1 className="ml-3 text-3xl font-bold">HomeOps</h1>
-            </div>
-            <p className="text-lg text-blue-100 max-w-md">
-              HomeOps — The Mental Load OS
-            </p>
-          </div>
+        <div
+          className="absolute inset-0 h-full w-full bg-cover bg-no-repeat"
+          style={{
+            backgroundImage: `url('/images/auth-background.png')`,
+            backgroundPosition: '97% center',
+          }}
+        >
         </div>
       </div>
     </div>

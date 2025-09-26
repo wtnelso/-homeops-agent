@@ -18,6 +18,7 @@ export interface UserSessionData {
   account: {
     id: string;
     account_name: string | null;
+    agent_name: string | null;
     subscription_status: 'active' | 'inactive' | 'trialing' | 'past_due' | 'canceled' | 'unpaid';
     subscription_plan: 'free' | 'pro' | 'enterprise';
     trial_ends_at: string | null;
@@ -194,6 +195,7 @@ export class UserSessionService {
         account: userData.accounts ? {
           id: userData.accounts.id,
           account_name: userData.accounts.account_name,
+          agent_name: userData.accounts.agent_name,
           subscription_status: userData.accounts.subscription_status,
           subscription_plan: userData.accounts.subscription_plan,
           trial_ends_at: userData.accounts.trial_ends_at,
@@ -208,6 +210,7 @@ export class UserSessionService {
         } : {
           id: '',
           account_name: null,
+          agent_name: null,
           subscription_status: 'inactive' as const,
           subscription_plan: 'free' as const,
           trial_ends_at: null,

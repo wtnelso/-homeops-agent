@@ -6,7 +6,19 @@ interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any> & {
+    type?: 'calendar_invite' | 'text' | string;
+    calendarData?: {
+      title: string;
+      date: string; // ISO date string
+      time: string; // e.g., "2:00 PM - 3:00 PM"
+      location?: string;
+      description?: string;
+      attendees?: string[];
+      meetingLink?: string;
+      duration?: string;
+    };
+  };
 }
 
 interface Conversation {

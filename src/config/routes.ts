@@ -20,7 +20,6 @@ export const ROUTES = {
   DASHBOARD_SETTINGS_NOTIFICATIONS: '/dashboard/settings/notifications',
   DASHBOARD_SETTINGS_INTEGRATIONS: '/dashboard/settings/integrations',
   DASHBOARD_SETTINGS_PLAN: '/dashboard/settings/plan',
-  ONBOARDING: '/onboarding',
   PRICING: '/pricing',
   ABOUT: '/about',
   CONTACT: '/contact',

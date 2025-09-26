@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Landing from './components/Landing'
 import DashboardLayout from './components/DashboardLayout'
 import SettingsLayout from './components/SettingsLayout'
-import Onboarding from './components/Onboarding'
 import Pricing from './components/Pricing'
 import About from './components/About'
 import Contact from './components/Contact'
@@ -59,13 +58,6 @@ const AppContent = () => {
                 <>
                   <Route path={ROUTES.OAUTH_CALLBACK} element={<OAuthCallback />} />
                   <Route path={ROUTES.SUPABASE_AUTH_CALLBACK} element={<AuthCallback />} />
-                  
-                  {/* Onboarding flow - protected but special handling */}
-                  <Route path={ROUTES.ONBOARDING} element={
-                    <ProtectedRoute>
-                      <Onboarding />
-                    </ProtectedRoute>
-                  } />
                   
                   {/* Dashboard routes with nested structure - all protected */}
                   <Route path="/dashboard" element={

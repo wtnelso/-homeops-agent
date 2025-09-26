@@ -10,6 +10,8 @@ import { randomUUID, createHash } from 'crypto';
 import { accountProfileService } from './accountProfileService.js';
 import { getPreferenceExpiration } from '../utils/preferenceTypeMapper.js';
 import { detectActivityType, validateActivityType } from '../config/activityTypes.js';
+import { convertSuggestionToActivity, mergeActivityIntoProfile, parseActivitySchedule, generateActivityExpiration } from '../utils/scheduleParser.js';
+import { detectFrequency } from '../config/frequencies.js';
 
 export class ProfileSuggestionsService {
   constructor() {
@@ -242,6 +244,19 @@ export class ProfileSuggestionsService {
 
       // Categorize the suggestion
       const category = this.categorizeSuggestion({ suggestionType, suggestedData }, existingMembers);
+
+      // Validate preference_type for preference_update suggestions
+      if (suggestionType === 'preference_update' && suggestedData.preference_type) {
+        const validPreferenceTypes = [
+          'emergency_contact', 'dietary_restrictions', 'allergies', 'communication_preference',
+          'bedtime', 'screen_time', 'transportation', 'homework_schedule',
+          'chore_schedule', 'extracurricular', 'other'
+        ];
+        if (!validPreferenceTypes.includes(suggestedData.preference_type)) {
+          console.log(`🔧 Invalid preference_type "${suggestedData.preference_type}" - defaulting to "other"`);
+          suggestedData.preference_type = 'other';
+        }
+      }
 
       // Detect activity type for activity-related suggestions
       const activityType = this.detectActivityType(suggestedData, sourceEmailSubject);
@@ -524,34 +539,95 @@ export class ProfileSuggestionsService {
       }
     }
 
-    // Handle activity information
-    if (activity || activity_type) {
-      const activityName = activity || activity_type;
-      const activityObj = {
-        name: activityName,
-        type: detectActivityType(activityName),
-        source: this.createSource()
-      };
+    // Handle activity information in standardized flat format
+    if (activity || activity_type || schedule || suggestedData.name) {
+      try {
+        let activityData = null;
 
-      // Add schedule information if available
-      if (schedule) {
-        const { days, frequency } = this.parseSchedule(schedule);
-        if (days.length > 0) {
-          activityObj.days = days;
+        // Check if we have new standardized flat format from email processor
+        if (suggestedData.name && (suggestedData.type || suggestedData.frequency || suggestedData.days)) {
+          // New flat format - use as-is and add source when saving to account_profiles
+          activityData = {
+            name: suggestedData.name,
+            type: suggestedData.type || detectActivityType(suggestedData.name),
+            frequency: suggestedData.frequency || 'Weekly',
+            days: suggestedData.days || [],
+            end_date: suggestedData.end_date || '',
+            source: this.createSource() // Add source when saving to profile
+          };
+
+          console.log(`🎯 Using standardized flat format for ${member_name}:`, {
+            name: activityData.name,
+            type: activityData.type,
+            frequency: activityData.frequency,
+            days: activityData.days,
+            end_date: activityData.end_date
+          });
+        } else {
+          // Legacy format - convert to flat format
+          const activityName = activity || activity_type;
+          if (activityName) {
+            // Parse schedule if available
+            const parsedSchedule = schedule ? parseActivitySchedule(schedule, activityName) : { days: [], time: null };
+
+            // Map lowercase days to capitalized format
+            const standardizeDays = (days = []) => {
+              const dayMapping = {
+                'monday': 'Monday', 'tuesday': 'Tuesday', 'wednesday': 'Wednesday',
+                'thursday': 'Thursday', 'friday': 'Friday', 'saturday': 'Saturday', 'sunday': 'Sunday'
+              };
+              return days.map(day => dayMapping[day.toLowerCase()] || day);
+            };
+
+            // Convert expires_at to end_date format
+            const formatEndDate = (expiresAt) => {
+              if (!expiresAt) return '';
+              try {
+                return new Date(expiresAt).toISOString().split('T')[0];
+              } catch (error) {
+                return '';
+              }
+            };
+
+            const expires_at = generateActivityExpiration(activityName);
+
+            activityData = {
+              name: activityName,
+              type: detectActivityType(activityName),
+              frequency: detectFrequency(`${activityName} ${schedule || ''}`),
+              days: standardizeDays(parsedSchedule.days || []),
+              end_date: formatEndDate(expires_at),
+              source: this.createSource() // Add source when saving to profile
+            };
+
+            console.log(`🎯 Converted legacy to flat format for ${member_name}:`, {
+              name: activityData.name,
+              type: activityData.type,
+              frequency: activityData.frequency,
+              days: activityData.days,
+              end_date: activityData.end_date
+            });
+          }
         }
-        if (frequency) {
-          activityObj.frequency = frequency;
+
+        if (activityData) {
+          // Check if activity already exists
+          const existingActivity = existingMember.activities.find(a =>
+            a.name && a.name.toLowerCase() === activityData.name.toLowerCase()
+          );
+
+          if (!existingActivity) {
+            existingMember.activities.push(activityData);
+            console.log(`✅ Added standardized activity: ${activityData.name} to ${member_name}`);
+          } else {
+            // Update existing activity with new data
+            Object.assign(existingActivity, activityData);
+            console.log(`✅ Updated standardized activity: ${activityData.name} for ${member_name}`);
+          }
         }
-      }
 
-      // Check if activity already exists
-      const existingActivity = existingMember.activities.find(a =>
-        a.name && a.name.toLowerCase() === activityName.toLowerCase()
-      );
-
-      if (!existingActivity) {
-        existingMember.activities.push(activityObj);
-        console.log(`🎯 Added activity: ${activityName} to ${member_name}`);
+      } catch (error) {
+        console.error('❌ Error processing activity data:', error);
       }
     }
   }

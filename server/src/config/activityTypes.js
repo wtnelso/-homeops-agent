@@ -1,85 +1,87 @@
 /**
- * Normalized Activity Types Configuration
+ * Activity Type Detection Configuration
  *
- * Single source of truth for activity type values used across:
+ * Single source of truth for activity type classification used across:
  * - Email processing and AI analysis
  * - Profile suggestions detection
  * - UI dropdowns
- * - Family member profile storage
+ * - Activity storage
  */
 
 export const ACTIVITY_TYPES = {
-  SPORT: 'Sport',
-  CREATIVE: 'Creative',
-  EDUCATIONAL: 'Educational',
-  SOCIAL: 'Social',
-  OUTDOOR: 'Outdoor',
-  INDOOR: 'Indoor',
-  FITNESS: 'Fitness',
-  FAITH: 'Faith',
-  HOBBY: 'Hobby',
-  OTHER: 'Other'
+  SPORT: 'sport',
+  CREATIVE: 'creative',
+  EDUCATIONAL: 'educational',
+  SOCIAL: 'social',
+  OUTDOOR: 'outdoor',
+  INDOOR: 'indoor',
+  FITNESS: 'fitness',
+  FAITH: 'faith',
+  HOBBY: 'hobby',
+  OTHER: 'other'
 };
 
 // Array for UI dropdowns
 export const ACTIVITY_TYPE_OPTIONS = Object.values(ACTIVITY_TYPES);
 
-// Detection patterns for email analysis
-export const ACTIVITY_DETECTION_PATTERNS = {
+// Detection patterns for activity type classification
+export const ACTIVITY_TYPE_PATTERNS = {
   [ACTIVITY_TYPES.SPORT]: [
-    /\b(soccer|football|basketball|baseball|tennis|swimming|volleyball|hockey|golf|track|field|practice|game|match|tournament|league|team|sport|athletic|coach)\b/i
-  ],
-  [ACTIVITY_TYPES.EDUCATIONAL]: [
-    /\b(school|class|homework|study|lesson|tutor|education|academic|math|science|reading|writing|test|exam|grade|teacher)\b/i
+    /\b(soccer|football|basketball|tennis|baseball|volleyball|hockey|swimming|golf|track|field|sports?|athletics|team)\b/i
   ],
   [ACTIVITY_TYPES.CREATIVE]: [
-    /\b(art|music|piano|guitar|violin|drawing|painting|dance|theater|drama|creative|craft|pottery|photography)\b/i
+    /\b(piano|guitar|violin|music|art|draw|drawing|paint|painting|dance|dancing|theater|drama|craft|creative|singing|choir|band|orchestra)\b/i
   ],
-  [ACTIVITY_TYPES.SOCIAL]: [
-    /\b(playdate|party|birthday|gathering|group|friend|social|club|meetup)\b/i
-  ],
-  [ACTIVITY_TYPES.OUTDOOR]: [
-    /\b(hiking|camping|outdoor|nature|park|playground|garden|bike|walk|trail)\b/i
-  ],
-  [ACTIVITY_TYPES.INDOOR]: [
-    /\b(indoor|inside|home|library|museum|mall|movie|cinema)\b/i
+  [ACTIVITY_TYPES.EDUCATIONAL]: [
+    /\b(tutor|tutoring|homework|study|class|lesson|learning|school|academic|math|reading|writing|science|history)\b/i
   ],
   [ACTIVITY_TYPES.FITNESS]: [
-    /\b(fitness|gym|workout|exercise|yoga|pilates|martial|karate|judo)\b/i
+    /\b(gym|workout|fitness|yoga|pilates|exercise|training|martial arts|karate|judo|taekwondo)\b/i
   ],
   [ACTIVITY_TYPES.FAITH]: [
-    /\b(church|temple|mosque|synagogue|prayer|worship|faith|religious|sunday|bible)\b/i
+    /\b(church|sunday school|bible|prayer|youth group|religious|faith|worship|ministry)\b/i
+  ],
+  [ACTIVITY_TYPES.SOCIAL]: [
+    /\b(scouts|club|playdate|birthday|party|social|group|friends|community)\b/i
+  ],
+  [ACTIVITY_TYPES.OUTDOOR]: [
+    /\b(hiking|camping|fishing|hunting|outdoor|nature|park|trail|biking|cycling)\b/i
+  ],
+  [ACTIVITY_TYPES.INDOOR]: [
+    /\b(indoor|library|museum|mall|arcade|bowling|skating)\b/i
   ],
   [ACTIVITY_TYPES.HOBBY]: [
-    /\b(hobby|collection|model|puzzle|board|game|chess|coding|programming)\b/i
+    /\b(collect|collecting|building|model|puzzle|game|gaming|chess|coding|programming)\b/i
   ]
 };
 
 /**
- * Detect activity type from text content
- * @param {string} text - Combined text to analyze
- * @returns {string} Detected activity type or 'Other'
+ * Detect activity type from activity name
+ * @param {string} activityName - Activity name to analyze
+ * @returns {string} Detected activity type or 'other' (default)
  */
-export function detectActivityType(text) {
-  if (!text) return ACTIVITY_TYPES.OTHER;
+export function detectActivityType(activityName) {
+  if (!activityName || typeof activityName !== 'string') {
+    return ACTIVITY_TYPES.OTHER;
+  }
 
-  const textLower = text.toLowerCase();
+  const nameLC = activityName.toLowerCase();
 
-  for (const [activityType, patterns] of Object.entries(ACTIVITY_DETECTION_PATTERNS)) {
+  for (const [activityType, patterns] of Object.entries(ACTIVITY_TYPE_PATTERNS)) {
     for (const pattern of patterns) {
-      if (pattern.test(textLower)) {
+      if (pattern.test(nameLC)) {
         return activityType;
       }
     }
   }
 
-  return ACTIVITY_TYPES.OTHER;
+  return ACTIVITY_TYPES.OTHER; // Default fallback
 }
 
 /**
  * Validate activity type value
  * @param {string} activityType - Activity type to validate
- * @returns {string} Valid activity type or 'Other'
+ * @returns {string} Valid activity type or 'other'
  */
 export function validateActivityType(activityType) {
   return Object.values(ACTIVITY_TYPES).includes(activityType)

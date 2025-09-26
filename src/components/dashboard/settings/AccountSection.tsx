@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, CheckCircle, Tag, Building, Globe } from 'lucide-react';
+import { Home, CheckCircle, Tag, Building, Globe, Bot } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { DataUpdateService } from '../../../services/dataUpdate';
 import { HOUSEHOLD_TYPES } from '../../../config/constants';
@@ -11,6 +11,7 @@ const AccountSection: React.FC = () => {
 
   const [formData, setFormData] = useState({
     account_name: userData?.account.account_name || '',
+    agent_name: userData?.account.agent_name || '',
     household_type: userData?.account.household_type || '',
     timezone: userData?.account.timezone || '',
     is_active: userData?.user.is_active || false,
@@ -25,6 +26,7 @@ const AccountSection: React.FC = () => {
         { is_active: formData.is_active },
         {
           account_name: formData.account_name,
+          agent_name: formData.agent_name,
           household_type: formData.household_type,
           timezone: formData.timezone
         }
@@ -102,7 +104,7 @@ const AccountSection: React.FC = () => {
             </p>
           </div>
 
-          {/* Account Name and House Type - Same row */}
+          {/* Account Name and Agent Name - Same row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
@@ -123,6 +125,26 @@ const AccountSection: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                <Bot className="w-4 h-4" />
+                <span>Agent Name</span>
+              </label>
+              <input
+                type="text"
+                value={formData.agent_name}
+                onChange={(e) => handleFieldChange('agent_name', e.target.value)}
+                placeholder="Enter a name for your AI agent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                What you'd like to call your AI assistant
+              </p>
+            </div>
+          </div>
+
+          {/* House Type and Timezone - Next row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
                 <Building className="w-4 h-4" />
                 <span>House Type</span>
               </label>
@@ -139,10 +161,7 @@ const AccountSection: React.FC = () => {
                 ))}
               </select>
             </div>
-          </div>
 
-          {/* Timezone - Left side of next row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
                 <Globe className="w-4 h-4" />
@@ -154,8 +173,8 @@ const AccountSection: React.FC = () => {
                 placeholder="Select Timezone"
               />
             </div>
-            <div></div> {/* Empty div to maintain grid structure */}
           </div>
+
 
           {/* Save Button */}
           <div className="mt-6 flex justify-end">

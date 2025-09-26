@@ -52,7 +52,9 @@ import { EmailRoutingEngine } from '../config/emailRoutingConfig.js';
 import { profileSuggestionsService } from './profileSuggestionsService.js';
 import { RedisProfileCache } from './redisProfileCache.js';
 import { enhancedMapPreferenceType } from '../utils/preferenceTypeMapper.js';
-import { parseActivitySchedule, convertBirthdayToMonthDay, normalizeGradeText } from '../utils/scheduleParser.js';
+import { parseActivitySchedule, convertBirthdayToMonthDay, normalizeGradeText, generateActivityExpiration } from '../utils/scheduleParser.js';
+import { detectFrequency } from '../config/frequencies.js';
+import { detectActivityType } from '../config/activityTypes.js';
 dotenv.config();
 
 // Polyfill fetch for OpenAI SDK compatibility with Node.js 20
@@ -1288,36 +1290,75 @@ export class EmailEmbeddingProcessor {
             }
           }
 
-          // Parse schedule data if present
+          // Create standardized suggestion data structure
           let enhancedSuggestionData = { ...familySuggestion };
 
-          if (familySuggestion.schedule) {
+          // Handle activity/schedule data in standardized format matching account_profiles schema
+          if (familySuggestion.activity || familySuggestion.activity_type || familySuggestion.schedule) {
             try {
-              const parsedSchedule = parseActivitySchedule(
-                familySuggestion.schedule,
-                familySuggestion.activity || familySuggestion.activity_type
-              );
+              const activityName = familySuggestion.activity || familySuggestion.activity_type || 'Activity';
+              const scheduleText = familySuggestion.schedule || '';
 
-              // Add parsed schedule fields to suggestion data
-              if (parsedSchedule.days && parsedSchedule.days.length > 0) {
-                enhancedSuggestionData.days = parsedSchedule.days;
-              }
-              if (parsedSchedule.time) {
-                enhancedSuggestionData.schedule_time = parsedSchedule.time;
-              }
-              if (parsedSchedule.location) {
-                enhancedSuggestionData.location = parsedSchedule.location;
+              // Parse schedule using existing utility
+              const parsedSchedule = parseActivitySchedule(scheduleText, activityName);
+
+              // Map lowercase days to capitalized format for UI compatibility
+              const standardizeDays = (days = []) => {
+                const dayMapping = {
+                  'monday': 'Monday',
+                  'tuesday': 'Tuesday',
+                  'wednesday': 'Wednesday',
+                  'thursday': 'Thursday',
+                  'friday': 'Friday',
+                  'saturday': 'Saturday',
+                  'sunday': 'Sunday'
+                };
+                return days.map(day => dayMapping[day.toLowerCase()] || day);
+              };
+
+              // Convert expires_at to end_date format (YYYY-MM-DD)
+              const formatEndDate = (expiresAt) => {
+                if (!expiresAt) return '';
+                try {
+                  const date = new Date(expiresAt);
+                  return date.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+                } catch (error) {
+                  console.warn('Error formatting expires_at date:', error);
+                  return '';
+                }
+              };
+
+              // Create standardized data structure matching account_profiles format
+              enhancedSuggestionData.name = activityName;
+              enhancedSuggestionData.type = detectActivityType(activityName);
+              enhancedSuggestionData.frequency = detectFrequency(`${activityName} ${scheduleText}`);
+              enhancedSuggestionData.days = standardizeDays(parsedSchedule.days || []);
+              enhancedSuggestionData.end_date = formatEndDate(generateActivityExpiration(activityName));
+
+              // Store additional schedule details for context (optional)
+              if (parsedSchedule.time || parsedSchedule.location || scheduleText) {
+                enhancedSuggestionData.schedule_details = {
+                  time: parsedSchedule.time || null,
+                  location: parsedSchedule.location || null,
+                  raw_text: scheduleText
+                };
               }
 
-              console.log(`📅 Parsed schedule for ${familySuggestion.member_name}:`, {
-                original: familySuggestion.schedule,
-                days: parsedSchedule.days,
-                time: parsedSchedule.time,
-                location: parsedSchedule.location
+              // Clean up old format fields to avoid confusion
+              delete enhancedSuggestionData.activity;
+              delete enhancedSuggestionData.activity_type;
+              delete enhancedSuggestionData.schedule;
+
+              console.log(`📅 Standardized activity data for ${familySuggestion.member_name}:`, {
+                name: enhancedSuggestionData.name,
+                type: enhancedSuggestionData.type,
+                frequency: enhancedSuggestionData.frequency,
+                days: enhancedSuggestionData.days,
+                end_date: enhancedSuggestionData.end_date
               });
 
             } catch (error) {
-              console.error('❌ Error parsing schedule data:', error);
+              console.error('❌ Error standardizing activity data:', error);
             }
           }
 

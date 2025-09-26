@@ -20,6 +20,11 @@
     "activities": {
       "type": "array",
       "items": { "$ref": "#/definitions/Activity" }
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Important keywords for AI agent to detect relevant information in emails and conversations"
     }
   },
   "required": ["members", "contacts", "metadata"],
