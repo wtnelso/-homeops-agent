@@ -509,10 +509,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const isFirstMessage = messages.length === 0;
     if (isFirstMessage) {
       setPromptsAnimating(true);
+      setShowPromptsHeader(true); // Set header state immediately to reserve space
 
       // Wait for animation to complete before proceeding with message
       setTimeout(() => {
-        setShowPromptsHeader(true);
         // Now proceed with the actual message sending
         proceedWithMessage(messageText);
       }, 600); // After animation completes
@@ -854,7 +854,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       )}
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden">
+      <div className="h-[80vh] flex flex-col w-full max-w-full overflow-x-hidden">
         {/* Error Banner */}
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-700 p-4">
@@ -871,14 +871,75 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
         )}
 
+        {/* Prompts Header - Always Present (Hidden on Mobile) */}
+        <div className={`flex-shrink-0 px-4 py-3 transition-all duration-500 hidden md:block ${
+          showPromptsHeader && messages.length > 0
+            ? 'bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 animate-fade-in opacity-100'
+            : 'opacity-0 pointer-events-none'
+        }`}>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-w-6xl mx-auto">
+            {/* Review Profile Suggestions */}
+            <button
+              onClick={enterSuggestionMode}
+              disabled={loading || loadingSuggestions || (userData?.user && userData.user.is_active === false)}
+              className={`p-3 text-left bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:shadow-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group ${
+                loadingSuggestions ? 'scale-95 bg-gray-50' : 'hover:scale-102'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-6 h-6 bg-gray-100 rounded-full flex-shrink-0">
+                  {loadingSuggestions ? (
+                    <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <Sparkles className="w-3 h-3 text-gray-600" />
+                  )}
+                </div>
+                <div className="text-left min-w-0 flex-1">
+                  <h3 className="font-medium text-gray-700 text-xs leading-tight group-hover:text-gray-900 flex items-center gap-1.5 truncate">
+                    <span className="truncate">
+                      {loadingSuggestions ? 'Loading...' : 'Review Suggestions'}
+                    </span>
+                    {!loadingSuggestions && (loadingCount || pendingSuggestionsCount === null || pendingSuggestionsCount === 0) && (
+                      <div className="inline-flex items-center justify-center w-4 h-4 flex-shrink-0">
+                        <Sparkles className="w-2.5 h-2.5 text-blue-500 animate-sparkle-twinkle" />
+                      </div>
+                    )}
+                    {!loadingSuggestions && !loadingCount && pendingSuggestionsCount !== null && pendingSuggestionsCount > 0 && (
+                      <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-medium text-white bg-blue-500 rounded-full flex-shrink-0">
+                        {pendingSuggestionsCount}
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-xs text-gray-500 group-hover:text-gray-700 truncate">
+                    {loadingSuggestions ? 'Gathering data' : "See what we've learned"}
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            {/* Remaining 3 prompts */}
+            {initialPrompts.slice(1, 4).map((prompt, index) => (
+              <button
+                key={index + 1}
+                onClick={() => handleSendMessage(prompt)}
+                disabled={loading || (userData?.user && userData.user.is_active === false)}
+                className="p-3 text-left bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed group hover:scale-102"
+              >
+                <p className="text-gray-700 text-xs leading-tight group-hover:text-gray-900 line-clamp-2">
+                  {prompt}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Messages Area */}
         <div
-          className={`p-3 sm:p-4 min-h-0 h-[70vh] overflow-y-auto transition-all duration-500 ease-in-out ${
+          className={`flex-1 min-h-0 overflow-y-auto transition-all duration-500 ease-in-out ${
             suggestionMode
               ? 'opacity-100'
-              : 'space-y-3 sm:space-y-4 chat-scrollbar opacity-100'
-          } ${showPromptsHeader && messages.length > 0 ? 'pt-20' : ''}`}
+              : 'p-3 sm:p-4 space-y-3 sm:space-y-4 chat-scrollbar opacity-100'
+          }`}
           style={{
             scrollbarWidth: 'thin',
             scrollbarColor: '#d1d5db #f9fafb'
@@ -937,65 +998,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
           )}
 
-          {/* Header with animated prompts */}
-          {showPromptsHeader && messages.length > 0 && (
-            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3 mb-4 animate-fade-in z-40">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-w-6xl mx-auto">
-                {/* Review Profile Suggestions */}
-                <button
-                  onClick={enterSuggestionMode}
-                  disabled={loading || loadingSuggestions || (userData?.user && userData.user.is_active === false)}
-                  className={`p-3 text-left bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:shadow-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group ${
-                    loadingSuggestions ? 'scale-95 bg-gray-50' : 'hover:scale-102'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center w-6 h-6 bg-gray-100 rounded-full flex-shrink-0">
-                      {loadingSuggestions ? (
-                        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <Sparkles className="w-3 h-3 text-gray-600" />
-                      )}
-                    </div>
-                    <div className="text-left min-w-0 flex-1">
-                      <h3 className="font-medium text-gray-700 text-xs leading-tight group-hover:text-gray-900 flex items-center gap-1.5 truncate">
-                        <span className="truncate">
-                          {loadingSuggestions ? 'Loading...' : 'Review Suggestions'}
-                        </span>
-                        {!loadingSuggestions && (loadingCount || pendingSuggestionsCount === null || pendingSuggestionsCount === 0) && (
-                          <div className="inline-flex items-center justify-center w-4 h-4 flex-shrink-0">
-                            <Sparkles className="w-2.5 h-2.5 text-blue-500 animate-sparkle-twinkle" />
-                          </div>
-                        )}
-                        {!loadingSuggestions && !loadingCount && pendingSuggestionsCount !== null && pendingSuggestionsCount > 0 && (
-                          <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-medium text-white bg-blue-500 rounded-full flex-shrink-0">
-                            {pendingSuggestionsCount}
-                          </span>
-                        )}
-                      </h3>
-                      <p className="text-xs text-gray-500 group-hover:text-gray-700 truncate">
-                        {loadingSuggestions ? 'Gathering data' : "See what we've learned"}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Remaining 3 prompts */}
-                {initialPrompts.slice(1, 4).map((prompt, index) => (
-                  <button
-                    key={index + 1}
-                    onClick={() => handleSendMessage(prompt)}
-                    disabled={loading || (userData?.user && userData.user.is_active === false)}
-                    className="p-3 text-left bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed group hover:scale-102"
-                  >
-                    <p className="text-gray-700 text-xs leading-tight group-hover:text-gray-900 line-clamp-2">
-                      {prompt}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
           {messages.length === 0 && !loading && !suggestionMode && (
             <div className="flex flex-col items-center justify-center h-full text-center px-4 max-w-2xl mx-auto">
               <h1 className="text-3xl sm:text-4xl font-medium text-gray-900 dark:text-white mb-8">

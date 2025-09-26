@@ -222,11 +222,11 @@ const DashboardLayout: React.FC = () => {
                 <Menu className="w-6 h-6" />
               </button>
               
-              {/* Page title - hidden on mobile */}
-              <div className="hidden lg:block">
+              {/* Page title - visible on all devices */}
+              <div>
                 {currentPage && (
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{currentPage.title}</h1>
+                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{currentPage.title}</h1>
                   </div>
                 )}
               </div>
@@ -256,20 +256,6 @@ const DashboardLayout: React.FC = () => {
 
         {/* Page Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-hidden">
-          {/* Mobile Page Header */}
-          <div className="lg:hidden mb-6">
-            {currentPage && (
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-slate-100 dark:bg-gradient-to-br dark:from-blue-900/40 dark:to-slate-900/40 rounded-xl flex items-center justify-center shadow-md">
-                  <currentPage.icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{currentPage.title}</h2>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Active Page Content */}
           <div className="bg-white/80 backdrop-blur-xl dark:bg-gray-800/80 rounded-2xl shadow-xl border border-blue-200/30 dark:border-gray-700/50 overflow-hidden transition-all duration-300">
             <Outlet />
