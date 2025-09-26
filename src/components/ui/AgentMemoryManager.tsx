@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, CheckCircle, Clock, AlertCircle, Sparkles, Edit, Trash2, Eye, Heart, Calendar, Users, Target, Utensils, Hospital, GraduationCap, Briefcase, Palette, MessageCircle, Brain } from 'lucide-react';
+import { Filter, CheckCircle, Clock, AlertCircle, Sparkles, Trash2, Eye, Heart, Calendar, Users, Target, Utensils, Hospital, GraduationCap, Briefcase, Palette, MessageCircle, Brain } from 'lucide-react';
 
 interface Memory {
   id: string;

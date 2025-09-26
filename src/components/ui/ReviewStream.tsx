@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Brain,
   CheckCircle,
-  XCircle,
   RefreshCw,
   User,
   Cake,
@@ -27,7 +26,6 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const [reviewData, setReviewData] = useState<any>(null);
 
@@ -170,19 +168,6 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
     );
   };
 
-  // Uniform confidence display for all card types
-  const getConfidenceDisplay = (score: number): JSX.Element => {
-    const percentage = Math.round(score * 100);
-    const confidenceData = profileSuggestionsService.getConfidenceLevel(score);
-    return (
-      <div className={`flex items-center space-x-2 rounded-full px-3 py-1 ${confidenceData.bgColor}`}>
-        <Sparkles className={`h-3 w-3 ${confidenceData.color}`} />
-        <span className={`text-xs font-medium ${confidenceData.color}`}>
-          Confidence: {percentage}%
-        </span>
-      </div>
-    );
-  };
 
 
 
@@ -461,7 +446,7 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
             : swipeDirection === 'right'
             ? 'translate-x-full opacity-0'
             : 'translate-x-0 opacity-100'
-        } ${isTransitioning ? 'scale-95' : 'scale-100'}`}>
+        }`}>
 
           <div className={`relative border rounded-2xl shadow-xl transition-all duration-300 ease-in-out border-gray-200 dark:border-gray-600 min-h-[400px] ${
             actionLoading ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-800'

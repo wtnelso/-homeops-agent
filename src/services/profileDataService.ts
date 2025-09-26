@@ -321,14 +321,6 @@ class ProfileDataService {
     }
   }
 
-  /**
-   * Get nested object value by path (e.g., 'family.members.0')
-   */
-  private getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => {
-      return current && current[key] !== undefined ? current[key] : undefined;
-    }, obj);
-  }
 
   /**
    * Set nested object value by path (e.g., 'schools.0.name')

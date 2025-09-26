@@ -12,7 +12,6 @@ const BirthdayPicker: React.FC<BirthdayPickerProps> = ({
   label,
   value,
   onChange,
-  placeholder = "Select birthday",
   source
 }) => {
   // Parse the current value to get month and day

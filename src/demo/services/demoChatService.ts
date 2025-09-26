@@ -1,4 +1,4 @@
-import { DEMO_CONFIG, findDemoResponse, getDemoFallback } from '../config/demoConfig';
+import { findDemoResponse, getDemoFallback } from '../config/demoConfig';
 
 export interface DemoMessage {
   id: string;

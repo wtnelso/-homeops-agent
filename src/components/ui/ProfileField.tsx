@@ -35,8 +35,7 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
   required = false,
   description,
   showSaveButton = false,
-  onSave,
-  fieldPath
+  onSave
 }) => {
   const [showSourceModal, setShowSourceModal] = useState(false);
   const [isEdited, setIsEdited] = useState(false);

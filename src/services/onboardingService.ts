@@ -22,7 +22,7 @@ export async function saveOnboardingToMemory(
     const memoryEntries: OnboardingMemoryEntry[] = [];
 
     // 1. Save family members as family_info entries
-    data.familyMembers.forEach((member, index) => {
+    data.familyMembers.forEach((member) => {
       const memberKey = `family_member_${member.name.toLowerCase().replace(/\s+/g, '_')}`;
 
       memoryEntries.push({
@@ -55,7 +55,7 @@ export async function saveOnboardingToMemory(
     });
 
     // 3. Save activities as preferences entries
-    data.activities.forEach((activity, index) => {
+    data.activities.forEach((activity) => {
       memoryEntries.push({
         memoryType: 'preferences',
         key: `family_activity_${activity.toLowerCase().replace(/\s+/g, '_')}`,
@@ -86,7 +86,7 @@ export async function saveOnboardingToMemory(
     });
 
     // 5. Save important places as general info
-    data.importantPlaces.forEach((place, index) => {
+    data.importantPlaces.forEach((place) => {
       memoryEntries.push({
         memoryType: 'preferences',
         key: `important_place_${place.toLowerCase().replace(/\s+/g, '_')}`,
@@ -158,7 +158,7 @@ export async function saveOnboardingToMemory(
     });
 
     // Wait for all saves to complete
-    const results = await Promise.all(savePromises);
+    await Promise.all(savePromises);
     console.log('✅ Successfully saved all onboarding memory entries');
 
     return { success: true };

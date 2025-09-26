@@ -34,13 +34,12 @@ export class RenderChatService {
   private async getUserData() {
     // Use your existing user session service instead of making additional DB calls
     const sessionData = await UserSessionService.getUserSessionData();
-    
+
     if (!sessionData?.user?.id || !sessionData?.account?.id) {
       throw new Error('User session not found');
     }
 
     return {
-      userId: sessionData.user.id,
       accountId: sessionData.account.id
     };
   }
@@ -52,7 +51,7 @@ export class RenderChatService {
     error?: string;
   }> {
     try {
-      const { userId, accountId } = await this.getUserData();
+      const { accountId } = await this.getUserData();
 
       // Use Express server for LangChain-powered chat with tools
       const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
@@ -104,7 +103,7 @@ export class RenderChatService {
     error?: string;
   }> {
     try {
-      const { userId, accountId } = await this.getUserData();
+      const { accountId } = await this.getUserData();
 
       const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
       const response = await fetch(`${serverUrl}/api/conversations`, {

@@ -6,8 +6,7 @@ import ConversationList from './ConversationList';
 import { RenderChatService } from '../../services/edgeFunctionChatService';
 import { useAuth } from '../../contexts/AuthContext';
 import { profileSuggestionsService, ProfileSuggestion } from '../../services/profileSuggestionsService';
-import { demoChatService, DemoMessage } from '../../demo/services/demoChatService';
-import { isDemoMode } from '../../demo/config/demoConfig';
+import { demoChatService } from '../../demo/services/demoChatService';
 import { SubtleOverlay } from './Loader';
 
 // Import types from service
@@ -391,51 +390,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  // Helper function to render suggestion content
-  const renderSuggestionContent = (suggestion: ProfileSuggestion) => {
-    const data = suggestion.suggested_data;
-
-    if (suggestion.suggestion_type === 'family_info') {
-      return (
-        <div className="space-y-2">
-          {data.name && <p><span className="font-medium">Name:</span> {data.name}</p>}
-          {data.relationship && <p><span className="font-medium">Relationship:</span> {data.relationship}</p>}
-          {data.age && <p><span className="font-medium">Age:</span> {data.age}</p>}
-          {data.school && <p><span className="font-medium">School:</span> {data.school}</p>}
-          {data.details && <p><span className="font-bold">Details:</span> {data.details}</p>}
-        </div>
-      );
-    }
-
-    if (suggestion.suggestion_type === 'contact_add') {
-      return (
-        <div className="space-y-2">
-          {data.name && <p><span className="font-medium">Name:</span> {data.name}</p>}
-          {data.email && <p><span className="font-medium">Email:</span> {data.email}</p>}
-          {data.phone && <p><span className="font-medium">Phone:</span> {data.phone}</p>}
-          {data.organization && <p><span className="font-medium">Organization:</span> {data.organization}</p>}
-          {data.notes && <p><span className="font-medium">Notes:</span> {data.notes}</p>}
-        </div>
-      );
-    }
-
-    if (suggestion.suggestion_type === 'preference_update') {
-      return (
-        <div className="space-y-2">
-          {data.preference_type && <p><span className="font-bold">Type:</span> {data.preference_type}</p>}
-          {data.value && <p><span className="font-bold">Value:</span> {data.value}</p>}
-          {data.description && <p><span className="font-medium">Description:</span> {data.description}</p>}
-        </div>
-      );
-    }
-
-    // Fallback for unknown types
-    return (
-      <pre className="text-sm bg-gray-100 dark:bg-gray-700 p-3 rounded overflow-auto">
-        {JSON.stringify(data, null, 2)}
-      </pre>
-    );
-  };
 
   const loadConversations = async () => {
     if (!chatService) return;
