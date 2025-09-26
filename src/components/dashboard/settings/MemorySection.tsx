@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Brain, BarChart3, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
+import { Brain, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import AgentMemoryManager from '../../ui/AgentMemoryManager';
 

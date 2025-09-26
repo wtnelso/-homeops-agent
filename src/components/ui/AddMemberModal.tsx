@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit } from 'lucide-react';
 import Modal from './Modal';
-import ProfileField from './ProfileField';
 
 interface AddMemberModalProps {
   isOpen: boolean;

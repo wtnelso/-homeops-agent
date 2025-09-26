@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit } from 'lucide-react';
-import { SCHOOL_TYPE_OPTIONS, SCHOOL_TYPES } from '../../config/schoolTypes';
+import { SCHOOL_TYPE_OPTIONS } from '../../config/schoolTypes';
 import Modal from './Modal';
 
 interface AddSchoolModalProps {

@@ -16,8 +16,7 @@ import {
   BarChart3,
   Settings,
   Eye,
-  Download,
-  Info
+  Download
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 

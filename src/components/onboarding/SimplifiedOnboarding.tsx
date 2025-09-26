@@ -4,7 +4,6 @@ import {
   ArrowRight,
   ArrowLeft,
   User,
-  Users,
   Heart,
   Mail,
   MessageCircle,

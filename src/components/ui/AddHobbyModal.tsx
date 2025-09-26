@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit } from 'lucide-react';
-import { FREQUENCY_OPTIONS, FREQUENCIES } from '../../config/frequencies';
+import { FREQUENCY_OPTIONS } from '../../config/frequencies';
 import Modal from './Modal';
 
 interface AddHobbyModalProps {
