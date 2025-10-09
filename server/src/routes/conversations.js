@@ -7,11 +7,12 @@
 
 import express from 'express';
 import { neon } from '@neondatabase/serverless';
+import { validateJWT } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // List conversations endpoint
-router.post('/', async (req, res) => {
+router.post('/', validateJWT, async (req, res) => {
   try {
     console.log('=== CONVERSATIONS LIST REQUEST ===');
     console.log('Body:', req.body);
@@ -25,7 +26,8 @@ router.post('/', async (req, res) => {
     }
 
     const sql = neon(neonUrl);
-    const { action, accountId, limit = 20 } = req.body;
+    const { action, limit = 20 } = req.body;
+    const userId = req.user.id; // Get user ID from JWT token
 
     if (action !== 'list') {
       return res.status(400).json({
@@ -34,10 +36,10 @@ router.post('/', async (req, res) => {
       });
     }
 
-    if (!accountId) {
+    if (!userId) {
       return res.status(400).json({
         success: false,
-        error: 'Missing accountId parameter'
+        error: 'User authentication failed'
       });
     }
 
@@ -51,7 +53,7 @@ router.post('/', async (req, res) => {
         (SELECT COUNT(*) FROM messages WHERE conversation_id = conversations.id) as message_count,
         (SELECT content FROM messages WHERE conversation_id = conversations.id ORDER BY created_at DESC LIMIT 1) as last_message
       FROM conversations
-      WHERE account_id = ${accountId}
+      WHERE user_id = ${userId}
       ORDER BY updated_at DESC
       LIMIT ${limit}
     `;
@@ -82,7 +84,7 @@ router.post('/', async (req, res) => {
 });
 
 // Delete conversation endpoint
-router.delete('/', async (req, res) => {
+router.delete('/', validateJWT, async (req, res) => {
   try {
     console.log('=== CONVERSATION DELETE REQUEST ===');
     console.log('Body:', req.body);
@@ -134,7 +136,7 @@ router.delete('/', async (req, res) => {
 });
 
 // Rename conversation endpoint
-router.put('/', async (req, res) => {
+router.put('/', validateJWT, async (req, res) => {
   try {
     console.log('=== CONVERSATION RENAME REQUEST ===');
     console.log('Body:', req.body);

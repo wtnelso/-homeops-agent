@@ -181,6 +181,406 @@ export class FamilyProfileSyncService {
   }
 
   /**
+   * Categorize contact type for better agent reasoning
+   * @param {string} contactType - Contact type from database
+   * @returns {string} Category for agent memory
+   */
+  categorizeContact(contactType) {
+    if (!contactType) return 'general';
+
+    const type = contactType.toLowerCase();
+
+    // Medical contacts
+    if (type.includes('doctor') || type.includes('pediatrician') || type.includes('dentist') ||
+        type.includes('therapist') || type.includes('nurse') || type.includes('medical')) {
+      return 'medical';
+    }
+
+    // Education contacts
+    if (type.includes('teacher') || type.includes('principal') || type.includes('school') ||
+        type.includes('tutor') || type.includes('counselor') || type.includes('coach')) {
+      return 'education';
+    }
+
+    // Emergency contacts
+    if (type.includes('emergency') || type.includes('babysitter') || type.includes('nanny')) {
+      return 'emergency';
+    }
+
+    // Service providers
+    if (type.includes('plumber') || type.includes('electrician') || type.includes('mechanic') ||
+        type.includes('contractor') || type.includes('repair') || type.includes('maintenance')) {
+      return 'services';
+    }
+
+    return 'general';
+  }
+
+  /**
+   * Generate content hash for Supabase family_contacts data
+   * @param {Object} contactData - Family contact data from Supabase
+   * @returns {string} SHA-256 hash
+   */
+  generateContactHash(contactData) {
+    const hashString = JSON.stringify({
+      id: contactData.id,
+      family_id: contactData.family_id,
+      name: contactData.name,
+      contact_type: contactData.contact_type,
+      phone: contactData.phone,
+      email: contactData.email,
+      notes: contactData.notes
+    }, Object.keys(contactData).sort());
+
+    return createHash('sha256').update(hashString).digest('hex');
+  }
+
+  /**
+   * Generate content hash for Supabase family_members data
+   * @param {Object} memberData - Family member data from Supabase
+   * @returns {string} SHA-256 hash
+   */
+  generateMemberHashFromSupabase(memberData) {
+    const hashString = JSON.stringify({
+      id: memberData.id,
+      family_id: memberData.family_id,
+      name: memberData.name,
+      family_relationship: memberData.family_relationship,
+      age: memberData.age,
+      birthday_month: memberData.birthday_month,
+      birthday_day: memberData.birthday_day
+    }, Object.keys(memberData).sort());
+
+    return createHash('sha256').update(hashString).digest('hex');
+  }
+
+  /**
+   * Generate content hash for Supabase family_activities data
+   * @param {Object} activityData - Family activity data from Supabase
+   * @returns {string} SHA-256 hash
+   */
+  generateActivityHash(activityData) {
+    const hashString = JSON.stringify({
+      id: activityData.id,
+      family_id: activityData.family_id,
+      family_member_id: activityData.family_member_id,
+      activity_name: activityData.activity_name,
+      activity_type: activityData.activity_type,
+      schedule: activityData.schedule,
+      start_date: activityData.start_date,
+      end_date: activityData.end_date
+    }, Object.keys(activityData).sort());
+
+    return createHash('sha256').update(hashString).digest('hex');
+  }
+
+  /**
+   * Generate content hash for Supabase family_schools data
+   * @param {Object} schoolData - Family school data from Supabase
+   * @returns {string} SHA-256 hash
+   */
+  generateSchoolHash(schoolData) {
+    const hashString = JSON.stringify({
+      id: schoolData.id,
+      family_id: schoolData.family_id,
+      family_member_id: schoolData.family_member_id,
+      school_name: schoolData.school_name,
+      school_type: schoolData.school_type,
+      grade_level: schoolData.grade_level,
+      start_date: schoolData.start_date,
+      end_date: schoolData.end_date
+    }, Object.keys(schoolData).sort());
+
+    return createHash('sha256').update(hashString).digest('hex');
+  }
+
+  /**
+   * Sync individual family contact to agent memory
+   * @param {string} userId - User ID
+   * @param {string} familyId - Family ID
+   * @param {Object} contactData - Contact data from Supabase
+   * @returns {Promise<Object>} Sync result
+   */
+  async syncContactToAgentMemory(userId, familyId, contactData) {
+    try {
+      const newHash = this.generateContactHash(contactData);
+
+      // Check existing memory
+      const existingMemories = await this.sql`
+        SELECT content_hash FROM agent_memory
+        WHERE user_id = ${userId}
+          AND family_id = ${familyId}
+          AND source_id = ${contactData.id}
+          AND source_type = 'supabase_contact_sync'
+          AND memory_type = 'contacts'
+      `;
+
+      let needsUpdate = true;
+      if (existingMemories.length > 0) {
+        const existingHash = existingMemories[0].content_hash;
+        if (existingHash === newHash) {
+          needsUpdate = false;
+        }
+      }
+
+      if (!needsUpdate) {
+        return { success: true, message: 'No changes detected', updated: false };
+      }
+
+      // Generate memory key using contact ID to ensure updates work correctly
+      const memoryKey = `family_contact_${contactData.id}`;
+
+      // Prepare simplified agent memory data for V1
+      const memoryValue = {
+        name: contactData.name,
+        role: contactData.contact_type,
+        phone: contactData.phone,
+        email: contactData.email,
+        notes: contactData.notes,
+        context_type: "contact_info",
+        category: this.categorizeContact(contactData.contact_type)
+      };
+
+      // Use AgentMemoryService to store
+      const AgentMemoryService = (await import('./agentMemoryService.js')).AgentMemoryService;
+      const result = await AgentMemoryService.addMemory({
+        user_id: userId,
+        key: memoryKey,
+        value: memoryValue,
+        memory_type: 'contacts',
+        confidence_score: 0.9,
+        priority: 3,
+        source_type: 'supabase_contact_sync',
+        source_id: contactData.id,
+        familyId: familyId,
+        contentHash: newHash
+      });
+
+      return { success: true, message: 'Contact synced to agent memory', updated: true, result };
+
+    } catch (error) {
+      console.error('❌ Error syncing contact to agent memory:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Sync individual family member to agent memory
+   * @param {string} userId - User ID
+   * @param {string} familyId - Family ID
+   * @param {Object} memberData - Member data from Supabase
+   * @returns {Promise<Object>} Sync result
+   */
+  async syncMemberToAgentMemory(userId, familyId, memberData) {
+    try {
+      const newHash = this.generateMemberHashFromSupabase(memberData);
+
+      // Check existing memory
+      const existingMemories = await this.sql`
+        SELECT content_hash FROM agent_memory
+        WHERE user_id = ${userId}
+          AND family_id = ${familyId}
+          AND source_id = ${memberData.id}
+          AND source_type = 'supabase_member_sync'
+          AND memory_type = 'family_info'
+      `;
+
+      let needsUpdate = true;
+      if (existingMemories.length > 0) {
+        const existingHash = existingMemories[0].content_hash;
+        if (existingHash === newHash) {
+          needsUpdate = false;
+        }
+      }
+
+      if (!needsUpdate) {
+        return { success: true, message: 'No changes detected', updated: false };
+      }
+
+      // Generate memory key using member ID to ensure updates work correctly
+      const memoryKey = `family_member_${memberData.id}`;
+
+      // Prepare standardized agent memory data for V1
+      const memoryValue = {
+        name: memberData.name,
+        relationship: memberData.family_relationship,
+        age: memberData.age,
+        birthday_month: memberData.birthday_month,
+        birthday_day: memberData.birthday_day,
+        context_type: "family_info",
+        category: memberData.family_relationship?.toLowerCase() || 'general'
+      };
+
+      // Use AgentMemoryService to store
+      const AgentMemoryService = (await import('./agentMemoryService.js')).AgentMemoryService;
+      const result = await AgentMemoryService.addMemory({
+        user_id: userId,
+        key: memoryKey,
+        value: memoryValue,
+        memory_type: 'family_info',
+        confidence_score: 0.9,
+        priority: 3,
+        source_type: 'supabase_member_sync',
+        source_id: memberData.id,
+        familyId: familyId,
+        contentHash: newHash
+      });
+
+      return { success: true, message: 'Family member synced to agent memory', updated: true, result };
+
+    } catch (error) {
+      console.error('❌ Error syncing family member to agent memory:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Sync individual family activity to agent memory
+   * @param {string} userId - User ID
+   * @param {string} familyId - Family ID
+   * @param {Object} activityData - Activity data from Supabase
+   * @returns {Promise<Object>} Sync result
+   */
+  async syncActivityToAgentMemory(userId, familyId, activityData, familyMemberName = null) {
+    try {
+      const newHash = this.generateActivityHash(activityData);
+
+      // Check existing memory
+      const existingMemories = await this.sql`
+        SELECT content_hash FROM agent_memory
+        WHERE user_id = ${userId}
+          AND family_id = ${familyId}
+          AND source_id = ${activityData.id}
+          AND source_type = 'supabase_activity_sync'
+          AND memory_type = 'family_info'
+      `;
+
+      let needsUpdate = true;
+      if (existingMemories.length > 0) {
+        const existingHash = existingMemories[0].content_hash;
+        if (existingHash === newHash) {
+          needsUpdate = false;
+        }
+      }
+
+      if (!needsUpdate) {
+        return { success: true, message: 'No changes detected', updated: false };
+      }
+
+      // Generate memory key using activity ID to ensure updates work correctly
+      const memoryKey = `family_activity_${activityData.id}`;
+
+      // Prepare standardized agent memory data for V1
+      const memoryValue = {
+        name: activityData.activity_name,
+        type: activityData.activity_type,
+        frequency: activityData.frequency,
+        days: activityData.days,
+        end_date: activityData.end_date,
+        context_type: "activity_info",
+        category: activityData.activity_type?.toLowerCase() || 'general',
+        ...(familyMemberName && { member_name: familyMemberName })
+      };
+
+      // Use AgentMemoryService to store
+      const AgentMemoryService = (await import('./agentMemoryService.js')).AgentMemoryService;
+      const result = await AgentMemoryService.addMemory({
+        user_id: userId,
+        key: memoryKey,
+        value: memoryValue,
+        memory_type: 'family_info',
+        confidence_score: 0.9,
+        priority: 3,
+        source_type: 'supabase_activity_sync',
+        source_id: activityData.id,
+        expires_at: activityData.end_date ? new Date(activityData.end_date).toISOString() : null,
+        familyId: familyId,
+        familyMemberId: activityData.family_member_id,
+        contentHash: newHash
+      });
+
+      return { success: true, message: 'Family activity synced to agent memory', updated: true, result };
+
+    } catch (error) {
+      console.error('❌ Error syncing family activity to agent memory:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Sync individual family school to agent memory
+   * @param {string} userId - User ID
+   * @param {string} familyId - Family ID
+   * @param {Object} schoolData - School data from Supabase
+   * @returns {Promise<Object>} Sync result
+   */
+  async syncSchoolToAgentMemory(userId, familyId, schoolData, familyMemberName = null) {
+    try {
+      const newHash = this.generateSchoolHash(schoolData);
+
+      // Check existing memory
+      const existingMemories = await this.sql`
+        SELECT content_hash FROM agent_memory
+        WHERE user_id = ${userId}
+          AND family_id = ${familyId}
+          AND source_id = ${schoolData.id}
+          AND source_type = 'supabase_school_sync'
+          AND memory_type = 'family_info'
+      `;
+
+      let needsUpdate = true;
+      if (existingMemories.length > 0) {
+        const existingHash = existingMemories[0].content_hash;
+        if (existingHash === newHash) {
+          needsUpdate = false;
+        }
+      }
+
+      if (!needsUpdate) {
+        return { success: true, message: 'No changes detected', updated: false };
+      }
+
+      // Generate memory key using school ID to ensure updates work correctly
+      const memoryKey = `family_school_${schoolData.id}`;
+
+      // Prepare standardized agent memory data for V1
+      const memoryValue = {
+        name: schoolData.school_name,
+        type: schoolData.school_type,
+        grade: schoolData.grade_level,
+        email_domain: schoolData.email_domain,
+        end_date: schoolData.end_date,
+        context_type: "education_info",
+        category: schoolData.school_type?.toLowerCase() || 'general',
+        ...(familyMemberName && { member_name: familyMemberName })
+      };
+
+      // Use AgentMemoryService to store
+      const AgentMemoryService = (await import('./agentMemoryService.js')).AgentMemoryService;
+      const result = await AgentMemoryService.addMemory({
+        user_id: userId,
+        key: memoryKey,
+        value: memoryValue,
+        memory_type: 'family_info',
+        confidence_score: 0.9,
+        priority: 3,
+        source_type: 'supabase_school_sync',
+        source_id: schoolData.id,
+        expires_at: schoolData.end_date ? new Date(schoolData.end_date).toISOString() : null,
+        familyId: familyId,
+        familyMemberId: schoolData.family_member_id,
+        contentHash: newHash
+      });
+
+      return { success: true, message: 'Family school synced to agent memory', updated: true, result };
+
+    } catch (error) {
+      console.error('❌ Error syncing family school to agent memory:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Sync family member data to agent memory
    * @param {string} accountId - Account ID
    * @param {Array} familyMembers - Array of family member data
@@ -332,6 +732,41 @@ export class FamilyProfileSyncService {
         success: false,
         error: error.message
       };
+    }
+  }
+
+  /**
+   * Delete family data from agent memory by key
+   * @param {string} dataType - Type of data (activity, school, member, contact)
+   * @param {string} dataId - ID of the data to delete
+   * @returns {Promise<Object>} Deletion result
+   */
+  async deleteFromAgentMemory(dataType, dataId) {
+    try {
+      const memoryKey = `family_${dataType}_${dataId}`;
+      console.log('🗑️ Deleting family data from agent memory:', { dataType, dataId, memoryKey });
+
+      let result;
+      if (dataType === 'member') {
+        // For family members, also delete any records associated with this family member
+        result = await this.sql`
+          DELETE FROM agent_memory
+          WHERE key = ${memoryKey} OR family_member_id = ${dataId}
+        `;
+      } else {
+        // For activities, schools, contacts - just delete by key
+        result = await this.sql`
+          DELETE FROM agent_memory
+          WHERE key = ${memoryKey}
+        `;
+      }
+
+      console.log(`✅ Family ${dataType} deleted from agent memory:`, result.count);
+      return { success: true, deletedCount: result.count };
+
+    } catch (error) {
+      console.error(`❌ Error deleting family ${dataType} from agent memory:`, error);
+      return { success: false, error: error.message };
     }
   }
 }

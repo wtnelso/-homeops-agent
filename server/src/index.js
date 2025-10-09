@@ -11,6 +11,7 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import embeddingRoutes from './routes/embeddings.js';
 import healthRoutes from './routes/health.js';
 import chatRoutes from './routes/chat.js';
@@ -21,6 +22,10 @@ import semanticSearchRoutes from './routes/semanticSearch.js';
 import profileRoutes from './routes/profile.js';
 import profileSuggestionsRoutes from './routes/profileSuggestions.js';
 import oauthRoutes from './routes/oauth.js';
+import passwordResetSessionRoutes from './routes/passwordResetSession.js';
+import userProviderRoutes from './routes/userProvider.js';
+import familySyncRoutes from './routes/familySync.js';
+import cacheManagementRoutes from './routes/cacheManagement.js';
 import { SERVER_CONFIG, validateServerConfig } from './config/serverConfig.js';
 import { MemoryCleanupService } from './services/memoryCleanupService.js';
 import { initializeServer } from './serverInit.js';
@@ -44,6 +49,7 @@ app.use(cors({
 
 app.use(express.json({ limit: SERVER_CONFIG.REQUEST_LIMITS.JSON_LIMIT }));
 app.use(express.urlencoded({ extended: SERVER_CONFIG.REQUEST_LIMITS.URL_ENCODED_EXTENDED }));
+app.use(cookieParser());
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -60,6 +66,10 @@ app.use('/api/semantic-search', semanticSearchRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/profile-suggestions', profileSuggestionsRoutes);
 app.use('/api/oauth', oauthRoutes);
+app.use('/api/password-reset-session', passwordResetSessionRoutes);
+app.use('/api/user', userProviderRoutes);
+app.use('/api/family-sync', familySyncRoutes);
+app.use('/api/cache', cacheManagementRoutes);
 app.use('/health', healthRoutes);
 
 // Root endpoint
@@ -78,7 +88,9 @@ app.get('/', (req, res) => {
       semanticSearch: '/api/semantic-search',
       profile: '/api/profile',
       profileSuggestions: '/api/profile-suggestions',
-      oauth: '/api/oauth'
+      oauth: '/api/oauth',
+      passwordResetSession: '/api/password-reset-session',
+      familySync: '/api/family-sync'
     }
   });
 });

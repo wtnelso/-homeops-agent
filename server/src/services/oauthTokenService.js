@@ -18,17 +18,36 @@ export class OAuthTokenService {
    * @param {string} integrationId - Integration type (e.g., 'gmail')
    * @returns {Promise<{success: boolean, accessToken?: string, error?: string}>}
    */
-  async getValidAccessToken(accountId, integrationId) {
+  async getValidAccessToken(userId, integrationId) {
     try {
+      console.log(`🔍 TOKEN SERVICE: Looking up integration for userId=${userId}, integrationId=${integrationId}`);
+
       // Get integration credentials
       const { data: integration, error: integrationError } = await this.supabase
-        .from('account_integrations')
+        .from('user_integrations')
         .select('access_token, refresh_token, token_expires_at, status')
-        .eq('account_id', accountId)
+        .eq('user_id', userId)
         .eq('integration_id', integrationId)
         .single();
 
+      console.log(`🔍 TOKEN SERVICE: Database query result:`, {
+        integration: integration ? {
+          status: integration.status,
+          hasAccessToken: !!integration.access_token,
+          hasRefreshToken: !!integration.refresh_token,
+          tokenExpiresAt: integration.token_expires_at
+        } : null,
+        error: integrationError
+      });
+
       if (integrationError || !integration) {
+        console.log(`❌ Integration lookup failed:`, {
+          userId,
+          integrationId,
+          error: integrationError,
+          integration: integration,
+          table: 'user_integrations'
+        });
         return {
           success: false,
           error: `${integrationId} integration not found or not connected`
@@ -36,9 +55,18 @@ export class OAuthTokenService {
       }
 
       if (integration.status !== 'connected') {
+        console.log(`⚠️ TOKEN SERVICE: Integration status is '${integration.status}', attempting to reset to 'connected' and refresh token`);
+
+        // If we have refresh token, try to refresh instead of failing immediately
+        if (integration.refresh_token) {
+          console.log(`🔄 TOKEN SERVICE: Attempting token refresh for ${integrationId} with status '${integration.status}'`);
+          const refreshResult = await this.refreshAccessToken(userId, integrationId, integration.refresh_token);
+          return refreshResult;
+        }
+
         return {
           success: false,
-          error: `${integrationId} integration is not connected`
+          error: `${integrationId} integration status is '${integration.status}', not connected`
         };
       }
 
@@ -52,14 +80,16 @@ export class OAuthTokenService {
           // Token is still valid
           return {
             success: true,
-            accessToken: integration.access_token
+            token: {
+              access_token: integration.access_token
+            }
           };
         }
       }
 
       // Token is expired or about to expire, refresh it
       const refreshResult = await this.refreshAccessToken(
-        accountId,
+        userId,
         integrationId,
         integration.refresh_token
       );
@@ -82,7 +112,7 @@ export class OAuthTokenService {
    * @param {string} refreshToken - Refresh token
    * @returns {Promise<{success: boolean, accessToken?: string, error?: string}>}
    */
-  async refreshAccessToken(accountId, integrationId, refreshToken) {
+  async refreshAccessToken(userId, integrationId, refreshToken) {
     try {
       if (!refreshToken) {
         return {
@@ -93,14 +123,22 @@ export class OAuthTokenService {
 
       // Get OAuth configuration for the integration
       const oauthConfig = this._getOAuthConfig(integrationId);
+      console.log(`🔍 OAuth config lookup for ${integrationId}:`, {
+        found: !!oauthConfig,
+        hasClientId: !!oauthConfig?.clientId,
+        hasClientSecret: !!oauthConfig?.clientSecret,
+        tokenUrl: oauthConfig?.tokenUrl
+      });
+
       if (!oauthConfig) {
+        console.log(`❌ OAuth configuration not found for ${integrationId}`);
         return {
           success: false,
           error: `OAuth configuration not found for ${integrationId}`
         };
       }
 
-      console.log(`🔄 Refreshing ${integrationId} access token for account ${accountId}`);
+      console.log(`🔄 Refreshing ${integrationId} access token for user ${userId}`);
 
       // Make token refresh request
       const response = await fetch(oauthConfig.tokenUrl, {
@@ -121,7 +159,7 @@ export class OAuthTokenService {
         console.error(`${integrationId} token refresh failed:`, response.status, errorData);
 
         // Mark integration as error state
-        await this._updateIntegrationStatus(accountId, integrationId, 'error',
+        await this._updateIntegrationStatus(userId, integrationId, 'error',
           `Token refresh failed: ${errorData.error || response.status}`);
 
         return {
@@ -137,16 +175,17 @@ export class OAuthTokenService {
 
       // Update token in database
       const { error: updateError } = await this.supabase
-        .from('account_integrations')
+        .from('user_integrations')
         .update({
           access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
           token_expires_at: expiresAt.toISOString(),
           status: 'connected',
           last_error: null,
           last_error_at: null,
           updated_at: new Date().toISOString()
         })
-        .eq('account_id', accountId)
+        .eq('user_id', userId)
         .eq('integration_id', integrationId);
 
       if (updateError) {
@@ -161,14 +200,16 @@ export class OAuthTokenService {
 
       return {
         success: true,
-        accessToken: tokenData.access_token
+        token: {
+          access_token: tokenData.access_token
+        }
       };
 
     } catch (error) {
       console.error(`${integrationId} token refresh error:`, error);
 
       // Mark integration as error state
-      await this._updateIntegrationStatus(accountId, integrationId, 'error',
+      await this._updateIntegrationStatus(userId, integrationId, 'error',
         `Token refresh exception: ${error.message}`);
 
       return {
@@ -182,17 +223,17 @@ export class OAuthTokenService {
    * Update integration status and error information
    * @private
    */
-  async _updateIntegrationStatus(accountId, integrationId, status, errorMessage = null) {
+  async _updateIntegrationStatus(userId, integrationId, status, errorMessage = null) {
     try {
       await this.supabase
-        .from('account_integrations')
+        .from('user_integrations')
         .update({
           status,
           last_error: errorMessage,
           last_error_at: errorMessage ? new Date().toISOString() : null,
           updated_at: new Date().toISOString()
         })
-        .eq('account_id', accountId)
+        .eq('user_id', userId)
         .eq('integration_id', integrationId);
     } catch (error) {
       console.error('Failed to update integration status:', error);
@@ -211,6 +252,11 @@ export class OAuthTokenService {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET
       },
       calendar: {
+        tokenUrl: 'https://oauth2.googleapis.com/token',
+        clientId: process.env.VITE_GMAIL_CLIENT_ID || process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET
+      },
+      'google-calendar': {
         tokenUrl: 'https://oauth2.googleapis.com/token',
         clientId: process.env.VITE_GMAIL_CLIENT_ID || process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET
@@ -241,12 +287,12 @@ export class OAuthTokenService {
    * @param {string} integrationId - Integration type
    * @returns {Promise<{connected: boolean, error?: string}>}
    */
-  async checkIntegrationStatus(accountId, integrationId) {
+  async checkIntegrationStatus(userId, integrationId) {
     try {
       const { data: integration, error } = await this.supabase
-        .from('account_integrations')
+        .from('user_integrations')
         .select('status, last_error, last_error_at, token_expires_at')
-        .eq('account_id', accountId)
+        .eq('user_id', userId)
         .eq('integration_id', integrationId)
         .single();
 

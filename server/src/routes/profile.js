@@ -6,26 +6,34 @@
 
 import express from 'express';
 import { accountProfileService } from '../services/accountProfileService.js';
+import { validateJWT } from '../middleware/authMiddleware.js';
+import { createClient } from '@supabase/supabase-js';
 
 const router = express.Router();
 
+// Initialize Supabase client for family data operations
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
 // Get account profile
-router.post('/get', async (req, res) => {
+router.post('/get', validateJWT, async (req, res) => {
   try {
     console.log('📋 Profile API: Get request');
 
-    const { account_id } = req.body;
+    const { family_id } = req.body;
 
-    if (!account_id) {
+    if (!family_id) {
       return res.status(400).json({
         success: false,
-        error: 'Account ID required'
+        error: 'Family ID required'
       });
     }
 
-    const accountId = account_id;
+    const familyId = family_id;
 
-    const result = await accountProfileService.getProfile(accountId);
+    const result = await accountProfileService.getProfile(familyId);
 
     console.log('🔍 Debug profile result structure:', {
       success: result.success,
@@ -58,16 +66,16 @@ router.post('/get', async (req, res) => {
 });
 
 // Update account profile
-router.post('/update', async (req, res) => {
+router.post('/update', validateJWT, async (req, res) => {
   try {
     console.log('📋 Profile API: Update request');
 
-    const { account_id, ...profileData } = req.body;
+    const { family_id, ...profileData } = req.body;
 
-    if (!account_id) {
+    if (!family_id) {
       return res.status(400).json({
         success: false,
-        error: 'Account ID required'
+        error: 'Family ID required'
       });
     }
 
@@ -78,22 +86,63 @@ router.post('/update', async (req, res) => {
       });
     }
 
-    const accountId = account_id;
+    const familyId = family_id;
 
-    const result = await accountProfileService.updateProfile(accountId, profileData, 'user');
+    // Handle family member creation/updates in Supabase
+    if (profileData.members && Array.isArray(profileData.members)) {
+      console.log('📝 Updating family members in Supabase...');
 
-    if (result.success) {
+      for (const member of profileData.members) {
+        console.log('👤 Processing member:', member.name);
+
+        // Create family member record in Supabase
+        const { error: memberError } = await supabase
+          .from('family_members')
+          .insert({
+            family_id: familyId,
+            user_id: null, // Non-user family members don't have user_id
+            family_relationship: member.type || 'other',
+            name: member.name,
+            email: member.email || null,
+            age: member.age || null,
+            birthday_month: member.birthday?.month || null,
+            birthday_day: member.birthday?.day || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (memberError) {
+          console.error('❌ Error creating family member:', memberError);
+          return res.status(500).json({
+            success: false,
+            error: `Failed to create family member: ${memberError.message}`
+          });
+        }
+      }
+
+      console.log('✅ Family members updated successfully in Supabase');
+
       res.json({
         success: true,
-        profile: result.profile.data,
-        metadata: result.profile.metadata,
-        changes: result.changes
+        message: 'Family members updated successfully'
       });
     } else {
-      res.status(500).json({
-        success: false,
-        error: result.error
-      });
+      // For non-member profile updates, still use the Neon service for now
+      const result = await accountProfileService.updateProfile(familyId, profileData, 'user');
+
+      if (result.success) {
+        res.json({
+          success: true,
+          profile: result.profile.data,
+          metadata: result.profile.metadata,
+          changes: result.changes
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: result.error
+        });
+      }
     }
 
   } catch (error) {
@@ -106,11 +155,11 @@ router.post('/update', async (req, res) => {
 });
 
 // Get profile statistics
-router.get('/stats', async (req, res) => {
+router.get('/stats', validateJWT, async (req, res) => {
   try {
     console.log('📊 Profile API: Stats request');
 
-    const accountId = req.user?.id || req.headers['x-account-id'];
+    const accountId = req.user?.id || req.headers['x-user-id'];
 
     if (!accountId) {
       return res.status(400).json({
@@ -133,7 +182,7 @@ router.get('/stats', async (req, res) => {
 });
 
 // Complete user onboarding
-router.post('/complete-onboarding', async (req, res) => {
+router.post('/complete-onboarding', validateJWT, async (req, res) => {
   try {
     console.log('🎉 Profile API: Complete onboarding request');
 

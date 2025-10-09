@@ -8,6 +8,7 @@
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { EmbeddingWorker } from '../workers/embeddingWorker.js';
+import { validateJWT } from '../middleware/authMiddleware.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -17,7 +18,7 @@ const supabase = createClient(
 const router = express.Router();
 
 // Process email embeddings (main endpoint called from Vercel)
-router.post('/process', async (req, res) => {
+router.post('/process', validateJWT, async (req, res) => {
   const startTime = Date.now();
   
   try {
@@ -111,7 +112,7 @@ router.post('/process', async (req, res) => {
 });
 
 // Get processing status (optional - mainly for debugging)
-router.get('/status/:job_id', async (req, res) => {
+router.get('/status/:job_id', validateJWT, async (req, res) => {
   try {
     const { job_id } = req.params;
 

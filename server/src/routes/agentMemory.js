@@ -1,14 +1,17 @@
 import { Router } from 'express';
 import { AgentMemoryService } from '../services/agentMemoryService.js';
+import { validateJWT } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
 // GET /api/agent-memory - Get memories for account
-router.get('/', async (req, res) => {
+router.get('/', validateJWT, async (req, res) => {
   console.log('🧠 GET /api/agent-memory called with query:', req.query);
+  console.log('🔍 DEBUG: Full query object keys:', Object.keys(req.query));
+  console.log('🔍 DEBUG: Query values:', Object.values(req.query));
   try {
     const {
-      accountId,
+      userId,
       memoryType,
       tags,
       includeExpired = 'false',
@@ -16,15 +19,19 @@ router.get('/', async (req, res) => {
       offset = '0'
     } = req.query;
 
-    if (!accountId) {
+    console.log('🔍 DEBUG: Extracted userId:', userId);
+    console.log('🔍 DEBUG: userId type:', typeof userId);
+
+    if (!userId) {
+      console.log('❌ DEBUG: No userId provided, returning error');
       return res.status(400).json({
         success: false,
-        error: 'Account ID is required'
+        error: 'User ID is required'
       });
     }
 
     const result = await AgentMemoryService.getMemories({
-      accountId: accountId,
+      userId: userId,
       memoryType: memoryType,
       tags: tags ? tags.split(',') : null,
       includeExpired: includeExpired === 'true',
@@ -32,6 +39,7 @@ router.get('/', async (req, res) => {
       offset: parseInt(offset)
     });
 
+    console.log('🔍 DEBUG: AgentMemoryService result:', JSON.stringify(result, null, 2));
     return res.status(200).json(result);
   } catch (error) {
     console.error('Error in GET /agent-memory:', error);
@@ -43,7 +51,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/agent-memory/store - Store new memory
-router.post('/store', async (req, res) => {
+router.post('/store', validateJWT, async (req, res) => {
   console.log('💾 POST /api/agent-memory/store called with body:', req.body);
   try {
     const {
@@ -91,18 +99,18 @@ router.post('/store', async (req, res) => {
 });
 
 // DELETE /api/agent-memory - Delete specific memory
-router.delete('/', async (req, res) => {
+router.delete('/', validateJWT, async (req, res) => {
   try {
-    const { memoryId, accountId } = req.body;
+    const { memoryId, userId } = req.body;
 
-    if (!memoryId || !accountId) {
+    if (!memoryId || !userId) {
       return res.status(400).json({
         success: false,
-        error: 'Memory ID and Account ID are required'
+        error: 'Memory ID and User ID are required'
       });
     }
 
-    const result = await AgentMemoryService.deleteMemory(memoryId, accountId);
+    const result = await AgentMemoryService.deleteMemory(memoryId, userId);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Error in DELETE /agent-memory:', error);
@@ -114,18 +122,18 @@ router.delete('/', async (req, res) => {
 });
 
 // POST /api/agent-memory/confirm - Confirm memory
-router.post('/confirm', async (req, res) => {
+router.post('/confirm', validateJWT, async (req, res) => {
   try {
-    const { memoryId, accountId, isConfirmed = true } = req.body;
+    const { memoryId, userId, isConfirmed = true } = req.body;
 
-    if (!memoryId || !accountId) {
+    if (!memoryId || !userId) {
       return res.status(400).json({
         success: false,
-        error: 'Memory ID and Account ID are required'
+        error: 'Memory ID and User ID are required'
       });
     }
 
-    const result = await AgentMemoryService.confirmMemory(memoryId, accountId, isConfirmed);
+    const result = await AgentMemoryService.confirmMemory(memoryId, userId, isConfirmed);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Error in POST /agent-memory/confirm:', error);
@@ -137,18 +145,18 @@ router.post('/confirm', async (req, res) => {
 });
 
 // POST /api/agent-memory/expiration - Update expiration
-router.post('/expiration', async (req, res) => {
+router.post('/expiration', validateJWT, async (req, res) => {
   try {
-    const { memoryId, accountId, expiresAt } = req.body;
+    const { memoryId, userId, expiresAt } = req.body;
 
-    if (!memoryId || !accountId) {
+    if (!memoryId || !userId) {
       return res.status(400).json({
         success: false,
-        error: 'Memory ID and Account ID are required'
+        error: 'Memory ID and User ID are required'
       });
     }
 
-    const result = await AgentMemoryService.updateMemoryExpiration(memoryId, accountId, expiresAt);
+    const result = await AgentMemoryService.updateMemoryExpiration(memoryId, userId, expiresAt);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Error in POST /agent-memory/expiration:', error);
@@ -160,18 +168,18 @@ router.post('/expiration', async (req, res) => {
 });
 
 // GET /api/agent-memory/stats - Get memory statistics
-router.get('/stats', async (req, res) => {
+router.get('/stats', validateJWT, async (req, res) => {
   try {
-    const { accountId } = req.query;
+    const { userId } = req.query;
 
-    if (!accountId) {
+    if (!userId) {
       return res.status(400).json({
         success: false,
-        error: 'Account ID is required'
+        error: 'User ID is required'
       });
     }
 
-    const result = await AgentMemoryService.getMemoryStats(accountId);
+    const result = await AgentMemoryService.getMemoryStats(userId);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Error in GET /agent-memory/stats:', error);
@@ -183,7 +191,7 @@ router.get('/stats', async (req, res) => {
 });
 
 // POST /api/agent-memory/cleanup - Cleanup expired memories
-router.post('/cleanup', async (req, res) => {
+router.post('/cleanup', validateJWT, async (req, res) => {
   try {
     const result = await AgentMemoryService.cleanupExpiredMemories();
 

@@ -6,6 +6,8 @@
  */
 
 import express from 'express';
+import { optionalJWT } from '../middleware/authMiddleware.js';
+import { getHealthMonitor } from '../services/toolHealthMonitor.js';
 
 const router = express.Router();
 
@@ -54,6 +56,34 @@ router.get('/live', (req, res) => {
     status: 'alive',
     timestamp: new Date().toISOString()
   });
+});
+
+// Tool health monitoring endpoint
+router.get('/tools', optionalJWT, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const healthMonitor = getHealthMonitor();
+    const toolsHealth = await healthMonitor.getAllToolsHealth();
+
+    res.json({
+      success: true,
+      user_id: userId,
+      tools_health: toolsHealth,
+      generated_at: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Health endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve health data',
+      details: error.message
+    });
+  }
 });
 
 export default router;

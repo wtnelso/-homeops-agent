@@ -23,9 +23,9 @@ export class SemanticSearchTool extends Tool {
 
   Use this tool when the user is asking about topics that might be discussed in their emails.`;
 
-  constructor({ accountId, supabaseUrl, supabaseServiceKey, openaiApiKey }) {
+  constructor({ userId, supabaseUrl, supabaseServiceKey, openaiApiKey }) {
     super();
-    this.accountId = accountId;
+    this.userId = userId;
     this.supabase = createClient(supabaseUrl, supabaseServiceKey);
     this.openai = new OpenAI({ apiKey: openaiApiKey });
   }
@@ -45,7 +45,7 @@ export class SemanticSearchTool extends Tool {
         });
       }
 
-      console.log(`🔍 Semantic search: "${query}" for account ${this.accountId}`);
+      console.log(`🔍 Semantic search: "${query}" for user ${this.userId}`);
 
       // Generate embedding for the search query
       const embeddingResponse = await this.openai.embeddings.create({
@@ -60,7 +60,7 @@ export class SemanticSearchTool extends Tool {
       const { data: searchResults, error: searchError } = await this.supabase
         .rpc('search_emails_by_embedding', {
           query_embedding: queryEmbedding,
-          account_id_param: this.accountId,
+          account_id_param: this.userId,
           similarity_threshold: TOOLS_CONFIG.semantic_search.similarity_threshold,
           max_results: Math.min(maxResults, TOOLS_CONFIG.semantic_search.max_results)
         });
@@ -85,7 +85,7 @@ export class SemanticSearchTool extends Tool {
         results: formattedResults,
         metadata: {
           search_method: 'vector_similarity',
-          account_id: this.accountId,
+          user_id: this.userId,
           searched_at: new Date().toISOString(),
           cost_estimate_cents: TOOLS_CONFIG.semantic_search.cost_per_call_cents
         }

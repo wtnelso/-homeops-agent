@@ -29,9 +29,9 @@ export class GmailSearchTool extends Tool {
 
   Use this tool when you need precise Gmail search operators or when looking for specific senders, dates, or email attributes.`;
 
-  constructor({ accountId }) {
+  constructor({ userId }) {
     super();
-    this.accountId = accountId;
+    this.userId = userId;
     this.tokenService = getTokenService();
   }
 
@@ -51,10 +51,10 @@ export class GmailSearchTool extends Tool {
         });
       }
 
-      console.log(`🔍 Gmail API fallback search: "${query}" for account ${this.accountId}`);
+      console.log(`🔍 Gmail API fallback search: "${query}" for user ${this.userId}`);
 
       // Get valid access token
-      const tokenResult = await this.tokenService.getValidAccessToken(this.accountId, 'gmail');
+      const tokenResult = await this.tokenService.getValidAccessToken(this.userId, 'gmail');
 
       if (!tokenResult.success) {
         return JSON.stringify({
@@ -65,7 +65,7 @@ export class GmailSearchTool extends Tool {
       }
 
       // Search Gmail using API
-      const searchResults = await this._searchGmail(tokenResult.accessToken, query, maxResults);
+      const searchResults = await this._searchGmail(tokenResult.token.access_token, query, maxResults);
 
       if (!searchResults.success) {
         return JSON.stringify(searchResults);
@@ -82,7 +82,7 @@ export class GmailSearchTool extends Tool {
         results: formattedResults,
         metadata: {
           search_method: 'gmail_api_fallback',
-          account_id: this.accountId,
+          user_id: this.userId,
           searched_at: new Date().toISOString(),
           cost_estimate_cents: 0.2 // Estimated cost per Gmail API call
         }

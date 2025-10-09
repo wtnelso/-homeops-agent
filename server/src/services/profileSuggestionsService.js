@@ -55,11 +55,11 @@ export class ProfileSuggestionsService {
    * @param {string} contentHash - Content hash to check
    * @returns {Promise<boolean>} True if recently rejected
    */
-  async isRecentlyRejected(accountId, contentHash) {
+  async isRecentlyRejected(userId, contentHash) {
     try {
       const result = await this.sql`
         SELECT id FROM profile_suggestions
-        WHERE account_id = ${accountId}
+        WHERE user_id = ${userId}
         AND content_hash = ${contentHash}
         AND status = 'rejected'
         AND rejected_at > NOW() - INTERVAL '30 days'
@@ -205,7 +205,7 @@ export class ProfileSuggestionsService {
    * @returns {Promise<Object>} Creation result with suggestion ID
    */
   async createSuggestion({
-    accountId,
+    userId,
     suggestionType,
     suggestedData,
     confidenceScore,
@@ -215,13 +215,13 @@ export class ProfileSuggestionsService {
     reasoning = null
   }) {
     try {
-      console.log(`📝 Creating profile suggestion for account ${accountId}: ${suggestionType}`);
+      console.log(`📝 Creating profile suggestion for user ${userId}: ${suggestionType}`);
 
       // Generate content hash for duplicate prevention
       const contentHash = this.generateContentHash({ suggestionType, suggestedData });
 
       // Check if this exact suggestion was recently rejected
-      const isRejected = await this.isRecentlyRejected(accountId, contentHash);
+      const isRejected = await this.isRecentlyRejected(userId, contentHash);
       if (isRejected) {
         console.log(`⏭️ Skipping duplicate suggestion (recently rejected): ${contentHash.substring(0, 8)}...`);
         return {
@@ -234,7 +234,7 @@ export class ProfileSuggestionsService {
       // Get existing family members for categorization
       let existingMembers = [];
       try {
-        const profileResult = await accountProfileService.getProfile(accountId);
+        const profileResult = await accountProfileService.getProfile(userId);
         if (profileResult.success && profileResult.profile?.members) {
           existingMembers = profileResult.profile.members;
         }
@@ -263,7 +263,7 @@ export class ProfileSuggestionsService {
 
       const result = await this.sql`
         INSERT INTO profile_suggestions (
-          account_id,
+          user_id,
           suggestion_type,
           suggested_data,
           confidence_score,
@@ -275,7 +275,7 @@ export class ProfileSuggestionsService {
           suggestion_category,
           activity_type
         ) VALUES (
-          ${accountId},
+          ${userId},
           ${suggestionType},
           ${JSON.stringify(suggestedData)},
           ${confidenceScore},
@@ -312,7 +312,7 @@ export class ProfileSuggestionsService {
    * @param {Object} options - Query options
    * @returns {Promise<Object>} List of pending suggestions
    */
-  async getPendingSuggestions(accountId, options = {}) {
+  async getPendingSuggestions(userId, options = {}) {
     try {
       const {
         limit = 50,
@@ -321,7 +321,8 @@ export class ProfileSuggestionsService {
         minConfidence = 0.0
       } = options;
 
-      console.log(`📋 Getting pending suggestions for account ${accountId}`);
+      console.log(`📋 Getting pending suggestions for user ${userId}`);
+      console.log(`🔍 Query filters: status='pending', confidence >= ${minConfidence}, limit=${limit}`);
 
       let query = this.sql`
         SELECT
@@ -336,7 +337,7 @@ export class ProfileSuggestionsService {
           activity_type,
           created_at
         FROM profile_suggestions
-        WHERE account_id = ${accountId}
+        WHERE user_id = ${userId}
         AND status = 'pending'
         AND confidence_score >= ${minConfidence}
         ORDER BY created_at DESC
@@ -358,20 +359,21 @@ export class ProfileSuggestionsService {
             activity_type,
             created_at
           FROM profile_suggestions
-          WHERE account_id = ${accountId}
+          WHERE user_id = ${userId}
           AND status = 'pending'
           AND suggestion_type = ${suggestionType}
           AND confidence_score >= ${minConfidence}
         `;
       }
 
-      const suggestions = await query.then(results =>
-        results
+      const suggestions = await query.then(results => {
+        console.log(`🔍 Raw database results: ${results.length} rows returned`);
+        const sorted = results
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-          .slice(offset, offset + limit)
-      );
-
-      console.log(`📊 Found ${suggestions.length} pending suggestions`);
+          .slice(offset, offset + limit);
+        console.log(`📊 After sorting/slicing: ${sorted.length} pending suggestions`);
+        return sorted;
+      });
 
       // Parse JSON data for each suggestion
       const formattedSuggestions = suggestions.map(suggestion => ({
@@ -842,97 +844,98 @@ export class ProfileSuggestionsService {
 
 
   /**
-   * Approve a suggestion with user edits and apply it to the profile
+   * Update suggestion status to accepted
    * @param {string} suggestionId - Suggestion identifier
-   * @param {string} accountId - Account identifier for security
+   * @returns {Promise<Object>} Update result
+   */
+  async updateSuggestionStatus(suggestionId) {
+    try {
+      await this.sql`
+        UPDATE profile_suggestions
+        SET status = 'accepted', reviewed_at = NOW(), applied_at = NOW(), updated_at = NOW()
+        WHERE id = ${suggestionId}
+      `;
+      return { success: true };
+    } catch (error) {
+      console.error(`❌ Failed to update suggestion status: ${error.message}`);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Approve a suggestion with user edits - always saves to both Neon and Supabase
+   * @param {string} suggestionId - Suggestion identifier
+   * @param {string} userId - User identifier
    * @param {Object} editData - User-edited suggestion data
+   * @param {string} suggestionType - Type of suggestion
+   * @param {string} familyId - Family ID from frontend
    * @returns {Promise<Object>} Approval result
    */
-  async approveSuggestionWithEdits(suggestionId, accountId, editData) {
+  async approveSuggestionWithEdits(suggestionId, userId, editData, suggestionType, familyId) {
     try {
-      console.log(`✅ Approving edited suggestion ${suggestionId} for account ${accountId}`);
-      console.log(`📝 Edit data:`, JSON.stringify(editData, null, 2));
+      console.log(`✅ Approving edited suggestion ${suggestionId} for user ${userId}`);
 
-      // First, get the original suggestion details
-      const suggestions = await this.sql`
-        SELECT * FROM profile_suggestions
-        WHERE id = ${suggestionId}
-        AND account_id = ${accountId}
-        AND status = 'pending'
-      `;
-
-      if (suggestions.length === 0) {
-        return { success: false, error: 'Suggestion not found or already processed' };
-      }
-
-      const suggestion = suggestions[0];
-
-      // Extract edit data without control fields (but keep memberType for family member creation)
+      // Extract edit data without control fields
       const { saveAs, expirationDate, customExpiration, selectedMemberId, addAsType, forceAddAsNew, ...actualEditData } = editData;
 
-      // Determine where to save the data
-      if (saveAs === 'context' || saveAs === 'temporary') {
-        // Save to agent memory instead of profile
-        return await this.saveToAgentMemory(
-          accountId,
-          suggestion.suggestion_type,
+      // Determine the correct Supabase save function based on suggestion type
+      let supabaseOperation;
+      if (suggestionType === 'contact_add') {
+        supabaseOperation = this.addToSupabaseFamilyContacts(familyId, actualEditData, userId);
+      } else if (suggestionType === 'family_info') {
+        supabaseOperation = this.addToSupabaseFamilyTables(familyId, actualEditData, userId);
+      } else if (suggestionType === 'preference_update') {
+        supabaseOperation = this.addToSupabaseFamilyPreferences(familyId, actualEditData, userId);
+      } else {
+        // For unknown types, no Supabase sync
+        supabaseOperation = Promise.resolve({ success: true, message: 'No Supabase sync needed' });
+      }
+
+      // Always run all operations in parallel
+      const [memoryResult, supabaseResult, statusUpdate] = await Promise.all([
+        // Save to Neon agent memory
+        this.saveToAgentMemory(
+          userId,
+          suggestionType,
           actualEditData,
           expirationDate,
           customExpiration,
-          suggestionId
-        );
-      } else {
-        // Get existing profile for context
-        const existingProfileResult = await accountProfileService.getProfile(accountId);
-        const existingProfile = existingProfileResult.success ? existingProfileResult.profile.data : null;
+          suggestionId,
+          familyId
+        ),
 
-        // Save to profile with proper merging
-        const mappedProfileData = this.mapSuggestionToProfileData(
-          suggestion.suggestion_type,
-          actualEditData,
-          existingProfile,
-          selectedMemberId
-        );
-
-        console.log(`🔄 Applying edited suggestion to profile: ${suggestion.suggestion_type}`);
-        console.log(`📝 Mapped profile data:`, JSON.stringify(mappedProfileData, null, 2));
-
-        const profileUpdateResult = await accountProfileService.updateProfile(
-          accountId,
-          mappedProfileData,
-          'ai'
-        );
-
-        if (!profileUpdateResult.success) {
-          console.error(`❌ Failed to apply suggestion to profile: ${profileUpdateResult.error}`);
-          return {
-            success: false,
-            error: `Failed to apply changes to profile: ${profileUpdateResult.error}`
-          };
-        }
+        // Save to appropriate Supabase table based on suggestion type
+        supabaseOperation,
 
         // Update suggestion status
-        await this.sql`
-          UPDATE profile_suggestions
-          SET
-            status = 'accepted',
-            reviewed_at = NOW(),
-            applied_at = NOW(),
-            updated_at = NOW()
-          WHERE id = ${suggestionId}
-        `;
+        this.updateSuggestionStatus(suggestionId)
+      ]);
 
-        console.log(`✅ Edited suggestion ${suggestionId} approved and applied to profile`);
-
-        return {
-          success: true,
-          suggestion_id: suggestionId,
-          suggestion_type: suggestion.suggestion_type,
-          applied_data: mappedProfileData,
-          edited_data: actualEditData,
-          destination: 'profile'
-        };
+      if (!memoryResult.success) {
+        console.error(`❌ Failed to save to agent memory: ${memoryResult.error}`);
+        return { success: false, error: `Memory save failed: ${memoryResult.error}` };
       }
+
+      if (!supabaseResult.success) {
+        console.warn(`⚠️ Supabase save failed but continuing: ${supabaseResult.error}`);
+      }
+
+      if (!statusUpdate.success) {
+        console.warn(`⚠️ Status update failed but continuing: ${statusUpdate.error}`);
+      }
+
+      console.log(`✅ Suggestion ${suggestionId} processed - Memory: ${memoryResult.success}, Supabase: ${supabaseResult.success}, Status: ${statusUpdate.success}`);
+
+      return {
+        success: true,
+        suggestion_id: suggestionId,
+        suggestion_type: suggestionType,
+        applied_data: actualEditData,
+        memory_result: memoryResult,
+        supabase_result: supabaseResult,
+        status_update: statusUpdate
+      };
+
     } catch (error) {
       console.error('❌ Failed to approve edited suggestion:', error);
       return { success: false, error: error.message };
@@ -949,10 +952,11 @@ export class ProfileSuggestionsService {
    * @param {string} suggestionId - Original suggestion ID
    * @returns {Promise<Object>} Save result
    */
-  async saveToAgentMemory(accountId, suggestionType, editData, expirationDate, customExpiration, suggestionId) {
+  async saveToAgentMemory(userId, suggestionType, editData, expirationDate, customExpiration, suggestionId, familyId) {
     try {
       console.log(`🔍 DEBUG AGENT MEMORY: Starting saveToAgentMemory`);
-      console.log(`🔍 DEBUG AGENT MEMORY: accountId: ${accountId}`);
+      console.log(`🔍 DEBUG AGENT MEMORY: userId: ${userId}`);
+      console.log(`🔍 DEBUG AGENT MEMORY: familyId: ${familyId}`);
       console.log(`🔍 DEBUG AGENT MEMORY: suggestionType: ${suggestionType}`);
       console.log(`🔍 DEBUG AGENT MEMORY: editData:`, JSON.stringify(editData, null, 2));
       console.log(`🔍 DEBUG AGENT MEMORY: expirationDate: ${expirationDate}`);
@@ -973,16 +977,16 @@ export class ProfileSuggestionsService {
 
       // Generate semantic memory key using new utilities
       console.log(`🔍 DEBUG AGENT MEMORY: Generating semantic key`);
-      let memoryKey = MEMORY_CONFIG.MEMORY_KEY_UTILS.generateSemanticKey(suggestionType, cleanData, accountId);
+      let memoryKey = MEMORY_CONFIG.MEMORY_KEY_UTILS.generateSemanticKey(suggestionType, cleanData, userId);
       console.log(`🔍 DEBUG AGENT MEMORY: Generated initial memoryKey: ${memoryKey}`);
 
       const memoryType = MEMORY_CONFIG.MEMORY_KEY_UTILS.mapSuggestionToMemoryType(suggestionType);
       console.log(`🔍 DEBUG AGENT MEMORY: Mapped memoryType: ${memoryType}`);
 
       // For preferences, generate unique key with counter
-      if (suggestionType === 'preference_update' && cleanData.preference_type && accountId) {
+      if (suggestionType === 'preference_update' && cleanData.preference_type && userId) {
         console.log(`🔍 DEBUG AGENT MEMORY: Generating unique preference key`);
-        const baseKey = `pref_${cleanData.preference_type.toLowerCase().replace(/\s+/g, '_')}_${accountId}`;
+        const baseKey = `pref_${cleanData.preference_type.toLowerCase().replace(/\s+/g, '_')}_${userId}`;
         console.log(`🔍 DEBUG AGENT MEMORY: baseKey: ${baseKey}`);
         memoryKey = await MEMORY_CONFIG.MEMORY_KEY_UTILS.generateUniquePreferenceKey(baseKey, this.sql);
         console.log(`🔍 DEBUG AGENT MEMORY: Generated unique memoryKey: ${memoryKey}`);
@@ -1036,7 +1040,18 @@ export class ProfileSuggestionsService {
         suggestionType,
         cleanData
       );
+
+      // Add family_id to the structured value for context
+      if (familyId) {
+        structuredValue.family_id = familyId;
+      }
       console.log(`🔍 DEBUG AGENT MEMORY: structuredValue:`, JSON.stringify(structuredValue, null, 2));
+
+      // Generate content hash for change detection
+      const contentHash = createHash('sha256')
+        .update(JSON.stringify(cleanData))
+        .digest('hex');
+      console.log(`🔍 DEBUG AGENT MEMORY: Generated content hash: ${contentHash}`);
 
       // Get default priority from memory type config
       const typeConfig = MEMORY_CONFIG.MEMORY_TYPES[memoryType];
@@ -1045,7 +1060,7 @@ export class ProfileSuggestionsService {
 
       // Create single, contextual memory entry
       const memoryEntry = {
-        account_id: accountId,
+        user_id: userId,
         key: memoryKey,
         value: structuredValue, // JSONB structured data
         memory_type: memoryType,
@@ -1054,7 +1069,9 @@ export class ProfileSuggestionsService {
         source_type: 'user_edited_suggestion',
         source_id: suggestionId,
         expires_at: expiresAt,
-        tags: this.generateMemoryTags(suggestionType, cleanData)
+        tags: this.generateMemoryTags(suggestionType, cleanData),
+        familyId: familyId,
+        contentHash: contentHash
       };
 
       console.log(`💾 Saving structured memory: ${memoryKey} (type: ${memoryType})`);
@@ -1180,20 +1197,244 @@ export class ProfileSuggestionsService {
   }
 
   /**
+   * Update agent memory when family_contacts table is updated in Supabase
+   * Implements dual-write pattern to keep Supabase and Neon in sync
+   * @param {string} userId - User ID
+   * @param {string} familyId - Family ID
+   * @param {Object} contactData - Updated contact data
+   * @returns {Promise<Object>} Result of agent memory update
+   */
+  async syncFamilyContactToAgentMemory(userId, familyId, contactData) {
+    try {
+      console.log('🔄 Syncing family contact update to agent memory');
+
+      // Generate content hash for the contact data
+      const cleanData = this.cleanSuggestionData(contactData);
+      const contentHash = createHash('sha256')
+        .update(JSON.stringify(cleanData))
+        .digest('hex');
+
+      // Generate memory key for this contact
+      const memoryKey = agentMemoryConfig.generateMemoryKey('contact_add', cleanData);
+
+      // Check if this record exists in agent memory and compare hashes
+      const existingMemory = await AgentMemoryService.getMemoryByKey(userId, 'contacts', memoryKey);
+
+      if (existingMemory && existingMemory.content_hash === contentHash) {
+        console.log('📋 Content hash matches, no update needed');
+        return { success: true, message: 'No changes detected' };
+      }
+
+      // Prepare memory entry with new content hash
+      const structuredValue = JSON.stringify({
+        type: 'contact_info',
+        data: cleanData
+      });
+
+      const memoryEntry = {
+        user_id: userId,
+        key: memoryKey,
+        value: structuredValue,
+        memory_type: 'contacts',
+        confidence_score: 0.9,
+        priority: 2,
+        source_type: 'supabase_sync',
+        source_id: contactData.id || null,
+        expires_at: null,
+        tags: this.generateMemoryTags('contact_add', cleanData),
+        familyId: familyId,
+        contentHash: contentHash
+      };
+
+      console.log('💾 Updating agent memory with new contact data');
+      const result = await AgentMemoryService.addMemory(memoryEntry);
+
+      return {
+        success: true,
+        message: 'Family contact synced to agent memory',
+        memoryId: result.id
+      };
+
+    } catch (error) {
+      console.error('❌ Error syncing family contact to agent memory:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Update agent memory when family_members table is updated in Supabase
+   * Implements dual-write pattern to keep Supabase and Neon in sync
+   * @param {string} userId - User ID
+   * @param {string} familyId - Family ID
+   * @param {Object} memberData - Updated family member data
+   * @returns {Promise<Object>} Result of agent memory update
+   */
+  async syncFamilyMemberToAgentMemory(userId, familyId, memberData) {
+    try {
+      console.log('🔄 Syncing family member update to agent memory');
+
+      // Convert Supabase family_members format to agent memory format
+      const familyInfoData = {
+        member_name: memberData.name,
+        memberType: memberData.family_relationship,
+        age: memberData.age?.toString(),
+        birthday: memberData.birthday_month && memberData.birthday_day
+          ? `${memberData.birthday_month}/${memberData.birthday_day}`
+          : null
+      };
+
+      // Generate content hash for the member data
+      const cleanData = this.cleanSuggestionData(familyInfoData);
+      const contentHash = createHash('sha256')
+        .update(JSON.stringify(cleanData))
+        .digest('hex');
+
+      // Generate memory key for this family member
+      const memoryKey = agentMemoryConfig.generateMemoryKey('family_info', cleanData);
+
+      // Check if this record exists in agent memory and compare hashes
+      const existingMemory = await AgentMemoryService.getMemoryByKey(userId, 'family_info', memoryKey);
+
+      if (existingMemory && existingMemory.content_hash === contentHash) {
+        console.log('📋 Content hash matches, no update needed');
+        return { success: true, message: 'No changes detected' };
+      }
+
+      // Prepare memory entry with new content hash
+      const structuredValue = JSON.stringify({
+        type: 'family_member',
+        data: cleanData
+      });
+
+      const memoryEntry = {
+        user_id: userId,
+        key: memoryKey,
+        value: structuredValue,
+        memory_type: 'family_info',
+        confidence_score: 0.9,
+        priority: 2,
+        source_type: 'supabase_sync',
+        source_id: memberData.id || null,
+        expires_at: null,
+        tags: this.generateMemoryTags('family_info', cleanData),
+        familyId: familyId,
+        contentHash: contentHash
+      };
+
+      console.log('💾 Updating agent memory with new family member data');
+      const result = await AgentMemoryService.addMemory(memoryEntry);
+
+      return {
+        success: true,
+        message: 'Family member synced to agent memory',
+        memoryId: result.id
+      };
+
+    } catch (error) {
+      console.error('❌ Error syncing family member to agent memory:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Update agent memory when family_activities table is updated in Supabase
+   * Implements dual-write pattern to keep Supabase and Neon in sync
+   * @param {string} userId - User ID
+   * @param {string} familyId - Family ID
+   * @param {Object} activityData - Updated family activity data
+   * @returns {Promise<Object>} Result of agent memory update
+   */
+  async syncFamilyActivityToAgentMemory(userId, familyId, activityData) {
+    try {
+      console.log('🔄 Syncing family activity update to agent memory');
+
+      // Convert Supabase family_activities format to agent memory format
+      const activityInfoData = {
+        activity_name: activityData.activity_name,
+        activity_type: activityData.activity_type,
+        schedule: activityData.schedule,
+        start_date: activityData.start_date,
+        end_date: activityData.end_date,
+        family_member_id: activityData.family_member_id
+      };
+
+      // Generate content hash for the activity data
+      const cleanData = this.cleanSuggestionData(activityInfoData);
+      const contentHash = createHash('sha256')
+        .update(JSON.stringify(cleanData))
+        .digest('hex');
+
+      // Generate memory key for this family activity
+      const memoryKey = agentMemoryConfig.generateMemoryKey('family_info', cleanData);
+
+      // Check if this record exists in agent memory and compare hashes
+      const existingMemory = await AgentMemoryService.getMemoryByKey(userId, 'family_info', memoryKey);
+
+      if (existingMemory && existingMemory.content_hash === contentHash) {
+        console.log('📋 Content hash matches, no update needed');
+        return { success: true, message: 'No changes detected' };
+      }
+
+      // Prepare memory entry with new content hash
+      const structuredValue = JSON.stringify({
+        type: 'family_activity',
+        data: cleanData
+      });
+
+      const memoryEntry = {
+        user_id: userId,
+        key: memoryKey,
+        value: structuredValue,
+        memory_type: 'family_info',
+        confidence_score: 0.9,
+        priority: 2,
+        source_type: 'supabase_sync',
+        source_id: activityData.id || null,
+        expires_at: activityData.end_date ? new Date(activityData.end_date).toISOString() : null,
+        tags: this.generateMemoryTags('family_info', cleanData),
+        familyId: familyId,
+        contentHash: contentHash
+      };
+
+      console.log('💾 Updating agent memory with new family activity data');
+      const result = await AgentMemoryService.addMemory(memoryEntry);
+
+      return {
+        success: true,
+        message: 'Family activity synced to agent memory',
+        memoryId: result.id
+      };
+
+    } catch (error) {
+      console.error('❌ Error syncing family activity to agent memory:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
    * Approve a suggestion and apply it to the profile
    * @param {string} suggestionId - Suggestion identifier
    * @param {string} accountId - Account identifier for security
    * @returns {Promise<Object>} Approval result
    */
-  async approveSuggestion(suggestionId, accountId) {
+  async approveSuggestion(suggestionId, userId) {
     try {
-      console.log(`✅ Approving suggestion ${suggestionId} for account ${accountId}`);
+      console.log(`✅ Approving suggestion ${suggestionId} for user ${userId}`);
 
       // First, get the suggestion details
       const suggestions = await this.sql`
         SELECT * FROM profile_suggestions
         WHERE id = ${suggestionId}
-        AND account_id = ${accountId}
+        AND user_id = ${userId}
         AND status = 'pending'
       `;
 
@@ -1207,7 +1448,7 @@ export class ProfileSuggestionsService {
         : suggestion.suggested_data;
 
       // Get existing profile for context
-      const existingProfileResult = await accountProfileService.getProfile(accountId);
+      const existingProfileResult = await accountProfileService.getProfile(userId);
       const existingProfile = existingProfileResult.success ? existingProfileResult.profile.data : null;
 
       // Map suggestion data to proper profile format
@@ -1222,7 +1463,7 @@ export class ProfileSuggestionsService {
       console.log(`📝 Mapped profile data:`, JSON.stringify(mappedProfileData, null, 2));
 
       const profileUpdateResult = await accountProfileService.updateProfile(
-        accountId,
+        userId,
         mappedProfileData,
         'ai'
       );
@@ -1271,9 +1512,9 @@ export class ProfileSuggestionsService {
    * @param {string} accountId - Account identifier for security
    * @returns {Promise<Object>} Rejection result
    */
-  async rejectSuggestion(suggestionId, accountId) {
+  async rejectSuggestion(suggestionId, userId) {
     try {
-      console.log(`❌ Rejecting suggestion ${suggestionId} for account ${accountId}`);
+      console.log(`❌ Rejecting suggestion ${suggestionId} for user ${userId}`);
 
       const result = await this.sql`
         UPDATE profile_suggestions
@@ -1284,7 +1525,7 @@ export class ProfileSuggestionsService {
           reviewed_at = NOW(),
           updated_at = NOW()
         WHERE id = ${suggestionId}
-        AND account_id = ${accountId}
+        AND user_id = ${userId}
         AND status = 'pending'
         RETURNING suggestion_type
       `;
@@ -1312,16 +1553,16 @@ export class ProfileSuggestionsService {
    * @param {string} accountId - Account identifier for security
    * @returns {Promise<Object>} Bulk approval result
    */
-  async bulkApproveSuggestions(suggestionIds, accountId) {
+  async bulkApproveSuggestions(suggestionIds, userId) {
     try {
-      console.log(`✅ Bulk approving ${suggestionIds.length} suggestions for account ${accountId}`);
+      console.log(`✅ Bulk approving ${suggestionIds.length} suggestions for user ${userId}`);
 
       let approvedCount = 0;
       let failedCount = 0;
       const errors = [];
 
       for (const suggestionId of suggestionIds) {
-        const result = await this.approveSuggestion(suggestionId, accountId);
+        const result = await this.approveSuggestion(suggestionId, userId);
         if (result.success) {
           approvedCount++;
         } else {
@@ -1353,16 +1594,16 @@ export class ProfileSuggestionsService {
    * @param {string} accountId - Account identifier for security
    * @returns {Promise<Object>} Bulk rejection result
    */
-  async bulkRejectSuggestions(suggestionIds, accountId) {
+  async bulkRejectSuggestions(suggestionIds, userId) {
     try {
-      console.log(`❌ Bulk rejecting ${suggestionIds.length} suggestions for account ${accountId}`);
+      console.log(`❌ Bulk rejecting ${suggestionIds.length} suggestions for user ${userId}`);
 
       let rejectedCount = 0;
       let failedCount = 0;
       const errors = [];
 
       for (const suggestionId of suggestionIds) {
-        const result = await this.rejectSuggestion(suggestionId, accountId);
+        const result = await this.rejectSuggestion(suggestionId, userId);
         if (result.success) {
           rejectedCount++;
         } else {
@@ -1384,6 +1625,260 @@ export class ProfileSuggestionsService {
       };
     } catch (error) {
       console.error('❌ Failed to bulk reject suggestions:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Add contact data to Supabase family_contacts table
+   * @param {string} familyId - Family ID
+   * @param {Object} actualEditData - The edited suggestion data
+   * @param {string} userId - User ID for created_by column
+   * @returns {Promise<Object>} Result of Supabase operations
+   */
+  async addToSupabaseFamilyContacts(familyId, actualEditData, userId) {
+    try {
+      console.log(`📞 Adding contact to Supabase family_contacts table`);
+
+      // Import supabase dynamically to avoid circular dependency
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        process.env.VITE_SUPABASE_URL,
+        process.env.VITE_SUPABASE_ANON_KEY
+      );
+
+      return await this.saveContactToSupabase(supabase, familyId, actualEditData, userId);
+
+    } catch (error) {
+      console.error('❌ Error adding contact to Supabase family_contacts table:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Add family member data to Supabase family_members table
+   * @param {string} familyId - Family ID
+   * @param {Object} actualEditData - The edited suggestion data
+   * @param {string} userId - User ID for created_by column
+   * @returns {Promise<Object>} Result of Supabase operations
+   */
+  async addToSupabaseFamilyTables(familyId, actualEditData, userId) {
+    try {
+      console.log(`👨‍👩‍👧‍👦 Adding family member to Supabase family_members table`);
+
+      // Import supabase dynamically to avoid circular dependency
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        process.env.VITE_SUPABASE_URL,
+        process.env.VITE_SUPABASE_ANON_KEY
+      );
+
+      return await this.saveFamilyInfoToSupabase(supabase, familyId, actualEditData, userId);
+
+    } catch (error) {
+      console.error('❌ Error adding family member to Supabase family_members table:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Add preference data to Supabase (no-op for now as preferences stay in agent memory)
+   * @param {string} familyId - Family ID
+   * @param {Object} actualEditData - The edited suggestion data
+   * @param {string} userId - User ID for created_by column
+   * @returns {Promise<Object>} Result of operation
+   */
+  async addToSupabaseFamilyPreferences(familyId, actualEditData, userId) {
+    try {
+      console.log(`⚙️ Preferences stored in agent memory only, no Supabase sync needed`);
+      return { success: true, message: 'Preferences stored in agent memory only' };
+
+    } catch (error) {
+      console.error('❌ Error in preference handling:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Save contact data to Supabase family_contacts table
+   * @param {Object} supabase - Supabase client
+   * @param {string} familyId - Family ID
+   * @param {Object} contactData - Contact information to save
+   * @param {string} userId - User ID for created_by column
+   * @returns {Promise<Object>} Result of contact save operation
+   */
+  async saveContactToSupabase(supabase, familyId, contactData, userId) {
+    try {
+      console.log(`📞 Saving contact to Supabase: ${contactData.name}`);
+
+      // Map contact data to Supabase schema
+      const contactRecord = {
+        family_id: familyId,
+        contact_name: contactData.name || '',
+        contact_type: contactData.role,
+        phone: contactData.phone || null,
+        email: contactData.email || null,
+        notes: contactData.notes || null,
+        created_by: userId,
+        created_at: new Date().toISOString()
+      };
+
+      // Check if contact already exists
+      const { data: existingContact, error: checkError } = await supabase
+        .from('family_contacts')
+        .select('id')
+        .eq('family_id', familyId)
+        .eq('contact_name', contactRecord.contact_name)
+        .eq('contact_type', contactRecord.contact_type)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('❌ Error checking existing contact:', checkError);
+        return { success: false, error: checkError.message };
+      }
+
+      if (existingContact) {
+        // Update existing contact
+        const { data: updatedContact, error: updateError } = await supabase
+          .from('family_contacts')
+          .update({
+            phone: contactRecord.phone,
+            email: contactRecord.email,
+            notes: contactRecord.notes
+          })
+          .eq('id', existingContact.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('❌ Error updating contact:', updateError);
+          return { success: false, error: updateError.message };
+        }
+
+        console.log(`✅ Updated existing contact: ${contactRecord.contact_name}`);
+        return { success: true, contact: updatedContact, action: 'updated' };
+      } else {
+        // Insert new contact
+        const { data: newContact, error: insertError } = await supabase
+          .from('family_contacts')
+          .insert(contactRecord)
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('❌ Error inserting contact:', insertError);
+          return { success: false, error: insertError.message };
+        }
+
+        console.log(`✅ Created new contact: ${contactRecord.contact_name}`);
+        return { success: true, contact: newContact, action: 'created' };
+      }
+    } catch (error) {
+      console.error('❌ Error saving contact to Supabase:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Save family info to Supabase family_members table
+   * @param {Object} supabase - Supabase client
+   * @param {string} familyId - Family ID
+   * @param {Object} familyData - Family member information to save
+   * @param {string} userId - User ID for created_by column
+   * @returns {Promise<Object>} Result of family member save operation
+   */
+  async saveFamilyInfoToSupabase(supabase, familyId, familyData, userId) {
+    try {
+      console.log(`👨‍👩‍👧‍👦 Saving family info to Supabase: ${familyData.member_name}`);
+
+      // Only sync if we have member_name
+      if (!familyData.member_name) {
+        console.log(`ℹ️ No member_name provided, skipping family member sync`);
+        return { success: true, message: 'No member name to sync' };
+      }
+
+      // Map family data to Supabase schema
+      const memberRecord = {
+        family_id: familyId,
+        user_id: null, // Family members added via suggestions are not linked to user accounts
+        name: familyData.member_name,
+        family_relationship: familyData.memberType || 'child',
+        age: familyData.age ? parseInt(familyData.age) : null,
+        birthday_month: null,
+        birthday_day: null,
+        is_active: true,
+        created_by: userId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // Parse birthday if provided
+      if (familyData.birthday) {
+        const birthDate = new Date(familyData.birthday);
+        if (!isNaN(birthDate.getTime())) {
+          memberRecord.birthday_month = (birthDate.getMonth() + 1).toString();
+          memberRecord.birthday_day = birthDate.getDate();
+
+          // Calculate age if not provided
+          if (!memberRecord.age) {
+            memberRecord.age = this.calculateAge(birthDate);
+          }
+        }
+      }
+
+      // Check if family member already exists by name
+      const { data: existingMember, error: checkError } = await supabase
+        .from('family_members')
+        .select('family_member_id, name, age')
+        .eq('family_id', familyId)
+        .eq('name', memberRecord.name)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('❌ Error checking existing family member:', checkError);
+        return { success: false, error: checkError.message };
+      }
+
+      if (existingMember) {
+        // Update existing family member
+        const { data: updatedMember, error: updateError } = await supabase
+          .from('family_members')
+          .update({
+            family_relationship: memberRecord.family_relationship,
+            age: memberRecord.age,
+            birthday_month: memberRecord.birthday_month,
+            birthday_day: memberRecord.birthday_day,
+            updated_at: memberRecord.updated_at
+          })
+          .eq('family_member_id', existingMember.family_member_id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('❌ Error updating family member:', updateError);
+          return { success: false, error: updateError.message };
+        }
+
+        console.log(`✅ Updated existing family member: ${memberRecord.name}`);
+        return { success: true, member: updatedMember, action: 'updated' };
+      } else {
+        // Insert new family member
+        const { data: newMember, error: insertError } = await supabase
+          .from('family_members')
+          .insert(memberRecord)
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('❌ Error inserting family member:', insertError);
+          return { success: false, error: insertError.message };
+        }
+
+        console.log(`✅ Created new family member: ${memberRecord.name}`);
+        return { success: true, member: newMember, action: 'created' };
+      }
+    } catch (error) {
+      console.error('❌ Error saving family info to Supabase:', error);
       return { success: false, error: error.message };
     }
   }

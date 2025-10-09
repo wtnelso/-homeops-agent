@@ -7,6 +7,7 @@
 
 import express from 'express';
 import { profileSuggestionsService } from '../services/profileSuggestionsService.js';
+import { validateJWT } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -14,28 +15,23 @@ const router = express.Router();
  * GET /api/profile-suggestions
  * Get pending suggestions for the authenticated user
  */
-router.get('/', async (req, res) => {
+router.get('/', validateJWT, async (req, res) => {
   try {
+    console.log('🔍 DEBUG: Profile suggestions GET request received');
+    console.log('🔍 DEBUG: Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('🔍 DEBUG: User from JWT:', req.user);
+
     const {
       limit = 50,
       offset = 0,
       suggestion_type,
-      min_confidence = 0.0
+      min_confidence = 0.0,
+      userId
     } = req.query;
 
-    // Extract account ID from request (assuming middleware sets this)
-    const accountId = req.user?.account?.id || req.headers['x-account-id'];
+    console.log(`📋 API: Getting suggestions for user ${userId}`);
 
-    if (!accountId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Account ID is required'
-      });
-    }
-
-    console.log(`📋 API: Getting suggestions for account ${accountId}`);
-
-    const result = await profileSuggestionsService.getPendingSuggestions(accountId, {
+    const result = await profileSuggestionsService.getPendingSuggestions(userId, {
       limit: parseInt(limit),
       offset: parseInt(offset),
       suggestionType: suggestion_type,
@@ -73,21 +69,14 @@ router.get('/', async (req, res) => {
  * POST /api/profile-suggestions/:id/approve
  * Approve a specific suggestion
  */
-router.post('/:id/approve', async (req, res) => {
+router.post('/:id/approve', validateJWT, async (req, res) => {
   try {
     const { id } = req.params;
-    const accountId = req.user?.account?.id || req.headers['x-account-id'];
+    const userId = req.user?.id || req.headers['x-user-id'];
 
-    if (!accountId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Account ID is required'
-      });
-    }
+    console.log(`✅ API: Approving suggestion ${id} for user ${userId}`);
 
-    console.log(`✅ API: Approving suggestion ${id} for account ${accountId}`);
-
-    const result = await profileSuggestionsService.approveSuggestion(id, accountId);
+    const result = await profileSuggestionsService.approveSuggestion(id, userId);
 
     if (result.success) {
       res.json({
@@ -116,24 +105,17 @@ router.post('/:id/approve', async (req, res) => {
  * POST /api/profile-suggestions/:id/approve-with-edits
  * Approve a specific suggestion with user edits
  */
-router.post('/:id/approve-with-edits', async (req, res) => {
+router.post('/:id/approve-with-edits', validateJWT, async (req, res) => {
   try {
     const { id } = req.params;
-    const { edit_data } = req.body;
-    const accountId = req.user?.account?.id || req.headers['x-account-id'];
+    const { edit_data, userId, familyId, suggestionType } = req.body;
 
     console.log(`🔍 DEBUG API ROUTE: Starting approve-with-edits`);
     console.log(`🔍 DEBUG API ROUTE: Suggestion ID: ${id}`);
-    console.log(`🔍 DEBUG API ROUTE: Account ID: ${accountId}`);
+    console.log(`🔍 DEBUG API ROUTE: User ID: ${userId}`);
+    console.log(`🔍 DEBUG API ROUTE: Family ID: ${familyId}`);
+    console.log(`🔍 DEBUG API ROUTE: Suggestion Type: ${suggestionType}`);
     console.log(`🔍 DEBUG API ROUTE: Edit data:`, JSON.stringify(edit_data, null, 2));
-
-    if (!accountId) {
-      console.log(`❌ DEBUG API ROUTE: Missing account ID`);
-      return res.status(400).json({
-        success: false,
-        error: 'Account ID is required'
-      });
-    }
 
     if (!edit_data) {
       console.log(`❌ DEBUG API ROUTE: Missing edit data`);
@@ -143,10 +125,26 @@ router.post('/:id/approve-with-edits', async (req, res) => {
       });
     }
 
-    console.log(`✏️ API: Approving edited suggestion ${id} for account ${accountId}`);
+    if (!familyId) {
+      console.log(`❌ DEBUG API ROUTE: Missing family ID`);
+      return res.status(400).json({
+        success: false,
+        error: 'Family ID is required'
+      });
+    }
+
+    if (!suggestionType) {
+      console.log(`❌ DEBUG API ROUTE: Missing suggestion type`);
+      return res.status(400).json({
+        success: false,
+        error: 'Suggestion type is required'
+      });
+    }
+
+    console.log(`✏️ API: Approving edited suggestion ${id} for user ${userId}`);
     console.log(`🔍 DEBUG API ROUTE: Calling profileSuggestionsService.approveSuggestionWithEdits`);
 
-    const result = await profileSuggestionsService.approveSuggestionWithEdits(id, accountId, edit_data);
+    const result = await profileSuggestionsService.approveSuggestionWithEdits(id, userId, edit_data, suggestionType, familyId);
 
     console.log(`🔍 DEBUG API ROUTE: Service result:`, JSON.stringify(result, null, 2));
 
@@ -182,21 +180,14 @@ router.post('/:id/approve-with-edits', async (req, res) => {
  * POST /api/profile-suggestions/:id/reject
  * Reject a specific suggestion
  */
-router.post('/:id/reject', async (req, res) => {
+router.post('/:id/reject', validateJWT, async (req, res) => {
   try {
     const { id } = req.params;
-    const accountId = req.user?.account?.id || req.headers['x-account-id'];
+    const userId = req.user?.id || req.headers['x-user-id'];
 
-    if (!accountId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Account ID is required'
-      });
-    }
+    console.log(`❌ API: Rejecting suggestion ${id} for user ${userId}`);
 
-    console.log(`❌ API: Rejecting suggestion ${id} for account ${accountId}`);
-
-    const result = await profileSuggestionsService.rejectSuggestion(id, accountId);
+    const result = await profileSuggestionsService.rejectSuggestion(id, userId);
 
     if (result.success) {
       res.json({
@@ -224,17 +215,10 @@ router.post('/:id/reject', async (req, res) => {
  * POST /api/profile-suggestions/bulk-approve
  * Bulk approve multiple suggestions
  */
-router.post('/bulk-approve', async (req, res) => {
+router.post('/bulk-approve', validateJWT, async (req, res) => {
   try {
     const { suggestion_ids } = req.body;
-    const accountId = req.user?.account?.id || req.headers['x-account-id'];
-
-    if (!accountId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Account ID is required'
-      });
-    }
+    const userId = req.user?.id || req.headers['x-user-id'];
 
     if (!suggestion_ids || !Array.isArray(suggestion_ids) || suggestion_ids.length === 0) {
       return res.status(400).json({
@@ -243,9 +227,9 @@ router.post('/bulk-approve', async (req, res) => {
       });
     }
 
-    console.log(`✅ API: Bulk approving ${suggestion_ids.length} suggestions for account ${accountId}`);
+    console.log(`✅ API: Bulk approving ${suggestion_ids.length} suggestions for user ${userId}`);
 
-    const result = await profileSuggestionsService.bulkApproveSuggestions(suggestion_ids, accountId);
+    const result = await profileSuggestionsService.bulkApproveSuggestions(suggestion_ids, userId);
 
     if (result.success) {
       res.json({
@@ -274,17 +258,10 @@ router.post('/bulk-approve', async (req, res) => {
  * POST /api/profile-suggestions/bulk-reject
  * Bulk reject multiple suggestions
  */
-router.post('/bulk-reject', async (req, res) => {
+router.post('/bulk-reject', validateJWT, async (req, res) => {
   try {
     const { suggestion_ids } = req.body;
-    const accountId = req.user?.account?.id || req.headers['x-account-id'];
-
-    if (!accountId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Account ID is required'
-      });
-    }
+    const userId = req.user?.id || req.headers['x-user-id'];
 
     if (!suggestion_ids || !Array.isArray(suggestion_ids) || suggestion_ids.length === 0) {
       return res.status(400).json({
@@ -293,9 +270,9 @@ router.post('/bulk-reject', async (req, res) => {
       });
     }
 
-    console.log(`❌ API: Bulk rejecting ${suggestion_ids.length} suggestions for account ${accountId}`);
+    console.log(`❌ API: Bulk rejecting ${suggestion_ids.length} suggestions for user ${userId}`);
 
-    const result = await profileSuggestionsService.bulkRejectSuggestions(suggestion_ids, accountId);
+    const result = await profileSuggestionsService.bulkRejectSuggestions(suggestion_ids, userId);
 
     if (result.success) {
       res.json({

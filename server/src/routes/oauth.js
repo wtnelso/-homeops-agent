@@ -8,6 +8,7 @@
 import express from 'express';
 import { getTokenService } from '../services/oauthTokenService.js';
 import { createClient } from '@supabase/supabase-js';
+import { validateJWT } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -21,21 +22,20 @@ const supabase = createClient(
  * Exchange OAuth authorization code for access tokens
  * POST /api/oauth/exchange
  */
-router.post('/exchange', async (req, res) => {
+router.post('/exchange', validateJWT, async (req, res) => {
   try {
-    const { code, integrationId, accountId, userId } = req.body;
+    const { code, integrationId, userId } = req.body;
 
     console.log(`🔄 OAuth exchange started for ${integrationId}`, {
-      accountId,
       userId,
       hasCode: !!code
     });
 
     // Validate required parameters
-    if (!code || !integrationId || !accountId || !userId) {
+    if (!code || !integrationId || !userId) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required parameters: code, integrationId, accountId, userId'
+        error: 'Missing required parameters: code, integrationId, userId'
       });
     }
 
@@ -82,16 +82,16 @@ router.post('/exchange', async (req, res) => {
 
     // Store or update integration in database
     const { data: existingIntegration } = await supabase
-      .from('account_integrations')
+      .from('user_integrations')
       .select('id')
-      .eq('account_id', accountId)
+      .eq('user_id', userId)
       .eq('integration_id', integrationId)
       .single();
 
     if (existingIntegration) {
       // Update existing integration
       const { error: updateError } = await supabase
-        .from('account_integrations')
+        .from('user_integrations')
         .update({
           access_token: tokenData.access_token,
           refresh_token: tokenData.refresh_token,
@@ -101,7 +101,7 @@ router.post('/exchange', async (req, res) => {
           last_error_at: null,
           updated_at: new Date().toISOString()
         })
-        .eq('account_id', accountId)
+        .eq('user_id', userId)
         .eq('integration_id', integrationId);
 
       if (updateError) {
@@ -114,9 +114,9 @@ router.post('/exchange', async (req, res) => {
     } else {
       // Create new integration
       const { error: insertError } = await supabase
-        .from('account_integrations')
+        .from('user_integrations')
         .insert({
-          account_id: accountId,
+          user_id: userId,
           integration_id: integrationId,
           access_token: tokenData.access_token,
           refresh_token: tokenData.refresh_token,
@@ -135,7 +135,7 @@ router.post('/exchange', async (req, res) => {
       }
     }
 
-    console.log(`🎉 ${integrationId} integration successfully connected for account ${accountId}`);
+    console.log(`🎉 ${integrationId} integration successfully connected for user ${userId}`);
 
     res.json({
       success: true,
@@ -160,21 +160,21 @@ router.post('/exchange', async (req, res) => {
  * Refresh OAuth access token
  * POST /api/oauth/refresh
  */
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', validateJWT, async (req, res) => {
   try {
-    const { accountId, integrationId } = req.body;
+    const { userId, integrationId } = req.body;
 
-    if (!accountId || !integrationId) {
+    if (!userId || !integrationId) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required parameters: accountId, integrationId'
+        error: 'Missing required parameters: userId, integrationId'
       });
     }
 
-    console.log(`🔄 Refreshing token for ${integrationId}, account ${accountId}`);
+    console.log(`🔄 Refreshing token for ${integrationId}, user ${userId}`);
 
     const tokenService = getTokenService();
-    const result = await tokenService.getValidAccessToken(accountId, integrationId);
+    const result = await tokenService.getValidAccessToken(userId, integrationId);
 
     if (!result.success) {
       return res.status(400).json({
@@ -202,20 +202,20 @@ router.post('/refresh', async (req, res) => {
  * Check integration status
  * GET /api/oauth/status/:integrationId
  */
-router.get('/status/:integrationId', async (req, res) => {
+router.get('/status/:integrationId', validateJWT, async (req, res) => {
   try {
     const { integrationId } = req.params;
-    const accountId = req.headers['x-account-id'];
+    const userId = req.headers['x-user-id'];
 
-    if (!accountId) {
+    if (!userId) {
       return res.status(400).json({
         success: false,
-        error: 'Account ID is required in x-account-id header'
+        error: 'User ID is required in x-user-id header'
       });
     }
 
     const tokenService = getTokenService();
-    const status = await tokenService.checkIntegrationStatus(accountId, integrationId);
+    const status = await tokenService.checkIntegrationStatus(userId, integrationId);
 
     res.json({
       success: true,
@@ -239,24 +239,24 @@ router.get('/status/:integrationId', async (req, res) => {
  * Disconnect/revoke OAuth integration
  * POST /api/oauth/disconnect
  */
-router.post('/disconnect', async (req, res) => {
+router.post('/disconnect', validateJWT, async (req, res) => {
   try {
-    const { accountId, integrationId } = req.body;
+    const { userId, integrationId } = req.body;
 
-    if (!accountId || !integrationId) {
+    if (!userId || !integrationId) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required parameters: accountId, integrationId'
+        error: 'Missing required parameters: userId, integrationId'
       });
     }
 
-    console.log(`🔌 Disconnecting ${integrationId} for account ${accountId}`);
+    console.log(`🔌 Disconnecting ${integrationId} for user ${userId}`);
 
     // Get current tokens to revoke them
     const { data: integration } = await supabase
-      .from('account_integrations')
+      .from('user_integrations')
       .select('access_token, refresh_token')
-      .eq('account_id', accountId)
+      .eq('user_id', userId)
       .eq('integration_id', integrationId)
       .single();
 
@@ -284,7 +284,7 @@ router.post('/disconnect', async (req, res) => {
 
     // Update database to mark as disconnected
     const { error: updateError } = await supabase
-      .from('account_integrations')
+      .from('user_integrations')
       .update({
         status: 'disconnected',
         access_token: null,
@@ -292,7 +292,7 @@ router.post('/disconnect', async (req, res) => {
         token_expires_at: null,
         updated_at: new Date().toISOString()
       })
-      .eq('account_id', accountId)
+      .eq('user_id', userId)
       .eq('integration_id', integrationId);
 
     if (updateError) {
@@ -303,7 +303,7 @@ router.post('/disconnect', async (req, res) => {
       });
     }
 
-    console.log(`✅ ${integrationId} disconnected for account ${accountId}`);
+    console.log(`✅ ${integrationId} disconnected for user ${userId}`);
 
     res.json({
       success: true,

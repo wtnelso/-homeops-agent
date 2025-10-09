@@ -365,7 +365,7 @@ export const EXTRACTION_PATTERNS = {
         })
       },
       {
-        regex: /([\w]+)\s+is\s+my\s+(wife|husband|son|daughter|child|kid|partner|spouse)/gi,
+        regex: /(?!(?:who|what|where|when|why|how|which))\b([\w]+)\s+is\s+my\s+(wife|husband|son|daughter|child|kid|partner|spouse)/gi,
         extract: (match) => ({
           key: `family_member_${match[1].toLowerCase()}`,
           value: { name: match[1], relationship: match[2] },
@@ -948,7 +948,7 @@ export const MEMORY_UTILS = {
   validateMemoryData(memoryData) {
     const errors = [];
 
-    if (!memoryData.accountId) errors.push('Account ID is required');
+    if (!memoryData.userId) errors.push('User ID is required');
     if (!memoryData.memoryType) errors.push('Memory type is required');
     if (!memoryData.key) errors.push('Memory key is required');
     if (memoryData.value === undefined || memoryData.value === null) {

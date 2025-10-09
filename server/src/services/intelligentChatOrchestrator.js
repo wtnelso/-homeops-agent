@@ -310,7 +310,7 @@ export class IntelligentChatOrchestrator {
     if (context.semantic_search?.emails?.length > 0) {
       insights.push({
         type: 'relevant_communications',
-        priority: 'medium',
+        priority: 2,
         source: 'semantic_search',
         insight: `Found ${context.semantic_search.count} relevant emails`,
         data: context.semantic_search.emails.slice(0, 3)

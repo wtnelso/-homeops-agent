@@ -8,6 +8,7 @@
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import { validateJWT } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -34,7 +35,7 @@ const SEARCH_CONFIG = {
  * POST /api/semantic-search
  * Semantic email search endpoint
  */
-router.post('/', async (req, res) => {
+router.post('/', validateJWT, async (req, res) => {
   const requestStart = Date.now();
 
   try {
@@ -62,24 +63,9 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Validate JWT token (simplified - you might want to use middleware)
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        error: 'Unauthorized',
-        message: 'Valid JWT token required'
-      });
-    }
-
-    const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return res.status(401).json({
-        error: 'Unauthorized',
-        message: 'Invalid or expired token'
-      });
-    }
+    // JWT validation is now handled by middleware
+    // User information is available in req.user
+    const user = req.user;
 
     // Verify user has access to the specified account
     const { data: userAccount, error: accountError } = await supabase

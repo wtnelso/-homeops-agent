@@ -12,8 +12,13 @@ import { accountProfileService } from './accountProfileService.js';
 
 export class AgentMemoryService {
   static async createConnection() {
+    // For now, use the direct connection string - the branch is already configured in the URL
+    const connectionString = process.env.NEON_DATABASE_URL;
+
+    console.log(`🔀 Using Neon connection: ${connectionString.substring(0, 50)}...`);
+
     const client = new Client({
-      connectionString: process.env.NEON_DATABASE_URL,
+      connectionString: connectionString,
       ssl: { rejectUnauthorized: false }
     });
     await client.connect();
@@ -24,9 +29,9 @@ export class AgentMemoryService {
    * Get profile-based context to enhance memory system
    * @private
    */
-  static async getProfileContext(accountId) {
+  static async getProfileContext(userId) {
     try {
-      const profileResult = await accountProfileService.getProfile(accountId);
+      const profileResult = await accountProfileService.getProfile(userId);
       if (!profileResult.success) {
         return null;
       }
@@ -92,7 +97,13 @@ export class AgentMemoryService {
       if (profile.preferences?.dietary?.allergies?.length > 0) {
         profileMemories.push({
           key: 'family_allergies',
-          value: profile.preferences.dietary.allergies.join(', '),
+          value: {
+            name: 'Family Allergies',
+            type: 'dietary',
+            items: profile.preferences.dietary.allergies,
+            context_type: 'preference_info',
+            category: 'dietary'
+          },
           memory_type: 'preference',
           confidence_score: 0.95,
           priority: 1,
@@ -104,7 +115,13 @@ export class AgentMemoryService {
       if (profile.preferences?.dietary?.favorite_cuisines?.length > 0) {
         profileMemories.push({
           key: 'favorite_cuisines',
-          value: profile.preferences.dietary.favorite_cuisines.join(', '),
+          value: {
+            name: 'Favorite Cuisines',
+            type: 'dietary',
+            items: profile.preferences.dietary.favorite_cuisines,
+            context_type: 'preference_info',
+            category: 'dietary'
+          },
           memory_type: 'preference',
           confidence_score: 0.9,
           priority: 2,
@@ -127,13 +144,13 @@ export class AgentMemoryService {
    * Enhanced method that combines profile and memory context
    * This is a simple adapter that can be used by the chat system
    */
-  static async getEnhancedContext(accountId, context = '', limit = null) {
+  static async getEnhancedContext(userId, context = '', limit = null) {
     try {
       // Get the enhanced memories (this will use the updated getRelevantMemories method)
-      const memoryResult = await this.getRelevantMemories(accountId, context, limit);
+      const memoryResult = await this.getRelevantMemories(userId, context, limit);
 
       // Also get profile context for AI prompt generation
-      const profileContext = await this.getProfileContext(accountId);
+      const profileContext = await this.getProfileContext(userId);
 
       return {
         ...memoryResult,
@@ -155,7 +172,7 @@ export class AgentMemoryService {
    * Store new agent memory with proper source tracking
    */
   static async storeMemoryWithSource({
-    accountId,
+    userId,
     memoryType,
     key,
     coreData,
@@ -171,7 +188,7 @@ export class AgentMemoryService {
     const value = MEMORY_UTILS.createMemoryEntry(coreData, originalText);
 
     return this.storeMemory({
-      accountId,
+      userId,
       memoryType,
       key,
       value,
@@ -192,7 +209,7 @@ export class AgentMemoryService {
    * Used by profileSuggestionsService for JSONB values
    */
   static async addMemory({
-    account_id,
+    user_id,
     memory_key,
     memory_value,
     key,
@@ -203,15 +220,20 @@ export class AgentMemoryService {
     source_type = 'manual',
     source_id = null,
     expires_at = null,
-    tags = []
+    tags = [],
+    familyId = null,
+    familyMemberId = null,
+    contentHash = null
   }) {
     console.log(`🔍 DEBUG AGENT MEMORY SERVICE: addMemory called with parameters:`);
-    console.log(`🔍 DEBUG AGENT MEMORY SERVICE: account_id: ${account_id}`);
+    console.log(`🔍 DEBUG AGENT MEMORY SERVICE: user_id: ${user_id}`);
     console.log(`🔍 DEBUG AGENT MEMORY SERVICE: memory_key: ${memory_key}`);
     console.log(`🔍 DEBUG AGENT MEMORY SERVICE: key: ${key}`);
     console.log(`🔍 DEBUG AGENT MEMORY SERVICE: memory_type: ${memory_type}`);
     console.log(`🔍 DEBUG AGENT MEMORY SERVICE: source_type: ${source_type}`);
     console.log(`🔍 DEBUG AGENT MEMORY SERVICE: source_id: ${source_id}`);
+    console.log(`🔍 DEBUG AGENT MEMORY SERVICE: familyId: ${familyId}`);
+    console.log(`🔍 DEBUG AGENT MEMORY SERVICE: contentHash: ${contentHash}`);
 
     // Use the correct parameter names - key/value if provided, fallback to memory_key/memory_value
     const finalKey = key || memory_key;
@@ -221,7 +243,7 @@ export class AgentMemoryService {
     console.log(`🔍 DEBUG AGENT MEMORY SERVICE: finalValue:`, JSON.stringify(finalValue, null, 2));
 
     return this.storeMemory({
-      accountId: account_id,
+      userId: user_id,
       memoryType: memory_type,
       key: finalKey,
       value: finalValue,
@@ -230,12 +252,15 @@ export class AgentMemoryService {
       confidenceScore: confidence_score,
       tags: tags,
       priority: priority,
-      expiresAt: expires_at
+      expiresAt: expires_at,
+      familyId: familyId,
+      familyMemberId: familyMemberId,
+      contentHash: contentHash
     });
   }
 
   static async storeMemory({
-    accountId,
+    userId,
     memoryType,
     key,
     value,
@@ -244,10 +269,13 @@ export class AgentMemoryService {
     confidenceScore = null,
     tags = [],
     priority = null,
-    expiresAt = null
+    expiresAt = null,
+    familyId = null,
+    familyMemberId = null,
+    contentHash = null
   }) {
     console.log(`🔍 DEBUG STORE MEMORY: Starting storeMemory`);
-    console.log(`🔍 DEBUG STORE MEMORY: accountId: ${accountId}`);
+    console.log(`🔍 DEBUG STORE MEMORY: userId: ${userId}`);
     console.log(`🔍 DEBUG STORE MEMORY: memoryType: ${memoryType}`);
     console.log(`🔍 DEBUG STORE MEMORY: key: ${key}`);
     console.log(`🔍 DEBUG STORE MEMORY: value:`, JSON.stringify(value, null, 2));
@@ -261,7 +289,7 @@ export class AgentMemoryService {
       // Validate input data
       console.log(`🔍 DEBUG STORE MEMORY: Validating memory data`);
       const validation = MEMORY_UTILS.validateMemoryData({
-        accountId, memoryType, key, value, confidenceScore, priority
+        userId, memoryType, key, value, confidenceScore, priority
       });
 
       if (!validation.isValid) {
@@ -286,27 +314,30 @@ export class AgentMemoryService {
 
       const query = `
         INSERT INTO agent_memory (
-          account_id, memory_type, key, value,
-          source_type, source_id, confidence_score, tags, priority, expires_at
+          user_id, memory_type, key, value,
+          source_type, source_id, confidence_score, tags, priority, expires_at, family_id, family_member_id, content_hash
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-        ON CONFLICT (account_id, memory_type, key)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        ON CONFLICT (user_id, memory_type, key)
         DO UPDATE SET
           value = EXCLUDED.value,
           confidence_score = EXCLUDED.confidence_score,
           tags = EXCLUDED.tags,
           priority = EXCLUDED.priority,
           expires_at = EXCLUDED.expires_at,
+          family_id = EXCLUDED.family_id,
+          family_member_id = EXCLUDED.family_member_id,
+          content_hash = EXCLUDED.content_hash,
           updated_at = NOW()
         RETURNING id, created_at, updated_at
       `;
 
       console.log(`🔍 DEBUG STORE MEMORY: Executing query with parameters:`);
-      console.log(`🔍 DEBUG STORE MEMORY: [${accountId}, ${memoryType}, ${key}, ${JSON.stringify(value)}, ${sourceType}, ${sourceId}, ${finalConfidenceScore}, ${JSON.stringify(tags)}, ${finalPriority}, ${finalExpiresAt}]`);
+      console.log(`🔍 DEBUG STORE MEMORY: [${userId}, ${memoryType}, ${key}, ${JSON.stringify(value)}, ${sourceType}, ${sourceId}, ${finalConfidenceScore}, ${JSON.stringify(tags)}, ${finalPriority}, ${finalExpiresAt}, ${familyId}, ${contentHash}]`);
 
       const result = await client.query(query, [
-        accountId, memoryType, key, JSON.stringify(value),
-        sourceType, sourceId, finalConfidenceScore, tags, finalPriority, finalExpiresAt
+        userId, memoryType, key, JSON.stringify(value),
+        sourceType, sourceId, finalConfidenceScore, tags, finalPriority, finalExpiresAt, familyId, familyMemberId, contentHash
       ]);
 
       console.log(`✅ DEBUG STORE MEMORY: Query successful, result:`, result.rows[0]);
@@ -325,7 +356,7 @@ export class AgentMemoryService {
    * Get memories for account with optional filtering
    */
   static async getMemories({
-    accountId,
+    userId,
     memoryType = null,
     tags = null,
     includeExpired = false,
@@ -336,14 +367,14 @@ export class AgentMemoryService {
 
     try {
       let query = `
-        SELECT id, account_id, memory_type, key, value,
+        SELECT id, user_id, memory_type, key, value,
                source_type, source_id, confidence_score, is_user_confirmed,
                tags, priority, expires_at, created_at, updated_at
         FROM agent_memory
-        WHERE account_id = $1
+        WHERE user_id = $1
       `;
 
-      const params = [accountId];
+      const params = [userId];
       let paramIndex = 2;
 
       if (memoryType) {
@@ -398,18 +429,18 @@ export class AgentMemoryService {
   /**
    * Update memory confirmation status
    */
-  static async confirmMemory(memoryId, accountId, isConfirmed = true) {
+  static async confirmMemory(memoryId, userId, isConfirmed = true) {
     const client = await this.createConnection();
 
     try {
       const query = `
         UPDATE agent_memory
         SET is_user_confirmed = $1, updated_at = NOW()
-        WHERE id = $2 AND account_id = $3
+        WHERE id = $2 AND user_id = $3
         RETURNING id, is_user_confirmed
       `;
 
-      const result = await client.query(query, [isConfirmed, memoryId, accountId]);
+      const result = await client.query(query, [isConfirmed, memoryId, userId]);
 
       if (result.rows.length === 0) {
         return { success: false, error: 'Memory not found or access denied' };
@@ -427,18 +458,18 @@ export class AgentMemoryService {
   /**
    * Update memory expiration date
    */
-  static async updateMemoryExpiration(memoryId, accountId, expiresAt) {
+  static async updateMemoryExpiration(memoryId, userId, expiresAt) {
     const client = await this.createConnection();
 
     try {
       const query = `
         UPDATE agent_memory
         SET expires_at = $1, updated_at = NOW()
-        WHERE id = $2 AND account_id = $3
+        WHERE id = $2 AND user_id = $3
         RETURNING id, expires_at
       `;
 
-      const result = await client.query(query, [expiresAt, memoryId, accountId]);
+      const result = await client.query(query, [expiresAt, memoryId, userId]);
 
       if (result.rows.length === 0) {
         return { success: false, error: 'Memory not found or access denied' };
@@ -481,17 +512,17 @@ export class AgentMemoryService {
   /**
    * Delete specific memory
    */
-  static async deleteMemory(memoryId, accountId) {
+  static async deleteMemory(memoryId, userId) {
     const client = await this.createConnection();
 
     try {
       const query = `
         DELETE FROM agent_memory
-        WHERE id = $1 AND account_id = $2
+        WHERE id = $1 AND user_id = $2
         RETURNING id
       `;
 
-      const result = await client.query(query, [memoryId, accountId]);
+      const result = await client.query(query, [memoryId, userId]);
 
       if (result.rows.length === 0) {
         return { success: false, error: 'Memory not found or access denied' };
@@ -510,7 +541,7 @@ export class AgentMemoryService {
    * Search memories by content
    */
   static async searchMemories({
-    accountId,
+    userId,
     searchTerm,
     memoryType = null,
     limit = 50
@@ -519,11 +550,11 @@ export class AgentMemoryService {
 
     try {
       let query = `
-        SELECT id, account_id, memory_type, key, value,
+        SELECT id, user_id, memory_type, key, value,
                source_type, confidence_score, is_user_confirmed,
                tags, priority, expires_at, created_at, updated_at
         FROM agent_memory
-        WHERE account_id = $1
+        WHERE user_id = $1
         AND (expires_at IS NULL OR expires_at > NOW())
         AND (
           key ILIKE $2
@@ -532,7 +563,7 @@ export class AgentMemoryService {
         )
       `;
 
-      const params = [accountId, `%${searchTerm}%`];
+      const params = [userId, `%${searchTerm}%`];
 
       if (memoryType) {
         query += ` AND memory_type = $3`;
@@ -574,7 +605,7 @@ export class AgentMemoryService {
   /**
    * Get memory statistics for an account
    */
-  static async getMemoryStats(accountId) {
+  static async getMemoryStats(userId) {
     const client = await this.createConnection();
 
     try {
@@ -588,10 +619,10 @@ export class AgentMemoryService {
           COUNT(DISTINCT memory_type) as memory_types_count,
           AVG(confidence_score) as avg_confidence_score
         FROM agent_memory
-        WHERE account_id = $1
+        WHERE user_id = $1
       `;
 
-      const result = await client.query(query, [accountId]);
+      const result = await client.query(query, [userId]);
       const stats = result.rows[0];
 
       // Convert numeric fields
@@ -613,7 +644,7 @@ export class AgentMemoryService {
   /**
    * Get relevant memories for chat context with smart temporal filtering
    */
-  static async getRelevantMemories(accountId, context = '', limit = null) {
+  static async getRelevantMemories(userId, context = '', limit = null) {
     const client = await this.createConnection();
 
     try {
@@ -636,11 +667,11 @@ export class AgentMemoryService {
                    ELSE 2
                  END as temporal_priority
           FROM agent_memory
-          WHERE account_id = $1
+          WHERE user_id = $1
           ORDER BY temporal_priority ASC, priority ASC, confidence_score DESC, created_at DESC
           LIMIT $2
         `;
-        params = [accountId, memoryLimit];
+        params = [userId, memoryLimit];
       } else {
         // For present/future queries, only active memories
         query = `
@@ -648,12 +679,12 @@ export class AgentMemoryService {
                  priority, expires_at, created_at,
                  1 as temporal_priority
           FROM agent_memory
-          WHERE account_id = $1
+          WHERE user_id = $1
           AND (expires_at IS NULL OR expires_at > NOW())
           ORDER BY priority ASC, confidence_score DESC, created_at DESC
           LIMIT $2
         `;
-        params = [accountId, memoryLimit];
+        params = [userId, memoryLimit];
       }
 
       const result = await client.query(query, params);
@@ -693,12 +724,12 @@ export class AgentMemoryService {
   /**
    * Extract and store memories from chat conversations or emails
    */
-  static async extractAndStoreMemories(accountId, sourceId, content, sourceContext = 'chat') {
+  static async extractAndStoreMemories(userId, sourceId, content, sourceContext = 'chat') {
     // Determine source type based on context
     const sourceType = sourceContext === 'email' ? SOURCE_TYPES.EMAIL : SOURCE_TYPES.CHAT;
 
     console.log(`🧠 [DEBUG] Starting memory extraction for ${sourceContext}:`, {
-      accountId,
+      userId,
       sourceId,
       sourceType,
       contentLength: content?.length,
@@ -738,7 +769,7 @@ export class AgentMemoryService {
             const typeDefaults = MEMORY_UTILS.getTypeDefaults(memoryType);
 
             extractedMemories.push({
-              accountId,
+              userId,
               memoryType,
               key: extracted.key,
               coreData: extracted.value,
