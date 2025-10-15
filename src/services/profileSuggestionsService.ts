@@ -4,6 +4,8 @@
  * Handles fetching and managing AI-generated profile suggestions
  */
 
+import { apiService } from './authenticatedApiService';
+
 export interface ProfileSuggestion {
   id: string;
   suggestion_type: 'family_info' | 'contact_add' | 'preference_update';
@@ -31,12 +33,6 @@ export interface ActionResponse {
 }
 
 class ProfileSuggestionsService {
-  private baseUrl: string;
-
-  constructor() {
-    this.baseUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
-  }
-
   /**
    * Fetch pending profile suggestions for the current user
    */
@@ -44,50 +40,27 @@ class ProfileSuggestionsService {
     try {
       console.log('🔍 SERVICE DEBUG: getPendingSuggestions called with userId:', userId);
 
-      // Get JWT token from Supabase session
-      const { supabase } = await import('../lib/supabase');
-      const { data: { session } } = await supabase.auth.getSession();
+      const response = await apiService.get(`/api/profile-suggestions?status=pending&limit=${limit}&userId=${userId}`);
 
-      console.log('🔍 SERVICE DEBUG: Session check:', { hasSession: !!session, hasToken: !!session?.access_token });
-      console.log('🔍 SERVICE DEBUG: Token preview:', session?.access_token ? `${session.access_token.substring(0, 50)}...` : 'null');
+      console.log('🔍 SERVICE DEBUG: API service response:', response);
 
-      if (!session?.access_token) {
-        console.log('🔍 SERVICE DEBUG: No session/token available');
+      if (response.error) {
+        console.log('🔍 SERVICE DEBUG: Request failed:', response.error);
         return {
           success: false,
           suggestions: [],
           total_count: 0,
-          error: 'No authentication token available'
+          error: response.error
         };
       }
 
-      console.log('🔍 SERVICE DEBUG: Making request to:', `${this.baseUrl}/api/profile-suggestions?status=pending&limit=${limit}`);
-
-      const response = await fetch(
-        `${this.baseUrl}/api/profile-suggestions?status=pending&limit=${limit}&userId=${userId}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-        }
-      );
-
-      console.log('🔍 SERVICE DEBUG: Response status:', response.status);
-      console.log('🔍 SERVICE DEBUG: Response ok:', response.ok);
-
-      const data = await response.json();
-
-      console.log('🔍 SERVICE DEBUG: Response data:', data);
-
-      if (!response.ok) {
-        console.log('🔍 SERVICE DEBUG: Request failed:', data.error);
-        throw new Error(data.error || 'Failed to fetch suggestions');
-      }
-
       console.log('🔍 SERVICE DEBUG: Returning successful response');
-      return data;
+      return response.data || {
+        success: false,
+        suggestions: [],
+        total_count: 0,
+        error: 'No data received'
+      };
     } catch (error) {
       console.error('Error fetching profile suggestions:', error);
       return {
