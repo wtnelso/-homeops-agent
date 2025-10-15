@@ -30,7 +30,7 @@ import path from 'path';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 export class StreamingIntelligentChatOrchestrator extends IntelligentChatOrchestrator {
