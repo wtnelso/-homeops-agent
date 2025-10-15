@@ -1643,7 +1643,7 @@ export class ProfileSuggestionsService {
       // Import supabase dynamically to avoid circular dependency
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
-        process.env.VITE_SUPABASE_URL,
+        process.env.SUPABASE_URL,
         process.env.VITE_SUPABASE_ANON_KEY
       );
 
@@ -1669,7 +1669,7 @@ export class ProfileSuggestionsService {
       // Import supabase dynamically to avoid circular dependency
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
-        process.env.VITE_SUPABASE_URL,
+        process.env.SUPABASE_URL,
         process.env.VITE_SUPABASE_ANON_KEY
       );
 

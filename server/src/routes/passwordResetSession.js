@@ -5,7 +5,7 @@ import { validateJWT } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const encryptionKey = process.env.PASSWORD_RESET_ENCRYPTION_KEY || 'default-key-change-in-production';
 

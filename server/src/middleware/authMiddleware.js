@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET;
 
 // Keep supabaseAdmin for optional JWT (fallback)
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 

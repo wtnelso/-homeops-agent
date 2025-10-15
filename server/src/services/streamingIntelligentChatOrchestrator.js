@@ -29,7 +29,7 @@ import fs from 'fs';
 import path from 'path';
 
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_URL,
   process.env.VITE_SUPABASE_ANON_KEY
 );
 
