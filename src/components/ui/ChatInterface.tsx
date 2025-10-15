@@ -204,7 +204,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             conversations={conversations}
             currentConversationId={currentConversation?.id}
             loading={loadingConversations}
-            onSelectConversation={setCurrentConversation}
+            onConversationSelect={(conversationId) => {
+              const conversation = conversations.find(c => c.id === conversationId);
+              setCurrentConversation(conversation || null);
+            }}
             onNewConversation={handleNewConversation}
             onDeleteConversation={() => {}}
           />

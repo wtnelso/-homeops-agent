@@ -11,7 +11,7 @@ interface CalendarEventTemplateProps {
   data: StructuredData;
 }
 
-interface CalendarEvent {
+interface CalendarEventData {
   id: string;
   title: string;
   start: string;
@@ -21,7 +21,7 @@ interface CalendarEvent {
   attendees?: string[];
 }
 
-interface FamilyActivity {
+interface FamilyActivityData {
   id: string;
   name: string;
   type: string;
@@ -30,16 +30,22 @@ interface FamilyActivity {
   days?: string[];
 }
 
+interface AllEvent extends Partial<CalendarEventData>, Partial<FamilyActivityData> {
+  itemType: 'calendar' | 'activity';
+  sortDate: Date;
+  currentDay?: string;
+}
+
 export const CalendarEventTemplate: React.FC<CalendarEventTemplateProps> = ({ data }) => {
   const calendarData = data.data.calendar;
   const familyActivitiesData = data.data.family_activities;
 
   // Merge and sort all events chronologically
-  const allEvents = [];
+  const allEvents: AllEvent[] = [];
 
   // Add calendar events
   if (calendarData?.events) {
-    calendarData.events.forEach(event => {
+    calendarData.events.forEach((event: CalendarEventData) => {
       allEvents.push({
         ...event,
         itemType: 'calendar',
@@ -63,15 +69,15 @@ export const CalendarEventTemplate: React.FC<CalendarEventTemplateProps> = ({ da
       }
     } else if (calendarData?.events && calendarData.events.length > 0) {
       // Fallback: use actual event dates
-      const eventDates = calendarData.events.map(event => new Date(event.start));
+      const eventDates = calendarData.events.map((event: CalendarEventData) => new Date(event.start));
       queryStartDate = new Date(Math.min(...eventDates));
       queryEndDate = new Date(Math.max(...eventDates));
     }
 
-    familyActivitiesData.activities.forEach(activity => {
+    familyActivitiesData.activities.forEach((activity: FamilyActivityData) => {
       if (activity.days && activity.days.length > 0) {
         // Create separate entries for each day within the query range
-        activity.days.forEach(day => {
+        activity.days.forEach((day: string) => {
           const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(day);
 
           if (queryStartDate && queryEndDate) {
