@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, User, Heart, Brain, Mail, Sparkles, ChevronLeft, ChevronRight, XCircle, CheckCircle, Cake, GraduationCap, Phone, Calendar, CalendarDays, Type, FileText, Clock, Tag } from 'lucide-react';
 import { profileSuggestionsService, ProfileSuggestion } from '../../services/profileSuggestionsService';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ProfileSuggestionsProps {
   userId: string;
@@ -20,6 +21,7 @@ const ProfileSuggestions: React.FC<ProfileSuggestionsProps> = ({
   onClose,
   onSuggestionProcessed
 }) => {
+  const { userData } = useAuth();
   const [suggestions, setSuggestions] = useState<ProfileSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -117,7 +119,9 @@ const ProfileSuggestions: React.FC<ProfileSuggestionsProps> = ({
         result = await profileSuggestionsService.approveSuggestionWithEdits(
           suggestion.id,
           userId,
-          reviewData
+          reviewData,
+          suggestion.suggestion_type,
+          userData?.family?.id || ''
         );
       } else {
         result = await profileSuggestionsService.rejectSuggestion(suggestion.id, userId);

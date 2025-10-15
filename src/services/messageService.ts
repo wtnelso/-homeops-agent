@@ -58,10 +58,10 @@ export class MessageService {
       });
 
       // Gather context for AI agent
-      const context = await this.gatherContext(request.userId, request.accountId, request.conversationId);
+      const context = await this.gatherContext(request.userId, request.conversationId);
 
       // Update conversation context memory
-      await this.updateConversationContext(request.userId, request.accountId, request.conversationId, request.message);
+      await this.updateConversationContext(request.userId, request.conversationId, request.message);
 
       return { success: true, userMessage, context };
     } catch (error: any) {
@@ -92,7 +92,7 @@ export class MessageService {
     }
   }
 
-  async gatherContext(userId: string, _accountId: string, conversationId: string): Promise<ContextData> {
+  async gatherContext(userId: string, conversationId: string): Promise<ContextData> {
     try {
       // Get recent messages from conversation
       const recentMessages = await this.neonDb.getMessages(conversationId, 20);
@@ -194,7 +194,7 @@ export class MessageService {
     }
   }
 
-  private async updateConversationContext(userId: string, accountId: string, conversationId: string, message: string): Promise<void> {
+  private async updateConversationContext(userId: string, conversationId: string, message: string): Promise<void> {
     try {
       // Extract potential context clues from user message
       const contextClues = this.extractContextClues(message);
@@ -202,7 +202,6 @@ export class MessageService {
       if (contextClues.length > 0) {
         await this.neonDb.setMemory({
           user_id: userId,
-          account_id: accountId,
           memory_type: 'conversation_context',
           key: `conversation_${conversationId}_topics`,
           value: {

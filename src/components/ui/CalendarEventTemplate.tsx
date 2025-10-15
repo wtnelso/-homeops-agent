@@ -30,11 +30,18 @@ interface FamilyActivityData {
   days?: string[];
 }
 
-interface AllEvent extends Partial<CalendarEventData>, Partial<FamilyActivityData> {
-  itemType: 'calendar' | 'activity';
+interface CalendarEvent extends CalendarEventData {
+  itemType: 'calendar';
+  sortDate: Date;
+}
+
+interface ActivityEvent extends FamilyActivityData {
+  itemType: 'activity';
   sortDate: Date;
   currentDay?: string;
 }
+
+type AllEvent = CalendarEvent | ActivityEvent;
 
 export const CalendarEventTemplate: React.FC<CalendarEventTemplateProps> = ({ data }) => {
   const calendarData = data.data.calendar;
@@ -200,7 +207,7 @@ export const CalendarEventTemplate: React.FC<CalendarEventTemplateProps> = ({ da
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <h5 className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                      {item.title || item.name}
+                      {item.itemType === 'calendar' ? item.title : item.name}
                     </h5>
 
                     {item.itemType === 'calendar' ? (
