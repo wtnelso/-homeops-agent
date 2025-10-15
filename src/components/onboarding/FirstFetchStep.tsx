@@ -45,18 +45,18 @@ const FirstFetchStep: React.FC<FirstFetchStepProps> = ({ data, onUpdate, onNext 
   const checkExistingAnalysis = async () => {
     console.log('🔍 Checking existing analysis. UserData:', userData);
     
-    if (!userData?.account?.id) {
-      console.log('❌ No account ID available:', {
+    if (!userData?.family?.id) {
+      console.log('❌ No family ID available:', {
         userData: !!userData,
-        account: !!userData?.account,
-        accountId: userData?.account?.id
+        family: !!userData?.family,
+        familyId: userData?.family?.id
       });
       return;
     }
 
     console.log('✅ Account ID found:', userData.family?.id);
 
-    const result = await EmailAnalysisService.getAnalysisStatus(userData.family?.id);
+    const result = await EmailAnalysisService.getAnalysisStatus(userData.family!.id);
     setAnalysisResults(result);
 
     if (result.error) {
@@ -72,7 +72,7 @@ const FirstFetchStep: React.FC<FirstFetchStepProps> = ({ data, onUpdate, onNext 
   };
 
   const startEmailAnalysis = async () => {
-    if (!userData?.account?.id) {
+    if (!userData?.family?.id) {
       setError('Account information not available');
       return;
     }
@@ -81,7 +81,7 @@ const FirstFetchStep: React.FC<FirstFetchStepProps> = ({ data, onUpdate, onNext 
     setError('');
 
     const result = await EmailAnalysisService.startAnalysis(
-      userData.family?.id,
+      userData.family!.id,
       data.importantKeywords || []
     );
 

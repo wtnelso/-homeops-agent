@@ -8,7 +8,6 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   userData: UserSessionData | null
-  profileData: ProfileData | null
   userDataLoading: boolean
   loading: boolean
   signIn: (email: string, password: string) => Promise<any>
@@ -54,7 +53,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfileData(null)
       } else {
         setUserData(data)
-        setProfileData(data.profileData)
       }
     } catch (error) {
       console.error('Unexpected error fetching user data:', error)
@@ -77,7 +75,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null
       } else {
         setUserData(data)
-        setProfileData(data.profileData)
         return data
       }
     }
@@ -94,8 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Error fetching user data:', data.error)
         } else {
           setUserData(data)
-          setProfileData(data.profileData)
-        }
+          }
       } catch (error) {
         console.error('Unexpected error fetching user data:', error)
       }

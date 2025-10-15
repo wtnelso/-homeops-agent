@@ -101,7 +101,7 @@ const EmailTestingPage: React.FC = () => {
   };
 
   const startProcessing = async () => {
-    if (!userData?.account?.id) {
+    if (!userData?.family?.id) {
       addLog('No account ID available. Please ensure you are logged in.', 'error');
       return;
     }
@@ -109,15 +109,15 @@ const EmailTestingPage: React.FC = () => {
     try {
       // Debug logging
       console.log('🔍 Frontend debug - userData:', userData);
-      console.log('🔍 Frontend debug - account_id being sent:', userData.family.id);
+      console.log('🔍 Frontend debug - account_id being sent:', userData.family!.id);
       console.log('🔍 Frontend debug - session token available:', !!session?.access_token);
       
       addLog('🚀 Starting email embedding processing...');
-      addLog(`📤 Sending account_id: ${userData.family.id}`);
+      addLog(`📤 Sending account_id: ${userData.family!.id}`);
       setJob({ status: 'pending' });
 
       const requestBody = {
-        account_id: userData.family.id,
+        account_id: userData.family!.id,
         ...config
       };
       

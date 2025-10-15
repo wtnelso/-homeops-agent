@@ -41,10 +41,10 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
   };
 
   useEffect(() => {
-    if (userData?.account?.id) {
+    if (userData?.family?.id) {
       fetchSuggestions();
     }
-  }, [userData?.account?.id]);
+  }, [userData?.family?.id]);
 
   const fetchSuggestions = async () => {
     console.log('🔍 ReviewStream: fetchSuggestions called');
@@ -328,7 +328,7 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
     }
   }, [currentIndex, currentSuggestion]);
 
-  if (!userData?.account?.id) {
+  if (!userData?.family?.id) {
     return null;
   }
 

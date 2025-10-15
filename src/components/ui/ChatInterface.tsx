@@ -202,7 +202,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           <ConversationList
             conversations={conversations}
-            currentConversation={currentConversation}
+            currentConversationId={currentConversation?.id}
             loading={loadingConversations}
             onSelectConversation={setCurrentConversation}
             onNewConversation={handleNewConversation}

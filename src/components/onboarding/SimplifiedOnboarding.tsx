@@ -124,13 +124,13 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
     const loadGmailIntegration = async () => {
       setLoadingIntegration(true);
       try {
-        if (!userData?.account?.id) {
+        if (!userData?.family?.id) {
           setGmailIntegration(null);
           return;
         }
 
         // Get integrations data for the account
-        const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.family?.id);
+        const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.family!.id);
 
         // Find Gmail integration
         const gmail = integrations.find(integration => integration.id === 'gmail');
@@ -157,8 +157,8 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
 
         // Reload integration data after a short delay to ensure server has processed
         setTimeout(() => {
-          if (userData?.account?.id) {
-            IntegrationsDataService.getIntegrationsForAccount(userData.family?.id)
+          if (userData?.family?.id) {
+            IntegrationsDataService.getIntegrationsForAccount(userData.family!.id)
               .then(integrations => {
                 const gmail = integrations.find(integration => integration.id === 'gmail');
                 setGmailIntegration(gmail || null);
@@ -218,7 +218,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
     const { OAuthCoordinator } = await import('../../config/oauth');
     const { UserIntegrationsService } = await import('../../services/userIntegrationsService');
 
-    if (!userData?.account?.id || !userData?.user?.id) {
+    if (!userData?.family?.id || !userData?.user?.id) {
       console.error('Missing account or user data');
       return;
     }
@@ -238,7 +238,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
         if (result.success) {
           console.log('Integration installed successfully');
           // Reload integration data
-          const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.family?.id);
+          const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.family!.id);
           const gmail = integrations.find(integration => integration.id === 'gmail');
           setGmailIntegration(gmail || null);
         } else {
