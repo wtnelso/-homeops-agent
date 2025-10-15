@@ -38,7 +38,7 @@ const PasswordResetGuard: React.FC<PasswordResetGuardProps> = ({ children }) => 
     ROUTES.TERMS
   ];
 
-  if (allowedDuringReset.includes(location.pathname)) {
+  if (allowedDuringReset.includes(location.pathname as any)) {
     return <>{children}</>;
   }
 

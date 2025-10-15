@@ -130,7 +130,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
         }
 
         // Get integrations data for the account
-        const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.account.id);
+        const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.family.id);
 
         // Find Gmail integration
         const gmail = integrations.find(integration => integration.id === 'gmail');
@@ -158,7 +158,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
         // Reload integration data after a short delay to ensure server has processed
         setTimeout(() => {
           if (userData?.account?.id) {
-            IntegrationsDataService.getIntegrationsForAccount(userData.account.id)
+            IntegrationsDataService.getIntegrationsForAccount(userData.family.id)
               .then(integrations => {
                 const gmail = integrations.find(integration => integration.id === 'gmail');
                 setGmailIntegration(gmail || null);
@@ -238,7 +238,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
         if (result.success) {
           console.log('Integration installed successfully');
           // Reload integration data
-          const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.account.id);
+          const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.family.id);
           const gmail = integrations.find(integration => integration.id === 'gmail');
           setGmailIntegration(gmail || null);
         } else {
