@@ -109,15 +109,15 @@ const EmailTestingPage: React.FC = () => {
     try {
       // Debug logging
       console.log('🔍 Frontend debug - userData:', userData);
-      console.log('🔍 Frontend debug - account_id being sent:', userData.account.id);
+      console.log('🔍 Frontend debug - account_id being sent:', userData.family.id);
       console.log('🔍 Frontend debug - session token available:', !!session?.access_token);
       
       addLog('🚀 Starting email embedding processing...');
-      addLog(`📤 Sending account_id: ${userData.account.id}`);
+      addLog(`📤 Sending account_id: ${userData.family.id}`);
       setJob({ status: 'pending' });
 
       const requestBody = {
-        account_id: userData.account.id,
+        account_id: userData.family.id,
         ...config
       };
       

@@ -203,7 +203,7 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
   const [expandedSchools, setExpandedSchools] = useState<{[memberKey: string]: boolean}>({});
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
-  const [editingMemberIndex, setEditingMemberIndex] = useState<number>(-1);
+  const [_editingMemberIndex, setEditingMemberIndex] = useState<number>(-1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<{member: any, index: number} | null>(null);
 

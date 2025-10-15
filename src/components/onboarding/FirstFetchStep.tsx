@@ -54,9 +54,9 @@ const FirstFetchStep: React.FC<FirstFetchStepProps> = ({ data, onUpdate, onNext 
       return;
     }
 
-    console.log('✅ Account ID found:', userData.family.id);
+    console.log('✅ Account ID found:', userData.family?.id);
 
-    const result = await EmailAnalysisService.getAnalysisStatus(userData.family.id);
+    const result = await EmailAnalysisService.getAnalysisStatus(userData.family?.id);
     setAnalysisResults(result);
 
     if (result.error) {
@@ -81,7 +81,7 @@ const FirstFetchStep: React.FC<FirstFetchStepProps> = ({ data, onUpdate, onNext 
     setError('');
 
     const result = await EmailAnalysisService.startAnalysis(
-      userData.family.id,
+      userData.family?.id,
       data.importantKeywords || []
     );
 
@@ -101,12 +101,12 @@ const FirstFetchStep: React.FC<FirstFetchStepProps> = ({ data, onUpdate, onNext 
   };
 
   const startPolling = () => {
-    if (isPolling || !userData?.account?.id) return;
+    if (isPolling || !userData?.family?.id) return;
 
     setIsPolling(true);
     
     EmailAnalysisService.pollUntilComplete(
-      userData.family.id,
+      userData.family?.id,
       analysisResults.batch_id,
       (status) => {
         setAnalysisResults(status);
