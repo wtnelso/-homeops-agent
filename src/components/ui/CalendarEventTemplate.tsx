@@ -143,7 +143,7 @@ export const CalendarEventTemplate: React.FC<CalendarEventTemplateProps> = ({ da
   }
 
   // Sort all events by date
-  allEvents.sort((a, b) => a.sortDate - b.sortDate);
+  allEvents.sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime());
 
   const formatEventTime = (start: string, end?: string, allDay: boolean = false) => {
     if (allDay) return 'All day';
@@ -272,7 +272,7 @@ export const CalendarEventTemplate: React.FC<CalendarEventTemplateProps> = ({ da
                     )}
                   </div>
 
-                  {item.attendees && item.attendees.length > 0 && (
+                  {item.itemType === 'calendar' && item.attendees && item.attendees.length > 0 && (
                     <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
                       <Users className="h-3 w-3" />
                       <span>{item.attendees.length}</span>

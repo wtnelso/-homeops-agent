@@ -211,23 +211,23 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
   const [showHobbyModal, setShowHobbyModal] = useState(false);
   const [editingHobby, setEditingHobby] = useState<any>(null);
   const [editingHobbyMemberIndex, setEditingHobbyMemberIndex] = useState<number>(-1);
-  const [editingHobbyIndex, setEditingHobbyIndex] = useState<number>(-1);
+  const [, setEditingHobbyIndex] = useState<number>(-1);
 
   // School modal state
   const [showSchoolModal, setShowSchoolModal] = useState(false);
   const [editingSchool, setEditingSchool] = useState<any>(null);
   const [editingSchoolMemberIndex, setEditingSchoolMemberIndex] = useState<number>(-1);
-  const [editingSchoolIndex, setEditingSchoolIndex] = useState<number>(-1);
+  const [, setEditingSchoolIndex] = useState<number>(-1);
 
   // Family activity modal state
   const [showFamilyHobbyModal, setShowFamilyHobbyModal] = useState(false);
   const [editingFamilyHobby, setEditingFamilyHobby] = useState<any>(null);
-  const [editingFamilyHobbyIndex, setEditingFamilyHobbyIndex] = useState<number>(-1);
+  const [, setEditingFamilyHobbyIndex] = useState<number>(-1);
 
   // Contact modal state
   const [showContactModal, setShowContactModal] = useState(false);
   const [editingContact, setEditingContact] = useState<any>(null);
-  const [editingContactIndex, setEditingContactIndex] = useState<number>(-1);
+  const [, setEditingContactIndex] = useState<number>(-1);
 
   // Delete confirmation modal state
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);

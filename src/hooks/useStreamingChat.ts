@@ -142,7 +142,7 @@ export const useStreamingChat = (): UseStreamingChatReturn => {
         ));
       },
 
-      onComplete: (completeMessage: string) => {
+      onComplete: () => {
         // Clear any pending timeouts
         if (debouncedUpdateRef.current) {
           clearTimeout(debouncedUpdateRef.current);

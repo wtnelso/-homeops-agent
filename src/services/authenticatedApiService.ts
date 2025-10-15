@@ -16,13 +16,9 @@ interface ApiResponse<T = any> {
 
 class AuthenticatedApiService {
   private baseUrl: string;
-  private timeout: number;
-  private retryAttempts: number;
 
   constructor() {
     this.baseUrl = API_CONFIG.baseUrl;
-    this.timeout = API_CONFIG.timeout;
-    this.retryAttempts = API_CONFIG.retryAttempts;
   }
 
   /**

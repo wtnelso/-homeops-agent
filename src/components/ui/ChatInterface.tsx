@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { RefreshCw, AlertCircle, ChevronDown } from 'lucide-react';
+import { AlertCircle, ChevronDown } from 'lucide-react';
 import ConversationList from './ConversationList';
 import StreamingMessage from './StreamingMessage';
 import ChatInput from './ChatInput';
@@ -39,9 +39,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const { userData } = useAuth();
 
   // Conversation state
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
-  const [loadingConversations, setLoadingConversations] = useState(false);
+  const [loadingConversations] = useState(false);
 
   // UI state
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +54,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   // Prompt animation state
   const [promptsAnimating, setPromptsAnimating] = useState(false);
-  const [showPromptsHeader, setShowPromptsHeader] = useState(false);
 
   // Streaming chat integration
   const {
@@ -140,7 +139,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const isFirstMessage = streamingMessages.length === 0;
     if (isFirstMessage) {
       setPromptsAnimating(true);
-      setShowPromptsHeader(true);
 
       // Wait for animation to complete before proceeding
       setTimeout(async () => {
