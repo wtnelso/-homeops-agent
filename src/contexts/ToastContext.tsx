@@ -24,11 +24,36 @@ export const useToast = () => {
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [recentToasts, setRecentToasts] = useState<Map<string, number>>(new Map());
 
   const showToast = useCallback((message: string, type: Toast['type'], duration = 5000) => {
-    const id = Math.random().toString(36).substr(2, 9);
+    const now = Date.now();
+    const toastKey = `${message}-${type}`;
+
+    // Check if this exact toast was shown recently (within 2 seconds)
+    const lastShown = recentToasts.get(toastKey);
+    if (lastShown && now - lastShown < 2000) {
+      return; // Rate limit: ignore duplicate toasts within 2 seconds
+    }
+
+    // Update the recent toasts tracker
+    setRecentToasts(prev => {
+      const updated = new Map(prev);
+      updated.set(toastKey, now);
+
+      // Clean up old entries (older than 10 seconds)
+      for (const [key, timestamp] of updated.entries()) {
+        if (now - timestamp > 10000) {
+          updated.delete(key);
+        }
+      }
+
+      return updated;
+    });
+
+    const id = Math.random().toString(36).substring(2, 11);
     const newToast: Toast = { id, message, type, duration };
-    
+
     setToasts(prev => [...prev, newToast]);
 
     if (duration > 0) {
@@ -36,7 +61,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         removeToast(id);
       }, duration);
     }
-  }, []);
+  }, [recentToasts]);
 
   const removeToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));

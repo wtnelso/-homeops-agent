@@ -2,33 +2,81 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../config/routes';
 import { auth } from '../lib/supabase';
+import { AuthValidator } from '../lib/validation';
+import { useToast } from '../contexts/ToastContext';
+import { AUTH_IMAGES } from '../config/authImages';
+import MobileAuthHeader from './ui/MobileAuthHeader';
+import MobileAuthFooter from './ui/MobileAuthFooter';
 
 const ResetPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<{[key: string]: boolean}>({});
+  const { showToast } = useToast();
+
+  const validateForm = (): boolean => {
+    const errors: string[] = [];
+    const newFieldErrors: {[key: string]: boolean} = {};
+    let priorityError: string | null = null;
+
+    // Priority 1: Email validation
+    const emailValidation = AuthValidator.validateEmail(email);
+    if (!emailValidation.isValid) {
+      newFieldErrors.email = true;
+      priorityError = emailValidation.errors[0]; // Show first email error
+      showToast(priorityError, 'error');
+    }
+
+    // Only show one error at a time
+    if (priorityError) {
+      errors.push(priorityError);
+    }
+
+    setValidationErrors(errors);
+    setFieldErrors(newFieldErrors);
+    return errors.length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setMessage('');
+    setValidationErrors([]);
+
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const { error } = await auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-confirm`, // where user will be redirected after clicking the email link
+        redirectTo: `${window.location.origin}${ROUTES.RESET_PASSWORD_CONFIRM}`,
       });
 
       if (error) {
-        setError(error.message);
+        // Check if this is a provider mismatch error (OAuth user trying to reset password)
+        if ((error as any).provider) {
+          setError(error.message);
+          showToast(error.message, 'error');
+          return;
+        }
+
+        setError('Unable to send reset email. Please verify your email address and try again.');
+        showToast('Unable to send reset email. Please try again.', 'error');
         return;
       }
 
-      setMessage('Check your email for a password reset link.');
+      setMessage('If an account with this email exists, you will receive a password reset link.');
+      showToast('If an account exists, a reset link has been sent!', 'success');
     } catch (err) {
       console.error('Reset password error:', err);
-      setError('An unexpected error occurred. Please try again.');
+      const errorMessage = 'An unexpected error occurred. Please try again.';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -37,39 +85,50 @@ const ResetPassword: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Form Panel - Full width on mobile, half on desktop */}
-      <div className="flex-1 flex flex-col lg:w-1/2">
-        {/* Mobile Header with Logo */}
-        <div className="lg:hidden py-6 px-4 sm:px-6 bg-gradient-to-r from-blue-600 to-purple-700">
-          <div className="flex items-center justify-center">
-            <img src="/favicon.ico" alt="HomeOps" className="w-8 h-8 mr-2" />
-            <h1 className="text-2xl font-bold text-white">HomeOps</h1>
-          </div>
+      <div className="flex-1 flex flex-col lg:w-1/2 relative">
+        <MobileAuthHeader />
+
+        {/* Desktop back button - positioned at top left */}
+        <div className="hidden lg:block absolute top-6 left-6 z-10">
+          <Link
+            to={ROUTES.HOME}
+            className="inline-flex items-center px-3 py-2 text-sm font-medium text-white rounded-lg transition-all duration-300 hover:-translate-y-0.5"
+            style={{
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              boxShadow: '0 2px 8px 0 rgba(99, 102, 241, 0.3)',
+              fontWeight: 600
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 12px 0 rgba(99, 102, 241, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(99, 102, 241, 0.3)';
+            }}
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Return home
+          </Link>
         </div>
 
-        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
+        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24 pt-16 lg:pt-0 bg-gray-50">
           <div className="mx-auto w-full max-w-sm lg:w-96">
-            {/* Back to dashboard link */}
-            <div className="mb-8">
-              <Link 
-                to={ROUTES.HOME} 
-                className="flex items-center text-sm text-gray-600 hover:text-gray-900"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Return home
-              </Link>
-            </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Reset Password</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Enter your email address and we'll send you a reset link.
+            {/* Hero favicon */}
+            <div className="flex justify-center mb-6">
+              <img src={AUTH_IMAGES.hero.favicon} alt="HomeOps" className="w-16 h-16" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 text-center">Reset Password</h2>
+            <p className="mt-2 text-sm text-gray-600 text-center">
+              Enter your email address. If an account is found, we'll send you a reset link.
             </p>
           </div>
 
           <div className="mt-8">
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit} noValidate>
               {error && (
                 <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
                   {error}
@@ -78,6 +137,16 @@ const ResetPassword: React.FC = () => {
               {message && (
                 <div className="rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
                   {message}
+                </div>
+              )}
+
+              {validationErrors.length > 0 && (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                  {validationErrors.map((error, index) => (
+                    <div key={index} className="text-sm text-red-600">
+                      {error}
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -93,8 +162,17 @@ const ResetPassword: React.FC = () => {
                     autoComplete="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (fieldErrors.email) {
+                        setFieldErrors(prev => ({ ...prev, email: false }));
+                      }
+                    }}
+                    className={`appearance-none block w-full px-3 py-2 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${
+                      fieldErrors.email
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                     placeholder="info@gmail.com"
                   />
                 </div>
@@ -104,7 +182,19 @@ const ResetPassword: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:-translate-y-0.5"
+                  style={{
+                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    boxShadow: '0 2px 8px 0 rgba(99, 102, 241, 0.3)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.boxShadow = '0 4px 12px 0 rgba(99, 102, 241, 0.4)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(99, 102, 241, 0.3)';
+                  }}
                 >
                   {isLoading ? 'Sending reset link...' : 'Send Reset Link'}
                 </button>
@@ -121,25 +211,7 @@ const ResetPassword: React.FC = () => {
         </div>
         </div>
 
-        {/* Mobile Footer */}
-        <div className="lg:hidden py-6 px-4 sm:px-6 bg-white">
-          <div className="text-center space-y-4">
-            <div className="flex justify-center space-x-8">
-              <Link to={ROUTES.PRIVACY} className="text-sm text-gray-500 hover:text-gray-700">
-                Privacy Policy
-              </Link>
-              <Link to={ROUTES.TERMS} className="text-sm text-gray-500 hover:text-gray-700">
-                Terms of Service
-              </Link>
-            </div>
-            <p className="text-sm text-gray-500">
-              Copyright © 2025 HomeOps. All rights reserved.
-            </p>
-            <p className="text-sm text-gray-500">
-              Made with ❤️ for modern families
-            </p>
-          </div>
-        </div>
+        <MobileAuthFooter />
       </div>
 
       {/* Right Panel - Branding (hidden on mobile) */}
@@ -147,8 +219,8 @@ const ResetPassword: React.FC = () => {
         <div
           className="absolute inset-0 h-full w-full bg-cover bg-no-repeat"
           style={{
-            backgroundImage: `url('/images/auth-background.png')`,
-            backgroundPosition: '97% center',
+            backgroundImage: `url('${AUTH_IMAGES.backgrounds.resetPassword}')`,
+            backgroundPosition: AUTH_IMAGES.backgroundPositions.resetPassword,
           }}
         >
         </div>

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Brain, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import AgentMemoryManager from '../../ui/AgentMemoryManager';
+import { apiService } from '../../../services/authenticatedApiService';
+import { ENDPOINTS } from '../../../config/apiConfig';
 
 interface MemoryStats {
   total_memories: number;
@@ -22,21 +24,26 @@ const MemorySection: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    if (userData?.account?.id) {
+    if (userData?.user?.id) {
       fetchMemoryStats();
     }
-  }, [userData?.account?.id, refreshKey]);
+  }, [userData?.user?.id, refreshKey]);
 
   const fetchMemoryStats = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_RENDER_SERVER_URL}/api/agent-memory/stats?accountId=${userData?.account?.id}`);
-      const data = await response.json();
+      const response = await apiService.get(`${ENDPOINTS.agentMemory}/stats?userId=${userData?.user?.id}`);
 
-      if (data.success) {
+      if (response.error) {
+        setError(response.error || 'Failed to fetch memory statistics');
+        return;
+      }
+
+      const data = response.data;
+      if (data?.success) {
         setStats(data.stats);
       } else {
-        setError(data.error || 'Failed to fetch memory statistics');
+        setError(data?.error || 'Failed to fetch memory statistics');
       }
     } catch (err) {
       setError('Failed to fetch memory statistics');
@@ -53,18 +60,19 @@ const MemorySection: React.FC = () => {
 
     try {
       setCleanupLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_RENDER_SERVER_URL}/api/agent-memory/cleanup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const response = await apiService.post(`${ENDPOINTS.agentMemory}/cleanup`);
 
-      const data = await response.json();
+      if (response.error) {
+        setError(response.error || 'Failed to cleanup expired memories');
+        return;
+      }
 
-      if (data.success) {
+      const data = response.data;
+      if (data?.success) {
         alert(`Successfully cleaned up ${data.deletedCount} expired memories`);
         handleMemoryUpdate();
       } else {
-        setError(data.error || 'Failed to cleanup expired memories');
+        setError(data?.error || 'Failed to cleanup expired memories');
       }
     } catch (err) {
       setError('Failed to cleanup expired memories');
@@ -83,7 +91,7 @@ const MemorySection: React.FC = () => {
   };
 
 
-  if (!user || !userData?.account?.id) {
+  if (!user || !userData?.user?.id) {
     return (
       <div className="text-center py-8">
         <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -202,7 +210,7 @@ const MemorySection: React.FC = () => {
 
       {/* Memory Manager */}
       <AgentMemoryManager
-        accountId={userData.account.id}
+        userId={userData.user.id}
         onMemoryUpdate={handleMemoryUpdate}
       />
 

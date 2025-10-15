@@ -1,5 +1,6 @@
 import { GOOGLE_CALENDAR_CONFIG } from '../config/integrations/google-calendar';
 import { UserSessionService } from './userSession';
+import { supabase } from '../lib/supabase';
 
 export class GoogleCalendarService {
   static buildOAuthUrl(): string {
@@ -45,21 +46,26 @@ export class GoogleCalendarService {
     try {
       console.log('📞 Google Calendar OAuth callback started');
       console.log('🔐 Received authorization code:', code ? `${code.substring(0, 10)}...` : 'NO CODE');
-      
+
       if (!code) {
         console.error('❌ No authorization code provided');
         return { success: false, error: 'No authorization code provided' };
       }
-      
-      // Get current user session data
-      console.log('👤 Getting user session data...');
+
+      // Get current user session data and JWT token
+      console.log('👤 Getting user session data and auth token...');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        console.error('❌ Failed to get auth session:', sessionError);
+        return { success: false, error: 'Authentication required' };
+      }
+
       const sessionData = await UserSessionService.getUserSessionData();
       if ('error' in sessionData) {
         console.error('❌ Failed to get user session data:', sessionData.error);
         return { success: false, error: 'Failed to get user session data' };
       }
       console.log('✅ Got user session data:', {
-        accountId: sessionData.account.id,
         userId: sessionData.user.id
       });
 
@@ -69,7 +75,6 @@ export class GoogleCalendarService {
       console.log('🔄 Calling token exchange endpoint:', exchangeUrl);
       console.log('📤 Exchange payload:', {
         code: code ? `${code.substring(0, 10)}...` : 'NO CODE',
-        accountId: sessionData.account.id,
         userId: sessionData.user.id,
         integrationId: 'google-calendar'
       });
@@ -77,12 +82,12 @@ export class GoogleCalendarService {
       const response = await fetch(exchangeUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           code: code,
           integrationId: 'google-calendar',
-          accountId: sessionData.account.id,
           userId: sessionData.user.id
         })
       });
@@ -128,7 +133,12 @@ export class GoogleCalendarService {
     try {
       console.log('Disconnecting Google Calendar');
 
-      // Get current user session data
+      // Get current user session data and JWT token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        return { success: false, error: 'Authentication required' };
+      }
+
       const sessionData = await UserSessionService.getUserSessionData();
       if ('error' in sessionData) {
         return { success: false, error: 'Failed to get user session data' };
@@ -139,10 +149,11 @@ export class GoogleCalendarService {
       const response = await fetch(`${serverUrl}/api/oauth/disconnect`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
-          accountId: sessionData.account.id,
+          userId: sessionData.user.id,
           integrationId: 'google-calendar'
         })
       });

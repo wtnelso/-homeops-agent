@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 
 export interface AccountIntegration {
   id: string;
-  account_id: string;
+  user_id: string; // Updated from account_id for family architecture
   integration_id: string;
   status: 'connected' | 'disconnected' | 'error' | 'syncing';
   enabled: boolean;
@@ -46,9 +46,9 @@ export interface IntegrationWithAccountStatus {
 
 export class AccountIntegrationsService {
   /**
-   * Get all available integrations with account installation status
+   * Get all available integrations with user installation status
    */
-  static async getIntegrationsForAccount(accountId: string): Promise<IntegrationWithAccountStatus[]> {
+  static async getIntegrationsForUser(userId: string): Promise<IntegrationWithAccountStatus[]> {
     try {
       // Get all available integrations
       const { data: availableIntegrations, error: integrationsError } = await supabase
@@ -70,28 +70,28 @@ export class AccountIntegrationsService {
 
       if (integrationsError) throw integrationsError;
 
-      // Get account's installed integrations
-      const { data: accountIntegrations, error: accountError } = await supabase
-        .from('account_integrations')
+      // Get user's installed integrations
+      const { data: userIntegrations, error: userError } = await supabase
+        .from('user_integrations')
         .select('*')
-        .eq('account_id', accountId);
+        .eq('user_id', userId);
 
-      if (accountError) throw accountError;
+      if (userError) throw userError;
 
-      // Create a map of account integrations by integration_id
-      const accountIntegrationMap = new Map<string, AccountIntegration>();
-      accountIntegrations?.forEach(ai => {
-        accountIntegrationMap.set(ai.integration_id, ai);
+      // Create a map of user integrations by integration_id
+      const userIntegrationMap = new Map<string, AccountIntegration>();
+      userIntegrations?.forEach(ui => {
+        userIntegrationMap.set(ui.integration_id, ui);
       });
 
       // Merge data
       return availableIntegrations?.map(integration => {
-        const accountIntegration = accountIntegrationMap.get(integration.id);
-        
+        const userIntegration = userIntegrationMap.get(integration.id);
+
         return {
           ...integration,
-          account_integration: accountIntegration,
-          isConnected: accountIntegration?.status === 'connected'
+          account_integration: userIntegration, // Keep same interface name for compatibility
+          isConnected: userIntegration?.status === 'connected'
         };
       }) || [];
 
@@ -105,7 +105,7 @@ export class AccountIntegrationsService {
    * Install/Connect an integration for an account (UPSERT)
    */
   static async installIntegration(params: {
-    accountId: string;
+    userId: string; // Updated from accountId for family architecture
     integrationId: string;
     installedByUserId: string;
     accessToken?: string;
@@ -116,7 +116,7 @@ export class AccountIntegrationsService {
   }): Promise<{ success: boolean; integration?: AccountIntegration; error?: string }> {
     try {
       const upsertData = {
-        account_id: params.accountId,
+        user_id: params.userId, // Updated from account_id for family architecture
         integration_id: params.integrationId,
         status: 'connected' as const,
         enabled: true,
@@ -133,9 +133,9 @@ export class AccountIntegrationsService {
       };
 
       const { data, error } = await supabase
-        .from('account_integrations')
+        .from('user_integrations')
         .upsert(upsertData, {
-          onConflict: 'account_id,integration_id',
+          onConflict: 'user_id,integration_id',
           ignoreDuplicates: false
         })
         .select()
@@ -157,12 +157,12 @@ export class AccountIntegrationsService {
    * Uninstall/Disconnect an integration (UPDATE status to disconnected)
    */
   static async uninstallIntegration(params: {
-    accountId: string;
+    userId: string; // Updated from accountId for family architecture
     integrationId: string;
   }): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
-        .from('account_integrations')
+        .from('user_integrations')
         .update({
           status: 'disconnected',
           enabled: false,
@@ -173,7 +173,7 @@ export class AccountIntegrationsService {
           last_error: null,
           updated_at: new Date().toISOString()
         })
-        .eq('account_id', params.accountId)
+        .eq('user_id', params.userId)
         .eq('integration_id', params.integrationId);
 
       if (error) throw error;

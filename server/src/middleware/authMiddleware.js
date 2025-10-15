@@ -1,18 +1,24 @@
+import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET;
 
-// Create admin client for server-side validation
+// Keep supabaseAdmin for optional JWT (fallback)
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
  * Middleware to validate JWT tokens from Authorization header
  */
 export const validateJWT = async (req, res, next) => {
+  console.log('🔍 AUTH MIDDLEWARE: Starting validation');
+  console.log('🔍 AUTH MIDDLEWARE: JWT Secret available:', !!supabaseJwtSecret);
+  console.log('🔍 AUTH MIDDLEWARE: JWT Secret length:', supabaseJwtSecret?.length);
   try {
     // Extract token from Authorization header
     const authHeader = req.headers.authorization;
+    console.log('🔍 AUTH MIDDLEWARE: Auth header received:', !!authHeader);
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
@@ -23,11 +29,10 @@ export const validateJWT = async (req, res, next) => {
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
-    // Validate token with Supabase
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    // Validate JWT locally
+    const decoded = jwt.verify(token, supabaseJwtSecret, { algorithms: ['HS256'] });
 
-    if (error || !user) {
-      console.error('JWT validation failed:', error);
+    if (!decoded || !decoded.sub) {
       return res.status(401).json({
         error: 'Invalid or expired token',
         message: 'Please log in again'
@@ -35,11 +40,15 @@ export const validateJWT = async (req, res, next) => {
     }
 
     // Attach user info to request object
-    req.user = user;
+    req.user = {
+      id: decoded.sub,
+      email: decoded.email,
+      ...decoded
+    };
     req.token = token;
 
     // Log successful authentication
-    console.log(`✅ Authenticated request from user: ${user.email} (${user.id})`);
+    console.log(`✅ Authenticated request from user: ${decoded.email} (${decoded.sub})`);
 
     next();
 

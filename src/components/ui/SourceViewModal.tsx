@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, MessageSquare, Mail, Calendar, User } from 'lucide-react';
-import { DataSource } from '../../services/accountProfileService';
+import { DataSource } from '../../services/familyProfileService';
 
 interface SourceViewModalProps {
   isOpen: boolean;

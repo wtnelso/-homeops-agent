@@ -20,6 +20,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { user, userData, signOut } = useAuth();
@@ -33,9 +34,27 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
         setIsAdmin(result.isAdmin);
       }
     };
-    
+
     checkAdminStatus();
   }, [user?.email]);
+
+  // Update avatar when userData changes
+  useEffect(() => {
+    if (userData?.user) {
+      const newAvatarUrl = userData.user.avatar_user_provided ||
+                          userData.user.avatar_url ||
+                          user?.user_metadata?.avatar_url ||
+                          user?.user_metadata?.picture ||
+                          null;
+
+      // Only update if the URL actually changed
+      if (newAvatarUrl !== avatarUrl) {
+        setAvatarUrl(newAvatarUrl);
+      }
+    } else if (avatarUrl !== null) {
+      setAvatarUrl(null);
+    }
+  }, [userData?.user?.avatar_user_provided, userData?.user?.avatar_url, user?.user_metadata?.avatar_url, user?.user_metadata?.picture]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -55,16 +74,6 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
   const getUserDisplayName = () => {
     if (!user) return 'User';
     return user.user_metadata?.name || user.email?.split('@')[0] || 'User';
-  };
-
-  const getUserAvatar = () => {
-    if (!userData?.user) return null;
-    // Prioritize user-provided avatar, then database avatar_url, then OAuth metadata
-    return userData.user.avatar_user_provided || 
-           userData.user.avatar_url || 
-           user?.user_metadata?.avatar_url || 
-           user?.user_metadata?.picture || 
-           null;
   };
 
   const toggleDropdown = () => {
@@ -124,9 +133,9 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
         onClick={toggleDropdown}
         className="flex items-center p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-gray-700/50 transition-all duration-200 hover:shadow-sm"
       >
-        {getUserAvatar() ? (
+        {avatarUrl ? (
           <img
-            src={getUserAvatar()!}
+            src={avatarUrl}
             alt={getUserDisplayName()}
             className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600"
           />
@@ -153,24 +162,9 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
         >
           {/* User info */}
           <div className="px-4 py-3 border-b border-blue-200/30 dark:border-gray-700/50 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-gray-700/50 dark:to-gray-600/50 rounded-t-xl">
-            <div className="flex items-center space-x-3">
-              {getUserAvatar() ? (
-                <img
-                  src={getUserAvatar()!}
-                  alt={getUserDisplayName()}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-slate-600 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-white font-medium">
-                    {getUserDisplayName().charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{getUserDisplayName()}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email || 'Guest'}</p>
-              </div>
+            <div className="flex flex-col">
+              <p className="text-sm font-medium text-gray-900 dark:text-white">{getUserDisplayName()}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email || 'Guest'}</p>
             </div>
           </div>
 
@@ -221,6 +215,11 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
           {/* Admin Panel */}
           {isAdmin && (
             <div className="border-t border-gray-200 dark:border-gray-700 pt-1 pb-1">
+              <div className="px-4 py-1 mb-1">
+                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wide">
+                  Admin
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={(e) => {
@@ -228,13 +227,10 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
                   e.stopPropagation();
                   handleAdmin();
                 }}
-                className="flex items-center w-full px-4 py-2.5 text-sm text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all duration-200 rounded-lg mx-1 hover:shadow-sm border border-purple-200 dark:border-purple-700/50"
+                className="flex items-center w-full px-4 py-2.5 text-sm text-purple-700 dark:text-purple-300 hover:bg-blue-50 dark:hover:bg-gray-700/50 transition-all duration-200 rounded-lg mx-1 hover:shadow-sm"
               >
                 <Shield className="w-4 h-4 mr-3" />
                 Admin Panel
-                <span className="ml-auto bg-purple-200 dark:bg-purple-800/50 text-purple-800 dark:text-purple-200 text-xs px-2 py-0.5 rounded-full font-medium">
-                  ADMIN
-                </span>
               </button>
             </div>
           )}

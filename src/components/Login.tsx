@@ -5,6 +5,10 @@ import { auth } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { Eye, EyeOff } from 'lucide-react';
+import { AuthValidator } from '../lib/validation';
+import { AUTH_IMAGES } from '../config/authImages';
+import MobileAuthHeader from './ui/MobileAuthHeader';
+import MobileAuthFooter from './ui/MobileAuthFooter';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +16,8 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<{[key: string]: boolean}>({});
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { showToast } = useToast();
@@ -24,31 +30,101 @@ const Login: React.FC = () => {
     }
   }, [user, loading, navigate]);
 
+  const validateForm = (): boolean => {
+    const errors: string[] = [];
+    const newFieldErrors: {[key: string]: boolean} = {};
+    let priorityError: string | null = null;
+
+    // Priority 1: Email validation
+    const emailValidation = AuthValidator.validateEmail(email);
+    if (!emailValidation.isValid) {
+      newFieldErrors.email = true;
+      priorityError = emailValidation.errors[0]; // Show first email error
+      showToast(priorityError, 'error');
+    }
+    // Priority 2: Password validation (only if email is valid)
+    else if (!password) {
+      newFieldErrors.password = true;
+      priorityError = 'Password is required';
+      showToast(priorityError, 'error');
+    } else if (password.length < 3) {
+      newFieldErrors.password = true;
+      priorityError = 'Password is too short';
+      showToast(priorityError, 'error');
+    }
+
+    // Check rate limiting (always check but don't override priority error display)
+    const rateCheck = AuthValidator.checkRateLimit(email);
+    if (!rateCheck.isValid) {
+      if (!priorityError) {
+        priorityError = rateCheck.errors[0];
+        showToast(priorityError, 'error');
+      }
+    }
+
+    // Only show one error at a time
+    if (priorityError) {
+      errors.push(priorityError);
+    }
+
+    setValidationErrors(errors);
+    setFieldErrors(newFieldErrors);
+    return errors.length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setValidationErrors([]);
+    setFieldErrors({});
+
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       console.log('🔐 Testing email/password login...');
       const { data, error } = await auth.signIn(email, password);
       console.log('📊 Email login result:', { data, error });
-      
+
       if (error) {
-        setError(error.message);
-        showToast(error.message, 'error');
+        // Check if this is a provider mismatch error
+        if ((error as any).provider) {
+          setError(error.message);
+          showToast(error.message, 'error');
+          return;
+        }
+
+        // Record failed attempt for regular auth errors
+        AuthValidator.recordFailedAttempt(email);
+
+        // Show specific error for certain cases, generic for security
+        let errorMessage = 'Invalid email or password';
+        if (error.message.includes('User already registered') ||
+            error.message.includes('already registered') ||
+            error.message.includes('signup is disabled')) {
+          errorMessage = error.message;
+        }
+
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
         return;
       }
 
       if (data?.user) {
         console.log('✅ Email login successful');
+        // Clear rate limiting on successful login
+        AuthValidator.clearAttempts(email);
         // In staging, redirect to home page after login
         const redirectTo = IS_LIVE ? ROUTES.DASHBOARD_HOME : ROUTES.HOME;
         navigate(redirectTo);
       }
     } catch (error) {
       console.error('Login error:', error);
-      const errorMessage = 'An unexpected error occurred. Please try again.';
+      AuthValidator.recordFailedAttempt(email);
+      const errorMessage = 'Authentication failed. Please try again.';
       setError(errorMessage);
       showToast(errorMessage, 'error');
     } finally {
@@ -86,35 +162,43 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Form Panel - Full width on mobile, half on desktop */}
-      <div className="flex-1 flex flex-col lg:w-1/2">
-        {/* Mobile Header with Logo */}
-        <div className="lg:hidden py-6 px-4 sm:px-6 bg-gradient-to-r from-blue-600 to-purple-700">
-          <div className="flex items-center justify-center">
-            <img src="/favicon.ico" alt="HomeOps" className="w-8 h-8 mr-2" />
-            <h1 className="text-2xl font-bold text-white">HomeOps</h1>
-          </div>
+      <div className="flex-1 flex flex-col lg:w-1/2 relative">
+        <MobileAuthHeader />
+
+        {/* Desktop back button - positioned at top left */}
+        <div className="hidden lg:block absolute top-6 left-6 z-10">
+          <Link
+            to={ROUTES.HOME}
+            className="inline-flex items-center px-3 py-2 text-sm font-medium text-white rounded-lg transition-all duration-300 hover:-translate-y-0.5"
+            style={{
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              boxShadow: '0 2px 8px 0 rgba(99, 102, 241, 0.3)',
+              fontWeight: 600
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 12px 0 rgba(99, 102, 241, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(99, 102, 241, 0.3)';
+            }}
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Return home
+          </Link>
         </div>
 
-        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
+        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24 pt-16 lg:pt-0 bg-gray-50">
           <div className="mx-auto w-full max-w-sm lg:w-96">
-            {/* Back to dashboard link */}
-            <div className="mb-8">
-              <Link 
-                to={ROUTES.HOME} 
-                className="flex items-center text-sm text-gray-600 hover:text-gray-900"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Return home
-              </Link>
-            </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Sign In</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Enter your email and password to sign in!
-            </p>
+            {/* Hero favicon */}
+            <div className="flex justify-center mb-6">
+              <img src={AUTH_IMAGES.hero.favicon} alt="HomeOps" className="w-16 h-16" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 text-center">Sign In</h2>
           </div>
 
           <div className="mt-8">
@@ -128,9 +212,9 @@ const Login: React.FC = () => {
                   console.log('🔍 auth object:', auth);
                   handleGoogleSignIn().catch(err => console.error('🚨 Click handler error:', err));
                 }}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-500 hover:bg-gray-50"
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-500 bg-white hover:bg-gray-50"
               >
-                <img src="/google-logo.svg" alt="Google" style={{ width: 18, height: 18 }} />
+                <img src={AUTH_IMAGES.logos.google} alt="Google" style={{ width: 18, height: 18 }} />
                 <span className="ml-2">Log in with Google</span>
               </button>
             </div>
@@ -146,10 +230,26 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Enter your email and password to sign in!
+              </p>
+            </div>
+
+            <form className="mt-6 space-y-6" onSubmit={handleSubmit} noValidate>
               {error && (
                 <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
                   {error}
+                </div>
+              )}
+
+              {validationErrors.length > 0 && (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                  {validationErrors.map((error, index) => (
+                    <div key={index} className="text-sm text-red-600">
+                      {error}
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -165,8 +265,17 @@ const Login: React.FC = () => {
                     autoComplete="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (fieldErrors.email) {
+                        setFieldErrors(prev => ({ ...prev, email: false }));
+                      }
+                    }}
+                    className={`appearance-none block w-full px-3 py-2 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${
+                      fieldErrors.email
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                     placeholder="info@gmail.com"
                   />
                 </div>
@@ -184,8 +293,17 @@ const Login: React.FC = () => {
                     autoComplete="current-password"
                     required
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (fieldErrors.password) {
+                        setFieldErrors(prev => ({ ...prev, password: false }));
+                      }
+                    }}
+                    className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${
+                      fieldErrors.password
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                     placeholder="Enter your password"
                   />
                   <button
@@ -214,7 +332,19 @@ const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:-translate-y-0.5"
+                  style={{
+                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    boxShadow: '0 2px 8px 0 rgba(99, 102, 241, 0.3)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.boxShadow = '0 4px 12px 0 rgba(99, 102, 241, 0.4)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(99, 102, 241, 0.3)';
+                  }}
                 >
                   {isLoading ? 'Signing in...' : 'Sign In'}
                 </button>
@@ -231,25 +361,7 @@ const Login: React.FC = () => {
         </div>
       </div>
 
-        {/* Mobile Footer */}
-        <div className="lg:hidden py-6 px-4 sm:px-6 bg-white">
-          <div className="text-center space-y-4">
-            <div className="flex justify-center space-x-8">
-              <Link to={ROUTES.PRIVACY} className="text-sm text-gray-500 hover:text-gray-700">
-                Privacy Policy
-              </Link>
-              <Link to={ROUTES.TERMS} className="text-sm text-gray-500 hover:text-gray-700">
-                Terms of Service
-              </Link>
-            </div>
-            <p className="text-sm text-gray-500">
-              Copyright © 2025 HomeOps. All rights reserved.
-            </p>
-            <p className="text-sm text-gray-500">
-              Made with ❤️ for modern families
-            </p>
-          </div>
-        </div>
+        <MobileAuthFooter />
     </div>
 
       {/* Right Panel - Branding (hidden on mobile) */}
@@ -257,8 +369,8 @@ const Login: React.FC = () => {
         <div
           className="absolute inset-0 h-full w-full bg-cover bg-no-repeat"
           style={{
-            backgroundImage: `url('/images/auth-background.png')`,
-            backgroundPosition: '97% center',
+            backgroundImage: `url('${AUTH_IMAGES.backgrounds.login}')`,
+            backgroundPosition: AUTH_IMAGES.backgroundPositions.login,
           }}
         >
         </div>

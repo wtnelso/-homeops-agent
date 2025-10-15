@@ -92,11 +92,40 @@ api/                   # Vercel serverless functions
 5. **Admin Panel**: Secure founder access for platform management
 
 ## Development Guidelines
+
+### Database Operations
+- **Always Use MCP Tools**: For any database operations (Supabase OR Neon), use the respective MCP tools rather than direct SQL or API calls
+- **Supabase MCP**: Use `mcp__supabase__*` tools for auth, tables, migrations, queries
+- **Neon MCP**: Use `mcp__neon__*` tools for AI conversation database operations
+- **Migration Safety**: Use MCP migration tools with temporary branches for testing before applying to main
+
+### Security Best Practices
+- **JWT Tokens**: Always use JWT for authentication and session management
+- **Multi-layer Protection**: RLS policies, server-side validation, client-side guards
+- **Token Validation**: Verify JWT signatures server-side, never trust client-only validation
+- **Secure Headers**: Implement proper CORS, CSP, and security headers
+- **Environment Secrets**: Never commit secrets, use environment variables exclusively
+
+### UI/UX Standards
+- **Lucide Icons**: Use Lucide React icons as the default icon library for consistency
+- **Purple Gradient Branding**: Primary actions use `linear-gradient(135deg, #6366f1, #8b5cf6)`
+- **Dark Theme**: Base colors `#0f0f23` (background) and `#cbd5e1` (text)
+- **Component Library**: Build reusable UI components in `src/components/ui/`
+- **Mobile-First**: Design responsive components with mobile as primary consideration
+
+### Code Quality
 - **Configuration-First**: Use config files for AI behavior, patterns, and defaults
 - **TypeScript**: All new code must have proper type definitions
 - **Component Composition**: Small, reusable components over large ones
 - **Error Handling**: Structured responses with user-friendly messages
-- **Security**: Multi-layer file validation, RLS policies, JWT validation
+- **Testing**: Write tests for critical business logic and user flows
+
+### Critical Thinking
+- **Challenge Assumptions**: Always question requirements and propose alternative approaches
+- **Consider Edge Cases**: Think through error states, loading states, and failure scenarios
+- **Performance Impact**: Evaluate database queries, API calls, and bundle size implications
+- **Security Implications**: Consider potential vulnerabilities and attack vectors
+- **User Experience**: Question if the proposed solution truly improves the user experience
 
 ## Deployment
 - **Frontend**: Auto-deploys from dev branch to Vercel

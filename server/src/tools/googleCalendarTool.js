@@ -10,7 +10,7 @@ import { getTokenService } from '../services/oauthTokenService.js';
 import { TOOLS_CONFIG } from '../config/chatConfig.js';
 
 export class GoogleCalendarTool extends Tool {
-  name = 'google_calendar';
+  name = 'calendar';
   description = `ALWAYS use this tool when the user asks about calendar events, scheduling, or time-related queries.
 
   This tool provides access to Google Calendar for:
@@ -25,7 +25,7 @@ export class GoogleCalendarTool extends Tool {
   - "schedule a meeting" / "create an event" / "add to calendar"
   - "when am I free" / "find available time" / "check my schedule"
   - "do I have conflicts" / "when is my next meeting"
-  - Family scheduling questions ("when is Emma's practice", "family events")
+  - Family scheduling questions ("when is my child's practice", "family events")
 
   Input format: {"action": "action_type", "query": "details", "startDate": "optional", "endDate": "optional"}
 
@@ -35,12 +35,22 @@ export class GoogleCalendarTool extends Tool {
   - "find_free_time": Find available time slots
   - "search_events": Search for specific events
 
+  TEMPORAL PARAMETER MAPPING - For time-based queries, map user phrases to specific parameters:
+  - "today" → {"action": "list_events", "query": "today's events"}
+  - "this week" → {"action": "list_events", "query": "this week's events"}
+  - "what's going on this week" → {"action": "list_events", "query": "this week's schedule"}
+  - "next week" → {"action": "list_events", "query": "next week's events"}
+  - "tomorrow" → {"action": "list_events", "query": "tomorrow's events"}
+  - "weekend" → {"action": "list_events", "query": "weekend events"}
+
   Example inputs:
   - {"action": "list_events", "query": "today's events"}
+  - {"action": "list_events", "query": "this week's events"}
+  - {"action": "list_events", "query": "next week's schedule"}
   - {"action": "list_events", "startDate": "2025-01-15", "endDate": "2025-01-16"}
   - {"action": "create_event", "query": "Doctor appointment", "startDate": "2025-01-20", "startTime": "2:00 PM"}
   - {"action": "find_free_time", "query": "2 hour meeting next week"}
-  - {"action": "search_events", "query": "Emma's soccer practice"}`;
+  - {"action": "search_events", "query": "my child's soccer practice"}`;
 
   schema = {
     type: 'object',
@@ -87,13 +97,14 @@ export class GoogleCalendarTool extends Tool {
     console.log(`🗓️ Input received:`, JSON.stringify(input, null, 2));
 
     try {
-      const { action, query, startDate, endDate, startTime, duration } = input || {};
+      const { action, query, temporalRange } = input || {};
       console.log(`🗓️ Parsed - action: "${action}", query: "${query}"`);
 
-      if (!action || !query) {
+      // Only require action parameter
+      if (!action) {
         return JSON.stringify({
           success: false,
-          error: 'Action and query parameters are required'
+          error: 'Action parameter is required'
         });
       }
 
@@ -122,7 +133,7 @@ export class GoogleCalendarTool extends Tool {
       // Execute the requested calendar action
       switch (action) {
         case 'list_events':
-          return await this.listEvents(accessToken, { query, startDate, endDate });
+          return await this.listEvents(accessToken, { temporalRange });
 
         case 'create_event':
           return await this.createEvent(accessToken, { query, startDate, startTime, duration });
@@ -151,18 +162,29 @@ export class GoogleCalendarTool extends Tool {
   }
 
   /**
+   * Extract date range from temporal range object
+   */
+  parseTemporalRange(temporalRange) {
+    if (!temporalRange || !temporalRange.startDate || !temporalRange.endDate) {
+      throw new Error('Calendar tool requires valid temporalRange object with startDate and endDate');
+    }
+
+    console.log(`📅 Using temporal range "${temporalRange.phrase}": ${new Date(temporalRange.startDate).toDateString()} - ${new Date(temporalRange.endDate).toDateString()}`);
+
+    return {
+      start: new Date(temporalRange.startDate),
+      end: new Date(temporalRange.endDate)
+    };
+  }
+
+  /**
    * List calendar events for a date range
    */
-  async listEvents(accessToken, { query, startDate, endDate }) {
+  async listEvents(accessToken, { temporalRange }) {
     try {
-      console.log(`📅 Listing events: ${query}`);
+      console.log(`📅 Listing events for temporal range:`, temporalRange?.phrase);
 
-      // Default to today if no dates specified
-      const start = startDate ? new Date(startDate) : new Date();
-      const end = endDate ? new Date(endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 1 week from now
-
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
+      const { start, end } = this.parseTemporalRange(temporalRange);
 
       const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
         `timeMin=${start.toISOString()}&` +
@@ -189,8 +211,10 @@ export class GoogleCalendarTool extends Tool {
 
       const formattedEvents = events.map(event => ({
         id: event.id,
-        title: event.summary || 'Untitled Event',
+        title: event.summary,
+        summary: event.summary,
         start: event.start?.dateTime || event.start?.date,
+        startTime: event.start?.dateTime || event.start?.date,
         end: event.end?.dateTime || event.end?.date,
         location: event.location,
         description: event.description,
@@ -198,14 +222,16 @@ export class GoogleCalendarTool extends Tool {
         allDay: !event.start?.dateTime
       }));
 
-      return JSON.stringify({
+      const result = {
         success: true,
         action: 'list_events',
-        query: query,
         dateRange: `${start.toDateString()} to ${end.toDateString()}`,
         eventCount: events.length,
         events: formattedEvents
-      });
+      };
+
+      console.log(`📅 Calendar tool returning:`, JSON.stringify(result, null, 2));
+      return JSON.stringify(result);
 
     } catch (error) {
       console.error('📅 List events error:', error);

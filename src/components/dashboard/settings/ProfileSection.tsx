@@ -5,17 +5,18 @@ import { useToast } from '../../../contexts/ToastContext';
 import { DataUpdateService } from '../../../services/dataUpdate';
 import { AvatarUploadService } from '../../../services/avatarUpload';
 import AvatarUpload from '../../ui/AvatarUpload';
+import { useUserDataForm, getProfileFormData, defaultProfileFormData } from '../../../hooks/useUserDataForm';
 
 const ProfileSection: React.FC = () => {
   const { userData, refreshUserData } = useAuth();
   const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({
-    name_user_provided: userData?.user.name || '',
-    avatar_url: userData?.user.avatar_url || '',
-    avatar_user_provided: userData?.user.avatar_user_provided || null,
-  });
+  const [formData, setFormData] = useUserDataForm(
+    userData,
+    getProfileFormData,
+    defaultProfileFormData
+  );
 
   const handleSave = async () => {
     if (!userData) return;

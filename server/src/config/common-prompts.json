@@ -1,0 +1,364 @@
+{
+  "exact_matches": {
+    "what's happening this week": {
+      "tools": ["calendar", "family_activities"],
+      "dateRange": "this_week",
+      "query": null,
+      "params": {
+        "calendar": { "action": "list_events" },
+        "family_activities": {}
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's happening this week"
+      },
+      "bypass_llm": true
+    },
+    "what is happening this week": {
+      "tools": ["calendar", "family_activities"],
+      "dateRange": "this_week",
+      "query": null,
+      "params": {
+        "calendar": { "action": "list_events" },
+        "family_activities": {}
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's happening this week"
+      },
+      "bypass_llm": true
+    },
+    "what's going on this week": {
+      "tools": ["calendar", "family_activities"],
+      "dateRange": "this_week",
+      "query": null,
+      "params": {
+        "calendar": { "action": "list_events" },
+        "family_activities": {}
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's happening this week"
+      },
+      "bypass_llm": true
+    },
+    "what is going on this week": {
+      "tools": ["calendar", "family_activities"],
+      "dateRange": "this_week",
+      "query": null,
+      "params": {
+        "calendar": { "action": "list_events" },
+        "family_activities": {}
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's happening this week"
+      },
+      "bypass_llm": true
+    },
+    "what's happening next week": {
+      "tools": ["calendar", "family_activities"],
+      "dateRange": "next_week",
+      "query": null,
+      "params": {
+        "calendar": { "action": "list_events" },
+        "family_activities": {}
+      },
+      "response_template": "Here's what's happening next week:",
+      "bypass_llm": true
+    },
+
+    "what happened last week": {
+      "tools": ["calendar", "family_activities"],
+      "dateRange": "last_week",
+      "query": null,
+      "params": {
+        "calendar": { "action": "list_events" },
+        "family_activities": {}
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what happened last week"
+      },
+      "bypass_llm": true
+    },
+    "what was happening last week": {
+      "tools": ["calendar", "family_activities"],
+      "dateRange": "last_week",
+      "query": null,
+      "params": {
+        "calendar": { "action": "list_events" },
+        "family_activities": {}
+      },
+      "response_template": "Here's what was happening last week:",
+      "bypass_llm": true
+    },
+
+    "what's on my calendar": {
+      "tools": ["calendar"],
+      "dateRange": "today",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": "Here's what's on your calendar today ({current_date}):",
+      "bypass_llm": true
+    },
+    "what is on my calendar": {
+      "tools": ["calendar"],
+      "dateRange": "today",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": "Here's what's on your calendar today ({current_date}):",
+      "bypass_llm": true
+    },
+    "what's happening today": {
+      "tools": ["calendar"],
+      "dateRange": "today",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's happening today"
+      },
+      "bypass_llm": true
+    },
+    "what is happening today": {
+      "tools": ["calendar"],
+      "dateRange": "today",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's happening today"
+      },
+      "bypass_llm": true
+    },
+    "what's on my calendar today": {
+      "tools": ["calendar"],
+      "dateRange": "today",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": "Your calendar for today ({current_date}):",
+      "bypass_llm": true
+    },
+    "what is on my calendar today": {
+      "tools": ["calendar"],
+      "dateRange": "today",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": "Your calendar for today ({current_date}):",
+      "bypass_llm": true
+    },
+    "what's on my calendar this week": {
+      "tools": ["calendar"],
+      "dateRange": "this_week",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": "Your calendar for this week ({date_range}):",
+      "bypass_llm": true
+    },
+    "what is on my calendar this week": {
+      "tools": ["calendar"],
+      "dateRange": "this_week",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": "Your calendar for this week ({date_range}):",
+      "bypass_llm": true
+    },
+    "what's on my calendar tomorrow": {
+      "tools": ["calendar"],
+      "dateRange": "tomorrow",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's on your calendar tomorrow"
+      },
+      "bypass_llm": true
+    },
+    "what is on my calendar tomorrow": {
+      "tools": ["calendar"],
+      "dateRange": "tomorrow",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's on your calendar tomorrow"
+      },
+      "bypass_llm": true
+    },
+    "what is happening tomorrow": {
+      "tools": ["calendar", "family_activities"],
+      "dateRange": "tomorrow",
+      "query": null,
+      "params": {
+        "calendar": { "action": "list_events" },
+        "family_activities": {}
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's happening tomorrow"
+      },
+      "bypass_llm": true
+    },
+    "what's happening tomorrow": {
+      "tools": ["calendar", "family_activities"],
+      "dateRange": "tomorrow",
+      "query": null,
+      "params": {
+        "calendar": { "action": "list_events" },
+        "family_activities": {}
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's happening tomorrow"
+      },
+      "bypass_llm": true
+    },
+    "what happened yesterday": {
+      "tools": ["calendar", "family_activities"],
+      "dateRange": "yesterday",
+      "query": null,
+      "params": {
+        "calendar": { "action": "list_events" },
+        "family_activities": {}
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what happened yesterday"
+      },
+      "bypass_llm": true
+    },
+    "what activities do we have": {
+      "tools": ["family_activities"],
+      "dateRange": "today",
+      "query": "activities",
+      "params": { "family_activities": {} },
+      "response_template": "Here are your family activities for today:",
+      "bypass_llm": true
+    },
+    "what activities do we have this week": {
+      "tools": ["family_activities"],
+      "dateRange": "this_week",
+      "query": "activities",
+      "params": { "family_activities": {} },
+      "response_template": "Here are your family activities for this week ({date_range}):",
+      "bypass_llm": true
+    },
+
+    "check my email": {
+      "tools": ["gmail_search"],
+      "query": "recent emails",
+      "params": { "gmail_search": { "maxResults": 10 } },
+      "response_template": "Here are your recent emails:",
+      "bypass_llm": true
+    },
+
+    "who is my doctor": {
+      "tools": ["agent_memory_search"],
+      "params": { "agent_memory_search": { "query": "doctor" } }
+    },
+    "what's my child's teacher's name": {
+      "tools": ["agent_memory_search"],
+      "params": { "agent_memory_search": { "query": "teacher" } }
+    },
+
+    "what are the upcoming school events i need to know about": {
+      "tools": ["gmail_search", "calendar"],
+      "dateRange": "next_30_days",
+      "query": "school events",
+      "params": {
+        "gmail_search": { "query": "from:school OR subject:school OR school events" },
+        "calendar": { "action": "list_events" }
+      }
+    },
+
+    "are there any important appointments coming up": {
+      "tools": ["calendar"],
+      "dateRange": "next_7_days",
+      "query": "appointments",
+      "params": { "calendar": { "action": "list_events" } }
+    }
+  },
+
+  "pattern_matches": {
+    "did {name} email me": {
+      "tools": ["gmail_search"],
+      "query": "from:{name}",
+      "params": { "gmail_search": {} }
+    },
+    "any emails from {name}": {
+      "tools": ["gmail_search"],
+      "query": "from:{name}",
+      "params": { "gmail_search": {} }
+    },
+    "emails from {name}": {
+      "tools": ["gmail_search"],
+      "query": "from:{name}",
+      "params": { "gmail_search": {} }
+    },
+    "check emails from {name}": {
+      "tools": ["gmail_search"],
+      "query": "from:{name}",
+      "params": { "gmail_search": {} }
+    },
+    "has {name} emailed me": {
+      "tools": ["gmail_search"],
+      "query": "from:{name}",
+      "params": { "gmail_search": {} }
+    },
+
+    "emails about {subject}": {
+      "tools": ["gmail_search"],
+      "query": "subject:{subject}",
+      "params": { "gmail_search": {} }
+    },
+    "any emails about {subject}": {
+      "tools": ["gmail_search"],
+      "query": "subject:{subject}",
+      "params": { "gmail_search": {} }
+    },
+
+    "what's on my calendar for the next {number} days": {
+      "tools": ["calendar"],
+      "dateRange": "next_{number}_days",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } }
+    },
+    "what's on my calendar for the next several days": {
+      "tools": ["calendar"],
+      "dateRange": "next_7_days",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } }
+    },
+    "what's on my calendar for the next few days": {
+      "tools": ["calendar"],
+      "dateRange": "next_3_days",
+      "query": null,
+      "params": { "calendar": { "action": "list_events" } }
+    }
+  },
+
+  "date_patterns": {
+    "today": { "type": "single_day", "offset": 0 },
+    "tomorrow": { "type": "single_day", "offset": 1 },
+    "this_week": { "type": "week", "offset": 0 },
+    "next_week": { "type": "week", "offset": 1 },
+    "last_week": { "type": "week", "offset": -1 },
+    "next_3_days": { "type": "range", "days": 3 },
+    "next_7_days": { "type": "range", "days": 7 },
+    "next_30_days": { "type": "range", "days": 30 },
+    "next_{number}_days": { "type": "dynamic_range", "variable": "number" }
+  }
+}

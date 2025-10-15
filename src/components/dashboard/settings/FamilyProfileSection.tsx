@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Users, Heart, Baby, User, ChevronDown, ChevronRight, Plus, Edit, Trash2, Calendar, GraduationCap, Dumbbell, Palette, BookOpen, Users2, TreePine, Home, Heart as HeartIcon, Zap, School, Building, Building2, University, UserCheck, Crown, Dog, UserX, Target } from 'lucide-react';
+import { Heart, Baby, User, ChevronDown, ChevronRight, Plus, Edit, Trash2, Calendar, GraduationCap, Dumbbell, Palette, BookOpen, Users2, TreePine, Home, Heart as HeartIcon, Zap, School, Building, Building2, University, UserCheck, Crown, Dog, UserX, Target, UserPlus } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import AddMemberModal from '../../ui/AddMemberModal';
 import DeleteMemberModal from '../../ui/DeleteMemberModal';
 import AddHobbyModal from '../../ui/AddHobbyModal';
 import AddSchoolModal from '../../ui/AddSchoolModal';
+import AddContactModal from '../../ui/AddContactModal';
 import DeleteConfirmationModal from '../../ui/DeleteConfirmationModal';
 import SourceIndicator from '../../ui/SourceIndicator';
-import { accountProfileService } from '../../../services/accountProfileService';
+import { familyProfileService } from '../../../services/familyProfileService';
+import { FamilyMember } from '../../../services/userSession';
+import { FamilyManagementService } from '../../../services/familyManagementService';
 
 // Helper function to get activity type styling and icon
 const getActivityTypeStyle = (type: string) => {
@@ -140,10 +143,14 @@ const getMemberTypeIcon = (type: string) => {
 };
 
 
-const FamilyProfileSection: React.FC = () => {
+interface FamilyProfileSectionProps {
+  defaultTab?: 'members' | 'activities' | 'contacts';
+}
+
+const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab = 'members' }) => {
   const { userData, refreshUserData } = useAuth();
   const { showToast } = useToast();
-  const profileData = userData?.profileData;
+  const profileData = userData?.family;
 
   // Helper functions to format display text
   const formatSchoolType = (type: string): string => {
@@ -191,8 +198,7 @@ const FamilyProfileSection: React.FC = () => {
     return memberTypeMap[type] || type;
   };
 
-  const [activeTab, setActiveTab] = useState<'members' | 'activities'>('members');
-  const [expandedMembers, setExpandedMembers] = useState<{[memberKey: string]: boolean}>({});
+  const [selectedMemberIndex, setSelectedMemberIndex] = useState<number | null>(null);
   const [expandedActivities, setExpandedActivities] = useState<{[memberKey: string]: boolean}>({});
   const [expandedSchools, setExpandedSchools] = useState<{[memberKey: string]: boolean}>({});
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
@@ -218,36 +224,35 @@ const FamilyProfileSection: React.FC = () => {
   const [editingFamilyHobby, setEditingFamilyHobby] = useState<any>(null);
   const [editingFamilyHobbyIndex, setEditingFamilyHobbyIndex] = useState<number>(-1);
 
+  // Contact modal state
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [editingContact, setEditingContact] = useState<any>(null);
+  const [editingContactIndex, setEditingContactIndex] = useState<number>(-1);
+
   // Delete confirmation modal state
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteItem, setDeleteItem] = useState<{
-    type: 'activity' | 'school';
+    type: 'activity' | 'school' | 'contact';
     name: string;
-    memberIndex: number;
-    itemIndex: number;
+    memberIndex?: number;
+    itemIndex?: number;
+    activityId?: string;
+    schoolId?: string;
+    contactId?: string;
   } | null>(null);
 
 
 
-  // Toggle member expansion (only one open at a time)
-  const toggleMember = (memberKey: string) => {
-    setExpandedMembers(prev => {
-      const isCurrentlyExpanded = prev[memberKey];
-
-      // If clicking the same member that's open, close it
-      if (isCurrentlyExpanded) {
-        // Also close all sub-accordions when closing member
-        setExpandedActivities({});
-        setExpandedSchools({});
-        return {};
-      }
-
-      // Otherwise, close all others and open this one
-      // Also close all sub-accordions when switching members
+  // Handle member card selection
+  const handleMemberSelect = (memberIndex: number) => {
+    if (selectedMemberIndex === memberIndex) {
+      setSelectedMemberIndex(null); // Deselect if already selected
+    } else {
+      setSelectedMemberIndex(memberIndex);
+      // Close all sub-accordions when switching members
       setExpandedActivities({});
       setExpandedSchools({});
-      return { [memberKey]: true };
-    });
+    }
   };
 
   // Toggle activities expansion
@@ -270,39 +275,27 @@ const FamilyProfileSection: React.FC = () => {
 
   // Add new member (called by modal)
   const handleAddMember = async (memberData: any) => {
-    // Create new member object (server will generate ID)
+    const familyId = userData?.user?.family_id || '';
+
+    // Create new member object
     const newMember = {
+      family_id: familyId,
+      user_id: null, // Family members are not system users
       name: memberData.name,
-      type: memberData.type,
+      family_relationship: memberData.type,
       email: memberData.email,
-      age: memberData.age ? parseInt(memberData.age) : undefined,
-      birthday: {
-        month: memberData.birthday_month || '',
-        day: memberData.birthday_day || ''
-      },
-      source: {
-        type: 'manual' as const,
-        timestamp: new Date().toISOString(),
-        confidence: 1.0,
-        source_id: undefined,
-        original_text: undefined
-      }
-    };
-
-    // Add to existing members array
-    const updatedMembers = [...(profileData?.members || []), newMember];
-
-    const updateData = {
-      members: updatedMembers
+      age: memberData.age ? parseInt(memberData.age) : null,
+      birthday_month: memberData.birthday_month || null,
+      birthday_day: memberData.birthday_day ? parseInt(memberData.birthday_day) : null,
+      created_by: userData?.user?.id
     };
 
     console.log('📦 Adding new member:', newMember);
 
-    const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
+    const result = await FamilyManagementService.addFamilyMember(newMember, userData?.user?.id);
 
     if (result.success) {
       showToast('New member added successfully!', 'success');
-      // Refresh data
       await refreshUserData();
     } else {
       showToast('Failed to add member. Please try again.', 'error');
@@ -312,48 +305,28 @@ const FamilyProfileSection: React.FC = () => {
 
   // Edit existing member (called by modal)
   const handleEditMember = async (memberData: any) => {
-    const existingMember = profileData?.members?.[editingMemberIndex];
-    const updatedMember = {
-      ...existingMember,
-      name: memberData.name,
-      type: memberData.type,
-      email: memberData.email,
-      age: memberData.age ? parseInt(memberData.age) : undefined,
-      birthday: {
-        month: memberData.birthday_month || '',
-        day: memberData.birthday_day || ''
-      }
-    };
-
-    // Preserve existing source or add manual source for edits
-    if (!updatedMember.source) {
-      updatedMember.source = {
-        type: 'manual' as const,
-        timestamp: new Date().toISOString(),
-        confidence: 1.0,
-        source_id: undefined,
-        original_text: undefined
-      };
-    } else {
-      // Update timestamp for edits
-      updatedMember.source.updated_at = new Date().toISOString();
+    // Use the editingMember object that was stored when editing started
+    if (!editingMember?.family_member_id) {
+      throw new Error('Member ID not found');
     }
 
-    // Update the specific member in the array
-    const updatedMembers = [...(profileData?.members || [])];
-    updatedMembers[editingMemberIndex] = updatedMember;
-
-    const updateData = {
-      members: updatedMembers
+    const updatedMemberData = {
+      name: memberData.name,
+      family_relationship: memberData.type,
+      email: memberData.email,
+      age: memberData.age ? parseInt(memberData.age) : null,
+      birthday_month: memberData.birthday_month || null,
+      birthday_day: memberData.birthday_day ? parseInt(memberData.birthday_day) : null
     };
 
-    console.log('📝 Updating member:', updatedMember);
+    console.log('📝 Updating member - editingMember:', editingMember);
+    console.log('📝 Updating member - family_member_id:', editingMember.family_member_id);
+    console.log('📝 Updating member - updatedMemberData:', updatedMemberData);
 
-    const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
+    const result = await FamilyManagementService.updateFamilyMember(editingMember.family_member_id, updatedMemberData);
 
     if (result.success) {
       showToast('Member updated successfully!', 'success');
-      // Refresh data
       await refreshUserData();
       // Reset editing state
       setEditingMember(null);
@@ -381,27 +354,22 @@ const FamilyProfileSection: React.FC = () => {
   const handleDeleteMember = async () => {
     if (!memberToDelete) return;
 
-    const { member, index } = memberToDelete;
+    const { member } = memberToDelete;
 
     try {
-      // Remove the member from the array
-      const updatedMembers = (profileData?.members || []).filter((_, i) => i !== index);
-
-      const updateData = {
-        members: updatedMembers
-      };
-
       console.log('🗑️ Deleting member:', member.name);
 
-      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
-
-      if (result.success) {
-        showToast(`${member.name || 'Member'} deleted successfully!`, 'success');
-        // Refresh data
-        await refreshUserData();
+      if (member.family_member_id) {
+        const result = await FamilyManagementService.deleteFamilyMember(member.family_member_id);
+        if (result.success) {
+          showToast(`${member.name || 'Member'} deleted successfully!`, 'success');
+          await refreshUserData();
+        } else {
+          showToast('Failed to delete member. Please try again.', 'error');
+          throw new Error(result.error);
+        }
       } else {
-        showToast('Failed to delete member. Please try again.', 'error');
-        throw new Error(result.error);
+        throw new Error('Member ID not found');
       }
     } catch (error) {
       console.error('❌ Error deleting member:', error);
@@ -428,51 +396,113 @@ const FamilyProfileSection: React.FC = () => {
   // Handle hobby add/edit
   const handleHobbySubmit = async (hobbyData: any) => {
     try {
-      const updatedMembers = [...(profileData?.members || [])];
-      const member = updatedMembers[editingHobbyMemberIndex];
+      const familyId = userData?.user?.family_id || '';
 
-      if (!member.activities) {
-        member.activities = [];
-      }
+      // Determine if this is for a family member or family-wide activity
+      if (editingHobbyMemberIndex === 0 && members[0]?.isCurrentUser) {
+        // Family-wide activity (associated with the family, not a specific member)
+        const activityData = {
+          family_id: familyId,
+          family_member_id: null, // Family-wide activity
+          activity_name: hobbyData.name,
+          activity_type: hobbyData.type,
+          frequency: hobbyData.frequency,
+          days: hobbyData.days,
+          end_date: hobbyData.end_date,
+          created_by: userData?.user?.id,
+          source: {
+            type: 'manual' as const,
+            timestamp: new Date().toISOString(),
+            confidence: 1.0,
+            original_text: `Manually added activity: ${hobbyData.name} (${hobbyData.type})`
+          }
+        };
 
-      // Add source information for manual entries
-      const activityWithSource = {
-        ...hobbyData,
-        source: {
-          type: 'manual' as const,
-          timestamp: new Date().toISOString(),
-          confidence: 1.0,
-          source_id: undefined,
-          original_text: undefined
+        if (editingHobby) {
+          // Update existing activity
+          const activityId = editingHobby.id;
+          if (activityId) {
+            // Preserve existing source but update timestamp
+            if (editingHobby.source) {
+              activityData.source = {
+                ...editingHobby.source,
+                updated_at: new Date().toISOString()
+              };
+            }
+            const result = await FamilyManagementService.updateActivity(activityId, activityData);
+            if (result.success) {
+              showToast('Activity updated successfully!', 'success');
+              await refreshUserData();
+            } else {
+              throw new Error(result.error);
+            }
+          }
+        } else {
+          // Add new activity
+          const result = await FamilyManagementService.addActivity(activityData);
+          if (result.success) {
+            showToast('Activity added successfully!', 'success');
+            await refreshUserData();
+          } else {
+            throw new Error(result.error);
+          }
         }
-      };
-
-      if (editingHobby) {
-        // Edit existing hobby - preserve existing source or add new manual source
-        const existingSource = member.activities[editingHobbyIndex]?.source;
-        activityWithSource.source = existingSource || activityWithSource.source;
-        // Update timestamp for edits
-        activityWithSource.source.updated_at = new Date().toISOString();
-        member.activities[editingHobbyIndex] = activityWithSource;
       } else {
-        // Add new hobby
-        member.activities.push(activityWithSource);
+        // Member-specific activity
+        const member = members[editingHobbyMemberIndex];
+        const activityData = {
+          family_id: familyId,
+          family_member_id: member.family_member_id,
+          activity_name: hobbyData.name,
+          activity_type: hobbyData.type,
+          frequency: hobbyData.frequency,
+          days: hobbyData.days,
+          end_date: hobbyData.end_date,
+          created_by: userData?.user?.id,
+          familyMemberName: member.name, // Include family member name for agent memory
+          source: {
+            type: 'manual' as const,
+            timestamp: new Date().toISOString(),
+            confidence: 1.0,
+            original_text: `Manually added activity for ${member.name}: ${hobbyData.name} (${hobbyData.type})`
+          }
+        };
+
+        if (editingHobby) {
+          // Update existing activity
+          const activityId = editingHobby.id;
+          if (activityId) {
+            // Preserve existing source but update timestamp
+            if (editingHobby.source) {
+              activityData.source = {
+                ...editingHobby.source,
+                updated_at: new Date().toISOString()
+              };
+            }
+            const result = await FamilyManagementService.updateActivity(activityId, activityData);
+            if (result.success) {
+              showToast('Activity updated successfully!', 'success');
+              await refreshUserData();
+            } else {
+              throw new Error(result.error);
+            }
+          }
+        } else {
+          // Add new activity
+          const result = await FamilyManagementService.addActivity(activityData);
+          if (result.success) {
+            showToast('Activity added successfully!', 'success');
+            await refreshUserData();
+          } else {
+            throw new Error(result.error);
+          }
+        }
       }
 
-      const updateData = { members: updatedMembers };
-      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
-
-      if (result.success) {
-        showToast(`Activity ${editingHobby ? 'updated' : 'added'} successfully!`, 'success');
-        await refreshUserData();
-        // Reset state
-        setEditingHobby(null);
-        setEditingHobbyMemberIndex(-1);
-        setEditingHobbyIndex(-1);
-      } else {
-        showToast('Failed to save activity. Please try again.', 'error');
-        throw new Error(result.error);
-      }
+      // Reset state
+      setEditingHobby(null);
+      setEditingHobbyMemberIndex(-1);
+      setEditingHobbyIndex(-1);
     } catch (error) {
       console.error('❌ Error saving hobby:', error);
       showToast('Failed to save activity. Please try again.', 'error');
@@ -498,51 +528,111 @@ const FamilyProfileSection: React.FC = () => {
   // Handle school add/edit
   const handleSchoolSubmit = async (schoolData: any) => {
     try {
-      const updatedMembers = [...(profileData?.members || [])];
-      const member = updatedMembers[editingSchoolMemberIndex];
+      const familyId = userData?.user?.family_id || '';
 
-      if (!member.schools) {
-        member.schools = [];
-      }
+      // Determine if this is for a family member or family-wide school
+      if (editingSchoolMemberIndex === 0 && members[0]?.isCurrentUser) {
+        // Family-wide school (associated with the family, not a specific member)
+        const schoolDataForDb = {
+          family_id: familyId,
+          family_member_id: null, // Family-wide school
+          school_name: schoolData.name,
+          school_type: schoolData.type,
+          grade: schoolData.grade,
+          email_domain: schoolData.email_domain,
+          created_by: userData?.user?.id,
+          source: {
+            type: 'manual' as const,
+            timestamp: new Date().toISOString(),
+            confidence: 1.0,
+            original_text: `Manually added school: ${schoolData.name} (${schoolData.type})`
+          }
+        };
 
-      // Add source information for manual entries
-      const schoolWithSource = {
-        ...schoolData,
-        source: {
-          type: 'manual' as const,
-          timestamp: new Date().toISOString(),
-          confidence: 1.0,
-          source_id: undefined,
-          original_text: undefined
+        if (editingSchool) {
+          // Update existing school
+          const schoolId = editingSchool.id;
+          if (schoolId) {
+            // Preserve existing source but update timestamp
+            if (editingSchool.source) {
+              schoolDataForDb.source = {
+                ...editingSchool.source,
+                updated_at: new Date().toISOString()
+              };
+            }
+            const result = await FamilyManagementService.updateSchool(schoolId, schoolDataForDb);
+            if (result.success) {
+              showToast('School updated successfully!', 'success');
+              await refreshUserData();
+            } else {
+              throw new Error(result.error);
+            }
+          }
+        } else {
+          // Add new school
+          const result = await FamilyManagementService.addSchool(schoolDataForDb);
+          if (result.success) {
+            showToast('School added successfully!', 'success');
+            await refreshUserData();
+          } else {
+            throw new Error(result.error);
+          }
         }
-      };
-
-      if (editingSchool) {
-        // Edit existing school - preserve existing source or add new manual source
-        const existingSource = member.schools[editingSchoolIndex]?.source;
-        schoolWithSource.source = existingSource || schoolWithSource.source;
-        // Update timestamp for edits
-        schoolWithSource.source.updated_at = new Date().toISOString();
-        member.schools[editingSchoolIndex] = schoolWithSource;
       } else {
-        // Add new school
-        member.schools.push(schoolWithSource);
+        // Member-specific school
+        const member = members[editingSchoolMemberIndex];
+        const schoolDataForDb = {
+          family_id: familyId,
+          family_member_id: member.family_member_id,
+          school_name: schoolData.name,
+          school_type: schoolData.type,
+          grade: schoolData.grade,
+          email_domain: schoolData.email_domain,
+          created_by: userData?.user?.id,
+          familyMemberName: member.name, // Include family member name for agent memory
+          source: {
+            type: 'manual' as const,
+            timestamp: new Date().toISOString(),
+            confidence: 1.0,
+            original_text: `Manually added school for ${member.name}: ${schoolData.name} (${schoolData.type})`
+          }
+        };
+
+        if (editingSchool) {
+          // Update existing school
+          const schoolId = editingSchool.id;
+          if (schoolId) {
+            // Preserve existing source but update timestamp
+            if (editingSchool.source) {
+              schoolDataForDb.source = {
+                ...editingSchool.source,
+                updated_at: new Date().toISOString()
+              };
+            }
+            const result = await FamilyManagementService.updateSchool(schoolId, schoolDataForDb);
+            if (result.success) {
+              showToast('School updated successfully!', 'success');
+              await refreshUserData();
+            } else {
+              throw new Error(result.error);
+            }
+          }
+        } else {
+          // Add new school
+          const result = await FamilyManagementService.addSchool(schoolDataForDb);
+          if (result.success) {
+            showToast('School added successfully!', 'success');
+            await refreshUserData();
+          } else {
+            throw new Error(result.error);
+          }
+        }
       }
 
-      const updateData = { members: updatedMembers };
-      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
-
-      if (result.success) {
-        showToast(`School ${editingSchool ? 'updated' : 'added'} successfully!`, 'success');
-        await refreshUserData();
-        // Reset state
-        setEditingSchool(null);
-        setEditingSchoolMemberIndex(-1);
-        setEditingSchoolIndex(-1);
-      } else {
-        showToast('Failed to save school. Please try again.', 'error');
-        throw new Error(result.error);
-      }
+      // Reset state
+      setEditingSchool(null);
+      setEditingSchoolMemberIndex(-1);
+      setEditingSchoolIndex(-1);
     } catch (error) {
       console.error('❌ Error saving school:', error);
       showToast('Failed to save school. Please try again.', 'error');
@@ -566,47 +656,59 @@ const FamilyProfileSection: React.FC = () => {
   // Handle family activity add/edit
   const handleFamilyHobbySubmit = async (hobbyData: any) => {
     try {
-      const currentActivities = Array.isArray((profileData as any).activities) ? (profileData as any).activities : [];
-      let updatedActivities;
+      const familyId = userData?.user?.family_id || '';
 
-      // Add source information for manual entries
-      const activityWithSource = {
-        ...hobbyData,
+      // Family-wide activity (associated with the family, not a specific member)
+      const activityData = {
+        family_id: familyId,
+        family_member_id: null, // Family-wide activity
+        activity_name: hobbyData.name,
+        activity_type: hobbyData.type,
+        frequency: hobbyData.frequency,
+        days: hobbyData.days,
+        end_date: hobbyData.end_date,
+        created_by: userData?.user?.id,
         source: {
           type: 'manual' as const,
           timestamp: new Date().toISOString(),
           confidence: 1.0,
-          source_id: undefined,
-          original_text: undefined
+          original_text: `Manually added family activity: ${hobbyData.name} (${hobbyData.type})`
         }
       };
 
       if (editingFamilyHobby) {
-        // Edit existing family activity - preserve existing source or add new manual source
-        const existingSource = currentActivities[editingFamilyHobbyIndex]?.source;
-        activityWithSource.source = existingSource || activityWithSource.source;
-        // Update timestamp for edits
-        activityWithSource.source.updated_at = new Date().toISOString();
-        updatedActivities = [...currentActivities];
-        updatedActivities[editingFamilyHobbyIndex] = activityWithSource;
+        // Update existing family activity
+        const activityId = editingFamilyHobby.id;
+        if (activityId) {
+          // Preserve existing source but update timestamp
+          if (editingFamilyHobby.source) {
+            activityData.source = {
+              ...editingFamilyHobby.source,
+              updated_at: new Date().toISOString()
+            };
+          }
+          const result = await FamilyManagementService.updateActivity(activityId, activityData);
+          if (result.success) {
+            showToast('Family activity updated successfully!', 'success');
+            await refreshUserData();
+          } else {
+            throw new Error(result.error);
+          }
+        }
       } else {
         // Add new family activity
-        updatedActivities = [...currentActivities, activityWithSource];
+        const result = await FamilyManagementService.addActivity(activityData);
+        if (result.success) {
+          showToast('Family activity added successfully!', 'success');
+          await refreshUserData();
+        } else {
+          throw new Error(result.error);
+        }
       }
 
-      const updateData = { activities: updatedActivities };
-      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData as any);
-
-      if (result.success) {
-        showToast(`Family activity ${editingFamilyHobby ? 'updated' : 'added'} successfully!`, 'success');
-        await refreshUserData();
-        // Reset state
-        setEditingFamilyHobby(null);
-        setEditingFamilyHobbyIndex(-1);
-      } else {
-        showToast('Failed to save family activity. Please try again.', 'error');
-        throw new Error(result.error);
-      }
+      // Reset state
+      setEditingFamilyHobby(null);
+      setEditingFamilyHobbyIndex(-1);
     } catch (error) {
       console.error('❌ Error saving family activity:', error);
       showToast('Failed to save family activity. Please try again.', 'error');
@@ -615,40 +717,21 @@ const FamilyProfileSection: React.FC = () => {
   };
 
   // Show delete confirmation for hobby
-  const handleDeleteHobby = (memberIndex: number, hobbyIndex: number) => {
-    if (!profileData) return;
-
-    const member = profileData.members[memberIndex];
-    const activity = member.activities?.[hobbyIndex];
-
-    if (activity) {
-      setDeleteItem({
-        type: 'activity',
-        name: activity.name || 'Unnamed Activity',
-        memberIndex,
-        itemIndex: hobbyIndex
-      });
-      setShowDeleteConfirmation(true);
-    }
+  const handleDeleteHobby = (activityId: string) => {
+    setDeleteItem({
+      type: 'activity',
+      name: 'this activity', // Generic name since we have the ID
+      activityId: activityId
+    });
+    setShowDeleteConfirmation(true);
   };
 
   // Actual delete hobby function
   const confirmDeleteHobby = async () => {
-    if (!profileData || !deleteItem) return;
+    if (!deleteItem || !deleteItem.activityId) return;
 
     try {
-      const updatedMembers = [...(profileData?.members || [])];
-      const member = { ...updatedMembers[deleteItem.memberIndex] };
-
-      if (member.activities && member.activities.length > deleteItem.itemIndex) {
-        member.activities.splice(deleteItem.itemIndex, 1);
-      }
-
-      updatedMembers[deleteItem.memberIndex] = member;
-
-      const updateData = { members: updatedMembers };
-      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
-
+      const result = await FamilyManagementService.deleteActivity(deleteItem.activityId);
       if (result.success) {
         showToast('Activity deleted successfully!', 'success');
         await refreshUserData();
@@ -662,57 +745,31 @@ const FamilyProfileSection: React.FC = () => {
   };
 
   // Show delete confirmation for school
-  const handleDeleteSchool = (memberIndex: number, schoolIndex: number) => {
-    if (!profileData) return;
-
-    const member = profileData.members[memberIndex];
-    const school = member.schools?.[schoolIndex];
-
-    if (school) {
-      setDeleteItem({
-        type: 'school',
-        name: school.name || 'Unnamed School',
-        memberIndex,
-        itemIndex: schoolIndex
-      });
-      setShowDeleteConfirmation(true);
-    }
+  const handleDeleteSchool = (schoolId: string) => {
+    setDeleteItem({
+      type: 'school',
+      name: 'this school',
+      schoolId: schoolId
+    });
+    setShowDeleteConfirmation(true);
   };
 
   // Show delete confirmation for family activity
-  const handleDeleteFamilyHobby = (hobbyIndex: number) => {
-    if (!profileData) return;
-
-    const activity = (profileData as any).activities?.[hobbyIndex];
-
-    if (activity) {
-      setDeleteItem({
-        type: 'activity',
-        name: activity.name || 'Unnamed Family Activity',
-        memberIndex: -1, // Not applicable for family activities
-        itemIndex: hobbyIndex
-      });
-      setShowDeleteConfirmation(true);
-    }
+  const handleDeleteFamilyHobby = (activityId: string) => {
+    setDeleteItem({
+      type: 'activity',
+      name: 'this family activity',
+      activityId: activityId
+    });
+    setShowDeleteConfirmation(true);
   };
 
   // Actual delete school function
   const confirmDeleteSchool = async () => {
-    if (!profileData || !deleteItem) return;
+    if (!deleteItem || !deleteItem.schoolId) return;
 
     try {
-      const updatedMembers = [...(profileData?.members || [])];
-      const member = { ...updatedMembers[deleteItem.memberIndex] };
-
-      if (member.schools && member.schools.length > deleteItem.itemIndex) {
-        member.schools.splice(deleteItem.itemIndex, 1);
-      }
-
-      updatedMembers[deleteItem.memberIndex] = member;
-
-      const updateData = { members: updatedMembers };
-      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData);
-
+      const result = await FamilyManagementService.deleteSchool(deleteItem.schoolId);
       if (result.success) {
         showToast('School deleted successfully!', 'success');
         await refreshUserData();
@@ -727,19 +784,10 @@ const FamilyProfileSection: React.FC = () => {
 
   // Actual delete family activity function
   const confirmDeleteFamilyHobby = async () => {
-    if (!profileData || !deleteItem) return;
+    if (!deleteItem || !deleteItem.activityId) return;
 
     try {
-      const currentActivities = Array.isArray((profileData as any).activities) ? (profileData as any).activities : [];
-      const updatedActivities = [...currentActivities];
-
-      if (updatedActivities.length > deleteItem.itemIndex) {
-        updatedActivities.splice(deleteItem.itemIndex, 1);
-      }
-
-      const updateData = { activities: updatedActivities };
-      const result = await accountProfileService.updateProfile(userData?.user?.account_id || '', updateData as any);
-
+      const result = await FamilyManagementService.deleteActivity(deleteItem.activityId);
       if (result.success) {
         showToast('Family activity deleted successfully!', 'success');
         await refreshUserData();
@@ -749,6 +797,108 @@ const FamilyProfileSection: React.FC = () => {
     } catch (error) {
       console.error('Error deleting family activity:', error);
       showToast('Failed to delete family activity. Please try again.', 'error');
+    }
+  };
+
+  // Contact handlers
+  const startAddContact = () => {
+    setEditingContact(null);
+    setEditingContactIndex(-1);
+    setShowContactModal(true);
+  };
+
+  const startEditContact = (contact: any, contactIndex: number) => {
+    setEditingContact(contact);
+    setEditingContactIndex(contactIndex);
+    setShowContactModal(true);
+  };
+
+  // Handle contact add/edit
+  const handleContactSubmit = async (contactData: any) => {
+    try {
+      const familyId = userData?.user?.family_id || '';
+
+      const contactDataForDb = {
+        family_id: familyId,
+        contact_name: contactData.contact_name,
+        contact_type: contactData.contact_type || null,
+        phone: contactData.phone || null,
+        email: contactData.email || null,
+        notes: contactData.notes || null,
+        created_by: userData?.user?.id,
+        source: {
+          type: 'manual' as const,
+          timestamp: new Date().toISOString(),
+          confidence: 1.0,
+          original_text: `Manually added contact: ${contactData.contact_name} (${contactData.contact_type || 'No type specified'})`
+        }
+      };
+
+      if (editingContact) {
+        // Update existing contact
+        const contactId = editingContact.id;
+        if (contactId) {
+          // Preserve existing source but update timestamp
+          if (editingContact.source) {
+            contactDataForDb.source = {
+              ...editingContact.source,
+              updated_at: new Date().toISOString()
+            };
+          }
+          const result = await FamilyManagementService.updateContact(contactId, contactDataForDb);
+          if (result.success) {
+            showToast('Contact updated successfully!', 'success');
+            await refreshUserData();
+          } else {
+            throw new Error(result.error);
+          }
+        }
+      } else {
+        // Add new contact
+        const result = await FamilyManagementService.addContact(contactDataForDb);
+        if (result.success) {
+          showToast('Contact added successfully!', 'success');
+          await refreshUserData();
+        } else {
+          throw new Error(result.error);
+        }
+      }
+
+      // Reset state
+      setEditingContact(null);
+      setEditingContactIndex(-1);
+    } catch (error) {
+      console.error('❌ Error saving contact:', error);
+      showToast('Failed to save contact. Please try again.', 'error');
+      throw error;
+    }
+  };
+
+  // Show delete confirmation for contact
+  const handleDeleteContact = (contactId: string) => {
+    setDeleteItem({
+      type: 'contact',
+      name: 'this contact',
+      contactId: contactId
+    });
+    setShowDeleteConfirmation(true);
+  };
+
+  // Actual delete contact function
+  const confirmDeleteContact = async () => {
+    if (!deleteItem || !deleteItem.contactId) return;
+
+    try {
+      const result = await FamilyManagementService.deleteContact(deleteItem.contactId);
+      if (result.success) {
+        showToast('Contact deleted successfully!', 'success');
+        await refreshUserData();
+      } else {
+        throw new Error(result.error || 'Failed to delete contact');
+      }
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+      showToast('Failed to delete contact. Please try again.', 'error');
     }
   };
 
@@ -764,8 +914,10 @@ const FamilyProfileSection: React.FC = () => {
         // Member activity
         await confirmDeleteHobby();
       }
-    } else {
+    } else if (deleteItem.type === 'school') {
       await confirmDeleteSchool();
+    } else if (deleteItem.type === 'contact') {
+      await confirmDeleteContact();
     }
 
     // Reset state
@@ -773,239 +925,329 @@ const FamilyProfileSection: React.FC = () => {
     setShowDeleteConfirmation(false);
   };
 
-  if (!profileData?.members) {
+  // Check if we have userData loaded
+  if (!userData) {
     return <div>Loading...</div>;
   }
 
+  // Get family data, with fallback to empty object
+  const familyData = userData.family || { members: [] };
+  const otherFamilyMembers = familyData.members || [];
+
+  // Create the user as the first family member
+  const userAsMember: FamilyMember = {
+    family_member_id: userData.user.id,
+    name: userData.user.name || 'You',
+    type: 'user',
+    family_relationship: 'user',
+    activities: userData.family?.activities || [],
+    schools: userData.user.schools || [],
+    age: null,
+    email: userData.user.email,
+    role: userData.user.role,
+    is_active: userData.user.is_active,
+    created_at: userData.user.created_at,
+    birthday_month: null,
+    birthday_day: null,
+    user_id: userData.user.id,
+    isCurrentUser: true
+  };
+
+  // Combine user with other family members
+  const allMembers = [userAsMember, ...otherFamilyMembers];
+  const members = allMembers;
+
   return (
     <div className="settings-container">
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 flex-1 overflow-y-auto flex flex-col">
-        {/* Tab Navigation */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setActiveTab('members')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'members'
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              <Users className="w-5 h-5" />
-              Family Members
-            </button>
-            <button
-              onClick={() => setActiveTab('activities')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'activities'
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              <Target className="w-5 h-5" />
-              Family Activities
-            </button>
-          </div>
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 md:p-6 flex-1 overflow-hidden flex flex-col max-w-full">
 
-          {/* Action Button */}
-          {activeTab === 'members' ? (
-            <button
-              onClick={() => setShowAddMemberModal(true)}
-              className="btn-primary"
-            >
-              <Plus className="w-4 h-4" />
-              Add Family Member
-            </button>
-          ) : (
-            <button
-              onClick={startAddFamilyHobby}
-              className="btn-success"
-            >
-              <Plus className="w-4 h-4" />
-              Add Family Activity
-            </button>
-          )}
-        </div>
-
-        {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto">
-          {activeTab === 'members' ? (
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto min-w-0">
+          {defaultTab === 'members' ? (
             /* Family Members Content */
-            <div className="space-y-2">
-              {profileData.members.map((member, index) => {
-                const memberKey = `member-${index}`;
-                const isExpanded = expandedMembers[memberKey];
-                const Icon = getMemberTypeIcon(member.type || 'other');
+            <div className="space-y-4 md:space-y-6 w-full min-w-0 max-w-full overflow-x-hidden">
+              {/* Mobile List View */}
+              <div className="block md:hidden space-y-3 w-full max-w-full min-w-0">
+                {members.map((member, index) => {
+                  const Icon = getMemberTypeIcon(member.type || 'other');
+                  const isSelected = selectedMemberIndex === index;
 
-                return (
-                  <div key={memberKey} className="border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-25 dark:bg-gray-800/30">
-                    {/* Member Header - Clickable */}
-                    <button
-                      onClick={() => toggleMember(memberKey)}
-                      className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        {/* Avatar-style profile icon */}
-                        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-md">
-                          <Icon className="w-6 h-6 text-white" />
+                  return (
+                    <div key={index} className="relative">
+                      <button
+                        onClick={() => handleMemberSelect(index)}
+                        className={`w-full p-4 rounded-lg border-2 transition-all duration-200 flex items-center gap-4 ${
+                          isSelected
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg'
+                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-blue-300'
+                        }`}
+                      >
+                        {/* Avatar */}
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 flex-shrink-0 ${
+                          isSelected
+                            ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600'
+                            : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
+                        }`}>
+                          <Icon className={`w-6 h-6 ${
+                            isSelected
+                              ? 'text-blue-600 dark:text-blue-400'
+                              : 'text-gray-600 dark:text-gray-400'
+                          }`} />
                         </div>
 
-                        {/* Profile Information */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-lg text-gray-900 dark:text-white truncate">
-                              {member.name || 'Unnamed Member'}
-                            </h3>
+                        {/* Content */}
+                        <div className="flex-1 text-left">
+                          <h3 className={`font-semibold text-sm ${
+                            isSelected ? 'text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                          }`}>
+                            {member.name || 'Unnamed'}{member.type === 'user' ? ' (You)' : ''}
+                          </h3>
+                          <div className="flex items-center gap-3 mt-1">
                             {member.age && (
-                              <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full font-medium">
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
                                 {member.age}y
                               </span>
                             )}
-                          </div>
-
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm text-gray-500 dark:text-gray-400 font-medium flex items-center space-x-2">
-                              {React.createElement(getMemberTypeIcon(member.type), { className: "w-4 h-4" })}
-                              <span>{formatMemberType(member.type)}</span>
-                            </span>
-                          </div>
-
-                          {/* Enhanced badges for schools and activities */}
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {/* School badges - more prominent */}
-                            {member.schools && member.schools.length > 0 && member.schools.map((school, schoolIdx) => (
-                              <span key={schoolIdx} className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-3 py-1 rounded-full flex items-center gap-1 font-medium shadow-sm">
-                                <GraduationCap className="w-3 h-3" /> {school.name}
-                                {school.grade && <span className="text-emerald-600 dark:text-emerald-400">• {school.grade}</span>}
-                              </span>
-                            ))}
-
-                            {/* Activity count badge */}
-                            {member.activities && member.activities.length > 0 && (
-                              <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-3 py-1 rounded-full flex items-center gap-1 font-medium shadow-sm">
-                                <Zap className="w-3 h-3" /> {member.activities.length} {member.activities.length === 1 ? 'activity' : 'activities'}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEditMember(member, index);
-                          }}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => e.key === 'Enter' && startEditMember(member, index)}
-                          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer"
-                          title="Edit member"
-                        >
-                          <Edit className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                        </div>
-                        {isExpanded ? (
-                          <ChevronDown className="w-4 h-4 text-gray-400" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4 text-gray-400" />
-                        )}
-                      </div>
-                    </button>
-
-                    {/* Expanded Content */}
-                    <div
-                      className={`overflow-hidden transition-all duration-700 ease-in-out ${
-                        isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
-                      }`}
-                    >
-                      <div className="px-4 pb-4 border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-b-lg">
-                        {/* Member Information Display */}
-                        <div className={`mb-4 ${member.type === 'user' ? 'pt-2' : 'pt-4'}`}>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            {/* Name */}
-                            <div className="space-y-1">
-                              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                                Name
-                              </label>
-                              <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 min-h-[3rem] flex items-center">
-                                <span className="text-gray-900 dark:text-white font-medium">
-                                  {member.name || 'Not provided'}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Email */}
-                            <div className="space-y-1">
-                              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                                Email
-                              </label>
-                              <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 min-h-[3rem] flex items-center">
-                                <span className="text-gray-900 dark:text-white">
-                                  {member.email || '\u00A0'}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Age */}
-                            <div className="space-y-1">
-                              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                                Age
-                              </label>
-                              <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 min-h-[3rem] flex items-center">
-                                <span className="text-gray-900 dark:text-white">
-                                  {member.age ? `${member.age} years old` : 'Not provided'}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Birthday and Delete Button Column */}
-                            <div className="space-y-1">
-                              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                                Birthday
-                              </label>
-                              <div className="flex items-center gap-2">
-                                <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 min-h-[3rem] flex items-center flex-1">
-                                  <span className="text-gray-900 dark:text-white">
-                                    {member.birthday && typeof member.birthday === 'object' && 'month' in member.birthday && 'day' in member.birthday && member.birthday.month && member.birthday.day
-                                      ? `${['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][parseInt(member.birthday.month as string)]} ${member.birthday.day}`
-                                      : 'Not provided'
-                                    }
-                                  </span>
+                            <div className="flex items-center gap-2 text-xs">
+                              {member.schools && member.schools.length > 0 && (
+                                <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                                  <GraduationCap className="w-3 h-3" />
+                                  <span>{member.schools.length}</span>
                                 </div>
-                                {/* Gentle Remove Button */}
-                                {member.type !== 'user' && (
-                                  <button
-                                    onClick={() => startDeleteMember(member, index)}
-                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors group"
-                                    title="Remove family member"
-                                  >
-                                    <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                  </button>
-                                )}
-                              </div>
+                              )}
+                              {member.activities && member.activities.length > 0 && (
+                                <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+                                  <Zap className="w-3 h-3" />
+                                  <span>{member.activities.length}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
+                        </div>
+                      </button>
 
-                          {/* Member Source Information */}
-                          {member.source && (
-                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                              <SourceIndicator
-                                source={{
-                                  type: (member.source.type || 'manual') as 'email' | 'manual' | 'chat',
-                                  confidence: member.source.confidence,
-                                  timestamp: member.source.timestamp,
-                                  email_subject: member.source.email_subject,
-                                  source_id: member.source.source_id
-                                }}
-                                originalText={member.source.original_text}
-                                className="text-xs"
-                              />
+                      {/* Edit button - positioned absolutely outside the main button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditMember(member, index);
+                        }}
+                        className="absolute top-2 right-2 p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors z-10"
+                        title="Edit member"
+                      >
+                        <Edit className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                      </button>
+                    </div>
+                  );
+                })}
+
+                {/* Add Member Button for Mobile */}
+                <button
+                  onClick={() => setShowAddMemberModal(true)}
+                  className="w-full p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 flex items-center justify-center gap-3 group"
+                >
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-blue-400 dark:group-hover:border-blue-500 transition-colors">
+                    <Plus className="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                  </div>
+                  <span className="font-semibold text-sm text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    Add Member
+                  </span>
+                </button>
+              </div>
+
+              {/* Desktop Card Grid */}
+              <div className={`hidden md:grid gap-4 overflow-visible w-full min-w-0 ${
+                members.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+                members.length <= 5 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' :
+                'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+              }`}>
+                {members.map((member, index) => {
+                  const Icon = getMemberTypeIcon(member.type || 'other');
+                  const isSelected = selectedMemberIndex === index;
+
+                  return (
+                    <div key={index} className="relative group">
+                      <button
+                        onClick={() => handleMemberSelect(index)}
+                        className={`w-full min-h-44 p-4 rounded-xl border-2 transition-all duration-200 text-center ${
+                          isSelected
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
+                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-blue-300 hover:shadow-md'
+                        }`}
+                      >
+                        {/* Avatar */}
+                        <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 transition-colors ${
+                          isSelected
+                            ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600'
+                            : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
+                        }`}>
+                          <Icon className={`w-8 h-8 ${
+                            isSelected
+                              ? 'text-blue-600 dark:text-blue-400'
+                              : 'text-gray-600 dark:text-gray-400'
+                          }`} />
+                        </div>
+
+                        {/* Name */}
+                        <h3 className={`font-semibold text-sm mb-1 truncate ${
+                          isSelected ? 'text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                        }`}>
+                          {member.name || 'Unnamed'}{member.type === 'user' ? ' (You)' : ''}
+                        </h3>
+
+                        {/* Age Badge */}
+                        {member.age && (
+                          <div className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full mb-2 inline-block">
+                            {member.age}y
+                          </div>
+                        )}
+
+                        {/* Stats */}
+                        <div className="space-y-1 text-xs min-h-10 flex flex-col justify-center">
+                          {/* Schools count */}
+                          {member.schools && member.schools.length > 0 && (
+                            <div className="flex items-center justify-center gap-1 text-emerald-600 dark:text-emerald-400">
+                              <GraduationCap className="w-3 h-3" />
+                              <span>{member.schools.length}</span>
+                            </div>
+                          )}
+
+                          {/* Activities count */}
+                          {member.activities && member.activities.length > 0 && (
+                            <div className="flex items-center justify-center gap-1 text-orange-600 dark:text-orange-400">
+                              <Zap className="w-3 h-3" />
+                              <span>{member.activities.length}</span>
                             </div>
                           )}
                         </div>
+                      </button>
+
+                      {/* Edit button - now outside the main button */}
+                      <button
+                        onClick={() => startEditMember(member, index)}
+                        className="absolute top-2 right-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors opacity-0 group-hover:opacity-100 z-10"
+                        title="Edit member"
+                      >
+                        <Edit className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                      </button>
+                    </div>
+                  );
+                })}
+
+                {/* Add Member Card */}
+                {defaultTab === 'members' && (
+                  <button
+                    onClick={() => setShowAddMemberModal(true)}
+                    className="relative p-4 pb-8 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 text-center group"
+                  >
+                    {/* Add Icon */}
+                    <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-blue-400 dark:group-hover:border-blue-500 transition-colors">
+                      <Plus className="w-8 h-8 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                    </div>
+
+                    {/* Text */}
+                    <h3 className="font-semibold text-sm mb-6 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      Add Member
+                    </h3>
+                  </button>
+                )}
+              </div>
+
+              {/* Selected Member Details */}
+              {selectedMemberIndex !== null && members[selectedMemberIndex] && (
+                <div className="border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-3 md:p-6 w-full max-w-full min-w-0 overflow-hidden box-border">
+                  {(() => {
+                    const member = members[selectedMemberIndex];
+                    const memberKey = `member-${selectedMemberIndex}`;
+
+                    return (
+                      <>
+                        {/* Member Header */}
+                        <div className="flex items-center justify-between mb-4 md:mb-6">
+                          <div className="flex items-center gap-3 md:gap-4">
+                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg border-2 bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600">
+                              {React.createElement(getMemberTypeIcon(member.family_relationship || member.type || 'other'), { className: "w-6 h-6 md:w-8 md:h-8 text-blue-600 dark:text-blue-400" })}
+                            </div>
+                            <div>
+                              <h2 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
+                                {member.name || 'Unnamed Member'}
+                              </h2>
+                              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+                                {formatMemberType(member.family_relationship)}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Delete button for non-user members */}
+                          {member.type !== 'user' && (
+                            <button
+                              onClick={() => startDeleteMember(member, selectedMemberIndex)}
+                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors group"
+                              title="Remove family member"
+                            >
+                              <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Member Information Display */}
+                        <div className="grid grid-cols-1 gap-3 md:gap-4 mb-4 md:mb-6 w-full max-w-full">
+                          {/* Name */}
+                          <div className="space-y-1 w-full min-w-0">
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Name
+                            </label>
+                            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 min-h-[3rem] flex items-center w-full min-w-0 overflow-hidden">
+                              <span className="text-gray-900 dark:text-white font-medium truncate w-full min-w-0">
+                                {member.name || ''}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Email */}
+                          <div className="space-y-1 w-full min-w-0">
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Email
+                            </label>
+                            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 min-h-[3rem] flex items-center w-full min-w-0 overflow-hidden">
+                              <span className="text-gray-900 dark:text-white truncate w-full min-w-0">
+                                {member.email || ''}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Age */}
+                          <div className="space-y-1 w-full min-w-0">
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Age
+                            </label>
+                            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 min-h-[3rem] flex items-center w-full min-w-0 overflow-hidden">
+                              <span className="text-gray-900 dark:text-white truncate w-full min-w-0">
+                                {member.age ? `${member.age} years old` : ''}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Birthday */}
+                          <div className="space-y-1 w-full min-w-0">
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Birthday
+                            </label>
+                            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 min-h-[3rem] flex items-center w-full min-w-0 overflow-hidden">
+                              <span className="text-gray-900 dark:text-white truncate w-full min-w-0">
+                                {member.birthday_month && member.birthday_day
+                                  ? `${['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][parseInt(member.birthday_month)]} ${member.birthday_day}`
+                                  : ''
+                                }
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Family members don't have source information since they're manually entered */}
 
                         {/* Activities Section */}
-                        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <div className="mb-6">
                           <div className="border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                             <div
                               onClick={() => {
@@ -1027,19 +1269,16 @@ const FamilyProfileSection: React.FC = () => {
                                 </h6>
                               </div>
                               <div className="flex items-center gap-2">
-                                <div
+                                <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    startAddHobby(index);
+                                    startAddHobby(selectedMemberIndex);
                                   }}
-                                  role="button"
-                                  tabIndex={0}
-                                  onKeyDown={(e) => e.key === 'Enter' && startAddHobby(index)}
-                                  className="flex items-center gap-1 px-2 py-1 text-xs border border-green-500 text-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20 rounded-md transition-colors cursor-pointer"
+                                  className="flex items-center gap-1 px-2 py-1 text-xs border border-green-500 text-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20 rounded-md transition-colors"
                                 >
                                   <Plus className="w-3 h-3" />
                                   Add
-                                </div>
+                                </button>
                                 {member.activities && Array.isArray(member.activities) && member.activities.length > 0 && (
                                   <div className="p-1">
                                     {expandedActivities[memberKey] ? (
@@ -1063,28 +1302,28 @@ const FamilyProfileSection: React.FC = () => {
                                 {member.activities && Array.isArray(member.activities) && member.activities.length > 0 ? (
                                   <div className="space-y-3 mt-3">
                                     {member.activities.map((activity, activityIndex) => (
-                                      <div key={activityIndex} className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-3 relative shadow-md">
-                                        <div className="flex items-start justify-between">
+                                      <div key={activityIndex} className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-3 relative shadow-md w-full max-w-full min-w-0 overflow-hidden">
+                                        <div className="flex items-start justify-between w-full min-w-0">
                                           <div className="flex-1 min-w-0">
                                             {/* Header row with name and type */}
                                             <div className="flex items-center gap-2 mb-2">
-                                              <h6 className="font-medium text-gray-900 dark:text-white text-sm">
-                                                {activity.name || 'Unnamed Activity'}
+                                              <h6 className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                                                {activity.activity_name || 'Unnamed Activity'}
                                               </h6>
-                                              {activity.type && (() => {
-                                                const style = getActivityTypeStyle(activity.type);
+                                              {activity.activity_type && (() => {
+                                                const style = getActivityTypeStyle(activity.activity_type);
                                                 const IconComponent = style.icon;
                                                 return (
                                                   <span className={`text-xs ${style.bg} ${style.text} px-2 py-1 rounded-full flex items-center gap-1`}>
                                                     <IconComponent className="w-3 h-3" />
-                                                    {formatActivityType(activity.type)}
+                                                    {formatActivityType(activity.activity_type)}
                                                   </span>
                                                 );
                                               })()}
                                             </div>
 
                                             {/* Compact details in a single row */}
-                                            <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                            <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400 mb-2 w-full min-w-0">
                                               {activity.frequency && (
                                                 <span>
                                                   <span className="font-medium">Frequency:</span> {activity.frequency.charAt(0).toUpperCase() + activity.frequency.slice(1)}
@@ -1127,14 +1366,14 @@ const FamilyProfileSection: React.FC = () => {
                                           {/* Action buttons - moved to top right */}
                                           <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                                             <button
-                                              onClick={() => startEditHobby(index, activity, activityIndex)}
-                                              className="btn-icon-bordered"
+                                              onClick={() => startEditHobby(selectedMemberIndex, activity, activityIndex)}
+                                              className="p-1.5 border border-gray-400 text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-700/50 rounded transition-colors"
                                               title="Edit activity"
                                             >
                                               <Edit className="w-3 h-3" />
                                             </button>
                                             <button
-                                              onClick={() => handleDeleteHobby(index, activityIndex)}
+                                              onClick={() => activity.id && handleDeleteHobby(activity.id)}
                                               className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors group"
                                               title="Remove activity"
                                             >
@@ -1156,7 +1395,7 @@ const FamilyProfileSection: React.FC = () => {
                         </div>
 
                         {/* Schools Section */}
-                        <div className="mt-4">
+                        <div>
                           <div className="border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                             <div
                               onClick={() => {
@@ -1178,19 +1417,16 @@ const FamilyProfileSection: React.FC = () => {
                                 </h6>
                               </div>
                               <div className="flex items-center gap-2">
-                                <div
+                                <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    startAddSchool(index);
+                                    startAddSchool(selectedMemberIndex);
                                   }}
-                                  role="button"
-                                  tabIndex={0}
-                                  onKeyDown={(e) => e.key === 'Enter' && startAddSchool(index)}
-                                  className="flex items-center gap-1 px-2 py-1 text-xs border border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900/20 rounded-md transition-colors cursor-pointer"
+                                  className="flex items-center gap-1 px-2 py-1 text-xs border border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900/20 rounded-md transition-colors"
                                 >
                                   <Plus className="w-3 h-3" />
                                   Add
-                                </div>
+                                </button>
                                 {member.schools && Array.isArray(member.schools) && member.schools.length > 0 && (
                                   <div className="p-1">
                                     {expandedSchools[memberKey] ? (
@@ -1214,34 +1450,34 @@ const FamilyProfileSection: React.FC = () => {
                                 {member.schools && Array.isArray(member.schools) && member.schools.length > 0 ? (
                                   <div className="space-y-3 mt-3">
                                     {member.schools.map((school, schoolIndex) => (
-                                      <div key={schoolIndex} className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-3 relative shadow-md">
+                                      <div key={schoolIndex} className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-3 relative shadow-md w-full max-w-full min-w-0 overflow-hidden">
                                         {/* Header with title and action buttons */}
-                                        <div className="flex items-center justify-between mb-2">
-                                          <div className="flex items-center gap-2 flex-1">
-                                            <h6 className="font-medium text-gray-900 dark:text-white text-sm">
-                                              {school.name || 'Unnamed School'}
+                                        <div className="flex items-center justify-between mb-2 w-full min-w-0">
+                                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                                            <h6 className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                                              {school.school_name}
                                             </h6>
-                                            {school.type && (() => {
-                                              const style = getSchoolTypeStyle(school.type);
+                                            {school.school_type && (() => {
+                                              const style = getSchoolTypeStyle(school.school_type);
                                               const IconComponent = style.icon;
                                               return (
                                                 <span className={`text-xs ${style.bg} ${style.text} px-2 py-1 rounded-full flex items-center gap-1`}>
                                                   <IconComponent className="w-3 h-3" />
-                                                  {formatSchoolType(school.type)}
+                                                  {formatSchoolType(school.school_type)}
                                                 </span>
                                               );
                                             })()}
                                           </div>
-                                          <div className="flex items-center gap-1">
+                                          <div className="flex items-center gap-1 flex-shrink-0">
                                             <button
-                                              onClick={() => startEditSchool(index, school, schoolIndex)}
-                                              className="btn-icon-bordered"
+                                              onClick={() => startEditSchool(selectedMemberIndex, school, schoolIndex)}
+                                              className="p-1.5 border border-gray-400 text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-700/50 rounded transition-colors"
                                               title="Edit school"
                                             >
                                               <Edit className="w-3 h-3" />
                                             </button>
                                             <button
-                                              onClick={() => handleDeleteSchool(index, schoolIndex)}
+                                              onClick={() => school.id && handleDeleteSchool(school.id)}
                                               className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors group"
                                               title="Remove school"
                                             >
@@ -1251,7 +1487,7 @@ const FamilyProfileSection: React.FC = () => {
                                         </div>
 
                                         {/* Details in horizontal layout */}
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400 mb-2 w-full min-w-0">
                                           {school.grade && (
                                             <span>
                                               <span className="font-medium">Grade:</span> {school.grade}
@@ -1292,106 +1528,236 @@ const FamilyProfileSection: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
-          ) : (
+          ) : defaultTab === 'activities' ? (
             /* Family Activities Content */
-            <div className="space-y-2">
-              {(profileData as any).activities && Array.isArray((profileData as any).activities) && (profileData as any).activities.length > 0 ? (
-                (profileData as any).activities.map((activity: any, activityIndex: number) => (
-                  <div key={activityIndex} className="border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-25 dark:bg-gray-800/30">
-                    <div className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                      <div className="flex items-center gap-3">
-                        <Target className="w-4 h-4" />
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {activity.name || 'Unnamed Activity'}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                              Family Activity
-                            </span>
+            <div className="space-y-6">
+              {/* Activity Cards Grid */}
+              <div className={`grid gap-4 overflow-visible w-full min-w-0 ${
+                userData.family?.activities && Array.isArray(userData.family.activities) && userData.family.activities.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+                userData.family?.activities && Array.isArray(userData.family.activities) && userData.family.activities.length <= 5 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' :
+                'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+              }`}>
+                {userData.family?.activities && Array.isArray(userData.family.activities) && userData.family.activities.length > 0 ? (
+                  userData.family.activities.map((activity: any, activityIndex: number) => {
+                    const style = getActivityTypeStyle(activity.activity_type || 'other');
+                    const IconComponent = style.icon;
 
-                            {/* Activity type badge */}
-                            {activity.type && (() => {
-                              const style = getActivityTypeStyle(activity.type);
-                              const IconComponent = style.icon;
-                              return (
-                                <span className={`text-xs ${style.bg} ${style.text} px-2 py-1 rounded-full flex items-center gap-1`}>
-                                  <IconComponent className="w-3 h-3" />
-                                  {formatActivityType(activity.type)}
-                                </span>
-                              );
-                            })()}
-
-                            {/* Additional activity details */}
-                            {activity.frequency && (
-                              <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full">
-                                {activity.frequency.charAt(0).toUpperCase() + activity.frequency.slice(1)}
-                              </span>
-                            )}
-
-                            {activity.end_date && (
-                              <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2 py-1 rounded-full">
-                                Ends {new Date(activity.end_date).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
-                              </span>
-                            )}
-
-                            {/* Source Information */}
-                            {activity.source && (
-                              <SourceIndicator
-                                source={{
-                                  type: (activity.source.type || 'manual') as 'email' | 'manual' | 'chat',
-                                  confidence: activity.source.confidence,
-                                  timestamp: activity.source.timestamp,
-                                  email_subject: activity.source.email_subject,
-                                  source_id: activity.source.source_id
-                                }}
-                                originalText={activity.source.original_text}
-                                className="text-xs"
-                              />
-                            )}
-                          </div>
+                    return (
+                      <div
+                        key={activityIndex}
+                        className="relative p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-blue-300 hover:shadow-md transition-all duration-200 text-center group"
+                      >
+                        {/* Activity Icon */}
+                        <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
+                          <IconComponent className="w-8 h-8 text-gray-600 dark:text-gray-400" />
                         </div>
-                      </div>
 
-                      <div className="flex items-center gap-2">
-                        <div
+                        {/* Activity Name */}
+                        <h3 className="font-semibold text-sm mb-1 truncate text-gray-900 dark:text-white">
+                          {activity.activity_name || 'Unnamed Activity'}
+                        </h3>
+
+                        {/* Activity Type Badge and Frequency - Same Line */}
+                        <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                          {activity.activity_type && (
+                            <div className={`text-xs ${style.bg} ${style.text} px-2 py-1 rounded-full`}>
+                              {formatActivityType(activity.activity_type)}
+                            </div>
+                          )}
+                          {activity.frequency && (
+                            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                              {activity.frequency.charAt(0).toUpperCase() + activity.frequency.slice(1)}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Stats */}
+                        <div className="space-y-1 text-xs">
+                          {/* Days of Week */}
+                          {activity.days && Array.isArray(activity.days) && activity.days.length > 0 && (
+                            <div className="text-purple-600 dark:text-purple-400">
+                              {activity.days.map((day: string) => day.slice(0, 3)).join(', ')}
+                            </div>
+                          )}
+
+                          {/* End Date */}
+                          {activity.end_date && (
+                            <div className="text-red-600 dark:text-red-400">
+                              Ends {new Date(activity.end_date).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Edit button */}
+                        <button
                           onClick={() => startEditFamilyHobby(activity, activityIndex)}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => e.key === 'Enter' && startEditFamilyHobby(activity, activityIndex)}
-                          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer"
+                          className="absolute top-2 right-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors opacity-0 group-hover:opacity-100"
                           title="Edit activity"
                         >
-                          <Edit className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                        </div>
+                          <Edit className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                        </button>
+
+                        {/* Delete button */}
                         <button
-                          onClick={() => handleDeleteFamilyHobby(activityIndex)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors group"
-                          title="Remove family activity"
+                          onClick={() => activity.id && handleDeleteFamilyHobby(activity.id)}
+                          className="absolute top-2 right-8 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                          title="Remove activity"
                         >
-                          <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                          <Trash2 className="w-3 h-3 text-gray-400 hover:text-red-500 transition-colors" />
                         </button>
                       </div>
+                    );
+                  })
+                ) : null}
+
+                {/* Add Activity Card */}
+                {defaultTab === 'activities' && (
+                  <button
+                    onClick={startAddFamilyHobby}
+                    className="relative p-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:border-green-300 dark:hover:border-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 text-center group"
+                  >
+                    {/* Add Icon */}
+                    <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-green-400 dark:group-hover:border-green-500 transition-colors">
+                      <Plus className="w-8 h-8 text-gray-400 group-hover:text-green-500 transition-colors" />
                     </div>
-                  </div>
-                ))
-              ) : (
+
+                    {/* Text */}
+                    <h3 className="font-semibold text-sm text-gray-600 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                      Add Activity
+                    </h3>
+                  </button>
+                )}
+              </div>
+
+              {/* No Activities State */}
+              {!userData.family?.activities || !Array.isArray(userData.family.activities) || userData.family.activities.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <Target className="w-12 h-12 opacity-50 mx-auto mb-2" />
                   <p>No family activities added yet</p>
-                  <p className="text-sm">Click "Add Family Activity" to get started</p>
+                  <p className="text-sm">Click "Add Activity" to get started</p>
                 </div>
-              )}
+              ) : null}
+
+            </div>
+          ) : (
+            /* Family Contacts Content */
+            <div className="space-y-6">
+              {/* Contact Cards Grid */}
+              <div className={`grid gap-4 overflow-visible w-full min-w-0 ${
+                userData.family?.contacts && Array.isArray(userData.family.contacts) && userData.family.contacts.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+                userData.family?.contacts && Array.isArray(userData.family.contacts) && userData.family.contacts.length <= 5 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' :
+                'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+              }`}>
+                {userData.family?.contacts && Array.isArray(userData.family.contacts) && userData.family.contacts.length > 0 ? (
+                  userData.family.contacts.map((contact: any, contactIndex: number) => {
+                    return (
+                      <div
+                        key={contactIndex}
+                        className="relative p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-blue-300 hover:shadow-md transition-all duration-200 text-center group"
+                      >
+                        {/* Contact Icon */}
+                        <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
+                          <UserPlus className="w-8 h-8 text-gray-600 dark:text-gray-400" />
+                        </div>
+
+                        {/* Contact Name */}
+                        <h3 className="font-semibold text-sm mb-1 truncate text-gray-900 dark:text-white">
+                          {contact.name}
+                        </h3>
+
+                        {/* Contact Type and Details */}
+                        <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                          {contact.contact_type && (
+                            <div className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full">
+                              {contact.contact_type}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="space-y-1 text-xs">
+                          {/* Phone */}
+                          {contact.phone && (
+                            <div className="text-green-600 dark:text-green-400 truncate">
+                              {contact.phone}
+                            </div>
+                          )}
+
+                          {/* Email */}
+                          {contact.email && (
+                            <div className="text-purple-600 dark:text-purple-400 truncate">
+                              {contact.email}
+                            </div>
+                          )}
+
+                          {/* Notes */}
+                          {contact.notes && (
+                            <div className="text-gray-600 dark:text-gray-400 text-xs italic truncate mt-2">
+                              {contact.notes}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Edit button */}
+                        <button
+                          onClick={() => startEditContact(contact, contactIndex)}
+                          className="absolute top-2 right-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                          title="Edit contact"
+                        >
+                          <Edit className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                        </button>
+
+                        {/* Delete button */}
+                        <button
+                          onClick={() => contact.id && handleDeleteContact(contact.id)}
+                          className="absolute top-2 right-8 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                          title="Remove contact"
+                        >
+                          <Trash2 className="w-3 h-3 text-gray-400 hover:text-red-500 transition-colors" />
+                        </button>
+                      </div>
+                    );
+                  })
+                ) : null}
+
+                {/* Add Contact Card */}
+                {defaultTab === 'contacts' && (
+                  <button
+                    onClick={startAddContact}
+                    className="relative p-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 text-center group"
+                  >
+                    {/* Add Icon */}
+                    <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-blue-400 dark:group-hover:border-blue-500 transition-colors">
+                      <Plus className="w-8 h-8 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                    </div>
+
+                    {/* Text */}
+                    <h3 className="font-semibold text-sm text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      Add Contact
+                    </h3>
+                  </button>
+                )}
+              </div>
+
+              {/* No Contacts State */}
+              {!userData.family?.contacts || !Array.isArray(userData.family.contacts) || userData.family.contacts.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <UserPlus className="w-12 h-12 opacity-50 mx-auto mb-2" />
+                  <p>No family contacts added yet</p>
+                  <p className="text-sm">Click "Add Contact" to get started</p>
+                </div>
+              ) : null}
+
             </div>
           )}
         </div>
@@ -1464,6 +1830,20 @@ const FamilyProfileSection: React.FC = () => {
         onAdd={editingFamilyHobby ? handleFamilyHobbySubmit : handleFamilyHobbySubmit}
         editingHobby={editingFamilyHobby}
         isEditing={!!editingFamilyHobby}
+      />
+
+      {/* Contact Modal */}
+      <AddContactModal
+        isOpen={showContactModal}
+        onClose={() => {
+          setShowContactModal(false);
+          // Clear editing data immediately to prevent flash of wrong data
+          setEditingContact(null);
+          setEditingContactIndex(-1);
+        }}
+        onAdd={handleContactSubmit}
+        editingContact={editingContact}
+        isEditing={!!editingContact}
       />
 
       {/* Delete Confirmation Modal */}

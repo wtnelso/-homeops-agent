@@ -1,5 +1,7 @@
 // Render server-based chat service for LangChain-powered AI conversations
 import { UserSessionService } from './userSession';
+import { apiService } from './authenticatedApiService';
+import { ENDPOINTS } from '../config/apiConfig';
 
 export interface ChatMessage {
   id: string;
@@ -44,12 +46,13 @@ export class RenderChatService {
     // Use your existing user session service instead of making additional DB calls
     const sessionData = await UserSessionService.getUserSessionData();
 
-    if (!sessionData?.user?.id || !sessionData?.account?.id) {
+    if (!sessionData?.user?.id || !sessionData?.family?.id) {
       throw new Error('User session not found');
     }
 
     return {
-      accountId: sessionData.account.id
+      familyId: sessionData.family.id, // Use family.id from UserSessionData structure
+      userId: sessionData.user.id // Use real authenticated user ID
     };
   }
 
@@ -60,39 +63,32 @@ export class RenderChatService {
     error?: string;
   }> {
     try {
-      const { accountId } = await this.getUserData();
+      const { familyId, userId } = await this.getUserData();
 
-      // Use Express server for LangChain-powered chat with tools
-      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
-      console.log('🚀 Sending chat request to:', `${serverUrl}/api/chat`);
-      console.log('📤 Request payload:', { message: message.substring(0, 50) + '...', conversationId, accountId });
+      // Use authenticated API service for LangChain-powered chat with tools
+      console.log('🚀 Sending chat request to:', ENDPOINTS.chat);
+      console.log('📤 Request payload:', { message: message.substring(0, 50) + '...', conversationId, familyId, userId });
 
-      const response = await fetch(`${serverUrl}/api/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message,
-          conversationId,
-          accountId // Only accountId needed, not userId
-        })
+      const response = await apiService.post(ENDPOINTS.chat, {
+        message,
+        conversationId,
+        familyId, // Send family context for family-aware processing
+        userId    // Send user context for user-specific features
       });
 
-      console.log('📥 Response status:', response.status, response.statusText);
+      console.log('📥 Response status:', response.status);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
+      if (response.error) {
+        throw new Error(response.error || `HTTP ${response.status}`);
       }
 
-      const data = await response.json();
-      console.log('✅ Chat response received:', { success: data.success, messageCount: data.messages?.length });
+      const data = response.data;
+      console.log('✅ Chat response received:', { success: data?.success, messageCount: data?.messages?.length });
 
       return {
-        success: data.success,
-        conversationId: data.conversationId,
-        messages: data.messages?.map((msg: any) => ({
+        success: data?.success || false,
+        conversationId: data?.conversationId,
+        messages: data?.messages?.map((msg: any) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         }))
@@ -112,30 +108,23 @@ export class RenderChatService {
     error?: string;
   }> {
     try {
-      const { accountId } = await this.getUserData();
+      const { familyId } = await this.getUserData();
 
-      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
-      const response = await fetch(`${serverUrl}/api/conversations`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          action: 'list',
-          accountId,
-          limit
-        })
+      const response = await apiService.post(ENDPOINTS.conversations, {
+        action: 'list',
+        familyId, // Updated to use family context
+        limit
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      if (response.error) {
+        throw new Error(response.error || `HTTP ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = response.data;
 
       return {
-        success: data.success,
-        conversations: data.conversations
+        success: data?.success || false,
+        conversations: data?.conversations
       };
     } catch (error: any) {
       return {
@@ -151,24 +140,18 @@ export class RenderChatService {
   }> {
     try {
 
-      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
-      const response = await fetch(`${serverUrl}/api/conversations`, {
+      const response = await apiService.request(ENDPOINTS.conversations, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          conversationId
-        })
+        body: { conversationId }
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      if (response.error) {
+        throw new Error(response.error || `HTTP ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = response.data;
 
-      return { success: data.success };
+      return { success: data?.success || false };
     } catch (error: any) {
       return {
         success: false,
@@ -183,25 +166,18 @@ export class RenderChatService {
   }> {
     try {
 
-      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
-      const response = await fetch(`${serverUrl}/api/conversations`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          conversationId,
-          title
-        })
+      const response = await apiService.put(ENDPOINTS.conversations, {
+        conversationId,
+        title
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      if (response.error) {
+        throw new Error(response.error || `HTTP ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = response.data;
 
-      return { success: data.success };
+      return { success: data?.success || false };
     } catch (error: any) {
       return {
         success: false,

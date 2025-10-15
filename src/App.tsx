@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Homepage from './components/marketing/Homepage'
 import DashboardLayout from './components/DashboardLayout'
 import SettingsLayout from './components/SettingsLayout'
@@ -8,6 +8,7 @@ import Contact from './components/Contact'
 import Login from './components/Login'
 import Signup from './components/Signup'
 import ResetPassword from './components/ResetPassword'
+import ResetPasswordConfirm from './components/ResetPasswordConfirm'
 import Privacy from './components/Privacy'
 import Terms from './components/Terms'
 import OAuthCallback from './components/OAuthCallback'
@@ -15,11 +16,13 @@ import AuthCallback from './components/AuthCallback'
 import ProtectedRoute from './components/ProtectedRoute'
 import RouteGuard from './components/RouteGuard'
 import AdminRoute from './components/AdminRoute'
+import PasswordResetGuard from './components/PasswordResetGuard'
 import AdminPage from './components/AdminPage'
 import BetaGate from './components/BetaGate'
 import StagingBanner from './components/StagingBanner'
 import { ROUTES, IS_LIVE } from './config/routes'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { SessionTimeoutProvider } from './contexts/SessionTimeoutProvider'
 import { ToastProvider } from './contexts/ToastContext'
 import { isDemoMode } from './demo/config/demoConfig'
 import { demoChatService } from './demo/services/demoChatService'
@@ -27,6 +30,8 @@ import { demoChatService } from './demo/services/demoChatService'
 // Dashboard page components
 import HomePage from './components/dashboard/HomePage'
 import FamilyPage from './components/dashboard/FamilyPage'
+import FamilyActivitiesPage from './components/dashboard/FamilyActivitiesPage'
+import FamilyContactsPage from './components/dashboard/FamilyContactsPage'
 import MemoryPage from './components/dashboard/MemoryPage'
 import CalendarPage from './components/dashboard/CalendarPage'
 import EmailPage from './components/dashboard/EmailPage'
@@ -36,6 +41,9 @@ import ReportsPage from './components/dashboard/ReportsPage'
 
 // Testing components
 import EmailTestingPage from './components/testing/EmailTestingPage'
+
+// Streaming test component
+import StreamingTestChat from './components/ui/StreamingTestChat'
 
 // Settings page components
 import AccountSection from './components/dashboard/settings/AccountSection'
@@ -65,7 +73,8 @@ const AppContent = () => {
       <div style={{ marginTop: isStaging ? '40px' : '0' }}>
         <Router>
           <RouteGuard>
-            <BetaGate>
+            <PasswordResetGuard>
+              <BetaGate>
               <Routes>
               <Route path={ROUTES.HOME} element={<Homepage />} />
               {IS_LIVE && (
@@ -80,7 +89,12 @@ const AppContent = () => {
                     </ProtectedRoute>
                   }>
                     <Route path="home" element={<HomePage />} />
-                    <Route path="family" element={<FamilyPage />} />
+                    <Route path="family">
+                      <Route index element={<Navigate to="members" replace />} />
+                      <Route path="members" element={<FamilyPage />} />
+                      <Route path="activities" element={<FamilyActivitiesPage />} />
+                      <Route path="contacts" element={<FamilyContactsPage />} />
+                    </Route>
                     <Route path="memory" element={<MemoryPage />} />
                     <Route path="calendar" element={<CalendarPage />} />
                     <Route path="email" element={<EmailPage />} />
@@ -103,6 +117,13 @@ const AppContent = () => {
                       <AdminPage />
                     </AdminRoute>
                   } />
+
+                  {/* Streaming test route - for testing only */}
+                  <Route path={ROUTES.STREAMING_TEST} element={
+                    <ProtectedRoute>
+                      <StreamingTestChat />
+                    </ProtectedRoute>
+                  } />
                   
                   <Route path={ROUTES.PRICING} element={<PricingPage />} />
                   <Route path={ROUTES.ABOUT} element={<About />} />
@@ -110,12 +131,14 @@ const AppContent = () => {
                   <Route path={ROUTES.SIGNUP} element={<Signup />} />
                   <Route path={ROUTES.LOGIN} element={<Login />} />
                   <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
+                  <Route path={ROUTES.RESET_PASSWORD_CONFIRM} element={<ResetPasswordConfirm />} />
                   <Route path={ROUTES.PRIVACY} element={<Privacy />} />
                   <Route path={ROUTES.TERMS} element={<Terms />} />
                 </>
               )}         
               </Routes>
-            </BetaGate>
+              </BetaGate>
+            </PasswordResetGuard>
           </RouteGuard>
         </Router>
       </div>
@@ -126,9 +149,11 @@ const AppContent = () => {
 function App() {
   return (
     <AuthProvider>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
+      <SessionTimeoutProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </SessionTimeoutProvider>
     </AuthProvider>
   )
 }

@@ -126,7 +126,7 @@ class ResponseCacheService {
    */
   extractFamilyMember(query) {
     // Common names - in production, this would come from family data
-    const namePatterns = /\b(emma|emily|jacob|sarah|mom|dad|kids?|children?)\b/i;
+    const namePatterns = /\b(mom|dad|wife|husband|kids?|children?|child|spouse|partner)\b/i;
     const match = query.match(namePatterns);
     return match ? match[1].toLowerCase() : 'family';
   }

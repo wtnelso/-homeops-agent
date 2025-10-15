@@ -22,7 +22,7 @@ export class AgentMemorySearchTool extends Tool {
   MUST USE for these queries:
   - "who are my contacts" / "my contacts" / "list contacts" / "show contacts"
   - "doctor" / "pediatrician" / "teacher" / "dentist" (any contact type)
-  - Family member questions ("Emma's doctor", "who is the teacher")
+  - Family member questions ("my child's doctor", "who is the teacher")
   - Any question about stored personal information
 
   Input format: {"query": "search terms", "memoryType": "optional_type"}
@@ -31,7 +31,7 @@ export class AgentMemorySearchTool extends Tool {
   - {"query": "contacts", "memoryType": "contact_info"}
   - {"query": "doctor", "memoryType": "contact_info"}
   - {"query": "family preferences"}
-  - {"query": "Emma schedule"}
+  - {"query": "my child's schedule"}
 
   Memory types: contact_info, family_info, preference_info, schedule_info, activity_info, education_info`;
 

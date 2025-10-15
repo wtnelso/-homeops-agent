@@ -141,7 +141,7 @@
 
 /* Settings section container */
 .settings-container {
-  @apply h-[44rem] flex flex-col space-y-6;
+  @apply h-[44rem] flex flex-col space-y-6 w-full max-w-full overflow-hidden;
 }
 
 /* Modal backdrop */

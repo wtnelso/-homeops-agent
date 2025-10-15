@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Check, X, Rocket, User, Users, Crown } from 'lucide-react';
 import Header from '../shared/Header';
+import Footer from '../Footer';
 import './PricingPage.css';
 
 interface PricingTier {
@@ -191,6 +192,8 @@ const PricingPage: React.FC = () => {
       </section>
 
       {/* FAQ or additional content sections could go here */}
+
+      <Footer />
     </div>
   );
 };

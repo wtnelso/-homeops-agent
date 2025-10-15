@@ -5,6 +5,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Password Strength Checker Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.3s ease-in;
+}
+
 /* Brand specific styles */
 @layer base {
   :root {
@@ -326,5 +357,33 @@
       transform: scale(0.9);
       max-height: 80px;
     }
+  }
+
+  /* Claude-style thinking animation */
+  @keyframes claude-thinking {
+    0%, 80%, 100% {
+      opacity: 0.3;
+      transform: scale(0.8);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-claude-thinking {
+    animation: claude-thinking 1.4s infinite ease-in-out;
+  }
+
+  .animate-claude-thinking:nth-child(1) {
+    animation-delay: 0ms;
+  }
+
+  .animate-claude-thinking:nth-child(2) {
+    animation-delay: 200ms;
+  }
+
+  .animate-claude-thinking:nth-child(3) {
+    animation-delay: 400ms;
   }
 }

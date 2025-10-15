@@ -24,8 +24,8 @@ const AddSchoolModal: React.FC<AddSchoolModalProps> = ({ isOpen, onClose, onAdd,
   useEffect(() => {
     if (isEditing && editingSchool) {
       setSchoolData({
-        name: editingSchool.name || '',
-        type: editingSchool.type || '',
+        name: editingSchool.school_name || '',
+        type: editingSchool.school_type || '',
         email_domain: editingSchool.email_domain || '',
         grade: editingSchool.grade || ''
       });
@@ -154,13 +154,34 @@ const AddSchoolModal: React.FC<AddSchoolModalProps> = ({ isOpen, onClose, onAdd,
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
               Grade/Year
             </label>
-            <input
-              type="text"
-              value={schoolData.grade}
-              onChange={(e) => handleChange('grade', e.target.value)}
-              placeholder="e.g., 3rd Grade, Sophomore, etc."
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-            />
+            <div className="relative">
+              <select
+                value={schoolData.grade}
+                onChange={(e) => handleChange('grade', e.target.value)}
+                className="w-full px-4 py-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors appearance-none"
+              >
+                <option value="">Select grade</option>
+                <option value="Pre-K">Pre-K</option>
+                <option value="K">Kindergarten</option>
+                <option value="1">1st Grade</option>
+                <option value="2">2nd Grade</option>
+                <option value="3">3rd Grade</option>
+                <option value="4">4th Grade</option>
+                <option value="5">5th Grade</option>
+                <option value="6">6th Grade</option>
+                <option value="7">7th Grade</option>
+                <option value="8">8th Grade</option>
+                <option value="9">9th Grade</option>
+                <option value="10">10th Grade</option>
+                <option value="11">11th Grade</option>
+                <option value="12">12th Grade</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
 

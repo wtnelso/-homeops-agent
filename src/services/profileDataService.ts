@@ -5,7 +5,7 @@
  * schools, activities, and other profile-related data.
  */
 
-import { accountProfileService, ProfileData } from './accountProfileService';
+import { familyProfileService, ProfileData } from './familyProfileService';
 
 interface FamilyMember {
   name: string;
@@ -56,7 +56,7 @@ class ProfileDataService {
       console.log('Adding family member:', memberType, memberData);
 
       // Get current profile to append to existing members
-      const currentProfile = await accountProfileService.getProfile(accountId);
+      const currentProfile = await familyProfileService.getProfile(accountId);
       if (!currentProfile.success) {
         throw new Error('Failed to get current profile');
       }
@@ -84,7 +84,7 @@ class ProfileDataService {
         ]
       };
 
-      const result = await accountProfileService.updateProfile(accountId, updates);
+      const result = await familyProfileService.updateProfile(accountId, updates);
 
       if (result.success) {
         console.log('✅ Family member added successfully');
@@ -116,7 +116,7 @@ class ProfileDataService {
       console.log('Adding school to member:', memberIndex, schoolData);
 
       // Get current profile
-      const currentProfile = await accountProfileService.getProfile(accountId);
+      const currentProfile = await familyProfileService.getProfile(accountId);
       if (!currentProfile.success) {
         throw new Error('Failed to get current profile');
       }
@@ -149,7 +149,7 @@ class ProfileDataService {
       };
 
       // Update the profile
-      const result = await accountProfileService.updateProfile(accountId, updates);
+      const result = await familyProfileService.updateProfile(accountId, updates);
 
       if (result.success) {
         console.log('✅ School added to member successfully');
@@ -180,7 +180,7 @@ class ProfileDataService {
       console.log('Adding activity to member:', memberIndex, activityData);
 
       // Get current profile
-      const currentProfile = await accountProfileService.getProfile(accountId);
+      const currentProfile = await familyProfileService.getProfile(accountId);
       if (!currentProfile.success) {
         throw new Error('Failed to get current profile');
       }
@@ -214,7 +214,7 @@ class ProfileDataService {
       };
 
       // Update the profile
-      const result = await accountProfileService.updateProfile(accountId, updates);
+      const result = await familyProfileService.updateProfile(accountId, updates);
 
       if (result.success) {
         console.log('✅ Activity added to member successfully');
@@ -245,7 +245,7 @@ class ProfileDataService {
       console.log('Updating profile field:', fieldPath, value);
 
       // Get current profile
-      const currentProfile = await accountProfileService.getProfile(accountId);
+      const currentProfile = await familyProfileService.getProfile(accountId);
       if (!currentProfile.success) {
         throw new Error('Failed to get current profile');
       }
@@ -280,7 +280,7 @@ class ProfileDataService {
           members: updatedMembers
         };
 
-        const result = await accountProfileService.updateProfile(accountId, updates);
+        const result = await familyProfileService.updateProfile(accountId, updates);
 
         if (result.success) {
           console.log('✅ Profile field updated successfully');
@@ -301,7 +301,7 @@ class ProfileDataService {
         }
         current[pathParts[pathParts.length - 1]] = value;
 
-        const result = await accountProfileService.updateProfile(accountId, updates);
+        const result = await familyProfileService.updateProfile(accountId, updates);
 
         if (result.success) {
           console.log('✅ Profile field updated successfully');
@@ -353,7 +353,7 @@ class ProfileDataService {
       console.log('Updating school for member:', memberIndex, 'school:', schoolIndex, schoolData);
 
       // Get current profile
-      const currentProfile = await accountProfileService.getProfile(accountId);
+      const currentProfile = await familyProfileService.getProfile(accountId);
       if (!currentProfile.success) {
         throw new Error('Failed to get current profile');
       }
@@ -390,7 +390,7 @@ class ProfileDataService {
       };
 
       // Update the profile
-      const result = await accountProfileService.updateProfile(accountId, updates);
+      const result = await familyProfileService.updateProfile(accountId, updates);
 
       if (result.success) {
         console.log('✅ School updated for member successfully');
@@ -422,7 +422,7 @@ class ProfileDataService {
       console.log('Updating activity for member:', memberIndex, 'activity:', activityIndex, activityData);
 
       // Get current profile
-      const currentProfile = await accountProfileService.getProfile(accountId);
+      const currentProfile = await familyProfileService.getProfile(accountId);
       if (!currentProfile.success) {
         throw new Error('Failed to get current profile');
       }
@@ -460,7 +460,7 @@ class ProfileDataService {
       };
 
       // Update the profile
-      const result = await accountProfileService.updateProfile(accountId, updates);
+      const result = await familyProfileService.updateProfile(accountId, updates);
 
       if (result.success) {
         console.log('✅ Activity updated for member successfully');
@@ -491,7 +491,7 @@ class ProfileDataService {
       console.log('Deleting school from member:', memberIndex, 'school:', schoolIndex);
 
       // Get current profile
-      const currentProfile = await accountProfileService.getProfile(accountId);
+      const currentProfile = await familyProfileService.getProfile(accountId);
       if (!currentProfile.success) {
         throw new Error('Failed to get current profile');
       }
@@ -523,7 +523,7 @@ class ProfileDataService {
       };
 
       // Update the profile
-      const result = await accountProfileService.updateProfile(accountId, updates);
+      const result = await familyProfileService.updateProfile(accountId, updates);
 
       if (result.success) {
         console.log('✅ School deleted from member successfully');
@@ -554,7 +554,7 @@ class ProfileDataService {
       console.log('Deleting activity from member:', memberIndex, 'activity:', activityIndex);
 
       // Get current profile
-      const currentProfile = await accountProfileService.getProfile(accountId);
+      const currentProfile = await familyProfileService.getProfile(accountId);
       if (!currentProfile.success) {
         throw new Error('Failed to get current profile');
       }
@@ -586,7 +586,7 @@ class ProfileDataService {
       };
 
       // Update the profile
-      const result = await accountProfileService.updateProfile(accountId, updates);
+      const result = await familyProfileService.updateProfile(accountId, updates);
 
       if (result.success) {
         console.log('✅ Activity deleted from member successfully');
@@ -616,7 +616,7 @@ class ProfileDataService {
       console.log('Deleting family member at index:', memberIndex);
 
       // Get current profile
-      const currentProfile = await accountProfileService.getProfile(accountId);
+      const currentProfile = await familyProfileService.getProfile(accountId);
       if (!currentProfile.success) {
         throw new Error('Failed to get current profile');
       }
@@ -647,7 +647,7 @@ class ProfileDataService {
       };
 
       // Update the profile
-      const result = await accountProfileService.updateProfile(accountId, updates);
+      const result = await familyProfileService.updateProfile(accountId, updates);
 
       if (result.success) {
         console.log('✅ Family member deleted successfully');

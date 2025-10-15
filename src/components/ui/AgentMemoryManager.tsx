@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, CheckCircle, Clock, AlertCircle, Sparkles, Trash2, Eye, Heart, Calendar, Users, Target, Utensils, Hospital, GraduationCap, Briefcase, Palette, MessageCircle, Brain } from 'lucide-react';
+import { apiService } from '../../services/authenticatedApiService';
+import { ENDPOINTS } from '../../config/apiConfig';
 
 interface Memory {
   id: string;
@@ -16,11 +18,11 @@ interface Memory {
 }
 
 interface AgentMemoryManagerProps {
-  accountId: string;
+  userId: string;
   onMemoryUpdate: () => void;
 }
 
-const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ accountId, onMemoryUpdate }) => {
+const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ userId, onMemoryUpdate }) => {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -29,18 +31,44 @@ const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ accountId, onMe
 
   useEffect(() => {
     fetchMemories();
-  }, [accountId]);
+  }, [userId]);
 
   const fetchMemories = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_RENDER_SERVER_URL}/api/agent-memory?accountId=${accountId}`);
-      const data = await response.json();
+      console.log('🔍 FRONTEND DEBUG: Fetching memories for userId:', userId);
+      const response = await apiService.get(`${ENDPOINTS.agentMemory}?userId=${userId}`);
 
-      if (data.success) {
-        setMemories(data.memories || []);
+      console.log('🔍 FRONTEND DEBUG: API response:', response);
+
+      if (response.error) {
+        setError(response.error || 'Failed to fetch memories');
+        return;
+      }
+
+      const data = response.data;
+      console.log('🔍 FRONTEND DEBUG: Response data:', data);
+
+      if (data?.success) {
+        // Transform backend data format to frontend format
+        const transformedMemories = (data.memories || []).map((memory: any) => ({
+          id: memory.id,
+          memory_text: typeof memory.value === 'object' ? JSON.stringify(memory.value) : String(memory.value || ''),
+          memory_type: memory.memory_type,
+          confidence_score: memory.confidence_score,
+          is_active: memory.expires_at === null || new Date(memory.expires_at) > new Date(),
+          is_confirmed: memory.is_user_confirmed || false,
+          created_at: memory.created_at,
+          expires_at: memory.expires_at,
+          derived_from_source: memory.source_type || 'unknown',
+          entity_name: memory.key,
+          last_referenced_at: memory.updated_at
+        }));
+
+        console.log('🔍 FRONTEND DEBUG: Transformed memories:', transformedMemories);
+        setMemories(transformedMemories);
       } else {
-        setError(data.error || 'Failed to fetch memories');
+        setError(data?.error || 'Failed to fetch memories');
       }
     } catch (err) {
       setError('Failed to fetch memories');
@@ -52,18 +80,21 @@ const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ accountId, onMe
 
   const handleToggleActive = async (memoryId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_RENDER_SERVER_URL}/api/agent-memory/${memoryId}/toggle`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: !currentStatus })
+      const response = await apiService.put(`${ENDPOINTS.agentMemory}/${memoryId}/toggle`, {
+        is_active: !currentStatus
       });
 
-      const data = await response.json();
-      if (data.success) {
+      if (response.error) {
+        setError(response.error || 'Failed to update memory');
+        return;
+      }
+
+      const data = response.data;
+      if (data?.success) {
         await fetchMemories();
         onMemoryUpdate();
       } else {
-        setError(data.error || 'Failed to update memory');
+        setError(data?.error || 'Failed to update memory');
       }
     } catch (err) {
       setError('Failed to update memory');
@@ -73,17 +104,22 @@ const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ accountId, onMe
 
   const handleConfirmMemory = async (memoryId: string) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_RENDER_SERVER_URL}/api/agent-memory/${memoryId}/confirm`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' }
+      const response = await apiService.post(`${ENDPOINTS.agentMemory}/confirm`, {
+        memoryId,
+        userId
       });
 
-      const data = await response.json();
-      if (data.success) {
+      if (response.error) {
+        setError(response.error || 'Failed to confirm memory');
+        return;
+      }
+
+      const data = response.data;
+      if (data?.success) {
         await fetchMemories();
         onMemoryUpdate();
       } else {
-        setError(data.error || 'Failed to confirm memory');
+        setError(data?.error || 'Failed to confirm memory');
       }
     } catch (err) {
       setError('Failed to confirm memory');
@@ -97,16 +133,22 @@ const AgentMemoryManager: React.FC<AgentMemoryManagerProps> = ({ accountId, onMe
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_RENDER_SERVER_URL}/api/agent-memory/${memoryId}`, {
-        method: 'DELETE'
+      const response = await apiService.request(ENDPOINTS.agentMemory, {
+        method: 'DELETE',
+        body: { memoryId, userId }
       });
 
-      const data = await response.json();
-      if (data.success) {
+      if (response.error) {
+        setError(response.error || 'Failed to delete memory');
+        return;
+      }
+
+      const data = response.data;
+      if (data?.success) {
         await fetchMemories();
         onMemoryUpdate();
       } else {
-        setError(data.error || 'Failed to delete memory');
+        setError(data?.error || 'Failed to delete memory');
       }
     } catch (err) {
       setError('Failed to delete memory');

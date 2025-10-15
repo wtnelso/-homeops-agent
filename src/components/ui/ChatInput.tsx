@@ -45,9 +45,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   // Demo typing effect
   useEffect(() => {
-    console.log('🎬 ChatInput: useEffect triggered with demoTypingText:', demoTypingText);
     if (demoTypingText) {
-      console.log('🎬 ChatInput: Starting demo typing for:', demoTypingText);
       setIsTypingDemo(true);
       setInput(''); // Clear current input
 
@@ -55,7 +53,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
       const typeNextChar = () => {
         if (currentIndex < demoTypingText.length) {
           const newText = demoTypingText.substring(0, currentIndex + 1);
-          console.log('🎬 ChatInput: Typing char:', newText);
           setInput(newText);
           currentIndex++;
           typingTimeoutRef.current = setTimeout(typeNextChar, 20); // 20ms per character

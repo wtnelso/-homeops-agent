@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase, auth } from '../lib/supabase'
 import { UserSessionService, UserSessionData } from '../services/userSession'
-import { ProfileData } from '../services/accountProfileService'
+import { ProfileData } from '../services/familyProfileService'
 
 interface AuthContextType {
   user: User | null
@@ -53,7 +53,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUserData(null)
         setProfileData(null)
       } else {
-        console.log('Fetched user data:', data) // Debug log
         setUserData(data)
         setProfileData(data.profileData)
       }
@@ -77,7 +76,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfileData(null)
         return null
       } else {
-        console.log('Fetched fresh user data:', data)
         setUserData(data)
         setProfileData(data.profileData)
         return data
@@ -166,14 +164,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Handle user data based on auth events
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log('🔐 SIGNED_IN event triggered for user:', session.user.id, session.user.email)
         UserSessionService.updateLastLogin()
       } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out, clearing user data')
         setUserData(null)
         setProfileData(null)
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        console.log('Token refreshed, updating user data')
         fetchUserData()
       }
     })

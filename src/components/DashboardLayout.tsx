@@ -9,7 +9,10 @@ import {
   Settings,
   Users,
   Brain,
-  UserPlus
+  UserPlus,
+  ChevronDown,
+  ChevronRight,
+  Target
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdminStatus } from '../hooks/useAdminStatus';
@@ -20,6 +23,8 @@ import OnboardingModal from './ui/OnboardingModal';
 import { isDemoMode } from '../demo/config/demoConfig';
 import DemoBanner from '../demo/components/DemoBanner';
 import { demoChatService } from '../demo/services/demoChatService';
+import { useSessionTimeout } from '../lib/sessionTimeout';
+import { useToast } from '../contexts/ToastContext';
 
 interface DashboardPage {
   id: string;
@@ -27,11 +32,20 @@ interface DashboardPage {
   icon: React.ComponentType<any>;
   description: string;
   path: string;
+  subItems?: DashboardSubItem[];
+}
+
+interface DashboardSubItem {
+  id: string;
+  title: string;
+  icon: React.ComponentType<any>;
+  path: string;
 }
 
 const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [onboardingModalOpen, setOnboardingModalOpen] = useState<boolean>(false);
+  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({});
   const { userData } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminStatus();
   const location = useLocation();
@@ -57,7 +71,27 @@ const DashboardLayout: React.FC = () => {
       title: 'Family Profile',
       icon: Users,
       description: 'Manage family members and profiles',
-      path: '/dashboard/family'
+      path: '/dashboard/family',
+      subItems: [
+        {
+          id: 'family-members',
+          title: 'Members',
+          icon: Users,
+          path: '/dashboard/family/members'
+        },
+        {
+          id: 'family-activities',
+          title: 'Activities',
+          icon: Target,
+          path: '/dashboard/family/activities'
+        },
+        {
+          id: 'family-contacts',
+          title: 'Contacts',
+          icon: UserPlus,
+          path: '/dashboard/family/contacts'
+        }
+      ]
     },
     {
       id: 'memory',
@@ -91,10 +125,18 @@ const DashboardLayout: React.FC = () => {
 
   const getCurrentPage = (): DashboardPage | undefined => {
     const currentPath = location.pathname;
-    return dashboardPages.find(page => 
-      currentPath === page.path || 
-      (page.id === 'settings' && currentPath.startsWith('/dashboard/settings'))
+    return dashboardPages.find(page =>
+      currentPath === page.path ||
+      (page.id === 'settings' && currentPath.startsWith('/dashboard/settings')) ||
+      (page.id === 'family' && currentPath.startsWith('/dashboard/family'))
     );
+  };
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
   };
 
   const handleAccountSettings = () => {
@@ -164,7 +206,7 @@ const DashboardLayout: React.FC = () => {
             />
             <div>
               <h1 className="text-lg font-bold text-white tracking-tight">HomeOps</h1>
-              <p className="text-xs text-blue-100">{userData?.account?.account_name || 'Family Dashboard'}</p>
+              <p className="text-xs text-blue-100">{userData?.user?.account_name || 'Family Dashboard'}</p>
             </div>
           </div>
           <button
@@ -178,31 +220,89 @@ const DashboardLayout: React.FC = () => {
         {/* Navigation */}
         <nav className="px-4 py-6 space-y-1">
           {dashboardPages.map((page) => {
-            const isActive = location.pathname === page.path ||
-              (page.id === 'settings' && location.pathname.startsWith('/dashboard/settings'));
+            const isPageActive = location.pathname === page.path ||
+              (page.id === 'settings' && location.pathname.startsWith('/dashboard/settings')) ||
+              (page.id === 'family' && location.pathname.startsWith('/dashboard/family'));
             const IconComponent = page.icon;
+            const hasSubItems = page.subItems && page.subItems.length > 0;
+            const isExpanded = expandedSections[page.id];
+
+            // For pages with sub-items, auto-expand if currently on a sub-route
+            const shouldAutoExpand = hasSubItems && page.id === 'family' && location.pathname.startsWith('/dashboard/family');
+            if (shouldAutoExpand && !isExpanded) {
+              expandedSections[page.id] = true;
+            }
 
             return (
-              <button
-                key={page.id}
-                onClick={() => {
-                  navigate(page.path);
-                  setSidebarOpen(false);
-                }}
-                className={`
-                  w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ease-out
-                  ${isActive
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm'
-                  }
-                  ${(page.id === 'calendar' || page.id === 'email') ? 'hidden' : ''}
-                `}
-              >
-                <IconComponent className="w-5 h-5" />
-                <div className="flex-1">
-                  <span className={`font-semibold tracking-wide ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}`}>{page.title}</span>
-                </div>
-              </button>
+              <div key={page.id} className={`${(page.id === 'calendar' || page.id === 'email') ? 'hidden' : ''}`}>
+                {/* Main navigation item */}
+                <button
+                  onClick={() => {
+                    if (hasSubItems) {
+                      toggleSection(page.id);
+                    } else {
+                      // Close all expanded sections when navigating to a non-expandable page
+                      setExpandedSections({});
+                      navigate(page.path);
+                      setSidebarOpen(false);
+                    }
+                  }}
+                  className={`
+                    w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ease-out
+                    ${isPageActive
+                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm'
+                    }
+                  `}
+                >
+                  <IconComponent className="w-5 h-5" />
+                  <div className="flex-1">
+                    <span className={`font-semibold tracking-wide ${isPageActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}`}>
+                      {page.title}
+                    </span>
+                  </div>
+                  {hasSubItems && (
+                    <div className="transition-transform duration-200">
+                      {isExpanded || shouldAutoExpand ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </div>
+                  )}
+                </button>
+
+                {/* Sub-items */}
+                {hasSubItems && (isExpanded || shouldAutoExpand) && (
+                  <div className="ml-4 mt-1 space-y-1">
+                    {page.subItems.map((subItem) => {
+                      const isSubItemActive = location.pathname === subItem.path;
+                      const SubIconComponent = subItem.icon;
+
+                      return (
+                        <button
+                          key={subItem.id}
+                          onClick={() => {
+                            // Keep the parent section expanded when clicking sub-items
+                            navigate(subItem.path);
+                            setSidebarOpen(false);
+                          }}
+                          className={`
+                            w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-left transition-all duration-200 ease-out text-sm
+                            ${isSubItemActive
+                              ? 'bg-blue-100 dark:bg-blue-800/30 text-blue-700 dark:text-blue-300 shadow-sm'
+                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
+                            }
+                          `}
+                        >
+                          <SubIconComponent className="w-4 h-4" />
+                          <span className="font-medium tracking-wide">{subItem.title}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

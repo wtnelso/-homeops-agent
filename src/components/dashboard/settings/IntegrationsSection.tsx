@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { IntegrationsDataService, IntegrationWithStatus } from '../../../services/integrationsData';
-import { AccountIntegrationsService } from '../../../services/accountIntegrationsService';
+import { UserIntegrationsService } from '../../../services/userIntegrationsService';
 import { OAuthCoordinator } from '../../../config/oauth';
 import IntegrationCard from '../../ui/IntegrationCard';
 import Loader from '../../ui/Loader';
@@ -19,23 +19,16 @@ const IntegrationsSection: React.FC = () => {
   }, [userData]);
 
   const loadIntegrationsData = async () => {
-    console.log('Loading integrations data...', { 
-      userEmail: userData?.user?.email, 
-      accountId: userData?.account?.id 
-    });
-    
     setLoading(true);
     try {
-      if (!userData?.account?.id) {
-        console.warn('No account ID available');
+      if (!userData?.user?.id) {
         setIntegrationsWithStatus([]);
         return;
       }
 
-      // Use new account-based integration service
-      const integrations = await IntegrationsDataService.getIntegrationsForAccount(userData.account.id);
-      console.log('Account integrations:', integrations);
-      
+      // Use user-based integration service (migrated from account-based)
+      const integrations = await IntegrationsDataService.getIntegrationsForUser(userData.user.id);
+
       setIntegrationsWithStatus(integrations);
     } catch (error) {
       console.error('Error loading integrations:', error);
@@ -47,8 +40,8 @@ const IntegrationsSection: React.FC = () => {
 
   const handleConnect = async (integrationId: string) => {
     const integration = integrationsWithStatus.find(i => i.id === integrationId);
-    if (!integration || !userData?.account?.id || !userData?.user?.id) {
-      console.error('Missing integration, account, or user data');
+    if (!integration || !userData?.user?.id) {
+      console.error('Missing integration or user data');
       return;
     }
 
@@ -69,8 +62,8 @@ const IntegrationsSection: React.FC = () => {
         }
         
         // Update database to disconnected state
-        const result = await AccountIntegrationsService.uninstallIntegration({
-          accountId: userData.account.id,
+        const result = await UserIntegrationsService.uninstallIntegration({
+          userId: userData.user.id,
           integrationId: integrationId
         });
         
@@ -89,8 +82,8 @@ const IntegrationsSection: React.FC = () => {
           OAuthCoordinator.startFlow(integrationId);
         } else {
           // Handle non-OAuth connection
-          const result = await AccountIntegrationsService.installIntegration({
-            accountId: userData.account.id,
+          const result = await UserIntegrationsService.installIntegration({
+            userId: userData.user.id,
             integrationId: integrationId,
             installedByUserId: userData.user.id
           });
@@ -151,11 +144,7 @@ const IntegrationsSection: React.FC = () => {
               required_scopes: integration.required_scopes,
               isConnected: integration.isConnected
             };
-            
-            console.log(`Integration ${integration.id}:`, {
-              isConnected: integration.isConnected
-            });
-            
+
             return (
               <IntegrationCard
                 key={integration.id}

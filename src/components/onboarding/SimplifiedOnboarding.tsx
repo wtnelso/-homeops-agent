@@ -216,7 +216,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
   const handleGmailConnect = async (integrationId: string) => {
     // Handle Gmail connection using the same logic as IntegrationsSection
     const { OAuthCoordinator } = await import('../../config/oauth');
-    const { AccountIntegrationsService } = await import('../../services/accountIntegrationsService');
+    const { UserIntegrationsService } = await import('../../services/userIntegrationsService');
 
     if (!userData?.account?.id || !userData?.user?.id) {
       console.error('Missing account or user data');
@@ -229,8 +229,8 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
         OAuthCoordinator.startFlow(integrationId);
       } else {
         // Handle non-OAuth connection
-        const result = await AccountIntegrationsService.installIntegration({
-          accountId: userData.account.id,
+        const result = await UserIntegrationsService.installIntegration({
+          userId: userData.user.id,
           integrationId: integrationId,
           installedByUserId: userData.user.id
         });

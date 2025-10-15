@@ -16,7 +16,6 @@ export interface ChatRequest {
   message: string;
   conversationId?: string;
   userId: string;
-  accountId: string;
 }
 
 export interface ChatResponse {
@@ -77,7 +76,6 @@ export class AIAgentService {
       if (!conversationId) {
         const createResult = await this.conversationService.createConversation({
           userId: request.userId,
-          accountId: request.accountId,
           title: this.generateTitle(request.message),
           initialMessage: request.message
         });
@@ -93,7 +91,6 @@ export class AIAgentService {
       const messageResult = await this.messageService.processUserMessage({
         conversationId,
         userId: request.userId,
-        accountId: request.accountId,
         message: request.message
       });
 
@@ -220,24 +217,24 @@ Guidelines:
     return title + (message.length > 50 ? '...' : '');
   }
 
-  async updateUserPreference(userId: string, accountId: string, preference: string, value: any): Promise<{
+  async updateUserPreference(userId: string, preference: string, value: any): Promise<{
     success: boolean;
     error?: string;
   }> {
     try {
-      const result = await this.messageService.updateUserPreference(userId, accountId, preference, value);
+      const result = await this.messageService.updateUserPreference(userId, preference, value);
       return { success: result.success, error: result.error };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
   }
 
-  async updateFamilyInfo(userId: string, accountId: string, key: string, info: any): Promise<{
+  async updateFamilyInfo(userId: string, key: string, info: any): Promise<{
     success: boolean;
     error?: string;
   }> {
     try {
-      const result = await this.messageService.updateFamilyInfo(userId, accountId, key, info);
+      const result = await this.messageService.updateFamilyInfo(userId, key, info);
       return { success: result.success, error: result.error };
     } catch (error: any) {
       return { success: false, error: error.message };

@@ -13,6 +13,7 @@
 
 import { Tool } from '@langchain/core/tools';
 import { getTokenService } from '../services/oauthTokenService.js';
+import TemporalParsingService from '../services/temporalParsingService.js';
 
 export class GmailSearchTool extends Tool {
   name = 'gmail_search';
@@ -42,7 +43,7 @@ export class GmailSearchTool extends Tool {
     try {
       // Handle both object and JSON string input
       const params = typeof input === 'string' ? JSON.parse(input) : input;
-      const { query, maxResults = 10 } = params;
+      const { query, maxResults = 10, temporalRange } = params;
 
       if (!query || typeof query !== 'string') {
         return JSON.stringify({
@@ -51,7 +52,19 @@ export class GmailSearchTool extends Tool {
         });
       }
 
-      console.log(`🔍 Gmail API fallback search: "${query}" for user ${this.userId}`);
+      // Use temporalRange for consistent date handling, fallback to TemporalParsingService if needed
+      let finalQuery = query;
+      if (temporalRange && temporalRange.startDate && temporalRange.endDate) {
+        // Convert temporalRange to Gmail date operators
+        const startDate = new Date(temporalRange.startDate).toISOString().split('T')[0].replace(/-/g, '/');
+        const endDate = new Date(temporalRange.endDate).toISOString().split('T')[0].replace(/-/g, '/');
+        finalQuery = `after:${startDate} before:${endDate} ${query}`.trim();
+        console.log(`🔍 Gmail API search with temporal range "${temporalRange.phrase}": "${finalQuery}" for user ${this.userId}`);
+      } else {
+        // Fallback to TemporalParsingService for backward compatibility
+        finalQuery = await TemporalParsingService.createGmailQuery('', query);
+        console.log(`🔍 Gmail API search (fallback temporal parsing): "${finalQuery}" for user ${this.userId}`);
+      }
 
       // Get valid access token
       const tokenResult = await this.tokenService.getValidAccessToken(this.userId, 'gmail');
@@ -65,7 +78,7 @@ export class GmailSearchTool extends Tool {
       }
 
       // Search Gmail using API
-      const searchResults = await this._searchGmail(tokenResult.token.access_token, query, maxResults);
+      const searchResults = await this._searchGmail(tokenResult.token.access_token, finalQuery, maxResults);
 
       if (!searchResults.success) {
         return JSON.stringify(searchResults);

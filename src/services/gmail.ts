@@ -1,5 +1,6 @@
 import { GMAIL_CONFIG } from '../config/integrations/gmail';
 import { UserSessionService } from './userSession';
+import { supabase } from '../lib/supabase';
 
 export class GmailService {
   static buildOAuthUrl(): string {
@@ -40,8 +41,13 @@ export class GmailService {
   static async handleOAuthCallback(code: string): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
       console.log('Gmail OAuth callback with code:', code);
-      
-      // Get current user session data
+
+      // Get current user session data and JWT token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        return { success: false, error: 'Authentication required' };
+      }
+
       const sessionData = await UserSessionService.getUserSessionData();
       if ('error' in sessionData) {
         return { success: false, error: 'Failed to get user session data' };
@@ -52,12 +58,12 @@ export class GmailService {
       const response = await fetch(`${serverUrl}/api/oauth/exchange`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           code: code,
           integrationId: 'gmail',
-          accountId: sessionData.account.id,
           userId: sessionData.user.id
         })
       });
@@ -83,8 +89,13 @@ export class GmailService {
   static async disconnect(): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
       console.log('Disconnecting Gmail');
-      
-      // Get current user session data
+
+      // Get current user session data and JWT token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        return { success: false, error: 'Authentication required' };
+      }
+
       const sessionData = await UserSessionService.getUserSessionData();
       if ('error' in sessionData) {
         return { success: false, error: 'Failed to get user session data' };
@@ -95,10 +106,11 @@ export class GmailService {
       const response = await fetch(`${serverUrl}/api/oauth/disconnect`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
-          accountId: sessionData.account.id,
+          userId: sessionData.user.id,
           integrationId: 'gmail'
         })
       });

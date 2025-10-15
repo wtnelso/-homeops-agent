@@ -1,0 +1,21 @@
+{
+  "intents": [{"tool": "calendar", "confidence": "high"}],
+  "tools": ["calendar"],
+  "method": "llm_classification",
+  "temporal": {
+    "startDate": "YYYY-MM-DD",
+    "endDate": "YYYY-MM-DD",
+    "phrase": "simplified phrase"
+  },
+  "params": {
+    "calendar": {"action": "list_events"},
+    "gmail_search": {"query": "search terms"},
+    "family_activities": {}
+  },
+  "response_template": {
+    "type": "structured_data",
+    "template_name": "calendar_event",
+    "title": "Here's what's happening {temporal_phrase}"
+  },
+  "bypass_llm": true
+}

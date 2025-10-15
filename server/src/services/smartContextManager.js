@@ -21,13 +21,80 @@ export class SmartContextManager {
       TOTAL_CONTEXT: 2000       // Total context budget
     };
 
-    // Query type patterns for context optimization
-    this.QUERY_PATTERNS = {
-      PERSONAL_INFO: /(?:my|our|who is|what does|when do|where do).*(family|wife|husband|kid|child|schedule|preference)/i,
-      CONTACT_REQUEST: /(?:contact|call|reach|find).*(doctor|teacher|school|coach)/i,
-      ACTIVITY_QUERY: /(?:activity|practice|lesson|schedule|when).*(today|tomorrow|this week|next week)/i,
-      PREFERENCE_QUERY: /(?:like|dislike|prefer|avoid|allergic|restriction)/i,
-      EMERGENCY_QUERY: /(?:emergency|urgent|important|asap|help)/i
+    // Intent classification using keyword scoring
+    this.INTENT_KEYWORDS = {
+      SCHEDULE_QUERY: {
+        // High-value schedule terms
+        'schedule': 0.9,
+        'calendar': 0.9,
+        'activities': 0.8,
+        'agenda': 0.8,
+        'going on': 0.8,
+        'happening': 0.7,
+        'planned': 0.7,
+        'events': 0.7,
+        'practice': 0.6,
+        'lesson': 0.6,
+        'class': 0.6,
+        'sport': 0.5,
+        // Time references
+        'today': 0.6,
+        'tomorrow': 0.6,
+        'this week': 0.7,
+        'next week': 0.6,
+        'weekend': 0.5,
+        'week': 0.4,
+        // Activity phrases
+        'do we have': 0.5,
+        'what do': 0.3,
+        'show me': 0.3
+      },
+      EMAIL_QUERY: {
+        'email': 0.9,
+        'emails': 0.9,
+        'inbox': 0.8,
+        'mail': 0.7,
+        'message': 0.6,
+        'messages': 0.6,
+        'correspondence': 0.5,
+        'from': 0.4, // "email from X"
+        'check': 0.3 // "check email"
+      },
+      CONTACT_QUERY: {
+        'contact': 0.9,
+        'doctor': 0.9,
+        'teacher': 0.9,
+        'pediatrician': 0.8,
+        'dentist': 0.8,
+        'coach': 0.7,
+        'phone': 0.7,
+        'number': 0.6,
+        'call': 0.5,
+        'reach': 0.5,
+        'who is': 0.6
+      },
+      PREFERENCE_QUERY: {
+        'like': 0.8,
+        'likes': 0.8,
+        'dislike': 0.8,
+        'dislikes': 0.8,
+        'prefer': 0.9,
+        'preference': 0.9,
+        'preferences': 0.9,
+        'avoid': 0.8,
+        'allergic': 0.9,
+        'allergy': 0.9,
+        'restriction': 0.8,
+        'restrictions': 0.8
+      },
+      EMERGENCY_QUERY: {
+        'emergency': 1.0,
+        'urgent': 0.9,
+        'important': 0.7,
+        'asap': 0.8,
+        'help': 0.6,
+        'crisis': 0.9
+      }
     };
   }
 
@@ -40,18 +107,69 @@ export class SmartContextManager {
   }
 
   /**
-   * Categorize query to determine context priority
+   * Classify query intent using keyword scoring
    */
-  categorizeQuery(userQuery) {
-    const categories = [];
+  classifyIntent(userQuery) {
+    const query = userQuery.toLowerCase();
+    const intentScores = {};
 
-    for (const [category, pattern] of Object.entries(this.QUERY_PATTERNS)) {
-      if (pattern.test(userQuery)) {
-        categories.push(category);
+    // Initialize all intent scores to 0
+    for (const intent of Object.keys(this.INTENT_KEYWORDS)) {
+      intentScores[intent] = 0;
+    }
+
+    // Score each intent based on keyword matches
+    for (const [intent, keywords] of Object.entries(this.INTENT_KEYWORDS)) {
+      for (const [keyword, weight] of Object.entries(keywords)) {
+        if (query.includes(keyword.toLowerCase())) {
+          intentScores[intent] += weight;
+        }
       }
     }
 
-    return categories.length > 0 ? categories : ['GENERAL'];
+    // Find the highest scoring intent(s)
+    const maxScore = Math.max(...Object.values(intentScores));
+
+    if (maxScore === 0) {
+      return { primary: 'GENERAL', confidence: 0, scores: intentScores };
+    }
+
+    const topIntents = Object.entries(intentScores)
+      .filter(([intent, score]) => score === maxScore)
+      .map(([intent, score]) => intent);
+
+    console.log(`🎯 Intent classification for "${userQuery}":`, {
+      primary: topIntents[0],
+      confidence: maxScore,
+      allScores: intentScores
+    });
+
+    return {
+      primary: topIntents[0],
+      confidence: maxScore,
+      scores: intentScores,
+      allTopIntents: topIntents
+    };
+  }
+
+  /**
+   * Categorize query to determine context priority (legacy method for compatibility)
+   */
+  categorizeQuery(userQuery) {
+    const classification = this.classifyIntent(userQuery);
+
+    // Map new intent system to legacy categories
+    const intentToCategory = {
+      'SCHEDULE_QUERY': 'ACTIVITY_QUERY',
+      'EMAIL_QUERY': 'GENERAL', // Email queries don't need agent memory
+      'CONTACT_QUERY': 'CONTACT_REQUEST',
+      'PREFERENCE_QUERY': 'PREFERENCE_QUERY',
+      'EMERGENCY_QUERY': 'EMERGENCY_QUERY',
+      'GENERAL': 'GENERAL'
+    };
+
+    const primaryCategory = intentToCategory[classification.primary] || 'GENERAL';
+    return [primaryCategory];
   }
 
   /**
@@ -59,7 +177,9 @@ export class SmartContextManager {
    */
   async getOptimizedMemories(userId, userQuery, tokenBudget = this.TOKEN_LIMITS.AGENT_MEMORY) {
     try {
-      const categories = this.categorizeQuery(userQuery);
+      // Use new intent classification
+      const classification = this.classifyIntent(userQuery);
+      const categories = this.categorizeQuery(userQuery); // Legacy compatibility
 
       // Get all relevant memories first
       const memoryResult = await AgentMemoryService.getRelevantMemories(userId, userQuery);
@@ -71,10 +191,10 @@ export class SmartContextManager {
       const optimizedMemories = {};
       let currentTokens = 0;
 
-      // Priority order based on query categories
-      const priorityOrder = this.getPriorityOrder(categories);
+      // Priority order based on intent classification
+      const priorityOrder = this.getPriorityOrderByIntent(classification.primary);
 
-      console.log(`🎯 Query categories: ${categories.join(', ')}`);
+      console.log(`🎯 Intent: ${classification.primary} (confidence: ${classification.confidence.toFixed(2)})`);
       console.log(`📊 Priority order: ${priorityOrder.join(' > ')}`);
 
       // Add memories in priority order until token budget is reached
@@ -133,7 +253,7 @@ export class SmartContextManager {
   }
 
   /**
-   * Determine priority order based on query categories
+   * Determine priority order based on intent classification
    */
   getPriorityOrder(categories) {
     const basePriority = ['contact_info', 'family_info', 'activity_info', 'preference_info', 'education_info'];
@@ -144,7 +264,7 @@ export class SmartContextManager {
     }
 
     if (categories.includes('ACTIVITY_QUERY')) {
-      return ['activity_info', 'family_info', 'education_info', 'contact_info', 'preference_info'];
+      return ['activity_info', 'education_info']; // Only activity-related info for focused responses
     }
 
     if (categories.includes('PREFERENCE_QUERY')) {
@@ -156,6 +276,26 @@ export class SmartContextManager {
     }
 
     return basePriority;
+  }
+
+  /**
+   * Determine priority order based on intent classification (new method)
+   */
+  getPriorityOrderByIntent(intent) {
+    switch(intent) {
+      case 'SCHEDULE_QUERY':
+        return ['activity_info', 'education_info']; // Only schedule-related info
+      case 'EMAIL_QUERY':
+        return []; // No agent memory needed for email queries
+      case 'CONTACT_QUERY':
+        return ['contact_info', 'family_info'];
+      case 'PREFERENCE_QUERY':
+        return ['preference_info', 'family_info'];
+      case 'EMERGENCY_QUERY':
+        return ['contact_info', 'preference_info', 'family_info', 'activity_info', 'education_info'];
+      default:
+        return ['contact_info', 'family_info', 'activity_info', 'preference_info', 'education_info'];
+    }
   }
 
   /**
@@ -276,7 +416,8 @@ export class SmartContextManager {
    * Create optimized system prompt with token awareness
    */
   async createOptimizedPrompt(userId, userQuery, basePrompt) {
-    const categories = this.categorizeQuery(userQuery);
+    const classification = this.classifyIntent(userQuery);
+    const categories = this.categorizeQuery(userQuery); // Legacy compatibility
     let totalTokens = this.estimateTokens(basePrompt);
     let prompt = basePrompt;
 
@@ -284,7 +425,7 @@ export class SmartContextManager {
     const remainingBudget = this.TOKEN_LIMITS.TOTAL_CONTEXT - totalTokens;
     const memoryBudget = Math.min(this.TOKEN_LIMITS.AGENT_MEMORY, remainingBudget * 0.6); // 60% for memories
 
-    // Get optimized memories
+    // Get optimized memories using new intent classification
     const memoryResult = await this.getOptimizedMemories(userId, userQuery, memoryBudget);
 
     if (Object.keys(memoryResult.memories).length > 0) {
@@ -293,9 +434,27 @@ export class SmartContextManager {
       totalTokens += memoryResult.tokenCount;
     }
 
-    // Add query-specific instructions
-    if (categories.includes('EMERGENCY_QUERY')) {
-      prompt += '\n\nIMPORTANT: This appears to be an urgent request. Prioritize immediate, actionable information.';
+    // Add intent-specific instructions
+    switch (classification.primary) {
+      case 'EMERGENCY_QUERY':
+        prompt += '\n\nIMPORTANT: This appears to be an urgent request. Prioritize immediate, actionable information.';
+        break;
+
+      case 'SCHEDULE_QUERY':
+        prompt += '\n\nINSTRUCTION: User is asking about activities/schedules. Focus only on relevant activities. Be concise - list activities with essential details (name, dates, times) in a clear format. Do not include unrelated family information, contacts, or preferences unless directly requested.';
+        break;
+
+      case 'CONTACT_QUERY':
+        prompt += '\n\nINSTRUCTION: User is asking about contacts. Focus only on the specific contact requested. Provide name, role, and contact details. Do not include unrelated information.';
+        break;
+
+      case 'EMAIL_QUERY':
+        prompt += '\n\nINSTRUCTION: User is asking about emails. Use email tools to search and retrieve the requested information. Do not rely on stored agent memory for email content.';
+        break;
+
+      case 'PREFERENCE_QUERY':
+        prompt += '\n\nINSTRUCTION: User is asking about preferences. Focus on the specific preferences or restrictions requested.';
+        break;
     }
 
     console.log(`📝 Optimized prompt: ~${totalTokens} tokens (${Math.round((totalTokens / this.TOKEN_LIMITS.TOTAL_CONTEXT) * 100)}% of budget)`);
@@ -304,6 +463,7 @@ export class SmartContextManager {
       prompt,
       tokenCount: totalTokens,
       categories,
+      intent: classification,
       optimization: {
         memoriesUsed: Object.keys(memoryResult.memories).length,
         compressionRatio: memoryResult.compressionRatio

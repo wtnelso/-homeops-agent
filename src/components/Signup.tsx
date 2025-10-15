@@ -4,6 +4,11 @@ import { ROUTES } from '../config/routes';
 import { auth } from '../lib/supabase';
 import { useToast } from '../contexts/ToastContext';
 import { Eye, EyeOff } from 'lucide-react';
+import { AuthValidator } from '../lib/validation';
+import { AUTH_IMAGES } from '../config/authImages';
+import PasswordStrengthChecker from './ui/PasswordStrengthChecker';
+import MobileAuthHeader from './ui/MobileAuthHeader';
+import MobileAuthFooter from './ui/MobileAuthFooter';
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -13,32 +18,82 @@ const Signup: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<{[key: string]: boolean}>({});
   const navigate = useNavigate();
   const { showToast } = useToast();
+
+  const validateForm = (): boolean => {
+    const errors: string[] = [];
+    const newFieldErrors: {[key: string]: boolean} = {};
+    let priorityError: string | null = null;
+
+    // Priority 1: Email validation
+    const emailValidation = AuthValidator.validateEmail(email);
+    if (!emailValidation.isValid) {
+      newFieldErrors.email = true;
+      priorityError = emailValidation.errors[0]; // Show first email error
+      showToast(priorityError, 'error');
+    }
+    // Priority 2: Password validation (only if email is valid)
+    else {
+      const passwordValidation = AuthValidator.validatePassword(password);
+      if (!passwordValidation.isValid) {
+        newFieldErrors.password = true;
+        priorityError = 'Password does not meet security requirements';
+        showToast(priorityError, 'error');
+      }
+      // Priority 3: Password confirmation (only if email and password are valid)
+      else {
+        const confirmValidation = AuthValidator.validatePasswordConfirmation(password, confirmPassword);
+        if (!confirmValidation.isValid) {
+          newFieldErrors.confirmPassword = true;
+          priorityError = 'Passwords do not match';
+          showToast(priorityError, 'error');
+        }
+      }
+    }
+
+    // Only show one error at a time
+    if (priorityError) {
+      errors.push(priorityError);
+    }
+
+    setValidationErrors(errors);
+    setFieldErrors(newFieldErrors);
+    return errors.length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    if (password !== confirmPassword) {
-      const errorMessage = 'Passwords do not match';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+    setValidationErrors([]);
+    setFieldErrors({});
+
+    if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
       const { data, error } = await auth.signUp(email, password);
-      
+
       if (error) {
+        // Check if this is a provider mismatch error
+        if ((error as any).provider) {
+          setError(error.message);
+          showToast(error.message, 'error');
+          return;
+        }
+
         setError(error.message);
         showToast(error.message, 'error');
         return;
       }
 
       if (data?.user) {
+        showToast('Account created successfully! Please check your email to verify your account.', 'success');
         navigate(ROUTES.DASHBOARD_HOME);
       }
     } catch (error) {
@@ -80,52 +135,63 @@ const Signup: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Form Panel - Full width on mobile, half on desktop */}
-      <div className="flex-1 flex flex-col lg:w-1/2">
-        {/* Mobile Header with Logo */}
-        <div className="lg:hidden py-6 px-4 sm:px-6 bg-gradient-to-r from-blue-600 to-purple-700">
-          <div className="flex items-center justify-center">
-            <img src="/favicon.ico" alt="HomeOps" className="w-8 h-8 mr-2" />
-            <h1 className="text-2xl font-bold text-white">HomeOps</h1>
-          </div>
+      <div className="flex-1 flex flex-col lg:w-1/2 relative">
+        <MobileAuthHeader />
+
+        {/* Desktop back button - positioned at top left */}
+        <div className="hidden lg:block absolute top-6 left-6 z-10">
+          <Link
+            to={ROUTES.HOME}
+            className="inline-flex items-center px-3 py-2 text-sm font-medium text-white rounded-lg transition-all duration-300 hover:-translate-y-0.5"
+            style={{
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              boxShadow: '0 2px 8px 0 rgba(99, 102, 241, 0.3)',
+              fontWeight: 600
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 12px 0 rgba(99, 102, 241, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(99, 102, 241, 0.3)';
+            }}
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Return home
+          </Link>
         </div>
 
-        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
+        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24 pt-16 lg:pt-0 bg-gray-50">
           <div className="mx-auto w-full max-w-sm lg:w-96">
-            {/* Back to dashboard link */}
-            <div className="mb-8">
-              <Link 
-                to={ROUTES.HOME} 
-                className="flex items-center text-sm text-gray-600 hover:text-gray-900"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Return home
-              </Link>
-            </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Sign Up</h2>
-            <p className="mt-2 text-sm text-gray-600">
+            {/* Hero favicon */}
+            <div className="flex justify-center mb-4">
+              <img src={AUTH_IMAGES.hero.favicon} alt="HomeOps" className="w-12 h-12" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 text-center">Sign Up</h2>
+            <p className="mt-1 text-sm text-gray-600 text-center">
               Create your account to get started!
             </p>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-4">
             {/* Social Login Buttons */}
-            <div className="mt-6">
+            <div className="mt-4">
               <button
                 type="button"
                 onClick={handleGoogleSignUp}
-                className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 gap-1.5 mb-2"
+                className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 gap-1.5 mb-2"
                 style={{ textTransform: 'none' }}
               >
-                <img src="/google-logo.svg" alt="Google" style={{ width: 18, height: 18 }} />
+                <img src={AUTH_IMAGES.logos.google} alt="Google" style={{ width: 18, height: 18 }} />
                 Continue with Google
               </button>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-4">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
@@ -136,12 +202,23 @@ const Signup: React.FC = () => {
               </div>
             </div>
 
-            <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
+            <form className="mt-4 space-y-4" onSubmit={handleSubmit} noValidate>
               {error && (
                 <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
                   {error}
                 </div>
               )}
+
+              {validationErrors.length > 0 && (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                  {validationErrors.map((error, index) => (
+                    <div key={index} className="text-sm text-red-600">
+                      {error}
+                    </div>
+                  ))}
+                </div>
+              )}
+
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -155,8 +232,17 @@ const Signup: React.FC = () => {
                     autoComplete="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (fieldErrors.email) {
+                        setFieldErrors(prev => ({ ...prev, email: false }));
+                      }
+                    }}
+                    className={`appearance-none block w-full px-3 py-2 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${
+                      fieldErrors.email
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                     placeholder="info@gmail.com"
                   />
                 </div>
@@ -174,8 +260,17 @@ const Signup: React.FC = () => {
                     autoComplete="new-password"
                     required
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (fieldErrors.password) {
+                        setFieldErrors(prev => ({ ...prev, password: false }));
+                      }
+                    }}
+                    className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${
+                      fieldErrors.password
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                     placeholder="Enter your password"
                   />
                   <button
@@ -204,8 +299,17 @@ const Signup: React.FC = () => {
                     autoComplete="new-password"
                     required
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      if (fieldErrors.confirmPassword) {
+                        setFieldErrors(prev => ({ ...prev, confirmPassword: false }));
+                      }
+                    }}
+                    className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${
+                      fieldErrors.confirmPassword
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                     placeholder="Confirm your password"
                   />
                   <button
@@ -222,11 +326,25 @@ const Signup: React.FC = () => {
                 </div>
               </div>
 
+              <PasswordStrengthChecker password={password} confirmPassword={confirmPassword} />
+
               <div>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:-translate-y-0.5"
+                  style={{
+                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    boxShadow: '0 2px 8px 0 rgba(99, 102, 241, 0.3)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.boxShadow = '0 4px 12px 0 rgba(99, 102, 241, 0.4)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(99, 102, 241, 0.3)';
+                  }}
                 >
                   {isLoading ? 'Creating account...' : 'Sign Up'}
                 </button>
@@ -239,29 +357,11 @@ const Signup: React.FC = () => {
                 Sign in here
               </Link>
             </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Mobile Footer */}
-      <div className="lg:hidden py-6 px-4 sm:px-6 bg-white">
-        <div className="text-center space-y-4">
-          <div className="flex justify-center space-x-8">
-            <Link to={ROUTES.PRIVACY} className="text-sm text-gray-500 hover:text-gray-700">
-              Privacy Policy
-            </Link>
-            <Link to={ROUTES.TERMS} className="text-sm text-gray-500 hover:text-gray-700">
-              Terms of Service
-            </Link>
-          </div>
-          <p className="text-sm text-gray-500">
-            Copyright © 2025 HomeOps. All rights reserved.
-          </p>
-          <p className="text-sm text-gray-500">
-            Made with ❤️ for modern families
-          </p>
-        </div>
-        </div>
+        <MobileAuthFooter />
       </div>
 
       {/* Right Panel - Branding (hidden on mobile) */}
@@ -269,8 +369,8 @@ const Signup: React.FC = () => {
         <div
           className="absolute inset-0 h-full w-full bg-cover bg-no-repeat"
           style={{
-            backgroundImage: `url('/images/auth-background.png')`,
-            backgroundPosition: '97% center',
+            backgroundImage: `url('${AUTH_IMAGES.backgrounds.signup}')`,
+            backgroundPosition: AUTH_IMAGES.backgroundPositions.signup,
           }}
         >
         </div>

@@ -8,7 +8,6 @@ export interface NeonDbConfig {
 export interface Conversation {
   id: string;
   user_id: string;
-  account_id: string;
   title?: string;
   created_at: Date;
   updated_at: Date;
@@ -27,7 +26,6 @@ export interface Message {
 export interface AgentMemory {
   id: string;
   user_id: string;
-  account_id: string;
   memory_type: string;
   key: string;
   value: Record<string, any>;
@@ -53,7 +51,6 @@ export class NeonDbService {
 
   async createConversation(data: {
     user_id: string;
-    account_id: string;
     title?: string;
     metadata?: Record<string, any>;
   }): Promise<Conversation> {
@@ -62,8 +59,8 @@ export class NeonDbService {
     const metadata = data.metadata || {};
 
     const result = await this.sql`
-      INSERT INTO conversations (id, user_id, account_id, title, metadata, created_at, updated_at)
-      VALUES (${id}, ${data.user_id}, ${data.account_id}, ${data.title || null}, ${JSON.stringify(metadata)}, ${now}, ${now})
+      INSERT INTO conversations (id, user_id, title, metadata, created_at, updated_at)
+      VALUES (${id}, ${data.user_id}, ${data.title || null}, ${JSON.stringify(metadata)}, ${now}, ${now})
       RETURNING *
     `;
 
@@ -162,7 +159,6 @@ export class NeonDbService {
 
   async setMemory(data: {
     user_id: string;
-    account_id: string;
     memory_type: string;
     key: string;
     value: Record<string, any>;
@@ -173,15 +169,15 @@ export class NeonDbService {
 
     // Upsert: delete existing then insert new
     await this.sql`
-      DELETE FROM agent_memory 
-      WHERE user_id = ${data.user_id} 
-      AND memory_type = ${data.memory_type} 
+      DELETE FROM agent_memory
+      WHERE user_id = ${data.user_id}
+      AND memory_type = ${data.memory_type}
       AND key = ${data.key}
     `;
 
     const result = await this.sql`
-      INSERT INTO agent_memory (id, user_id, account_id, memory_type, key, value, expires_at, created_at, updated_at)
-      VALUES (${id}, ${data.user_id}, ${data.account_id}, ${data.memory_type}, ${data.key}, ${JSON.stringify(data.value)}, ${data.expires_at || null}, ${now}, ${now})
+      INSERT INTO agent_memory (id, user_id, memory_type, key, value, expires_at, created_at, updated_at)
+      VALUES (${id}, ${data.user_id}, ${data.memory_type}, ${data.key}, ${JSON.stringify(data.value)}, ${data.expires_at || null}, ${now}, ${now})
       RETURNING *
     `;
 
@@ -241,7 +237,6 @@ export class NeonDbService {
     return {
       id: row.id,
       user_id: row.user_id,
-      account_id: row.account_id,
       title: row.title,
       created_at: new Date(row.created_at),
       updated_at: new Date(row.updated_at),
@@ -264,7 +259,6 @@ export class NeonDbService {
     return {
       id: row.id,
       user_id: row.user_id,
-      account_id: row.account_id,
       memory_type: row.memory_type,
       key: row.key,
       value: typeof row.value === 'string' ? JSON.parse(row.value) : row.value,

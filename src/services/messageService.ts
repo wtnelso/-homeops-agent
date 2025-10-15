@@ -7,7 +7,6 @@ export interface MessageServiceConfig {
 export interface ProcessMessageRequest {
   conversationId: string;
   userId: string;
-  accountId: string;
   message: string;
 }
 
@@ -124,7 +123,7 @@ export class MessageService {
     }
   }
 
-  async updateUserPreference(userId: string, accountId: string, key: string, value: any, expiresInDays?: number): Promise<{
+  async updateUserPreference(userId: string, key: string, value: any, expiresInDays?: number): Promise<{
     success: boolean;
     memory?: AgentMemory;
     error?: string;
@@ -134,7 +133,6 @@ export class MessageService {
 
       const memory = await this.neonDb.setMemory({
         user_id: userId,
-        account_id: accountId,
         memory_type: 'user_preferences',
         key,
         value: { preference: value, updated_at: new Date().toISOString() },
@@ -147,7 +145,7 @@ export class MessageService {
     }
   }
 
-  async updateFamilyInfo(userId: string, accountId: string, key: string, value: any): Promise<{
+  async updateFamilyInfo(userId: string, key: string, value: any): Promise<{
     success: boolean;
     memory?: AgentMemory;
     error?: string;
@@ -155,7 +153,6 @@ export class MessageService {
     try {
       const memory = await this.neonDb.setMemory({
         user_id: userId,
-        account_id: accountId,
         memory_type: 'family_info',
         key,
         value: { info: value, updated_at: new Date().toISOString() }

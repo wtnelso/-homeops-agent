@@ -27,11 +27,11 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onAdd,
     if (isEditing && editingMember) {
       setMemberData({
         name: editingMember.name || '',
-        type: editingMember.type || '',
+        type: editingMember.family_relationship || '',
         email: editingMember.email || '',
         age: editingMember.age ? editingMember.age.toString() : '',
-        birthday_month: editingMember.birthday?.month || '',
-        birthday_day: editingMember.birthday?.day || ''
+        birthday_month: editingMember.birthday_month || '',
+        birthday_day: editingMember.birthday_day ? editingMember.birthday_day.toString() : ''
       });
       setEmailError('');
     } else {

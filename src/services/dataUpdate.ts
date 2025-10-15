@@ -4,9 +4,8 @@ import { ROUTES } from '../config/routes';
 export interface AccountUpdateData {
   account_name?: string;
   agent_name?: string;
-  household_type?: string;
+  household_type?: string; // will be mapped to family.family_type
   timezone?: string;
-  subscription_status?: string;
   is_active?: boolean;
 }
 
@@ -142,56 +141,6 @@ export class DataUpdateService {
     return { valid: true };
   }
 
-  /**
-   * Updates account settings for the authenticated user
-   */
-  static async updateAccountSettings(updates: AccountUpdateData): Promise<{ success: boolean; error?: string }> {
-    try {
-      // Validate authentication and JWT token
-      const authResult = await this.validateAuthentication();
-      if (!authResult.valid) {
-        return { success: false, error: authResult.error };
-      }
-
-      // Validate input data
-      const inputValidation = this.validateInputData(updates);
-      if (!inputValidation.valid) {
-        return { success: false, error: inputValidation.error };
-      }
-
-      // Get current user's account ID securely
-      const accountId = await this.getCurrentAccountId();
-      if (!accountId) {
-        return { success: false, error: 'Account not found' };
-      }
-
-      // Update account data using RLS policies with JWT authentication
-      // Supabase automatically uses the JWT token for RLS policy enforcement
-      const { error: updateError } = await supabase
-        .from('accounts')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', accountId);
-
-      if (updateError) {
-        // Check if error is due to authentication/authorization
-        if (updateError.code === 'PGRST301' || updateError.message.includes('JWT')) {
-          this.handleSessionExpired('Session expired during update. Please sign in again.');
-          return { success: false, error: 'Session expired' };
-        }
-        
-        console.error('Error updating account:', updateError);
-        return { success: false, error: updateError.message };
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.error('Unexpected error updating account:', error);
-      return { success: false, error: 'Unexpected error occurred' };
-    }
-  }
 
   /**
    * Updates user profile settings for the authenticated user
@@ -238,54 +187,29 @@ export class DataUpdateService {
     }
   }
 
-  /**
-   * Helper method to get current user's account ID with authentication check
-   */
-  private static async getCurrentAccountId(): Promise<string | null> {
-    try {
-      const authResult = await this.validateAuthentication();
-      if (!authResult.valid) {
-        throw new Error('Authentication required');
-      }
-
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('account_id')
-        .eq('auth_id', authResult.session.user.id)
-        .single();
-
-      if (userError) {
-        // Check if error is due to authentication/authorization
-        if (userError.code === 'PGRST301' || userError.message.includes('JWT')) {
-          this.handleSessionExpired('Session expired while fetching account. Please sign in again.');
-          return null;
-        }
-        
-        throw new Error(`Error fetching user account: ${userError.message}`);
-      }
-
-      return userData?.account_id || null;
-    } catch (error) {
-      console.error('Error getting current account ID:', error);
-      return null;
-    }
-  }
 
   /**
-   * Updates both user and account data in a single operation with validation
+   * Updates both user and family data in a single operation with validation
    */
   static async updateUserAndAccount(
-    userUpdates: UserUpdateData, 
-    accountUpdates: AccountUpdateData
+    userUpdates: UserUpdateData,
+    accountUpdates: AccountUpdateData,
+    userId: string,
+    familyId: string | null
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      // Validate authentication once for both operations
+      // Validate authentication
       const authResult = await this.validateAuthentication();
       if (!authResult.valid) {
         return { success: false, error: authResult.error };
       }
 
-      // Validate both input sets
+      // User ID is required
+      if (!userId) {
+        return { success: false, error: 'User ID is required' };
+      }
+
+      // Validate input data
       const userValidation = this.validateInputData(userUpdates);
       if (!userValidation.valid) {
         return { success: false, error: `User data: ${userValidation.error}` };
@@ -296,16 +220,41 @@ export class DataUpdateService {
         return { success: false, error: `Account data: ${accountValidation.error}` };
       }
 
-      // Update user profile
-      const userResult = await this.updateUserProfile(userUpdates);
-      if (!userResult.success) {
-        return userResult;
+      // Separate updates for different tables
+      const userTableUpdates = {
+        ...userUpdates,
+        ...(accountUpdates.account_name && { account_name: accountUpdates.account_name }),
+        ...(accountUpdates.agent_name && { agent_name: accountUpdates.agent_name }),
+        ...(accountUpdates.timezone && { timezone: accountUpdates.timezone }),
+        ...(accountUpdates.is_active !== undefined && { is_active: accountUpdates.is_active }),
+        updated_at: new Date().toISOString()
+      };
+
+      // Update user table
+      const { error: userError } = await supabase
+        .from('users')
+        .update(userTableUpdates)
+        .eq('id', userId);
+
+      if (userError) {
+        console.error('Error updating user:', userError);
+        return { success: false, error: userError.message };
       }
 
-      // Update account settings
-      const accountResult = await this.updateAccountSettings(accountUpdates);
-      if (!accountResult.success) {
-        return accountResult;
+      // Update family table if household_type is provided and we have a familyId
+      if (accountUpdates.household_type && familyId) {
+        const { error: familyError } = await supabase
+          .from('families')
+          .update({
+            family_type: accountUpdates.household_type,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', familyId);
+
+        if (familyError) {
+          console.error('Error updating family:', familyError);
+          return { success: false, error: familyError.message };
+        }
       }
 
       return { success: true };

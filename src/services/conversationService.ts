@@ -6,7 +6,6 @@ export interface ConversationServiceConfig {
 
 export interface CreateConversationRequest {
   userId: string;
-  accountId: string;
   title?: string;
   initialMessage?: string;
 }
@@ -40,7 +39,6 @@ export class ConversationService {
 
       const conversation = await this.neonDb.createConversation({
         user_id: request.userId,
-        account_id: request.accountId,
         title,
         metadata: {
           created_by: 'chat_interface',

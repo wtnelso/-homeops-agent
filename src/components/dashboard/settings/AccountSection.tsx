@@ -4,18 +4,17 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { DataUpdateService } from '../../../services/dataUpdate';
 import { HOUSEHOLD_TYPES } from '../../../config/constants';
 import TimezoneSelect from '../../ui/TimezoneSelect';
+import { useUserDataForm, getAccountFormData, defaultAccountFormData } from '../../../hooks/useUserDataForm';
 
 const AccountSection: React.FC = () => {
   const { userData, refreshUserData } = useAuth();
   const [saving, setSaving] = useState(false);
 
-  const [formData, setFormData] = useState({
-    account_name: userData?.account.account_name || '',
-    agent_name: userData?.account.agent_name || '',
-    household_type: userData?.account.household_type || '',
-    timezone: userData?.account.timezone || '',
-    is_active: userData?.user.is_active || false,
-  });
+  const [formData, setFormData] = useUserDataForm(
+    userData,
+    getAccountFormData,
+    defaultAccountFormData
+  );
 
   const handleSave = async () => {
     if (!userData) return;
@@ -29,7 +28,9 @@ const AccountSection: React.FC = () => {
           agent_name: formData.agent_name,
           household_type: formData.household_type,
           timezone: formData.timezone
-        }
+        },
+        userData.user.id,
+        userData.user.family_id
       );
 
       if (result.success) {

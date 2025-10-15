@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { AccountIntegrationsService } from './accountIntegrationsService';
+import { UserIntegrationsService } from './userIntegrationsService';
 
 // Keep for backward compatibility
 export interface AvailableIntegration {
@@ -59,13 +59,14 @@ export class IntegrationsDataService {
   }
 
   /**
-   * Get integrations with account-level status (NEW - preferred method)
+   * Get integrations with user-level status (NEW - preferred method for family architecture)
    */
-  static async getIntegrationsForAccount(accountId: string): Promise<IntegrationWithStatus[]> {
-    const integrations = await AccountIntegrationsService.getIntegrationsForAccount(accountId);
-    
-    // Convert to simplified format
-    return integrations.map(integration => ({
+  static async getIntegrationsForUser(userId: string): Promise<IntegrationWithStatus[]> {
+    // Use the updated user-based method
+    const integrations = await UserIntegrationsService.getIntegrationsForUser(userId);
+
+    // Convert to simplified format (keeping account_integration naming for now)
+    return integrations.map((integration: any) => ({
       ...integration,
       long_description: integration.long_description,
       platform_url: integration.platform_url,
@@ -79,6 +80,14 @@ export class IntegrationsDataService {
       installedByUserId: integration.account_integration?.installed_by_user_id || null,
       accountIntegrationId: integration.account_integration?.id
     }));
+  }
+
+  /**
+   * Legacy method renamed to use user-based approach
+   */
+  static async getIntegrationsForAccount(userId: string): Promise<IntegrationWithStatus[]> {
+    // This method now delegates to getIntegrationsForUser for consistency
+    return this.getIntegrationsForUser(userId);
   }
 
   /**

@@ -192,7 +192,7 @@ export class IntegrationsService {
       const response = await fetch(`${serverUrl}/api/oauth/status/${integrationId}`, {
         method: 'GET',
         headers: {
-          'x-account-id': sessionData.account.id
+          'x-user-id': sessionData.user.id
         }
       });
 

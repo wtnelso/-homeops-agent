@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MessageSquare, Mail, User, ExternalLink, Eye, EyeOff } from 'lucide-react';
-import { DataSource } from '../../services/accountProfileService';
+import { DataSource } from '../../services/familyProfileService';
 
 interface SourceIndicatorProps {
   source?: DataSource;

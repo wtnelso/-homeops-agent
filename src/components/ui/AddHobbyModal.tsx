@@ -25,8 +25,8 @@ const AddHobbyModal: React.FC<AddHobbyModalProps> = ({ isOpen, onClose, onAdd, e
   useEffect(() => {
     if (isEditing && editingHobby) {
       setHobbyData({
-        name: editingHobby.name || '',
-        type: editingHobby.type || '',
+        name: editingHobby.activity_name || '',
+        type: editingHobby.activity_type || '',
         frequency: editingHobby.frequency || '',
         days: editingHobby.days || [],
         end_date: editingHobby.end_date || ''

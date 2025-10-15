@@ -47,14 +47,22 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
   }, [userData?.account?.id]);
 
   const fetchSuggestions = async () => {
-    if (!userData?.account?.id) return;
+    console.log('🔍 ReviewStream: fetchSuggestions called');
+    console.log('🔍 ReviewStream: userData?.user?.id:', userData?.user?.id);
+
+    if (!userData?.user?.id) {
+      console.log('🔍 ReviewStream: No user ID found, returning early');
+      return;
+    }
 
     try {
       setLoading(true);
+      console.log('🔍 ReviewStream: Calling getPendingSuggestions...');
       const result = await profileSuggestionsService.getPendingSuggestions(
-        userData.account.id,
+        userData.user.id,
         10
       );
+      console.log('🔍 ReviewStream: Result received:', result);
 
       if (result.success) {
         setSuggestions(result.suggestions);
@@ -172,7 +180,11 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
 
 
   const handleApprove = async () => {
-    if (!userData?.account?.id || currentIndex >= suggestions.length) return;
+    console.log('🔍 ReviewStream: handleApprove called');
+    if (!userData?.user?.id || currentIndex >= suggestions.length) {
+      console.log('🔍 ReviewStream: No user ID or invalid index, returning early');
+      return;
+    }
 
     const suggestion = suggestions[currentIndex];
     if (!suggestion || !reviewData) return;
@@ -181,10 +193,13 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
       setActionLoading(suggestion.id);
       setSwipeDirection('right');
 
+      console.log('🔍 ReviewStream: Calling approveSuggestionWithEdits...');
       const result = await profileSuggestionsService.approveSuggestionWithEdits(
         suggestion.id,
-        userData.account.id,
-        reviewData
+        userData.user.id,
+        reviewData,
+        suggestion.suggestion_type,
+        userData.family?.id || ''
       );
 
       if (result.success) {
@@ -222,7 +237,11 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
   };
 
   const handleDismiss = async () => {
-    if (!userData?.account?.id || currentIndex >= suggestions.length) return;
+    console.log('🔍 ReviewStream: handleDismiss called');
+    if (!userData?.user?.id || currentIndex >= suggestions.length) {
+      console.log('🔍 ReviewStream: No user ID or invalid index, returning early');
+      return;
+    }
 
     const suggestion = suggestions[currentIndex];
     if (!suggestion) return;
@@ -231,7 +250,9 @@ const ReviewStream: React.FC<ReviewStreamProps> = ({ className = '' }) => {
       setActionLoading(suggestion.id);
       setSwipeDirection('left');
 
-      const result = await profileSuggestionsService.rejectSuggestion(suggestion.id, userData.account.id);
+      console.log('🔍 ReviewStream: Calling rejectSuggestion...');
+      const result = await profileSuggestionsService.rejectSuggestion(suggestion.id, userData.user.id);
+      console.log('🔍 ReviewStream: rejectSuggestion result:', result);
 
       if (result.success) {
         showToast('Suggestion dismissed', 'success');

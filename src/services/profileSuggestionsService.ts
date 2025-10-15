@@ -40,25 +40,53 @@ class ProfileSuggestionsService {
   /**
    * Fetch pending profile suggestions for the current user
    */
-  async getPendingSuggestions(accountId: string, limit = 10): Promise<SuggestionsResponse> {
+  async getPendingSuggestions(userId: string, limit = 10): Promise<SuggestionsResponse> {
     try {
+      console.log('🔍 SERVICE DEBUG: getPendingSuggestions called with userId:', userId);
+
+      // Get JWT token from Supabase session
+      const { supabase } = await import('../lib/supabase');
+      const { data: { session } } = await supabase.auth.getSession();
+
+      console.log('🔍 SERVICE DEBUG: Session check:', { hasSession: !!session, hasToken: !!session?.access_token });
+      console.log('🔍 SERVICE DEBUG: Token preview:', session?.access_token ? `${session.access_token.substring(0, 50)}...` : 'null');
+
+      if (!session?.access_token) {
+        console.log('🔍 SERVICE DEBUG: No session/token available');
+        return {
+          success: false,
+          suggestions: [],
+          total_count: 0,
+          error: 'No authentication token available'
+        };
+      }
+
+      console.log('🔍 SERVICE DEBUG: Making request to:', `${this.baseUrl}/api/profile-suggestions?status=pending&limit=${limit}`);
+
       const response = await fetch(
-        `${this.baseUrl}/api/profile-suggestions?status=pending&limit=${limit}`,
+        `${this.baseUrl}/api/profile-suggestions?status=pending&limit=${limit}&userId=${userId}`,
         {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'x-account-id': accountId,
+            'Authorization': `Bearer ${session.access_token}`,
           },
         }
       );
 
+      console.log('🔍 SERVICE DEBUG: Response status:', response.status);
+      console.log('🔍 SERVICE DEBUG: Response ok:', response.ok);
+
       const data = await response.json();
 
+      console.log('🔍 SERVICE DEBUG: Response data:', data);
+
       if (!response.ok) {
+        console.log('🔍 SERVICE DEBUG: Request failed:', data.error);
         throw new Error(data.error || 'Failed to fetch suggestions');
       }
 
+      console.log('🔍 SERVICE DEBUG: Returning successful response');
       return data;
     } catch (error) {
       console.error('Error fetching profile suggestions:', error);
@@ -74,13 +102,25 @@ class ProfileSuggestionsService {
   /**
    * Approve a profile suggestion
    */
-  async approveSuggestion(suggestionId: string, accountId: string): Promise<ActionResponse> {
+  async approveSuggestion(suggestionId: string, userId: string): Promise<ActionResponse> {
     try {
+      // Get JWT token from Supabase session
+      const { supabase } = await import('../lib/supabase');
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        return {
+          success: false,
+          error: 'No authentication token available'
+        };
+      }
+
       const response = await fetch(`${this.baseUrl}/api/profile-suggestions/${suggestionId}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-account-id': accountId,
+          'Authorization': `Bearer ${session.access_token}`,
+          'x-user-id': userId,
         },
       });
 
@@ -103,13 +143,25 @@ class ProfileSuggestionsService {
   /**
    * Reject a profile suggestion
    */
-  async rejectSuggestion(suggestionId: string, accountId: string): Promise<ActionResponse> {
+  async rejectSuggestion(suggestionId: string, userId: string): Promise<ActionResponse> {
     try {
+      // Get JWT token from Supabase session
+      const { supabase } = await import('../lib/supabase');
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        return {
+          success: false,
+          error: 'No authentication token available'
+        };
+      }
+
       const response = await fetch(`${this.baseUrl}/api/profile-suggestions/${suggestionId}/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-account-id': accountId,
+          'Authorization': `Bearer ${session.access_token}`,
+          'x-user-id': userId,
         },
       });
 
@@ -132,13 +184,25 @@ class ProfileSuggestionsService {
   /**
    * Bulk approve multiple suggestions
    */
-  async bulkApprove(suggestionIds: string[], accountId: string): Promise<ActionResponse> {
+  async bulkApprove(suggestionIds: string[], userId: string): Promise<ActionResponse> {
     try {
+      // Get JWT token from Supabase session
+      const { supabase } = await import('../lib/supabase');
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        return {
+          success: false,
+          error: 'No authentication token available'
+        };
+      }
+
       const response = await fetch(`${this.baseUrl}/api/profile-suggestions/bulk-approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-account-id': accountId,
+          'Authorization': `Bearer ${session.access_token}`,
+          'x-user-id': userId,
         },
         body: JSON.stringify({ suggestion_ids: suggestionIds }),
       });
@@ -162,13 +226,25 @@ class ProfileSuggestionsService {
   /**
    * Bulk reject multiple suggestions
    */
-  async bulkReject(suggestionIds: string[], accountId: string): Promise<ActionResponse> {
+  async bulkReject(suggestionIds: string[], userId: string): Promise<ActionResponse> {
     try {
+      // Get JWT token from Supabase session
+      const { supabase } = await import('../lib/supabase');
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        return {
+          success: false,
+          error: 'No authentication token available'
+        };
+      }
+
       const response = await fetch(`${this.baseUrl}/api/profile-suggestions/bulk-reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-account-id': accountId,
+          'Authorization': `Bearer ${session.access_token}`,
+          'x-user-id': userId,
         },
         body: JSON.stringify({ suggestion_ids: suggestionIds }),
       });
@@ -192,15 +268,31 @@ class ProfileSuggestionsService {
   /**
    * Approve a suggestion with user edits
    */
-  async approveSuggestionWithEdits(suggestionId: string, accountId: string, editData: any): Promise<ActionResponse> {
+  async approveSuggestionWithEdits(suggestionId: string, userId: string, editData: any, suggestionType: string, familyId: string): Promise<ActionResponse> {
     try {
+      // Get JWT token from Supabase session
+      const { supabase } = await import('../lib/supabase');
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        return {
+          success: false,
+          error: 'No authentication token available'
+        };
+      }
+
       const response = await fetch(`${this.baseUrl}/api/profile-suggestions/${suggestionId}/approve-with-edits`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-account-id': accountId,
+          'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ edit_data: editData }),
+        body: JSON.stringify({
+          edit_data: editData,
+          userId: userId,
+          suggestionType: suggestionType,
+          familyId: familyId
+        }),
       });
 
       const data = await response.json();

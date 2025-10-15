@@ -4,6 +4,9 @@
  * Handles account profile operations including structured family data
  */
 
+import { apiService } from './authenticatedApiService';
+import { ENDPOINTS } from '../config/apiConfig';
+
 interface DataSource {
   type: 'manual' | 'chat' | 'email';
   source_id?: string;
@@ -137,11 +140,6 @@ interface ProfileResponse {
 }
 
 class AccountProfileService {
-  private baseUrl: string;
-
-  constructor() {
-    this.baseUrl = import.meta.env.VITE_RENDER_SERVER_URL || 'http://localhost:10000';
-  }
 
   /**
    * Get account profile by account ID
@@ -150,21 +148,16 @@ class AccountProfileService {
     try {
       console.log('📋 Getting account profile for:', accountId);
 
-      const response = await fetch(`${this.baseUrl}/api/profile/get`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ account_id: accountId }),
+      const response = await apiService.post(`${ENDPOINTS.profile}/get`, {
+        account_id: accountId
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (response.error) {
+        throw new Error(response.error);
       }
 
-      const data = await response.json();
       console.log('✅ Profile retrieved successfully');
-      return data;
+      return response.data || { success: false, error: 'No data received' };
 
     } catch (error) {
       console.error('❌ Error getting profile:', error);
@@ -182,24 +175,17 @@ class AccountProfileService {
     try {
       console.log('📝 Updating account profile for:', accountId);
 
-      const response = await fetch(`${this.baseUrl}/api/profile/update`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          account_id: accountId,
-          ...updates
-        }),
+      const response = await apiService.post(`${ENDPOINTS.profile}/update`, {
+        account_id: accountId,
+        ...updates
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (response.error) {
+        throw new Error(response.error);
       }
 
-      const data = await response.json();
       console.log('✅ Profile updated successfully');
-      return data;
+      return response.data || { success: false, error: 'No data received' };
 
     } catch (error) {
       console.error('❌ Error updating profile:', error);
@@ -217,21 +203,14 @@ class AccountProfileService {
     try {
       console.log('📊 Getting profile stats for:', accountId);
 
-      const response = await fetch(`${this.baseUrl}/api/profile/stats`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-account-id': accountId,
-        },
-      });
+      const response = await apiService.get(`${ENDPOINTS.profile}/stats`);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (response.error) {
+        throw new Error(response.error);
       }
 
-      const data = await response.json();
       console.log('✅ Profile stats retrieved successfully');
-      return data;
+      return response.data || { success: false, error: 'No data received' };
 
     } catch (error) {
       console.error('❌ Error getting profile stats:', error);

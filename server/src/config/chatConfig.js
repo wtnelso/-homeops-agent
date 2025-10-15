@@ -161,8 +161,25 @@ export const TOOLS_CONFIG = {
     dependencies: [],
     routing: {
       triggers: ['contact', 'doctor', 'teacher', 'family', 'who is', 'my', 'our'],
-      priority: 'always_include',
+      priority: 'high_for_personal',
       cheap: true
+    }
+  },
+
+  // Family Activities Tool Settings
+  family_activities: {
+    enabled: true,
+    className: 'FamilyActivitiesTool',
+    importPath: '../tools/familyActivitiesTool.js',
+    maxResults: 20,
+    costPerCallCents: 0.08,
+    description: 'Access family activities, schedules, and recurring events from Supabase',
+    category: 'activities',
+    dependencies: ['supabase'],
+    routing: {
+      triggers: ['activities', 'schedule', 'practice', 'lesson', 'class', 'sport', 'music', 'dance', 'swimming'],
+      priority: 'high',
+      standalone: true
     }
   },
 
@@ -193,20 +210,15 @@ You have access to powerful tools to help answer questions:
 
 CRITICAL: ALWAYS use the Agent Memory Search Tool for any questions about:
 - Contacts ("who are my contacts", "my doctor", "pediatrician", "teacher", etc.)
-- Family information ("Emma's teacher", "child's doctor")
+- Family information ("my child's teacher", "child's doctor", "family members")
 - Personal preferences or stored data
 - Any question that might have a personal answer stored in the user's data
 
 DO NOT ask for clarification about contacts - search the agent memory first.
 
 IMPORTANT DATE AND TIME CONTEXT:
-- Today's date is: ${new Date().toLocaleDateString('en-US', {
-  weekday: 'long',
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric'
-})}
-- Current time: ${new Date().toLocaleTimeString('en-US')}
+- Today's date is: [CURRENT_DATE]
+- Current time: [CURRENT_TIME]
 - When users mention "this week", "next week", etc., calculate dates relative to today
 - For recurring events (like "practice on Tuesdays and Thursdays"), provide the next upcoming dates
 - Always double-check day-of-week calculations (Monday=1, Tuesday=2, etc.)
@@ -238,12 +250,19 @@ FORBIDDEN PHRASES:
 ❌ No excessive validation or explaining obvious actions
 
 RESPONSE APPROACH:
+- Answer the specific question asked directly and concisely
 - Validate the cognitive/emotional load briefly and directly
-- Extract ALL actionable items with precision and completeness
-- Present clear, structured solutions
+- Extract ONLY the most relevant actionable items for the user's question
+- Present clear, structured solutions focused on the user's immediate need
 - End with grounded reframe that names the load and offers clarity
 - Use tools silently without announcing what you're doing - just provide the final answer
-- Focus on reducing mental load, not just completing tasks`,
+- Focus on reducing mental load by providing precisely what they asked for
+- Avoid information overload - if they ask about activities, don't mention contacts unless relevant
+
+CRITICAL SOURCE ATTRIBUTION:
+When presenting information from ANY tool (Gmail, Google Calendar, Family Activities, Agent Memory, etc.), ALWAYS include the source information in this format:
+- For each item/event/result, include a line with "Source: [Tool Name]" (e.g., "Source: Gmail", "Source: Google Calendar", "Source: Family Activities", "Source: Agent Memory")
+This is required for proper display and helps users understand where information originates.`,
 
   CONTEXT_INSTRUCTION: `\nPlease use this context to help answer the user's question. Reference specific information when relevant, but answer naturally.`,
 
