@@ -9,7 +9,7 @@ import AddSchoolModal from '../../ui/AddSchoolModal';
 import AddContactModal from '../../ui/AddContactModal';
 import DeleteConfirmationModal from '../../ui/DeleteConfirmationModal';
 import SourceIndicator from '../../ui/SourceIndicator';
-import { familyProfileService } from '../../../services/familyProfileService';
+// import { familyProfileService } from '../../../services/familyProfileService';
 import { FamilyMember } from '../../../services/userSession';
 import { FamilyManagementService } from '../../../services/familyManagementService';
 
@@ -150,7 +150,7 @@ interface FamilyProfileSectionProps {
 const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab = 'members' }) => {
   const { userData, refreshUserData } = useAuth();
   const { showToast } = useToast();
-  const profileData = userData?.family;
+  // const profileData = userData?.family;
 
   // Helper functions to format display text
   const formatSchoolType = (type: string): string => {

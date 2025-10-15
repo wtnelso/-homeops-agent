@@ -20,8 +20,8 @@ export interface FamilyContact {
 
 export interface FamilyActivity {
   id?: string;
-  name: string;
-  type: string;
+  activity_name: string;
+  activity_type: string;
   frequency?: string;
   days?: string[];
   end_date?: string;
@@ -38,8 +38,8 @@ export interface FamilyActivity {
 
 export interface FamilySchool {
   id?: string;
-  name: string;
-  type: string;
+  school_name: string;
+  school_type: string;
   grade?: string;
   email_domain?: string;
   source?: {

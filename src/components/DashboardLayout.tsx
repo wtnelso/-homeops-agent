@@ -23,8 +23,8 @@ import OnboardingModal from './ui/OnboardingModal';
 import { isDemoMode } from '../demo/config/demoConfig';
 import DemoBanner from '../demo/components/DemoBanner';
 import { demoChatService } from '../demo/services/demoChatService';
-import { useSessionTimeout } from '../lib/sessionTimeout';
-import { useToast } from '../contexts/ToastContext';
+// import { useSessionTimeout } from '../lib/sessionTimeout';
+// import { useToast } from '../contexts/ToastContext';
 
 interface DashboardPage {
   id: string;
@@ -275,7 +275,7 @@ const DashboardLayout: React.FC = () => {
                 {/* Sub-items */}
                 {hasSubItems && (isExpanded || shouldAutoExpand) && (
                   <div className="ml-4 mt-1 space-y-1">
-                    {page.subItems.map((subItem) => {
+                    {page.subItems?.map((subItem) => {
                       const isSubItemActive = location.pathname === subItem.path;
                       const SubIconComponent = subItem.icon;
 
