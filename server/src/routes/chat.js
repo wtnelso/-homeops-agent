@@ -355,6 +355,7 @@ async function getOptimizedContext(conversationId, sql, llm) {
 // Streaming endpoint for real-time chat responses with AI
 router.post('/stream', optionalJWT, async (req, res) => {
   console.log('🌊 STREAMING CHAT ROUTE HIT!');
+  console.log('📨 Request body:', JSON.stringify(req.body));
 
   // Set up Server-Sent Events headers
   res.writeHead(200, {

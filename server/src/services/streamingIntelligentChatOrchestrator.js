@@ -380,6 +380,7 @@ export class StreamingIntelligentChatOrchestrator extends IntelligentChatOrchest
       let responseTemplate = null;
       let hasIntentMatch = false;
       let temporalRange = null;
+      let intentResult = null;
 
       if (detectedIntents && (Array.isArray(detectedIntents) ? detectedIntents.length > 0 : detectedIntents)) {
         hasIntentMatch = true;
@@ -392,7 +393,7 @@ export class StreamingIntelligentChatOrchestrator extends IntelligentChatOrchest
         console.log('🔧 Tool results details:', preExecutedToolResults.map(r => ({ tool: r.tool, success: r.success, resultLength: typeof r.result === 'string' ? r.result.length : 'N/A' })));
 
         // Check if this is a template-based response that should bypass LLM
-        const intentResult = Array.isArray(detectedIntents) ? detectedIntents[0] : detectedIntents;
+        intentResult = Array.isArray(detectedIntents) ? detectedIntents[0] : detectedIntents;
         console.log('🔍 DEBUG: Intent result details:', {
           intentResult,
           bypass_llm: intentResult?.bypass_llm,
@@ -411,13 +412,16 @@ export class StreamingIntelligentChatOrchestrator extends IntelligentChatOrchest
 
         // Check if it's a simple string template or structured template
         if (typeof responseTemplate === 'string') {
-          // Simple string template - apply date placeholder replacement
-          const processedTemplate = this.replaceDatePlaceholders(responseTemplate, temporalRange);
+          // Simple string template - apply appropriate template processing
+          const processedTemplate = temporalRange
+            ? this.replaceDatePlaceholders(responseTemplate, temporalRange)
+            : this.processTemplateWithoutDates(responseTemplate);
           const toolResultsText = this.formatToolResultsForTemplate(preExecutedToolResults);
           templateResponse = processedTemplate + '\n\n' + toolResultsText;
         } else {
           // Structured template - use existing logic
-          templateResponse = await this.generateStructuredDataResponse(responseTemplate, preExecutedToolResults, sanitizedMessage, temporalRange);
+          const extractedVariables = intentResult?.variables || {};
+          templateResponse = await this.generateStructuredDataResponse(responseTemplate, preExecutedToolResults, sanitizedMessage, temporalRange, extractedVariables);
         }
 
         // Add user message to database
@@ -1224,12 +1228,9 @@ Please provide a natural, conversational response based on this information. Do 
     }
 
     // Priority 2: Pattern matches with variables
-    const patterns = this.commonPrompts.patterns || [];
-    for (const pattern of patterns) {
-      const variables = this.extractVariables(normalizedPrompt, pattern.pattern);
-      if (variables) {
-        return { ...pattern, variables, method: 'pattern' };
-      }
+    const patternMatch = this.checkPatternMatch(normalizedPrompt);
+    if (patternMatch) {
+      return patternMatch;
     }
 
     // Priority 3: Fuzzy matches
@@ -1306,7 +1307,12 @@ Please provide a natural, conversational response based on this information. Do 
    * Examples: "did {name} email me" → "did mike email me"
    */
   checkPatternMatch(normalizedPrompt) {
-    if (!this.commonPrompts?.pattern_matches) return null;
+    console.log(`🔍 checkPatternMatch called with: "${normalizedPrompt}"`);
+    if (!this.commonPrompts?.pattern_matches) {
+      console.log(`❌ No pattern_matches found in commonPrompts`);
+      return null;
+    }
+    console.log(`🔍 Found ${Object.keys(this.commonPrompts.pattern_matches).length} patterns to check`);
 
     for (const [pattern, config] of Object.entries(this.commonPrompts.pattern_matches)) {
       const extractedVars = this.extractVariables(pattern, normalizedPrompt);
@@ -1317,14 +1323,27 @@ Please provide a natural, conversational response based on this information. Do 
         // Substitute variables in parameters
         const resolvedParams = this.substituteVariables(config.params, extractedVars);
 
+        // Substitute variables in query field as well
+        let resolvedQuery = config.query;
+        if (resolvedQuery && extractedVars) {
+          resolvedQuery = resolvedQuery.replace(/\{([^}]+)\}/g, (match, varName) => {
+            return extractedVars[varName] || match;
+          });
+          console.log(`🎯 Query variable substitution: "${config.query}" → "${resolvedQuery}"`);
+        }
+
         return {
           intents: config.tools.map(tool => ({ tool, confidence: 'high', method: 'pattern' })),
           tools: config.tools,
           params: resolvedParams,
+          query: resolvedQuery,
           variables: extractedVars,
           pattern: pattern,
           confidence: 'high',
-          method: 'pattern_match'
+          method: 'pattern_match',
+          response_template: config.response_template,
+          bypass_llm: config.bypass_llm,
+          dateRange: config.dateRange
         };
       }
     }
@@ -1418,6 +1437,7 @@ Please provide a natural, conversational response based on this information. Do 
    * Only called when all other methods fail
    */
   async classifyWithLLM(normalizedPrompt) {
+    console.log('🚨 LLM CLASSIFICATION CALLED with prompt:', normalizedPrompt);
     try {
       const llm = new ChatOpenAI({
         openAIApiKey: process.env.OPENAI_API_KEY,
@@ -1479,11 +1499,24 @@ Only include tools that are clearly needed. Be conservative. Include temporal da
   /**
    * Generate structured data response (new unified format)
    */
-  async generateStructuredDataResponse(templateConfig, toolResults, query, temporalRange) {
+  async generateStructuredDataResponse(templateConfig, toolResults, query, temporalRange, extractedVariables = {}) {
     console.log('🎯 STRUCTURED DATA: Processing structured template');
 
     const currentDate = new Date();
-    const title = this.replaceDatePlaceholders(templateConfig.title, temporalRange);
+    let title = temporalRange
+      ? this.replaceDatePlaceholders(templateConfig.title, temporalRange)
+      : this.processTemplateWithoutDates(templateConfig.title);
+
+    // Perform variable substitution on the title
+    if (extractedVariables && Object.keys(extractedVariables).length > 0) {
+      title = title.replace(/\{([^}]+)\}/g, (match, varName) => {
+        if (extractedVariables[varName]) {
+          console.log(`🎯 STRUCTURED DATA: Title variable substitution: "${match}" → "${extractedVariables[varName]}"`);
+          return extractedVariables[varName];
+        }
+        return match;
+      });
+    }
 
     // Build data object with raw tool results
     const data = {};
@@ -1612,6 +1645,17 @@ Only include tools that are clearly needed. Be conservative. Include temporal da
       processedTemplate = processedTemplate.replace(/\{temporal_phrase\}/g, temporalRange.phrase);
     }
 
+    return processedTemplate;
+  }
+
+  /**
+   * Process template without temporal range - removes any date placeholders
+   */
+  processTemplateWithoutDates(template) {
+    let processedTemplate = template;
+    // Remove any date placeholders since there's no temporal range
+    processedTemplate = processedTemplate.replace(/\{date_range\}/g, '');
+    processedTemplate = processedTemplate.replace(/\{temporal_phrase\}/g, '');
     return processedTemplate;
   }
 
@@ -1770,44 +1814,52 @@ Only include tools that are clearly needed. Be conservative. Include temporal da
     const healthMonitor = getHealthMonitor();
     const intents = Array.isArray(detectedIntents) ? detectedIntents : [detectedIntents];
 
-    // Calculate temporal range once for all tools
+    // Calculate temporal range once for all tools, but only if dateRange is specified
     let temporalRange = null;
-    try {
-      // Check if LLM classification already provided temporal data (for better range handling)
-      const firstIntent = intents[0];
-      if (firstIntent?.method === 'llm_fallback' && firstIntent?.temporal) {
-        const llmTemporal = firstIntent.temporal;
-        if (llmTemporal.startDate && llmTemporal.endDate) {
-          // Create timezone-aware dates like TemporalParsingService does
-          // Convert YYYY-MM-DD format to local time instead of UTC
-          const startDate = new Date(llmTemporal.startDate + 'T00:00:00');
-          const endDate = new Date(llmTemporal.endDate + 'T23:59:59.999');
+    const firstIntent = intents[0];
+    const shouldCalculateTemporal = (firstIntent?.dateRange !== undefined && firstIntent?.dateRange !== null) ||
+                                    (firstIntent?.temporal !== undefined && firstIntent?.temporal !== null);
+    console.log(`🔧 DEBUG: shouldCalculateTemporal = ${shouldCalculateTemporal}, dateRange = ${firstIntent?.dateRange}, temporal = ${firstIntent?.temporal ? 'present' : 'null'}`);
 
-          temporalRange = {
-            startDate: startDate.toISOString(),
-            endDate: endDate.toISOString(),
-            phrase: llmTemporal.phrase || 'LLM provided range',
-            source: 'llm_classification'
-          };
-          console.log(`🕒 Using LLM temporal range: ${temporalRange.phrase} → ${TemporalParsingService.formatDate(startDate)} to ${TemporalParsingService.formatDate(endDate)}`);
-        }
-      }
+    if (shouldCalculateTemporal) {
+      try {
+        // Check if LLM classification already provided temporal data (for better range handling)
+        if (firstIntent?.method === 'llm_fallback' && firstIntent?.temporal) {
+          const llmTemporal = firstIntent.temporal;
+          if (llmTemporal.startDate && llmTemporal.endDate) {
+            // Create timezone-aware dates like TemporalParsingService does
+            // Convert YYYY-MM-DD format to local time instead of UTC
+            const startDate = new Date(llmTemporal.startDate + 'T00:00:00');
+            const endDate = new Date(llmTemporal.endDate + 'T23:59:59.999');
 
-      // Fallback to TemporalParsingService if no LLM temporal data available
-      if (!temporalRange) {
-        const temporal = await TemporalParsingService.parseTemporalQuery(query, new Date(), userTimezone);
-        if (temporal && temporal.startDate && temporal.endDate) {
-          temporalRange = {
-            startDate: temporal.startDate.toISOString(),
-            endDate: temporal.endDate.toISOString(),
-            phrase: temporal.phrase,
-            source: temporal.source
-          };
-          console.log(`🕒 Calculated temporal range once: ${temporal.phrase} → ${TemporalParsingService.formatDate(temporal.startDate)} to ${TemporalParsingService.formatDate(temporal.endDate)}`);
+            temporalRange = {
+              startDate: startDate.toISOString(),
+              endDate: endDate.toISOString(),
+              phrase: llmTemporal.phrase || 'LLM provided range',
+              source: 'llm_classification'
+            };
+            console.log(`🕒 Using LLM temporal range: ${temporalRange.phrase} → ${TemporalParsingService.formatDate(startDate)} to ${TemporalParsingService.formatDate(endDate)}`);
+          }
         }
+
+        // Fallback to TemporalParsingService if no LLM temporal data available
+        if (!temporalRange) {
+          const temporal = await TemporalParsingService.parseTemporalQuery(query, new Date(), userTimezone);
+          if (temporal && temporal.startDate && temporal.endDate) {
+            temporalRange = {
+              startDate: temporal.startDate.toISOString(),
+              endDate: temporal.endDate.toISOString(),
+              phrase: temporal.phrase,
+              source: temporal.source
+            };
+            console.log(`🕒 Calculated temporal range once: ${temporal.phrase} → ${TemporalParsingService.formatDate(temporal.startDate)} to ${TemporalParsingService.formatDate(temporal.endDate)}`);
+          }
+        }
+      } catch (error) {
+        console.warn('🕒 Failed to parse temporal context:', error.message);
       }
-    } catch (error) {
-      console.warn('🕒 Failed to parse temporal context:', error.message);
+    } else {
+      console.log(`🕒 Skipping temporal range calculation - no dateRange specified for intent`);
     }
 
     // Create available tools for intent execution
@@ -1844,6 +1896,7 @@ Only include tools that are clearly needed. Be conservative. Include temporal da
 
           // Use config query if available, otherwise fall back to user query
           const configQuery = intentResult?.query !== undefined ? intentResult.query : query;
+          console.log(`🔧 Intent query: "${intentResult?.query}", User query: "${query}", Using: "${configQuery}"`);
           const enhancedArgs = { ...toolParams, query: configQuery, temporalRange };
           console.log(`🔧 Enhanced args for ${toolName}:`, enhancedArgs);
           result = await tool._call(enhancedArgs);

@@ -41,9 +41,11 @@ export class GmailSearchTool extends Tool {
    */
   async _call(input) {
     try {
+      console.log(`🔍 Gmail Tool _call: Starting with input:`, input);
       // Handle both object and JSON string input
       const params = typeof input === 'string' ? JSON.parse(input) : input;
-      const { query, maxResults = 10, temporalRange } = params;
+      const { query, maxResults = 5, temporalRange } = params;
+      console.log(`🔍 Gmail Tool _call: Parsed params:`, { query, maxResults, temporalRange });
 
       if (!query || typeof query !== 'string') {
         return JSON.stringify({
@@ -59,15 +61,17 @@ export class GmailSearchTool extends Tool {
         const startDate = new Date(temporalRange.startDate).toISOString().split('T')[0].replace(/-/g, '/');
         const endDate = new Date(temporalRange.endDate).toISOString().split('T')[0].replace(/-/g, '/');
         finalQuery = `after:${startDate} before:${endDate} ${query}`.trim();
-        console.log(`🔍 Gmail API search with temporal range "${temporalRange.phrase}": "${finalQuery}" for user ${this.userId}`);
+        console.log(`🔍 Gmail API search with temporal range "${temporalRange?.phrase || 'unknown'}": "${finalQuery}" for user ${this.userId}`);
       } else {
-        // Fallback to TemporalParsingService for backward compatibility
-        finalQuery = await TemporalParsingService.createGmailQuery('', query);
-        console.log(`🔍 Gmail API search (fallback temporal parsing): "${finalQuery}" for user ${this.userId}`);
+        // Use raw query without temporal restrictions when no explicit date range provided
+        finalQuery = query;
+        console.log(`🔍 Gmail API search (no date restrictions): "${finalQuery}" for user ${this.userId}`);
       }
 
       // Get valid access token
+      console.log(`🔍 Gmail Tool: Getting access token for user ${this.userId}`);
       const tokenResult = await this.tokenService.getValidAccessToken(this.userId, 'gmail');
+      console.log(`🔍 Gmail Tool: Token result:`, { success: tokenResult.success, error: tokenResult.error });
 
       if (!tokenResult.success) {
         return JSON.stringify({
@@ -78,7 +82,9 @@ export class GmailSearchTool extends Tool {
       }
 
       // Search Gmail using API
+      console.log(`🔍 Gmail API: About to search with query: "${finalQuery}" for user ${this.userId}`);
       const searchResults = await this._searchGmail(tokenResult.token.access_token, finalQuery, maxResults);
+      console.log(`🔍 Gmail API: Search completed. Results:`, searchResults);
 
       if (!searchResults.success) {
         return JSON.stringify(searchResults);
@@ -119,7 +125,7 @@ export class GmailSearchTool extends Tool {
     try {
       // First, search for message IDs
       const searchResponse = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=${maxResults}`,
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=${maxResults}`,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -203,7 +209,14 @@ export class GmailSearchTool extends Tool {
    * @private
    */
   _formatResultsForLangChain(messages) {
-    return messages.map(message => {
+    // Sort messages by internal date (most recent first) to ensure proper ordering
+    const sortedMessages = messages.sort((a, b) => {
+      const dateA = parseInt(a.internalDate) || 0;
+      const dateB = parseInt(b.internalDate) || 0;
+      return dateB - dateA; // Descending order (newest first)
+    });
+
+    return sortedMessages.map(message => {
       const headers = message.payload?.headers || [];
       const getHeader = (name) => headers.find(h => h.name === name)?.value || '';
 

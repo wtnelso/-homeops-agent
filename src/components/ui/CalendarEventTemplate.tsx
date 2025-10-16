@@ -199,7 +199,9 @@ export const CalendarEventTemplate: React.FC<CalendarEventTemplateProps> = ({ da
           <div className="space-y-2">
             {allEvents.map((item, index) => (
               <div
-                key={item.id || index}
+                key={item.itemType === 'activity' && item.currentDay
+                  ? `${item.id}-${item.currentDay}`
+                  : item.id || `${item.itemType}-${index}`}
                 className={`p-2.5 bg-white dark:bg-gray-700/30 rounded border-l-4 shadow-sm ${
                   item.itemType === 'calendar' ? 'border-blue-500' : 'border-green-500'
                 }`}

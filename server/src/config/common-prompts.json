@@ -259,9 +259,14 @@
 
     "check my email": {
       "tools": ["gmail_search"],
-      "query": "recent emails",
+      "dateRange": null,
+      "query": "in:inbox",
       "params": { "gmail_search": { "maxResults": 10 } },
-      "response_template": "Here are your recent emails:",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Your recent emails"
+      },
       "bypass_llm": true
     },
 
@@ -281,7 +286,9 @@
       "params": {
         "gmail_search": { "query": "from:school OR subject:school OR school events" },
         "calendar": { "action": "list_events" }
-      }
+      },
+      "response_template": "Here are upcoming school events from your email and calendar:",
+      "bypass_llm": true
     },
 
     "are there any important appointments coming up": {
@@ -295,39 +302,172 @@
   "pattern_matches": {
     "did {name} email me": {
       "tools": ["gmail_search"],
+      "dateRange": null,
       "query": "from:{name}",
-      "params": { "gmail_search": {} }
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails from {name}"
+      },
+      "bypass_llm": true
     },
     "any emails from {name}": {
       "tools": ["gmail_search"],
+      "dateRange": null,
       "query": "from:{name}",
-      "params": { "gmail_search": {} }
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails from {name}"
+      },
+      "bypass_llm": true
     },
     "emails from {name}": {
       "tools": ["gmail_search"],
+      "dateRange": null,
       "query": "from:{name}",
-      "params": { "gmail_search": {} }
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails from {name}"
+      },
+      "bypass_llm": true
     },
     "check emails from {name}": {
       "tools": ["gmail_search"],
+      "dateRange": null,
       "query": "from:{name}",
-      "params": { "gmail_search": {} }
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails from {name}"
+      },
+      "bypass_llm": true
     },
     "has {name} emailed me": {
       "tools": ["gmail_search"],
+      "dateRange": null,
       "query": "from:{name}",
-      "params": { "gmail_search": {} }
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails from {name}"
+      },
+      "bypass_llm": true
     },
-
+    "show me emails from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails from {name}"
+      },
+      "bypass_llm": true
+    },
+    "recent emails from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Recent emails from {name}"
+      },
+      "bypass_llm": true
+    },
+    "most recent emails from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Most recent emails from {name}"
+      },
+      "bypass_llm": true
+    },
+    "can you show me the most recent emails from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Most recent emails from {name}"
+      },
+      "bypass_llm": true
+    },
+    "show me the most recent emails from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Most recent emails from {name}"
+      },
+      "bypass_llm": true
+    },
+    "show me recent emails from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Recent emails from {name}"
+      },
+      "bypass_llm": true
+    },
     "emails about {subject}": {
       "tools": ["gmail_search"],
+      "dateRange": null,
       "query": "subject:{subject}",
-      "params": { "gmail_search": {} }
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails about {subject}"
+      },
+      "bypass_llm": true
     },
     "any emails about {subject}": {
       "tools": ["gmail_search"],
+      "dateRange": null,
       "query": "subject:{subject}",
-      "params": { "gmail_search": {} }
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails about {subject}"
+      },
+      "bypass_llm": true
+    },
+
+    "what emails do i have from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails from {name}"
+      },
+      "bypass_llm": true
     },
 
     "what's on my calendar for the next {number} days": {

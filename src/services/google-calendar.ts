@@ -33,9 +33,9 @@ export class GoogleCalendarService {
   static startOAuthFlow(): void {
     console.log('🚀 Starting Google Calendar OAuth flow...');
     localStorage.setItem('oauth_integration_pending', 'google-calendar');
-    localStorage.setItem('oauth_return_url', window.location.href);
+    localStorage.setItem('oauth_return_url', window.location.pathname);
     console.log('💾 Set pending integration in localStorage: google-calendar');
-    console.log('🔗 Stored return URL:', window.location.href);
+    console.log('🔗 Stored return URL:', window.location.pathname);
     
     const oauthUrl = this.buildOAuthUrl();
     console.log('🌐 Redirecting to OAuth URL:', oauthUrl);

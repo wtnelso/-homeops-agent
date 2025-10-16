@@ -24,17 +24,17 @@ export class GmailService {
 
     localStorage.setItem('oauth_integration_pending', 'gmail');
 
-    // Store the current URL for return, with special handling for onboarding
-    const currentUrl = window.location.href;
-    console.log('💾 Storing return URL:', currentUrl);
+    // Store the current path for return, with special handling for onboarding
+    const currentPath = window.location.pathname;
+    console.log('💾 Storing return URL:', currentPath);
 
     // If we're in onboarding, store additional context
-    if (currentUrl.includes('/onboarding') || currentUrl.includes('step=')) {
+    if (currentPath.includes('/onboarding') || window.location.href.includes('step=')) {
       console.log('📋 Detected onboarding flow, storing onboarding context');
       localStorage.setItem('oauth_from_onboarding', 'true');
     }
 
-    localStorage.setItem('oauth_return_url', currentUrl);
+    localStorage.setItem('oauth_return_url', currentPath);
     window.location.href = oauthUrl;
   }
 

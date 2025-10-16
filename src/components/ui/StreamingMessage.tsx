@@ -7,6 +7,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { StreamingMessage as StreamingMessageType } from '../../hooks/useStreamingChat';
 import CalendarEventTemplate from './CalendarEventTemplate';
+import EmailListTemplate from './EmailListTemplate';
 
 /**
  * Simple markdown parser for chat messages
@@ -155,7 +156,11 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({ message, onAbort })
         }`}>
           <div className="break-words leading-relaxed">
             {isAssistant && message.type === 'structured' && message.structuredData ? (
-              <CalendarEventTemplate data={message.structuredData} />
+              message.structuredData.template_name === 'email_list' ? (
+                <EmailListTemplate data={message.structuredData} />
+              ) : (
+                <CalendarEventTemplate data={message.structuredData} />
+              )
             ) : isAssistant ? (
               parseMarkdown(message.content)
             ) : (
