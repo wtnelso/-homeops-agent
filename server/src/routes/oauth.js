@@ -331,11 +331,10 @@ router.post('/disconnect', validateJWT, async (req, res) => {
  * @private
  */
 function getOAuthConfig(integrationId) {
-  const baseRedirectUri = process.env.VITE_REDIRECT_URI_BASE || process.env.VITE_BASE_URL || 'http://localhost:3000';
+  const baseRedirectUri = process.env.DIRECT_URI_BASE;
   console.log(`🔧 OAuth Config Debug:`, {
     integrationId,
-    VITE_REDIRECT_URI_BASE: process.env.VITE_REDIRECT_URI_BASE,
-    VITE_BASE_URL: process.env.VITE_BASE_URL,
+    DIRECT_URI_BASE: process.env.DIRECT_URI_BASE,
     baseRedirectUri
   });
 
