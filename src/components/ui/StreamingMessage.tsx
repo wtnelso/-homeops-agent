@@ -23,7 +23,7 @@ function parseMarkdown(text: string): React.ReactNode[] {
     // Handle headers (### text)
     if (line.startsWith('### ')) {
       elements.push(
-        <h3 key={i} className="text-lg font-semibold mt-4 mb-2 first:mt-0">
+        <h3 key={i} className="text-base sm:text-lg font-semibold mt-4 mb-2 first:mt-0 break-words">
           {line.substring(4)}
         </h3>
       );
@@ -32,7 +32,7 @@ function parseMarkdown(text: string): React.ReactNode[] {
     else if (line.trim().endsWith(':') && !line.includes('•') && !line.match(/^\s*[-*]\s+/)) {
       const parsedContent = parseBoldText(line);
       elements.push(
-        <div key={i} className="font-semibold mt-3 mb-2 first:mt-0">
+        <div key={i} className="font-semibold mt-3 mb-2 first:mt-0 break-words">
           {parsedContent}
         </div>
       );
@@ -147,14 +147,14 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({ message, onAbort })
 
   return (
     <div className={`w-full ${isUser ? 'flex justify-end' : ''}`}>
-      <div className={`max-w-2xl ${isUser ? 'ml-auto' : 'mr-auto'}`}>
+      <div className={`max-w-full sm:max-w-2xl ${isUser ? 'ml-auto' : 'mr-auto'}`}>
         {/* Message Text */}
-        <div className={`inline-block px-4 py-3 rounded-2xl ${
+        <div className={`inline-block px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${
           isUser
             ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
             : 'bg-transparent text-gray-900 dark:text-gray-100'
         }`}>
-          <div className="break-words leading-relaxed">
+          <div className="break-words leading-relaxed text-sm sm:text-base">
             {isAssistant && message.type === 'structured' && message.structuredData ? (
               message.structuredData.template_name === 'email_list' ? (
                 <EmailListTemplate data={message.structuredData} />

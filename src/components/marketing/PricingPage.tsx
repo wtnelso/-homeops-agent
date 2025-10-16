@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Check, X, Rocket, User, Users, Crown } from 'lucide-react';
 import Header from '../shared/Header';
 import Footer from '../Footer';
+import { BETA_MODE } from '../../config/routes';
 import './PricingPage.css';
 
 interface PricingTier {
@@ -179,13 +180,19 @@ const PricingPage: React.FC = () => {
                 ))}
               </ul>
 
-              <button
-                className={`plan-cta ${tier.featured ? 'primary' : ''}`}
-                onClick={() => handlePlanSelect(tier.id)}
-              >
-                {tier.ctaText}
-                <ArrowRight className="w-4 h-4 cta-arrow" />
-              </button>
+              {BETA_MODE ? (
+                <div className={`plan-cta-beta ${tier.featured ? 'primary' : ''}`}>
+                  Coming Soon
+                </div>
+              ) : (
+                <button
+                  className={`plan-cta ${tier.featured ? 'primary' : ''}`}
+                  onClick={() => handlePlanSelect(tier.id)}
+                >
+                  {tier.ctaText}
+                  <ArrowRight className="w-4 h-4 cta-arrow" />
+                </button>
+              )}
             </div>
           ))}
         </div>

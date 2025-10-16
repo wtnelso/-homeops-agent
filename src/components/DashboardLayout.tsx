@@ -18,7 +18,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useAdminStatus } from '../hooks/useAdminStatus';
 import { ROUTES } from '../config/routes';
 import UserDropdown from './ui/UserDropdown';
-import CalendarInviteDemo from './ui/CalendarInviteDemo';
 import OnboardingModal from './ui/OnboardingModal';
 import { isDemoMode } from '../demo/config/demoConfig';
 import DemoBanner from '../demo/components/DemoBanner';
@@ -334,8 +333,6 @@ const DashboardLayout: React.FC = () => {
 
             {/* Right side with user menu */}
             <div className="flex items-center space-x-4">
-              {/* Calendar Demo button - only show on Home page and for admins */}
-              {currentPage?.id === 'home' && isAdmin && !adminLoading && <CalendarInviteDemo />}
 
               {/* Admin-only onboarding launch button */}
               {isAdmin && !adminLoading && (

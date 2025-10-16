@@ -80,10 +80,10 @@ export const EmailListTemplate: React.FC<EmailListTemplateProps> = ({ data }) =>
   };
 
   return (
-    <div className="space-y-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="space-y-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 max-w-full overflow-hidden">
       {/* Header */}
       <div className="border-b border-gray-200 dark:border-gray-700 pb-2">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white break-words">
           {data.title}
         </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -119,7 +119,7 @@ export const EmailListTemplate: React.FC<EmailListTemplateProps> = ({ data }) =>
                   <div className="flex-1 min-w-0">
                     {/* Subject and Date */}
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h5 className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                      <h5 className="font-medium text-sm text-gray-900 dark:text-white truncate flex-1 min-w-0">
                         {email.subject || 'No Subject'}
                       </h5>
                       <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
@@ -128,13 +128,13 @@ export const EmailListTemplate: React.FC<EmailListTemplateProps> = ({ data }) =>
                     </div>
 
                     {/* From */}
-                    <div className="flex items-center gap-1 mb-2">
-                      <User className="h-3 w-3 text-gray-400" />
-                      <span className="text-xs text-gray-600 dark:text-gray-300 truncate">
+                    <div className="flex items-center gap-1 mb-2 min-w-0">
+                      <User className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                      <span className="text-xs text-gray-600 dark:text-gray-300 truncate flex-1 min-w-0">
                         {email.from_name || email.from_email}
                       </span>
                       {email.from_name && email.from_email && (
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-400 hidden sm:inline">
                           &lt;{email.from_email}&gt;
                         </span>
                       )}
@@ -142,7 +142,7 @@ export const EmailListTemplate: React.FC<EmailListTemplateProps> = ({ data }) =>
 
                     {/* Snippet */}
                     {email.snippet && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 break-words">
                         {email.snippet}
                       </p>
                     )}

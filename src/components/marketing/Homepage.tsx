@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { ArrowRight, BrainCircuit, Zap, Target, CalendarCheck, ShieldCheck, TrendingUp } from 'lucide-react';
 import Header from '../shared/Header';
 import Footer from '../Footer';
-import { ROUTES } from '../../config/routes';
+import { ROUTES, BETA_MODE } from '../../config/routes';
 import './Homepage.css';
 
 interface FeatureCardProps {
@@ -130,10 +130,16 @@ const Homepage: React.FC = () => {
         </p>
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <a href={ROUTES.SIGNUP} className="hero-cta">
-            <span>Get Started Free</span>
-            <ArrowRight className="w-4 h-4" />
-          </a>
+          {BETA_MODE ? (
+            <div className="hero-cta-beta">
+              <span>In Closed Beta • Coming Soon</span>
+            </div>
+          ) : (
+            <a href={ROUTES.SIGNUP} className="hero-cta">
+              <span>Get Started Free</span>
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          )}
         </div>
       </section>
 
@@ -168,7 +174,13 @@ const Homepage: React.FC = () => {
           Transform your family's email chaos into clear priorities and actionable insights.
           Join families who've reclaimed their time and mental energy with HomeOps.AI.
         </p>
-        <a href={ROUTES.SIGNUP} className="hero-cta">Start Your Free Trial</a>
+        {BETA_MODE ? (
+          <div className="hero-cta-beta">
+            <span>In Closed Beta • Coming Soon</span>
+          </div>
+        ) : (
+          <a href={ROUTES.SIGNUP} className="hero-cta">Start Your Free Trial</a>
+        )}
       </section>
 
       <Footer />

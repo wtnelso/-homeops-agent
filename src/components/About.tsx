@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import Header from './shared/Header';
 import Footer from './Footer';
+import { BETA_MODE } from '../config/routes';
 
 const About: React.FC = () => {
   useEffect(() => {
@@ -115,12 +116,18 @@ const About: React.FC = () => {
             <p className="text-slate-300 mb-8 max-w-2xl mx-auto">
               Join families who've already reduced their mental load and gained clarity in their daily operations.
             </p>
-            <a
-              href="/signup"
-              className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Get Started Free
-            </a>
+            {BETA_MODE ? (
+              <div className="inline-flex items-center px-6 py-3 bg-slate-700 text-slate-300 font-medium rounded-lg border border-slate-600">
+                In Closed Beta • Coming Soon
+              </div>
+            ) : (
+              <a
+                href="/signup"
+                className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Get Started Free
+              </a>
+            )}
           </div>
         </div>
       </div>

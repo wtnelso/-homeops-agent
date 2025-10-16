@@ -18,13 +18,7 @@ const Footer: React.FC = () => {
     {
       title: 'Support',
       links: [
-        { label: 'Contact Us', href: ROUTES.CONTACT }
-      ]
-    },
-    {
-      title: 'Company',
-      links: [
-        { label: 'About', href: ROUTES.ABOUT }
+        { label: 'Contact Us', href: 'mailto:hello@homeops.ai?subject=Support', external: true }
       ]
     },
     {
@@ -37,7 +31,10 @@ const Footer: React.FC = () => {
   ];
 
   const handleLinkClick = (href: string, external?: boolean) => {
-    if (href.startsWith('#') && !external) {
+    if (href.startsWith('mailto:')) {
+      // Handle mailto links
+      window.location.href = href;
+    } else if (href.startsWith('#') && !external) {
       // Handle anchor links - scroll to section if on same page
       const element = document.querySelector(href);
       if (element) {
@@ -50,7 +47,7 @@ const Footer: React.FC = () => {
     <footer className="bg-slate-900 text-slate-400">
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Footer Links Grid */}
-        <div className="grid grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-2 gap-8 mb-8">
           {footerSections.map((section, index) => (
             <div key={index}>
               <h3 className="text-white font-semibold mb-4">{section.title}</h3>

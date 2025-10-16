@@ -103,7 +103,7 @@ const DefaultPrompts: React.FC<DefaultPromptsProps> = ({
 
   // Regular static display
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full px-2 sm:px-0">
       {/* Review Profile Suggestions - replaces first prompt */}
       <button
         onClick={handleSuggestionsClick}

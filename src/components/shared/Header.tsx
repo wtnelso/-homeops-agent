@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import UserDropdown from '../ui/UserDropdown';
-import { ROUTES } from '../../config/routes';
+import { ROUTES, BETA_MODE } from '../../config/routes';
 import './Header.css';
 
 interface HeaderProps {
@@ -186,9 +186,11 @@ const Header: React.FC<HeaderProps> = ({ currentPage }) => {
         <Link to={ROUTES.LOGIN} className="signin-button">
           Sign In
         </Link>
-        <Link to={ROUTES.SIGNUP} className="cta-button">
-          Get Started
-        </Link>
+        {!BETA_MODE && (
+          <Link to={ROUTES.SIGNUP} className="cta-button">
+            Get Started
+          </Link>
+        )}
       </div>
     );
   };

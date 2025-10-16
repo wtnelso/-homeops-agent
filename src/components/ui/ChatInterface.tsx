@@ -197,7 +197,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     <div className={`flex h-full bg-gray-50 dark:bg-gray-900 ${className}`}>
       {/* Conversation Sidebar */}
       {showConversationList && (
-        <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        <div className="hidden md:block md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           <ConversationList
             conversations={conversations}
             currentConversationId={currentConversation?.id}
@@ -216,25 +216,26 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="border-b border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-800">
-          <div className="max-w-3xl mx-auto flex justify-between items-center">
-            <h1 className="text-xl font-medium text-gray-900 dark:text-gray-100">
+          <div className="w-full max-w-none px-2 sm:px-4 md:max-w-3xl md:mx-auto flex justify-between items-center">
+            <h1 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100">
               HomeOps AI
             </h1>
-            <div className="flex space-x-2">
+            <div className="flex space-x-1 sm:space-x-2">
               {isStreaming && (
                 <button
                   onClick={abortStream}
-                  className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center space-x-1"
+                  className="px-2 sm:px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs sm:text-sm hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center space-x-1"
                 >
                   <AlertCircle className="w-3 h-3" />
-                  <span>Stop</span>
+                  <span className="hidden sm:inline">Stop</span>
                 </button>
               )}
               <button
                 onClick={handleNewConversation}
-                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600"
+                className="px-2 sm:px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs sm:text-sm hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                New Chat
+                <span className="sm:hidden">New</span>
+                <span className="hidden sm:inline">New Chat</span>
               </button>
             </div>
           </div>
@@ -243,14 +244,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {/* Error Banner */}
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 p-4">
-            <div className="max-w-3xl mx-auto flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            <div className="w-full max-w-none px-2 sm:px-4 md:max-w-3xl md:mx-auto flex items-center justify-between">
+              <div className="flex items-center space-x-2 min-w-0 flex-1">
+                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0" />
+                <p className="text-sm text-red-700 dark:text-red-300 truncate">{error}</p>
               </div>
               <button
                 onClick={clearError}
-                className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
+                className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 flex-shrink-0 ml-2"
               >
                 ✕
               </button>
@@ -261,11 +262,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {/* Messages Area */}
         <div className="flex-1 overflow-hidden relative">
           <div ref={scrollContainerRef} className="h-full overflow-y-auto">
-            <div className="max-w-3xl mx-auto py-8">
+            <div className="w-full max-w-none px-2 sm:px-4 md:max-w-3xl md:mx-auto py-4 sm:py-8">
               {/* Welcome State */}
               {streamingMessages.length === 0 && !isStreaming && (
-                <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                  <h2 className="text-3xl sm:text-4xl font-medium text-gray-900 dark:text-white mb-8">
+                <div className="flex flex-col items-center justify-center h-full text-center px-2 sm:px-4">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-medium text-gray-900 dark:text-white mb-6 sm:mb-8">
                     HomeOps AI
                   </h2>
 
@@ -300,7 +301,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
               {/* Chat Messages */}
               {streamingMessages.length > 0 && (
-                <div className="space-y-6 px-4">
+                <div className="space-y-4 sm:space-y-6 px-2 sm:px-4">
                   {streamingMessages.map((message) => (
                     <StreamingMessage
                       key={message.id}
@@ -328,7 +329,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
         {/* Input Area */}
         <div className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
-          <div className="max-w-3xl mx-auto p-4">
+          <div className="w-full max-w-none px-2 sm:px-4 md:max-w-3xl md:mx-auto p-3 sm:p-4">
             <ChatInput
               onSend={handleSendMessage}
               loading={isStreaming}
@@ -342,7 +343,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             />
 
             {isStreaming && (
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mt-3">
+              <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-3">
                 <div className="flex space-x-1">
                   <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-claude-thinking"></div>
                   <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-claude-thinking"></div>
@@ -352,7 +353,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </div>
             )}
 
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2 px-2">
               HomeOps AI can make mistakes. Check important info.
             </p>
           </div>

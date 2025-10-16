@@ -175,13 +175,13 @@ export const CalendarEventTemplate: React.FC<CalendarEventTemplateProps> = ({ da
   };
 
   return (
-    <div className="space-y-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="space-y-4 p-2 sm:p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-full overflow-hidden">
       {/* Header */}
       <div className="border-b border-gray-200 dark:border-gray-700 pb-2">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white break-words">
           {data.title}
         </h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 break-words">
           {calendarData?.dateRange}
         </p>
       </div>
@@ -202,12 +202,12 @@ export const CalendarEventTemplate: React.FC<CalendarEventTemplateProps> = ({ da
                 key={item.itemType === 'activity' && item.currentDay
                   ? `${item.id}-${item.currentDay}`
                   : item.id || `${item.itemType}-${index}`}
-                className={`p-2.5 bg-white dark:bg-gray-700/30 rounded border-l-4 shadow-sm ${
+                className={`p-2 sm:p-2.5 bg-white dark:bg-gray-700/30 rounded border-l-4 shadow-sm w-full max-w-full overflow-hidden ${
                   item.itemType === 'calendar' ? 'border-blue-500' : 'border-green-500'
                 }`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
+                <div className="w-full">
+                  <div className="w-full min-w-0">
                     <h5 className="font-medium text-sm text-gray-900 dark:text-white truncate">
                       {item.itemType === 'calendar' ? item.title : item.name}
                     </h5>
@@ -215,58 +215,58 @@ export const CalendarEventTemplate: React.FC<CalendarEventTemplateProps> = ({ da
                     {item.itemType === 'calendar' ? (
                       // Calendar event layout
                       <>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-600 dark:text-gray-300">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>{formatEventDate(item.start)}</span>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mt-1 text-xs text-gray-600 dark:text-gray-300">
+                          <div className="flex items-center gap-1 mb-1 sm:mb-0">
+                            <Calendar className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{formatEventDate(item.start)}</span>
                           </div>
 
                           <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span>{formatEventTime(item.start, item.end, item.allDay)}</span>
+                            <Clock className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{formatEventTime(item.start, item.end, item.allDay)}</span>
                           </div>
                         </div>
 
                         {item.location && (
-                          <div className="flex items-center gap-1 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            <MapPin className="h-3 w-3" />
-                            <span className="truncate">{item.location}</span>
+                          <div className="flex items-center gap-1 mt-1 text-xs text-gray-500 dark:text-gray-400 min-w-0">
+                            <MapPin className="h-3 w-3 flex-shrink-0" />
+                            <span className="break-words overflow-hidden text-ellipsis" style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}>{item.location}</span>
                           </div>
                         )}
                       </>
                     ) : (
                       // Family activity layout
                       <>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-600 dark:text-gray-300">
-                          <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded text-xs font-medium">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mt-1 text-xs text-gray-600 dark:text-gray-300">
+                          <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded text-xs font-medium w-fit mb-1 sm:mb-0">
                             {item.type}
                           </span>
 
                           {item.schedule && (
                             <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{item.schedule}</span>
+                              <Clock className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{item.schedule}</span>
                             </div>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
                           {item.currentDay ? (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{formatEventDate(item.sortDate.toISOString())}</span>
+                            <div className="flex items-center gap-1 mb-1 sm:mb-0">
+                              <Calendar className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{formatEventDate(item.sortDate.toISOString())}</span>
                             </div>
                           ) : item.days && item.days.length > 0 ? (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{item.days.join(', ')}</span>
+                            <div className="flex items-center gap-1 mb-1 sm:mb-0">
+                              <Calendar className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{item.days.join(', ')}</span>
                             </div>
                           ) : null}
 
                           {item.location && (
-                            <div className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              <span className="truncate">{item.location}</span>
+                            <div className="flex items-center gap-1 min-w-0">
+                              <MapPin className="h-3 w-3 flex-shrink-0" />
+                              <span className="break-words overflow-hidden text-ellipsis" style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}>{item.location}</span>
                             </div>
                           )}
                         </div>
