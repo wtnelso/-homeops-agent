@@ -66,132 +66,226 @@
 </head>
 <body>
     <div class="header">
-        <h1>Privacy Policy</h1>
-        <p>Last updated: January 2025</p>
+        <h1>HomeOps Privacy Policy</h1>
+        <p><strong>Effective Date:</strong> September 8, 2025</p>
+        <p><strong>Last Updated:</strong> September 8, 2025</p>
     </div>
 
     <div class="section">
-        <h2>1. Introduction</h2>
-        <p>HomeOps ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application and services.</p>
+        <h2>Introduction</h2>
+        <p>HomeOps ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our AI-powered email intelligence service.</p>
     </div>
 
     <div class="section">
-        <h2>2. Information We Collect</h2>
-        
-        <h3>2.1 Personal Information</h3>
-        <p>We may collect personal information that you provide directly to us, including:</p>
+        <h2>Information We Collect</h2>
+
+        <h3>1. Personal Information</h3>
         <ul>
-            <li>Email address and authentication information</li>
-            <li>Name and contact information</li>
-            <li>Profile information and preferences</li>
+            <li><strong>Account Information</strong>: Name, email address, and profile details you provide during registration</li>
+            <li><strong>Gmail Account Access</strong>: OAuth tokens to access your Gmail account (with your explicit consent)</li>
+            <li><strong>User Preferences</strong>: Email categorization preferences, scoring weights, and calibration feedback</li>
         </ul>
 
-        <h3>2.2 Gmail Data</h3>
-        <p>With your explicit consent, we access and process your Gmail data to provide our services, including:</p>
+        <h3>2. Email Data</h3>
         <ul>
-            <li>Email content and metadata</li>
-            <li>Calendar events and appointments</li>
-            <li>Contact information from emails</li>
-            <li>Email attachments and links</li>
+            <li><strong>Email Content</strong>: Subject lines, sender information, email snippets, and metadata from your Gmail account</li>
+            <li><strong>Email Interactions</strong>: Your rating feedback during calibration ("Interested" vs "Not Interested")</li>
+            <li><strong>Usage Patterns</strong>: How you interact with email summaries and dashboard features</li>
         </ul>
 
-        <h3>2.3 Usage Information</h3>
-        <p>We automatically collect certain information about your use of our services, including:</p>
+        <h3>3. Technical Data</h3>
         <ul>
-            <li>Log data and device information</li>
-            <li>Usage patterns and preferences</li>
-            <li>Performance data and error reports</li>
+            <li><strong>Device Information</strong>: Browser type, operating system, IP address</li>
+            <li><strong>Usage Analytics</strong>: App performance metrics, feature usage statistics</li>
+            <li><strong>Error Logs</strong>: Technical logs for debugging and service improvement</li>
         </ul>
     </div>
 
     <div class="section">
-        <h2>3. How We Use Your Information</h2>
-        <p>We use the information we collect to:</p>
+        <h2>How We Use Your Information</h2>
+
+        <h3>1. Core Service Delivery</h3>
         <ul>
-            <li>Provide and maintain our services</li>
-            <li>Process and organize your emails and calendar events</li>
-            <li>Send you notifications and updates</li>
-            <li>Improve our services and user experience</li>
-            <li>Ensure security and prevent fraud</li>
-            <li>Comply with legal obligations</li>
+            <li><strong>Email Intelligence</strong>: Analyze your emails to provide personalized mental load assessments</li>
+            <li><strong>AI Summaries</strong>: Generate intelligent summaries using OpenAI GPT-4</li>
+            <li><strong>Pattern Learning</strong>: Build personalized email prioritization models</li>
+            <li><strong>Dashboard Insights</strong>: Provide actionable insights about your email patterns</li>
+        </ul>
+
+        <h3>2. Service Improvement</h3>
+        <ul>
+            <li><strong>Machine Learning</strong>: Improve our AI algorithms (using anonymized data only)</li>
+            <li><strong>Feature Development</strong>: Enhance existing features and develop new ones</li>
+            <li><strong>Quality Assurance</strong>: Monitor service performance and reliability</li>
+        </ul>
+
+        <h3>3. Communication</h3>
+        <ul>
+            <li><strong>Service Updates</strong>: Notify you about important changes or updates</li>
+            <li><strong>Support</strong>: Respond to your questions and provide customer support</li>
         </ul>
     </div>
 
     <div class="section">
-        <h2>4. Data Sharing and Disclosure</h2>
-        <p>We do not sell, trade, or otherwise transfer your personal information to third parties except in the following circumstances:</p>
+        <h2>Third-Party Services</h2>
+
+        <h3>1. OpenAI Integration</h3>
         <ul>
-            <li>With your explicit consent</li>
-            <li>To comply with legal requirements</li>
-            <li>To protect our rights and safety</li>
-            <li>With service providers who assist in our operations (under strict confidentiality agreements)</li>
+            <li><strong>Purpose</strong>: Generate AI-powered email summaries and insights</li>
+            <li><strong>Data Shared</strong>: Email content (subject, snippet, sender) for processing</li>
+            <li><strong>Data Retention</strong>: OpenAI processes data according to their privacy policy</li>
+            <li><strong>Opt-out</strong>: You can disable AI summaries in your account settings</li>
+        </ul>
+
+        <h3>2. Google OAuth</h3>
+        <ul>
+            <li><strong>Purpose</strong>: Secure access to your Gmail account</li>
+            <li><strong>Permissions</strong>: Read-only access to email content and metadata</li>
+            <li><strong>Data Storage</strong>: OAuth tokens stored securely in our Supabase database</li>
+            <li><strong>Revocation</strong>: You can revoke access at any time through Google Account settings</li>
+        </ul>
+
+        <h3>3. Supabase (Database)</h3>
+        <ul>
+            <li><strong>Purpose</strong>: Secure storage of user profiles, preferences, and learning data</li>
+            <li><strong>Security</strong>: End-to-end encryption, SOC 2 compliance</li>
+            <li><strong>Location</strong>: Data stored in secure cloud infrastructure</li>
         </ul>
     </div>
 
     <div class="section">
-        <h2>5. Data Security</h2>
-        <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. These measures include:</p>
+        <h2>Data Security</h2>
+
+        <h3>1. Encryption</h3>
         <ul>
-            <li>Encryption of data in transit and at rest</li>
-            <li>Regular security assessments and updates</li>
-            <li>Access controls and authentication</li>
-            <li>Secure data storage practices</li>
+            <li><strong>In Transit</strong>: All data transmitted using TLS 1.3 encryption</li>
+            <li><strong>At Rest</strong>: Database encryption using AES-256 standards</li>
+            <li><strong>OAuth Tokens</strong>: Securely encrypted and regularly rotated</li>
+        </ul>
+
+        <h3>2. Access Controls</h3>
+        <ul>
+            <li><strong>Limited Access</strong>: Only authorized personnel can access user data</li>
+            <li><strong>Audit Logs</strong>: All data access is logged and monitored</li>
+            <li><strong>Multi-Factor Authentication</strong>: Required for all administrative access</li>
+        </ul>
+
+        <h3>3. Data Minimization</h3>
+        <ul>
+            <li><strong>Necessary Data Only</strong>: We only collect data essential for service functionality</li>
+            <li><strong>Regular Cleanup</strong>: Automated deletion of unnecessary logs and temporary data</li>
+            <li><strong>Anonymization</strong>: Personal identifiers removed from analytics data</li>
         </ul>
     </div>
 
     <div class="section">
-        <h2>6. Your Rights and Choices</h2>
-        <p>You have the right to:</p>
+        <h2>Your Rights and Choices</h2>
+
+        <h3>1. Data Access</h3>
         <ul>
-            <li>Access and review your personal information</li>
-            <li>Correct inaccurate information</li>
-            <li>Request deletion of your data</li>
-            <li>Withdraw consent for data processing</li>
-            <li>Export your data</li>
-            <li>Opt out of certain communications</li>
+            <li><strong>Account Dashboard</strong>: View and download your personal data</li>
+            <li><strong>Data Export</strong>: Request a complete export of your information</li>
+            <li><strong>Transparency</strong>: Clear visibility into what data we collect and why</li>
+        </ul>
+
+        <h3>2. Data Control</h3>
+        <ul>
+            <li><strong>Email Access Revocation</strong>: Revoke Gmail access permissions at any time</li>
+            <li><strong>Preference Updates</strong>: Modify your calibration settings and preferences</li>
+            <li><strong>Feature Opt-outs</strong>: Disable specific features like AI summaries</li>
+        </ul>
+
+        <h3>3. Data Deletion</h3>
+        <ul>
+            <li><strong>Account Deletion</strong>: Delete your account and all associated data</li>
+            <li><strong>Selective Deletion</strong>: Remove specific types of data while keeping your account</li>
+            <li><strong>Retention Limits</strong>: Data automatically deleted after specified periods</li>
         </ul>
     </div>
 
     <div class="section">
-        <h2>7. Data Retention</h2>
-        <p>We retain your personal information only for as long as necessary to provide our services and fulfill the purposes outlined in this Privacy Policy. We will delete or anonymize your data when it is no longer needed.</p>
-    </div>
+        <h2>Data Retention</h2>
 
-    <div class="section">
-        <h2>8. Third-Party Services</h2>
-        <p>Our services integrate with third-party services, including:</p>
+        <h3>1. Active Accounts</h3>
         <ul>
-            <li>Google Gmail API for email access</li>
-            <li>Google Calendar API for calendar management</li>
-            <li>Firebase for authentication and data storage</li>
+            <li><strong>User Profiles</strong>: Retained while your account is active</li>
+            <li><strong>Learning Data</strong>: Kept to maintain personalized email intelligence</li>
+            <li><strong>Email Summaries</strong>: Stored for 90 days, then automatically deleted</li>
         </ul>
-        <p>These services have their own privacy policies, and we encourage you to review them.</p>
+
+        <h3>2. Inactive Accounts</h3>
+        <ul>
+            <li><strong>Account Dormancy</strong>: Accounts inactive for 2 years will be flagged for deletion</li>
+            <li><strong>Data Purging</strong>: All personal data deleted 30 days after account closure</li>
+            <li><strong>Legal Requirements</strong>: Some data may be retained longer if required by law</li>
+        </ul>
+
+        <h3>3. Analytics Data</h3>
+        <ul>
+            <li><strong>Anonymized Metrics</strong>: Retained indefinitely for service improvement</li>
+            <li><strong>Personal Identifiers</strong>: Removed from analytics data after 30 days</li>
+            <li><strong>Aggregated Insights</strong>: Used to enhance AI algorithms (no personal data)</li>
+        </ul>
     </div>
 
     <div class="section">
-        <h2>9. Children's Privacy</h2>
-        <p>Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you believe we have collected such information, please contact us immediately.</p>
+        <h2>Children's Privacy</h2>
+        <p>HomeOps is not intended for use by children under 13 years of age. We do not knowingly collect personal information from children under 13. If we become aware that we have collected personal information from a child under 13, we will take steps to delete such information.</p>
     </div>
 
     <div class="section">
-        <h2>10. International Data Transfers</h2>
-        <p>Your information may be transferred to and processed in countries other than your own. We ensure that such transfers comply with applicable data protection laws and implement appropriate safeguards.</p>
+        <h2>International Data Transfers</h2>
+        <p>Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your data in accordance with applicable data protection laws.</p>
     </div>
 
     <div class="section">
-        <h2>11. Changes to This Privacy Policy</h2>
-        <p>We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new Privacy Policy on this page and updating the "Last updated" date.</p>
+        <h2>California Privacy Rights (CCPA)</h2>
+        <p>If you are a California resident, you have additional rights including:</p>
+        <ul>
+            <li>Right to know what personal information is collected</li>
+            <li>Right to delete personal information</li>
+            <li>Right to opt-out of sale of personal information (we do not sell personal information)</li>
+            <li>Right to non-discrimination for exercising privacy rights</li>
+        </ul>
     </div>
 
     <div class="section">
-        <h2>12. Contact Us</h2>
+        <h2>European Union Rights (GDPR)</h2>
+        <p>If you are in the EU, you have rights including:</p>
+        <ul>
+            <li>Right of access to your personal data</li>
+            <li>Right to rectification of inaccurate data</li>
+            <li>Right to erasure ("right to be forgotten")</li>
+            <li>Right to restrict or object to processing</li>
+            <li>Right to data portability</li>
+            <li>Right to lodge a complaint with supervisory authorities</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Changes to This Privacy Policy</h2>
+        <p>We may update this Privacy Policy periodically. We will notify you of any material changes by:</p>
+        <ul>
+            <li>Email notification to your registered email address</li>
+            <li>Prominent notice in the HomeOps application</li>
+            <li>Updated "Last Modified" date at the top of this policy</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Contact Information</h2>
         <div class="contact-info">
-            <p>If you have any questions about this Privacy Policy or our data practices, please contact us:</p>
-            <ul>
-                <li>Email: privacy@homeops.ai</li>
-                <li>Support: support@homeops.ai</li>
-            </ul>
+            <p>For questions about this Privacy Policy or your personal data, contact us:</p>
+            <p><strong>Email</strong>: privacy@homeops.ai<br>
+            <strong>Address</strong>: [Your Business Address]<br>
+            <strong>Privacy Officer</strong>: [Contact Name]</p>
         </div>
+    </div>
+
+    <div class="section">
+        <h2>Data Protection Officer</h2>
+        <p>If you have concerns about how we handle your personal data, you can contact our Data Protection Officer at: dpo@homeops.ai</p>
+        <p style="margin-top: 20px; font-style: italic;">This Privacy Policy is designed to comply with GDPR, CCPA, and other applicable privacy laws. We are committed to transparency and protecting your privacy while delivering powerful email intelligence services.</p>
     </div>
 
     <a href="/" class="back-link">← Back to HomeOps</a>
