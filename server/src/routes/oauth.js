@@ -49,6 +49,13 @@ router.post('/exchange', validateJWT, async (req, res) => {
     }
 
     console.log(`🔑 Exchanging code for tokens with ${oauthConfig.tokenUrl}`);
+    console.log(`🔧 Token exchange parameters:`, {
+      grant_type: 'authorization_code',
+      client_id: oauthConfig.clientId ? `${oauthConfig.clientId.substring(0, 20)}...` : 'MISSING',
+      redirect_uri: oauthConfig.redirectUri,
+      hasCode: !!code,
+      hasClientSecret: !!oauthConfig.clientSecret
+    });
 
     // Exchange authorization code for tokens
     const tokenResponse = await fetch(oauthConfig.tokenUrl, {
@@ -325,6 +332,12 @@ router.post('/disconnect', validateJWT, async (req, res) => {
  */
 function getOAuthConfig(integrationId) {
   const baseRedirectUri = process.env.VITE_REDIRECT_URI_BASE || process.env.VITE_BASE_URL || 'http://localhost:3000';
+  console.log(`🔧 OAuth Config Debug:`, {
+    integrationId,
+    VITE_REDIRECT_URI_BASE: process.env.VITE_REDIRECT_URI_BASE,
+    VITE_BASE_URL: process.env.VITE_BASE_URL,
+    baseRedirectUri
+  });
 
   const configs = {
     gmail: {
