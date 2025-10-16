@@ -295,7 +295,13 @@
       "tools": ["calendar"],
       "dateRange": "next_7_days",
       "query": "appointments",
-      "params": { "calendar": { "action": "list_events" } }
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here are your important upcoming appointments"
+      },
+      "bypass_llm": true
     }
   },
 

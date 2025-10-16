@@ -1454,6 +1454,10 @@ User prompt: "${normalizedPrompt}"
 
 Current date context: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 
+IMPORTANT: If the query is about calendar events, appointments, meetings, schedules, or "what's happening", you MUST include:
+- "bypass_llm": true
+- "response_template": {"type": "structured_data", "template_name": "calendar_event", "title": "appropriate title"}
+
 Return ONLY the JSON object - no markdown formatting, no explanations:
 ${JSON.stringify(this.llmSchema, null, 2)}
 
@@ -1817,9 +1821,11 @@ Only include tools that are clearly needed. Be conservative. Include temporal da
     // Calculate temporal range once for all tools, but only if dateRange is specified
     let temporalRange = null;
     const firstIntent = intents[0];
+    // Check for temporal data in both individual intents and the root detectedIntents object
     const shouldCalculateTemporal = (firstIntent?.dateRange !== undefined && firstIntent?.dateRange !== null) ||
-                                    (firstIntent?.temporal !== undefined && firstIntent?.temporal !== null);
-    console.log(`🔧 DEBUG: shouldCalculateTemporal = ${shouldCalculateTemporal}, dateRange = ${firstIntent?.dateRange}, temporal = ${firstIntent?.temporal ? 'present' : 'null'}`);
+                                    (firstIntent?.temporal !== undefined && firstIntent?.temporal !== null) ||
+                                    (detectedIntents?.temporal !== undefined && detectedIntents?.temporal !== null);
+    console.log(`🔧 DEBUG: shouldCalculateTemporal = ${shouldCalculateTemporal}, dateRange = ${firstIntent?.dateRange}, temporal = ${firstIntent?.temporal ? 'present' : 'null'}, rootTemporal = ${detectedIntents?.temporal ? 'present' : 'null'}`);
 
     if (shouldCalculateTemporal) {
       try {
