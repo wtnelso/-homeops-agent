@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>HomeOps vNext</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- FullCalendar (core + day grid + time grid) -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <style>
+        :root {
+            /* HomeOps Brand Colors */
+            --bg: #0a0e1a;
+            --panel: #1a1f2e;
+            --surface: #252b3d;
+            --text: #ffffff;
+            --text-secondary: #b4c6fc;
+            --brand: #667eea;
+            --brand-secondary: #764ba2;
+            --accent: #f093fb;
+            --border: #2d3648;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --radius: 16px;
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #0f1626 100%);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            height: calc(64px + var(--safe-top));
+            padding: calc(12px + var(--safe-top)) 20px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, var(--panel) 0%, var(--surface) 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--surface) 0%, var(--panel) 100%);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .icon-btn:before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            border-color: var(--brand);
+        }
+
+        .icon-btn:hover:before {
+            opacity: 0.1;
+        }
+
+        .icon-btn:hover {
+            color: var(--text);
+        }
+
+        .chat-container {
+            height: calc(100vh - 64px - var(--safe-top));
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, transparent 0%, rgba(10, 14, 26, 0.3) 100%);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 16px 20px;
+            border-radius: 20px;
+            line-height: 1.5;
+            font-size: 15px;
+            position: relative;
+            animation: messageSlideIn 0.4s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-secondary) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            background: linear-gradient(135deg, var(--panel) 0%, var(--surface) 100%);
+            border: 1px solid var(--border);
+            color: var(--text);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-chip {
+            padding: 8px 16px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, var(--surface) 0%, var(--panel) 100%);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-chip:before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .action-chip:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            border-color: var(--brand);
+            color: var(--text);
+        }
+
+        .action-chip:hover:before {
+            opacity: 0.1;
+        }
+
+        .composer {
+            padding: 20px;
+            background: linear-gradient(180deg, transparent, var(--bg) 70%);
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            border-top: 1px solid var(--border);
+        }
+
+        .composer textarea {
+            flex: 1;
+            padding: 16px 20px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--panel) 0%, var(--surface) 100%);
+            color: var(--text);
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 54px;
+            max-height: 120px;
+            font-family: inherit;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .composer textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .composer textarea:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .composer button {
+            padding: 16px 24px;
+            border-radius: 24px;
+            border: none;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-secondary) 100%);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .composer button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .typing-indicator {
+            opacity: 0.8;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--brand);
+            animation: typingDots 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.4s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes typingDots {
+            0%, 80%, 100% { 
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: none;
+            background: rgba(0,0,0,0.7);
+        }
+
+        .overlay.active {
+            display: flex;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .overlay-content {
+            position: relative;
+            margin: auto;
+            background: var(--panel);
+            border-radius: var(--radius);
+            max-width: 90vw;
+            max-height: 80vh;
+            width: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        /* Calendar Overlay Styles */
+        .overlay-panel {
+            width: min(920px, 92vw);
+            max-height: 90vh;
+            background: var(--panel);
+            color: var(--text);
+            border-radius: var(--radius);
+            box-shadow: 0 10px 40px rgba(0,0,0,.6);
+            display: flex;
+            flex-direction: column;
+            margin: auto;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .overlay-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .icon-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 24px;
+            line-height: 1;
+            border: 0;
+            cursor: pointer;
+        }
+
+        .overlay-body {
+            padding: 12px 16px 0;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .cal-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .left {
+            display: flex;
+            gap: 8px;
+        }
+
+        .right {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-subtle {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-subtle:hover {
+            background: var(--brand);
+        }
+
+        .btn-toggle {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-toggle:hover {
+            background: var(--surface);
+        }
+
+        .view-active,
+        .summary-active {
+            background: var(--brand);
+            color: var(--text);
+            border-color: var(--brand);
+        }
+
+        #calendar-root .fc {
+            --fc-border-color: var(--border);
+            --fc-page-bg-color: transparent;
+            --fc-neutral-bg-color: var(--surface);
+            --fc-list-event-hover-bg-color: var(--border);
+            color: var(--text);
+        }
+
+        #calendar-root .fc .fc-daygrid-day-number {
+            color: var(--text-secondary);
+        }
+
+        #calendar-root .fc .fc-event {
+            background: var(--brand);
+            border: 0;
+            border-radius: 10px;
+            padding: 2px 6px;
+        }
+
+        .summary {
+            border-top: 1px solid var(--border);
+            padding: 12px 2px 14px;
+            background: var(--bg);
+            position: sticky;
+            bottom: 0;
+        }
+
+        .summary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px 10px;
+        }
+
+        .summary-toggle {
+            display: flex;
+            gap: 4px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 0 4px 12px;
+            max-height: 220px;
+            overflow: auto;
+        }
+
+        @media (max-width: 640px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 12px;
+            display: grid;
+            gap: 6px;
+        }
+
+        .card .meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .email-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .email-subject {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .email-meta {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .email-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--muted);
+            padding: 40px;
+        }
+
+        .error {
+            text-align: center;
+            color: #ff6b6b;
+            padding: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .overlay-content {
+                margin: 20px;
+                width: auto;
+                max-height: calc(100vh - 40px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="brand">HomeOps</div>
+        <nav class="top-actions">
+            <button class="icon-btn" onclick="openEmailOverlay()" aria-label="Open Email">
+                <i data-lucide="mail"></i>
+            </button>
+            <button class="icon-btn" onclick="openCalendarOverlay()" aria-label="Open Calendar">
+                <i data-lucide="calendar"></i>
+            </button>
+        </nav>
+    </header>
+
+    <div class="chat-container">
+        <div class="chat-messages" id="messages"></div>
+        <form class="composer" onsubmit="sendMessage(event)">
+            <textarea 
+                id="messageInput" 
+                placeholder="Ask HomeOps about emails, calendar, or anything..."
+                required
+                rows="1"
+            ></textarea>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <!-- Email Overlay -->
+    <div class="overlay" id="emailOverlay" onclick="closeOverlay(event)">
+        <div class="overlay-content">
+            <div class="overlay-header">
+                <h2>Important Emails</h2>
+                <button class="icon-btn" onclick="closeEmailOverlay()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="overlay-body" id="emailContent">
+                <div class="loading">Loading emails...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Overlay -->
+    <div id="calendar-overlay" class="overlay hidden">
+        <div class="overlay-panel">
+            <div class="overlay-header">
+                <h2>Calendar</h2>
+                <button id="calendar-close" class="icon-btn" aria-label="Close">&times;</button>
+            </div>
+
+            <div class="overlay-body">
+                <!-- Top controls -->
+                <div class="cal-toolbar">
+                    <div class="left">
+                        <button id="cal-prev" class="btn-subtle">Prev</button>
+                        <button id="cal-today" class="btn-subtle">Today</button>
+                        <button id="cal-next" class="btn-subtle">Next</button>
+                    </div>
+                    <div class="right">
+                        <button data-view="dayGridMonth" class="btn-toggle view-active">Month</button>
+                        <button data-view="timeGridWeek" class="btn-toggle">Week</button>
+                        <button data-view="timeGridDay" class="btn-toggle">Day</button>
+                    </div>
+                </div>
+
+                <!-- Calendar grid -->
+                <div id="calendar-root"></div>
+
+                <!-- Bottom summary module -->
+                <section class="summary">
+                    <div class="summary-header">
+                        <h3 id="summary-title">Today</h3>
+                        <div class="summary-toggle">
+                            <button data-range="day" class="btn-toggle summary-active">Daily</button>
+                            <button data-range="week" class="btn-toggle">Weekly</button>
+                        </div>
+                    </div>
+
+                    <div id="summary-cards" class="cards"></div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Helper function to create Lucide icon
+        function createLucideIcon(iconName, size = 16) {
+            const icon = document.createElement('i');
+            icon.setAttribute('data-lucide', iconName);
+            icon.style.width = `${size}px`;
+            icon.style.height = `${size}px`;
+            icon.style.display = 'inline-block';
+            icon.style.marginRight = '6px';
+            return icon;
+        }
+
+        // Helper function to create text with Lucide icon
+        function createIconText(iconName, text, size = 16) {
+            const container = document.createElement('span');
+            const icon = createLucideIcon(iconName, size);
+            container.appendChild(icon);
+            container.appendChild(document.createTextNode(text));
+            return container;
+        }
+
+        // Message handling
+        async function sendMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Reset textarea height after clearing
+            input.style.height = 'auto';
+            input.style.height = '54px';
+            
+            // Show typing indicator
+            const typingDiv = addTypingIndicator();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId: 'vnext-user', 
+                        message: message 
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                removeTypingIndicator(typingDiv);
+                
+                const reply = data.response || data.reply || 'I received your message but couldn\'t generate a response.';
+                addMessage(reply, 'assistant');
+
+                // Add smart action chips based on message content
+                addSmartActionChips(message, data);
+
+            } catch (error) {
+                console.error('Chat error:', error);
+                removeTypingIndicator(typingDiv);
+                addMessage('Sorry, I\'m having trouble connecting right now. Please try again.', 'assistant');
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.textContent = text;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return messageDiv;
+        }
+
+        function addTypingIndicator() {
+            const messagesContainer = document.getElementById('messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message assistant typing-indicator';
+            typingDiv.innerHTML = `
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <span style="margin-left: 8px; color: var(--text-secondary);">HomeOps is thinking...</span>
+                </div>
+            `;
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return typingDiv;
+        }
+
+        function removeTypingIndicator(typingDiv) {
+            if (typingDiv && typingDiv.parentNode) {
+                typingDiv.parentNode.removeChild(typingDiv);
+            }
+        }
+
+        function addSmartActionChips(userMessage, response) {
+            const messagesContainer = document.getElementById('messages');
+            const lastMessage = messagesContainer.lastElementChild;
+            
+            if (lastMessage && lastMessage.classList.contains('assistant')) {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'message-actions';
+                
+                const lowerMessage = userMessage.toLowerCase();
+                
+                // Smart chip suggestions based on message content
+                if (lowerMessage.includes('email') || lowerMessage.includes('inbox') || lowerMessage.includes('mail')) {
+                    const chip = createActionChipWithIcon('mail', 'View Emails', () => openEmailOverlay());
+                    actionsDiv.appendChild(chip);
+                }
+                
+                if (lowerMessage.includes('calendar') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment')) {
+                    const chip = createActionChipWithIcon('calendar', 'Open Calendar', () => openCalendarOverlay());
+                    actionsDiv.appendChild(chip);
+                }
+                
+                if (lowerMessage.includes('help') || lowerMessage.includes('what can')) {
+                    const chip = createActionChipWithIcon('lightbulb', 'Show Features', () => showFeatures());
+                    actionsDiv.appendChild(chip);
+                }
+                
+                // Always add a general help chip
+                const helpChip = createActionChipWithIcon('sparkles', 'More Options', () => showQuickActions());
+                actionsDiv.appendChild(helpChip);
+                
+                if (actionsDiv.children.length > 0) {
+                    lastMessage.appendChild(actionsDiv);
+                    // Initialize Lucide icons for the newly added content
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        function createActionChip(text, action) {
+            const chip = document.createElement('button');
+            chip.className = 'action-chip';
+            chip.textContent = text;
+            chip.onclick = action;
+            return chip;
+        }
+
+        function createActionChipWithIcon(iconName, text, action) {
+            const chip = document.createElement('button');
+            chip.className = 'action-chip';
+            
+            const icon = createLucideIcon(iconName, 16);
+            chip.appendChild(icon);
+            chip.appendChild(document.createTextNode(text));
+            
+            chip.onclick = action;
+            return chip;
+        }
+
+        function showFeatures() {
+            // Create features message with Lucide icons
+            const featuresContainer = document.createElement('div');
+            
+            const rocketIcon = createLucideIcon('rocket', 18);
+            featuresContainer.appendChild(rocketIcon);
+            featuresContainer.appendChild(document.createTextNode('HomeOps Features:'));
+            featuresContainer.appendChild(document.createElement('br'));
+            featuresContainer.appendChild(document.createElement('br'));
+            
+            const features = [
+                { icon: 'mail', text: 'Smart Email Management' },
+                { icon: 'calendar', text: 'Calendar Integration' },
+                { icon: 'message-circle', text: 'AI Chat Assistant' },
+                { icon: 'search', text: 'Email Intelligence' },
+                { icon: 'edit-3', text: 'Draft Generation' }
+            ];
+            
+            features.forEach((feature, index) => {
+                const featureIcon = createLucideIcon(feature.icon, 16);
+                featuresContainer.appendChild(featureIcon);
+                featuresContainer.appendChild(document.createTextNode(feature.text));
+                if (index < features.length - 1) {
+                    featuresContainer.appendChild(document.createElement('br'));
+                }
+            });
+            
+            featuresContainer.appendChild(document.createElement('br'));
+            featuresContainer.appendChild(document.createElement('br'));
+            featuresContainer.appendChild(document.createTextNode('Try asking me about your emails or calendar!'));
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            messageDiv.appendChild(featuresContainer);
+            
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Initialize Lucide icons for the newly added content
+            lucide.createIcons();
+        }
+
+        function showQuickActions() {
+            const messagesContainer = document.getElementById('messages');
+            const lastMessage = messagesContainer.lastElementChild;
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+            actionsDiv.style.marginTop = '12px';
+            
+            const actions = [
+                { icon: 'mail', text: 'Check Emails', action: () => openEmailOverlay() },
+                { icon: 'calendar', text: 'View Calendar', action: () => openCalendarOverlay() },
+                { icon: 'edit-3', text: 'Draft Email', action: () => addMessage('What email would you like me to help you draft?', 'assistant') }
+            ];
+            
+            actions.forEach(({ icon, text, action }) => {
+                const chip = createActionChipWithIcon(icon, text, action);
+                actionsDiv.appendChild(chip);
+            });
+            
+            if (lastMessage && lastMessage.classList.contains('assistant')) {
+                lastMessage.appendChild(actionsDiv);
+            }
+            
+            // Initialize Lucide icons for the newly added content
+            lucide.createIcons();
+        }
+
+        // Email overlay
+        async function openEmailOverlay() {
+            const overlay = document.getElementById('emailOverlay');
+            const content = document.getElementById('emailContent');
+            
+            overlay.classList.add('active');
+            content.innerHTML = '<div class="loading">Loading emails...</div>';
+
+            try {
+                const response = await fetch('/api/email-summary');
+                const data = await response.json();
+                
+                if (data.success && data.categorizedEmails) {
+                    renderEmails(data.categorizedEmails);
+                } else {
+                    content.innerHTML = '<div class="error">Could not load emails</div>';
+                }
+            } catch (error) {
+                console.error('Email error:', error);
+                content.innerHTML = '<div class="error">Failed to load emails</div>';
+            }
+        }
+
+        function renderEmails(categorizedEmails) {
+            const content = document.getElementById('emailContent');
+            let html = '';
+
+            const allEmails = [
+                ...(categorizedEmails.urgent || []),
+                ...(categorizedEmails.school || []),
+                ...(categorizedEmails.personal || []),
+                ...(categorizedEmails.commerce || [])
+            ];
+
+            if (allEmails.length === 0) {
+                html = '<div class="loading">No important emails found</div>';
+            } else {
+                allEmails.forEach(email => {
+                    html += `
+                        <div class="email-item">
+                            <div class="email-subject">${email.subject || 'No Subject'}</div>
+                            <div class="email-meta">${email.sender || email.from} • ${formatDate(email.date)}</div>
+                            <div>${email.preview || email.summary || 'No preview available'}</div>
+                            <div class="email-actions">
+                                <button class="action-chip" onclick="draftReply('${email.id}')">Draft Reply</button>
+                                <button class="action-chip" onclick="openInGmail('${email.id}')">View in Gmail</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            content.innerHTML = html;
+        }
+
+        // Enhanced draft reply function
+        async function draftReply(messageId, emailData) {
+            console.log('✍️ Drafting reply for:', messageId);
+            
+            try {
+                // Show draft overlay or modal
+                const draftText = await generateDraft(messageId, emailData);
+                
+                // Create a simple draft modal
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.8);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                `;
+                
+                modal.innerHTML = `
+                    <div style="background: var(--bg); border-radius: 12px; padding: 24px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3 style="margin: 0; color: var(--text);">Draft Reply</h3>
+                            <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer;">&times;</button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;">
+                            <strong>To:</strong> ${emailData?.sender || 'Unknown'}<br>
+                            <strong>Re:</strong> ${emailData?.subject || 'No Subject'}
+                        </div>
+                        <textarea id="draftTextarea" style="width: 100%; height: 200px; background: rgba(255,255,255,0.1); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); resize: vertical; font-family: inherit;" placeholder="Loading draft...">${draftText}</textarea>
+                        <div style="display: flex; gap: 12px; margin-top: 16px;">
+                            <button onclick="copyDraft()" style="flex: 1; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer;">Copy Draft</button>
+                            <button onclick="this.closest('.modal').remove()" style="flex: 1; background: rgba(255,255,255,0.1); color: var(--text); border: none; padding: 12px; border-radius: 8px; cursor: pointer;">Close</button>
+                        </div>
+                    </div>
+                `;
+                
+                modal.className = 'modal';
+                document.body.appendChild(modal);
+                
+            } catch (error) {
+                console.error('Draft error:', error);
+                addMessage('Sorry, I couldn\'t generate a draft for that email right now.', 'assistant');
+            }
+        }
+        
+        async function generateDraft(messageId, emailData) {
+            try {
+                const response = await fetch('/api/email/draft', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messageId: messageId,
+                        emailContent: emailData
+                    })
+                });
+                
+                const data = await response.json();
+                return data.draft || 'Unable to generate draft.';
+                
+            } catch (error) {
+                console.error('Generate draft error:', error);
+                return 'Thank you for your email. I\'ll get back to you soon.\n\nBest regards';
+            }
+        }
+        
+        function copyDraft() {
+            const textarea = document.getElementById('draftTextarea');
+            textarea.select();
+            document.execCommand('copy');
+            
+            // Show feedback
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            button.style.background = '#10b981';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = 'var(--accent)';
+            }, 2000);
+        }
+
+        function openInGmail(emailId) {
+            // Open Gmail in new tab (could be enhanced to deep link to specific email)
+            window.open('https://mail.google.com', '_blank');
+        }
+
+        function closeEmailOverlay() {
+            document.getElementById('emailOverlay').classList.remove('active');
+        }
+
+        function closeOverlay(event) {
+            if (event.target.classList.contains('overlay')) {
+                event.target.classList.remove('active');
+            }
+        }
+
+        // Email actions
+        async function draftReply(emailId) {
+            try {
+                const response = await fetch('/api/email/draft', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messageId: emailId })
+                });
+
+                const data = await response.json();
+                const draft = data.draft || 'Thank you for your email. I will get back to you soon.';
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(draft);
+                showToast('Draft copied to clipboard');
+            } catch (error) {
+                showToast('Could not generate draft');
+            }
+        }
+
+        function openInGmail(emailId) {
+            window.open('https://gmail.com', '_blank');
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--panel);
+                color: var(--text);
+                padding: 12px 20px;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+                z-index: 1000;
+                animation: slideUp 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'Unknown date';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                return 'Today';
+            } else if (diffDays === 1) {
+                return 'Yesterday';
+            } else if (diffDays < 7) {
+                return `${diffDays} days ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        // Initialize with a welcome message
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                // Create welcome message with Lucide icon
+                const welcomeContainer = document.createElement('div');
+                const handIcon = createLucideIcon('hand-heart', 18);
+                welcomeContainer.appendChild(handIcon);
+                welcomeContainer.appendChild(document.createTextNode('Welcome to HomeOps! I\'m your personal chief of staff, ready to help you manage your family\'s digital life.'));
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message assistant';
+                messageDiv.appendChild(welcomeContainer);
+                
+                const messagesContainer = document.getElementById('messages');
+                messagesContainer.appendChild(messageDiv);
+                
+                // Initialize Lucide icons for the newly added content
+                lucide.createIcons();
+                
+                setTimeout(() => {
+                    const messagesContainer = document.getElementById('messages');
+                    const lastMessage = messagesContainer.lastElementChild;
+                    
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'message-actions';
+                    
+                    const quickActions = [
+                        { icon: 'mail', text: 'Check Important Emails', action: () => openEmailOverlay() },
+                        { icon: 'calendar', text: 'View Calendar', action: () => openCalendarOverlay() },
+                        { icon: 'lightbulb', text: 'Show All Features', action: () => showFeatures() }
+                    ];
+                    
+                    quickActions.forEach(({ icon, text, action }) => {
+                        const chip = createActionChipWithIcon(icon, text, action);
+                        actionsDiv.appendChild(chip);
+                    });
+                    
+                    lastMessage.appendChild(actionsDiv);
+                    
+                    // Initialize Lucide icons for the newly added content
+                    lucide.createIcons();
+                }, 500);
+            }, 300);
+        });
+
+        // Handle escape key
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.overlay.active').forEach(overlay => {
+                    overlay.classList.remove('active');
+                });
+                closeCalendarOverlay();
+            }
+        });
+
+        // =====================================
+        // CALENDAR OVERLAY FUNCTIONALITY
+        // =====================================
+
+        /* global FullCalendar */
+
+        // CONFIG: set this from your auth context
+        const CURRENT_USER_ID = window?.HomeOps?.userId || "vnext-user";
+
+        let calendarOverlay, calendarCloseBtn, calRoot, summaryTitle, summaryCards;
+        let prevBtn, nextBtn, todayBtn, viewButtons, rangeButtons;
+        let calendar;
+        let cachedEvents = []; // store raw events for summaries
+
+        // Initialize calendar DOM elements when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            calendarOverlay = document.getElementById("calendar-overlay");
+            calendarCloseBtn = document.getElementById("calendar-close");
+            calRoot = document.getElementById("calendar-root");
+            summaryTitle = document.getElementById("summary-title");
+            summaryCards = document.getElementById("summary-cards");
+
+            prevBtn = document.getElementById("cal-prev");
+            nextBtn = document.getElementById("cal-next");
+            todayBtn = document.getElementById("cal-today");
+            viewButtons = document.querySelectorAll(".right .btn-toggle");
+            rangeButtons = document.querySelectorAll(".summary-toggle .btn-toggle");
+
+            // Set up event listeners
+            calendarCloseBtn?.addEventListener("click", closeCalendarOverlay);
+        });
+
+        // ---- OPEN/CLOSE API ----
+        function openCalendarOverlay() {
+            console.log('openCalendarOverlay called, calendarOverlay:', calendarOverlay);
+            if (calendarOverlay) {
+                calendarOverlay.classList.remove("hidden");
+                // Lazy init
+                if (!calendar) initCalendar();
+            } else {
+                console.error('Calendar overlay element not found!');
+            }
+        }
+
+        function closeCalendarOverlay() {
+            console.log('closeCalendarOverlay called, calendarOverlay:', calendarOverlay);
+            if (calendarOverlay) {
+                calendarOverlay.classList.add("hidden");
+            } else {
+                console.error('Calendar overlay element not found in close function!');
+            }
+        }
+
+        // ---- Init FullCalendar ----
+        function initCalendar() {
+            calendar = new FullCalendar.Calendar(calRoot, {
+                initialView: "dayGridMonth",
+                headerToolbar: false,
+                height: "auto",
+                contentHeight: "auto",
+                expandRows: true,
+                navLinks: true,               // click day/week names to navigate
+                selectable: true,
+                eventClick: handleEventClick,
+                dateClick: handleDateClick,
+                datesSet: handleDatesSet,
+                events: fetchEvents,          // function that resolves to event array
+            });
+
+            calendar.render();
+
+            // toolbar controls
+            prevBtn.addEventListener("click", () => calendar.prev());
+            nextBtn.addEventListener("click", () => calendar.next());
+            todayBtn.addEventListener("click", () => calendar.today());
+
+            viewButtons.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    viewButtons.forEach(b => b.classList.remove("view-active"));
+                    btn.classList.add("view-active");
+                    calendar.changeView(btn.dataset.view);
+                });
+            });
+
+            rangeButtons.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    rangeButtons.forEach(b => b.classList.remove("summary-active"));
+                    btn.classList.add("summary-active");
+                    renderSummary(btn.dataset.range);
+                });
+            });
+        }
+
+        // ---- Data fetcher for FullCalendar ----
+        async function fetchEvents(info, successCb, failureCb) {
+            try {
+                const resp = await fetch(`http://localhost:3001/api/calendar-events/${encodeURIComponent(CURRENT_USER_ID)}`);
+                const data = await resp.json(); // expect array of { id, title, start, end, location, context, stress, ... }
+                // Normalize and store
+                cachedEvents = Array.isArray(data) ? data : (data?.events || []);
+                const fcEvents = cachedEvents.map(e => ({
+                    id: e.id,
+                    title: e.title,
+                    start: e.start,
+                    end: e.end,
+                    extendedProps: e
+                }));
+                successCb(fcEvents);
+            } catch (err) {
+                console.error("Calendar fetch failed", err);
+                failureCb(err);
+            }
+        }
+
+        // ---- Handlers ----
+        function handleDatesSet(arg) {
+            // When month/week changes, refresh summary for current selection
+            renderSummary(getActiveSummaryRange());
+        }
+
+        function handleDateClick(arg) {
+            // Jump to day view on tap
+            calendar.changeView("timeGridDay", arg.date);
+            // Force summary to Daily
+            forceSummary("day");
+        }
+
+        function handleEventClick(info) {
+            const e = info.event.extendedProps;
+            // Highlight card in summary if present, else open a lightweight inline detail
+            // For now we just scroll to the card after re-rendering the correct range
+            const range = getActiveSummaryRange();
+            renderSummary(range);
+
+            // Try to find and flash the card
+            requestAnimationFrame(() => {
+                const el = document.querySelector(`[data-event-id="${info.event.id}"]`);
+                if (el) {
+                    el.scrollIntoView({ block: "center", behavior: "smooth" });
+                    el.animate([{ outline: "2px solid #6ea8ff" }, { outline: "0" }], { duration: 900 });
+                }
+            });
+        }
+
+        // ---- Summary rendering ----
+        function getActiveSummaryRange() {
+            const active = document.querySelector(".summary-toggle .summary-active")?.dataset?.range;
+            return active || "day";
+        }
+
+        function forceSummary(range) {
+            document.querySelectorAll(".summary-toggle .btn-toggle").forEach(b => b.classList.remove("summary-active"));
+            const target = document.querySelector(`.summary-toggle .btn-toggle[data-range="${range}"]`);
+            if (target) target.classList.add("summary-active");
+            renderSummary(range);
+        }
+
+        function renderSummary(range = "day") {
+            const view = calendar.view;
+            const now = view.currentStart; // start of view
+            let start, end, title;
+
+            if (range === "week") {
+                start = startOfWeek(view.currentStart);
+                end = new Date(start); end.setDate(end.getDate() + 7);
+                title = formatRange(start, end);
+            } else {
+                start = startOfDay(view.getCurrentData().currentDate || new Date());
+                end = new Date(start); end.setDate(end.getDate() + 1);
+                title = formatDate(start);
+            }
+            summaryTitle.textContent = range === "week" ? `This Week • ${title}` : `Today • ${title}`;
+
+            const items = cachedEvents.filter(ev => isBetween(ev.start, start, end));
+            summaryCards.innerHTML = items.length ? items.map(renderCard).join("") : emptyCard(range);
+        }
+
+        // ---- Card template ----
+        function renderCard(ev) {
+            const when = humanTimeRange(ev.start, ev.end);
+            const context = ev.context || ev.category || "general";
+            const stress = typeof ev.stress === "number" ? `Stress ${ev.stress}/10` : "";
+            const loc = ev.location ? `<span>${escapeHtml(ev.location)}</span>` : "";
+
+            return `
+            <article class="card" data-event-id="${ev.id}">
+                <div class="meta">
+                    <span class="badge">${escapeHtml(context)}</span>
+                    ${stress ? `<span class="badge">${stress}</span>` : ""}
+                </div>
+                <h4>${escapeHtml(ev.title || "Untitled")}</h4>
+                <div class="meta">
+                    <span>${when}</span>
+                    ${loc}
+                </div>
+                ${ev.notes ? `<p>${escapeHtml(ev.notes)}</p>` : ""}
+            </article>`;
+        }
+
+        function emptyCard(range) {
+            const msg = range === "week" ? "No events this week." : "No events today.";
+            return `<article class="card"><h4>${msg}</h4><p>Add one from email or quick-add.</p></article>`;
+        }
+
+        // ---- Utilities ----
+        function startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+        
+        function startOfWeek(d) {
+            const x = startOfDay(d);
+            const dow = x.getDay(); // 0 Sun
+            x.setDate(x.getDate() - dow); // start on Sunday; tweak if Monday-start desired
+            return x;
+        }
+        
+        function isBetween(dateISO, start, end) {
+            const t = new Date(dateISO).getTime();
+            return t >= start.getTime() && t < end.getTime();
+        }
+        
+        function formatDate(d) {
+            return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+        }
+        
+        function formatRange(s, e) {
+            const opts = { month: "short", day: "numeric" };
+            return `${s.toLocaleDateString(undefined, opts)} – ${new Date(e-1).toLocaleDateString(undefined, opts)}`;
+        }
+        
+        function humanTimeRange(s, e) {
+            const sd = new Date(s), ed = e ? new Date(e) : null;
+            const st = sd.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+            if (!ed) return st;
+            const et = ed.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+            return `${st}–${et}`;
+        }
+        
+        function escapeHtml(str) { 
+            return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); 
+        }
+
+        // Auto-resize textarea functionality
+        function initTextareaAutoResize() {
+            const textarea = document.getElementById('messageInput');
+            if (!textarea) return;
+
+            function autoResize() {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            }
+
+            textarea.addEventListener('input', autoResize);
+            textarea.addEventListener('keydown', function(event) {
+                // Allow Enter + Shift for new lines, but submit on Enter alone
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    document.querySelector('.composer').dispatchEvent(new Event('submit'));
+                }
+            });
+
+            // Initial resize
+            autoResize();
+        }
+
+        // Initialize auto-resize when page loads
+        document.addEventListener('DOMContentLoaded', initTextareaAutoResize);
+
+        // Expose globally
+        window.openCalendarOverlay = openCalendarOverlay;
+        window.closeCalendarOverlay = closeCalendarOverlay;
+    </script>
+</body>
+</html>

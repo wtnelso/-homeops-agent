@@ -1,5 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Homepage from './components/marketing/Homepage'
+import Homepage1 from './components/marketing/Homepage1'
+import Pricing1 from './components/marketing/Pricing1'
+import HomeOpsLanding from './components/marketing/HomeOpsLanding'
 import DashboardLayout from './components/DashboardLayout'
 import SettingsLayout from './components/SettingsLayout'
 import PricingPage from './components/marketing/PricingPage'
@@ -76,7 +79,7 @@ const AppContent = () => {
             <PasswordResetGuard>
               <BetaGate>
               <Routes>
-              <Route path={ROUTES.HOME} element={<Homepage />} />
+              <Route path={ROUTES.HOME} element={<HomeOpsLanding />} />
               {IS_LIVE && (
                 <>
                   <Route path={ROUTES.OAUTH_CALLBACK} element={<OAuthCallback />} />
@@ -126,6 +129,9 @@ const AppContent = () => {
                   } />
                   
                   <Route path={ROUTES.PRICING} element={<PricingPage />} />
+                  <Route path={ROUTES.HOME1} element={<Homepage1 />} />
+                  <Route path={ROUTES.PRICING1} element={<Pricing1 />} />
+                  <Route path={ROUTES.HOMEOPS_LANDING} element={<HomeOpsLanding />} />
                   <Route path={ROUTES.ABOUT} element={<About />} />
                   <Route path={ROUTES.CONTACT} element={<Contact />} />
                   <Route path={ROUTES.SIGNUP} element={<Signup />} />

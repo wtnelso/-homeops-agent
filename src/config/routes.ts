@@ -6,6 +6,10 @@ export const BETA_MODE = import.meta.env.VITE_BETA_MODE === 'TRUE' || false;
 export const ROUTES = {
   HOME: '/',
   HOMEPAGE: '/homepage',
+  HOME1: '/home1',
+  PRICING1: '/pricing1',
+  HOMEOPS_VNEXT: '/homeops-vnext',
+  HOMEOPS_LANDING: '/landing',
   DASHBOARD: '/dashboard',
   DASHBOARD_HOME: '/dashboard/home',
   DASHBOARD_CALENDAR: '/dashboard/calendar',

@@ -24,8 +24,8 @@ export const AUTH_IMAGES = {
 
   // Hero images
   hero: {
-    favicon: '/favicon.ico',
-    logo: '/favicon.ico' // Using favicon as logo for now
+    favicon: '/homeops_logo.png',
+    logo: '/homeops_logo.png'
   },
 
   // Alternative logos for different contexts

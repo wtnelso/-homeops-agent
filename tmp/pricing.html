@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - HomeOps.AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="/pricing.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="logo">HOMEOPS.AI</div>
+        <ul class="nav-links">
+            <li><a href="/homepage">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="/pricing" class="active">Pricing</a></li>
+            <li><a href="/onboarding">Get Started</a></li>
+        </ul>
+        <a href="/onboarding" class="cta-button">Get Started</a>
+        <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Simple, transparent pricing</h1>
+            <p class="hero-subtitle">
+                Choose the plan that fits your family's mental load management needs. 
+                Start free, upgrade when you're ready to unlock the full power of HomeOps.
+            </p>
+            
+            <!-- Billing Toggle -->
+            <div class="billing-toggle">
+                <span class="toggle-label" id="monthly-label">Monthly</span>
+                <button class="toggle-switch" id="billing-toggle" role="switch" aria-checked="false">
+                    <div class="toggle-slider"></div>
+                </button>
+                <span class="toggle-label" id="annual-label">
+                    Annual <span class="savings-badge">Save 17%</span>
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Cards -->
+    <section class="pricing-section">
+        <div class="pricing-grid">
+            
+            <!-- Free Plan -->
+            <div class="pricing-card">
+                <div class="card-header">
+                    <div class="plan-badge">
+                        <i data-lucide="rocket" class="plan-icon"></i>
+                        <span>Free</span>
+                    </div>
+                    <div class="plan-description">Full features, limited agent usage</div>
+                </div>
+                
+                <div class="pricing-display">
+                    <div class="price-container">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">0</span>
+                        <span class="price-period">/forever</span>
+                    </div>
+                </div>
+                
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Full email intelligence (unlimited)</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Full calendar sync + summaries</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>5 AI agent chats / month</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>1 user profile</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>30-day history retention</span>
+                    </li>
+                    <li class="feature-item disabled">
+                        <i data-lucide="x" class="feature-x"></i>
+                        <span>No shared views</span>
+                    </li>
+                </ul>
+                
+                <button class="plan-cta" data-plan="free">
+                    Get Started Free
+                    <i data-lucide="arrow-right" class="cta-arrow"></i>
+                </button>
+            </div>
+
+            <!-- High Performer Plan (Featured) -->
+            <div class="pricing-card featured">
+                <div class="featured-badge">Most Popular</div>
+                
+                <div class="card-header">
+                    <div class="plan-badge">
+                        <i data-lucide="user" class="plan-icon"></i>
+                        <span>High Performer</span>
+                    </div>
+                    <div class="plan-description">For individuals to run their life better</div>
+                </div>
+                
+                <div class="pricing-display">
+                    <div class="price-container">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount" data-monthly="15" data-annual="150">15</span>
+                        <span class="price-period" data-monthly="/month" data-annual="/year">/month</span>
+                    </div>
+                    <div class="annual-savings" style="display: none;">
+                        Save $30/year vs monthly
+                    </div>
+                </div>
+                
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Unlimited email summaries</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Unlimited calendar sync + summaries</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Full AI chat agent (unlimited)</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>1 user personal dashboard</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>1-year history retention</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Standard support</span>
+                    </li>
+                </ul>
+                
+                <button class="plan-cta primary" data-plan="individual">
+                    Start Free Trial
+                    <i data-lucide="arrow-right" class="cta-arrow"></i>
+                </button>
+            </div>
+
+            <!-- High Performing Couple Plan -->
+            <div class="pricing-card">
+                <div class="card-header">
+                    <div class="plan-badge">
+                        <i data-lucide="users" class="plan-icon"></i>
+                        <span>High Performing Couple</span>
+                    </div>
+                    <div class="plan-description">For spouses/partners with joint command center</div>
+                </div>
+                
+                <div class="pricing-display">
+                    <div class="price-container">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount" data-monthly="25" data-annual="250">25</span>
+                        <span class="price-period" data-monthly="/month" data-annual="/year">/month</span>
+                    </div>
+                    <div class="annual-savings" style="display: none;">
+                        Save $50/year vs monthly
+                    </div>
+                </div>
+                
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Everything in High Performer</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Joint command center (2 users)</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Shared household dashboard</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>2-year history retention</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Priority support</span>
+                    </li>
+                </ul>
+                
+                <button class="plan-cta" data-plan="couple">
+                    Start Free Trial
+                    <i data-lucide="arrow-right" class="cta-arrow"></i>
+                </button>
+            </div>
+
+            <!-- High Performing Household Plan -->
+            <div class="pricing-card">
+                <div class="card-header">
+                    <div class="plan-badge">
+                        <i data-lucide="home" class="plan-icon"></i>
+                        <span>High Performing Household</span>
+                    </div>
+                    <div class="plan-description">For families with up to 10 members</div>
+                </div>
+                
+                <div class="pricing-display">
+                    <div class="price-container">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount" data-monthly="40" data-annual="400">40</span>
+                        <span class="price-period" data-monthly="/month" data-annual="/year">/month</span>
+                    </div>
+                    <div class="annual-savings" style="display: none;">
+                        Save $80/year vs monthly
+                    </div>
+                </div>
+                
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Everything in High Performing Couple</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Up to 10 family members</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Joint command center</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Custom command center <span style="font-size: 0.8em; opacity: 0.7;">(coming soon)</span></span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>3-year long-term memory</span>
+                    </li>
+                    <li class="feature-item">
+                        <i data-lucide="check" class="feature-check"></i>
+                        <span>Premium support + early access</span>
+                    </li>
+                </ul>
+                
+                <button class="plan-cta" data-plan="household">
+                    Start Free Trial
+                    <i data-lucide="arrow-right" class="cta-arrow"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Comparison Table -->
+    <section class="comparison-section">
+        <div class="section-header">
+            <h2 class="section-title">Compare Plans</h2>
+            <p class="section-subtitle">See exactly what's included in each plan to find your perfect fit</p>
+        </div>
+        
+        <div class="comparison-table-container">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th class="feature-column">Features</th>
+                        <th class="plan-column">Free</th>
+                        <th class="plan-column featured-column">High Performer</th>
+                        <th class="plan-column">High Performing Couple</th>
+                        <th class="plan-column">High Performing Household</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="feature-name">
+                            <i data-lucide="mail" class="feature-icon"></i>
+                            Email Intelligence
+                        </td>
+                        <td class="plan-value">Unlimited</td>
+                        <td class="plan-value">Unlimited</td>
+                        <td class="plan-value">Unlimited</td>
+                        <td class="plan-value">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">
+                            <i data-lucide="calendar" class="feature-icon"></i>
+                            Calendar Summaries
+                        </td>
+                        <td class="plan-value">Unlimited</td>
+                        <td class="plan-value">Unlimited</td>
+                        <td class="plan-value">Unlimited</td>
+                        <td class="plan-value">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">
+                            <i data-lucide="message-circle" class="feature-icon"></i>
+                            AI Chat Agent
+                        </td>
+                        <td class="plan-value">5/month</td>
+                        <td class="plan-value">Unlimited</td>
+                        <td class="plan-value">Unlimited</td>
+                        <td class="plan-value">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">
+                            <i data-lucide="users" class="feature-icon"></i>
+                            User Access
+                        </td>
+                        <td class="plan-value">1 user</td>
+                        <td class="plan-value">1 user</td>
+                        <td class="plan-value">2 users</td>
+                        <td class="plan-value">10 users</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">
+                            <i data-lucide="clock" class="feature-icon"></i>
+                            History Retention
+                        </td>
+                        <td class="plan-value">30 days</td>
+                        <td class="plan-value">1 year</td>
+                        <td class="plan-value">2 years</td>
+                        <td class="plan-value">3 years</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">
+                            <i data-lucide="share-2" class="feature-icon"></i>
+                            Joint Command Center
+                        </td>
+                        <td class="plan-value">
+                            <i data-lucide="x" class="table-x"></i>
+                        </td>
+                        <td class="plan-value">
+                            <i data-lucide="x" class="table-x"></i>
+                        </td>
+                        <td class="plan-value">
+                            <i data-lucide="check" class="table-check"></i>
+                        </td>
+                        <td class="plan-value">
+                            <i data-lucide="check" class="table-check"></i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">
+                            <i data-lucide="settings" class="feature-icon"></i>
+                            Custom Command Center
+                        </td>
+                        <td class="plan-value">
+                            <i data-lucide="x" class="table-x"></i>
+                        </td>
+                        <td class="plan-value">
+                            <i data-lucide="x" class="table-x"></i>
+                        </td>
+                        <td class="plan-value">
+                            <i data-lucide="x" class="table-x"></i>
+                        </td>
+                        <td class="plan-value">Coming Soon</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">
+                            <i data-lucide="headphones" class="feature-icon"></i>
+                            Support
+                        </td>
+                        <td class="plan-value">Community</td>
+                        <td class="plan-value">Standard</td>
+                        <td class="plan-value">Priority</td>
+                        <td class="plan-value">Premium</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="section-header">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+        </div>
+        
+        <div class="faq-container">
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false">
+                    <span>Can I switch plans at any time?</span>
+                    <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the billing accordingly.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false">
+                    <span>Is there a free trial for paid plans?</span>
+                    <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Yes! Both Household and Command Center plans come with a 14-day free trial. No credit card required to start.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false">
+                    <span>What happens to my data if I cancel?</span>
+                    <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Your data remains accessible for 30 days after cancellation. You can export or reactivate during this period. After 30 days, data is permanently deleted.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false">
+                    <span>How secure is my family's data?</span>
+                    <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>We use bank-level encryption and never store email content permanently. HomeOps only accesses emails to provide summaries, then discards the raw content immediately.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <h2>Ready to reduce your family's mental load?</h2>
+        <p>Start with our free plan and experience the HomeOps difference. Upgrade when you're ready for more power.</p>
+        <a href="/onboarding" class="hero-cta">Start Free Today</a>
+    </section>
+
+    <script src="/pricing.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

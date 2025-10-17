@@ -17,6 +17,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useAdminStatus } from '../hooks/useAdminStatus';
 import { ROUTES } from '../config/routes';
+import { AUTH_IMAGES } from '../config/authImages';
 import UserDropdown from './ui/UserDropdown';
 import OnboardingModal from './ui/OnboardingModal';
 import { isDemoMode } from '../demo/config/demoConfig';
@@ -196,11 +197,11 @@ const DashboardLayout: React.FC = () => {
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-blue-200/30 dark:border-gray-700/50 bg-gradient-to-r from-blue-600 to-slate-600">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-blue-200/30 dark:border-gray-700/50 bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity duration-200" onClick={() => window.location.href = '/'}>
-            <img 
-              src="/favicon.ico" 
-              alt="HomeOps Logo" 
+            <img
+              src={AUTH_IMAGES.hero.logo}
+              alt="HomeOps Logo"
               className="w-8 h-8 rounded-lg"
             />
             <div>
