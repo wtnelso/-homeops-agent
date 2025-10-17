@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Check, X, Rocket, User, Users, Crown } from 'lucide-react';
+import { ArrowRight, Check, X, Rocket, User, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ROUTES, BETA_MODE } from '../../config/routes';
 import Header from '../ui/Header';

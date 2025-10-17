@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Homepage from './components/marketing/Homepage'
 import Homepage1 from './components/marketing/Homepage1'
 import Pricing1 from './components/marketing/Pricing1'
 import HomeOpsLanding from './components/marketing/HomeOpsLanding'
