@@ -3,10 +3,17 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET;
 
-// Keep supabaseAdmin for optional JWT (fallback)
-const supabaseUrl = process.env.SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+// Lazy-loaded Supabase client for optional JWT (fallback)
+let supabaseAdmin = null;
+
+const getSupabaseAdmin = () => {
+  if (!supabaseAdmin) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabaseAdmin;
+};
 
 /**
  * Middleware to validate JWT tokens from Authorization header
@@ -73,7 +80,7 @@ export const optionalJWT = async (req, res, next) => {
       const token = authHeader.substring(7);
 
       // Try to validate token
-      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+      const { data: { user }, error } = await getSupabaseAdmin().auth.getUser(token);
 
       if (!error && user) {
         req.user = user;

@@ -26,6 +26,7 @@ import passwordResetSessionRoutes from './routes/passwordResetSession.js';
 import userProviderRoutes from './routes/userProvider.js';
 import familySyncRoutes from './routes/familySync.js';
 import cacheManagementRoutes from './routes/cacheManagement.js';
+import emailContentRoutes from './routes/emailContent.js';
 import { SERVER_CONFIG, validateServerConfig } from './config/serverConfig.js';
 import { MemoryCleanupService } from './services/memoryCleanupService.js';
 import { initializeServer } from './serverInit.js';
@@ -70,6 +71,7 @@ app.use('/api/password-reset-session', passwordResetSessionRoutes);
 app.use('/api/user', userProviderRoutes);
 app.use('/api/family-sync', familySyncRoutes);
 app.use('/api/cache', cacheManagementRoutes);
+app.use('/api/email', emailContentRoutes);
 app.use('/health', healthRoutes);
 
 // Root endpoint
@@ -90,7 +92,8 @@ app.get('/', (req, res) => {
       profileSuggestions: '/api/profile-suggestions',
       oauth: '/api/oauth',
       passwordResetSession: '/api/password-reset-session',
-      familySync: '/api/family-sync'
+      familySync: '/api/family-sync',
+      emailContent: '/api/email'
     }
   });
 });

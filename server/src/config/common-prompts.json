@@ -493,6 +493,102 @@
       "dateRange": "next_3_days",
       "query": null,
       "params": { "calendar": { "action": "list_events" } }
+    },
+    "recent emails from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Recent emails from {name}"
+      },
+      "bypass_llm": true
+    },
+    "summarize my last email from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Last email from {name}"
+      },
+      "bypass_llm": true
+    },
+    "summarize the last email i got from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Last email from {name}"
+      },
+      "bypass_llm": true
+    },
+    "summarize the last email i got from the {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Last email from {name}"
+      },
+      "bypass_llm": true
+    },
+    "can you summarize the last email i got from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Last email from {name}"
+      },
+      "bypass_llm": true
+    },
+    "can you summarize the last email i got from the {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Last email from {name}"
+      },
+      "bypass_llm": true
+    },
+    "summarize my email from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Email from {name}"
+      },
+      "bypass_llm": true
+    },
+    "most recent emails from {name}": {
+      "tools": ["gmail_search"],
+      "dateRange": null,
+      "query": "from:{name}",
+      "params": { "gmail_search": {} },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Most recent emails from {name}"
+      },
+      "bypass_llm": true
     }
   },
 

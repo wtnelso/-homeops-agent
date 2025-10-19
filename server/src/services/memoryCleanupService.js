@@ -63,21 +63,21 @@ export class MemoryCleanupService {
    * Get memories that will expire soon (next 7 days)
    * Useful for sending notifications to users
    */
-  static async getExpiringMemories(accountId, daysAhead = 7) {
+  static async getExpiringMemories(userId, daysAhead = 7) {
     try {
       const client = await AgentMemoryService.createConnection();
 
       const query = `
-        SELECT id, account_id, memory_type, key, value, expires_at, priority, tags
+        SELECT id, user_id, memory_type, key, value, expires_at, priority, tags
         FROM agent_memory
-        WHERE account_id = $1
+        WHERE user_id = $1
         AND expires_at IS NOT NULL
         AND expires_at > NOW()
         AND expires_at <= NOW() + INTERVAL '${daysAhead} days'
         ORDER BY expires_at ASC, priority ASC
       `;
 
-      const result = await client.query(query, [accountId]);
+      const result = await client.query(query, [userId]);
       await client.end();
 
       const memories = result.rows.map(row => ({
@@ -98,44 +98,11 @@ export class MemoryCleanupService {
    */
   static async notifyUsersOfExpiringMemories() {
     try {
-      console.log('📢 Checking for memories expiring soon...');
-
-      // Get all accounts with memories expiring in the next 7 days
-      const client = await AgentMemoryService.createConnection();
-
-      const query = `
-        SELECT DISTINCT account_id
-        FROM agent_memory
-        WHERE expires_at IS NOT NULL
-        AND expires_at > NOW()
-        AND expires_at <= NOW() + INTERVAL '7 days'
-        AND is_user_confirmed = true
-      `;
-
-      const accountsResult = await client.query(query);
-
-      for (const row of accountsResult.rows) {
-        const accountId = row.account_id;
-        const expiringMemories = await this.getExpiringMemories(accountId);
-
-        if (expiringMemories.success && expiringMemories.memories.length > 0) {
-          console.log(`📢 Account ${accountId} has ${expiringMemories.memories.length} memories expiring soon`);
-
-          // Here you could integrate with email service, push notifications, etc.
-          // For now, just log the information
-          expiringMemories.memories.forEach(memory => {
-            const daysUntilExpiry = Math.ceil(
-              (new Date(memory.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-            );
-            console.log(`  - ${memory.memory_type}: ${memory.key} expires in ${daysUntilExpiry} days`);
-          });
-        }
-      }
-
-      await client.end();
-
+      console.log('📢 Memory cleanup service disabled to prevent crashes');
+      // Temporarily disabled to prevent database crashes
+      return;
     } catch (error) {
-      console.error('❌ Error sending expiration notifications:', error);
+      console.error('❌ Error in memory cleanup service:', error);
     }
   }
 

@@ -14,6 +14,7 @@
 import { Tool } from '@langchain/core/tools';
 import { getTokenService } from '../services/oauthTokenService.js';
 import TemporalParsingService from '../services/temporalParsingService.js';
+import { createClient } from '@supabase/supabase-js';
 
 export class GmailSearchTool extends Tool {
   name = 'gmail_search';
@@ -34,6 +35,10 @@ export class GmailSearchTool extends Tool {
     super();
     this.userId = userId;
     this.tokenService = getTokenService();
+    this.supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
   }
 
   /**
@@ -91,7 +96,7 @@ export class GmailSearchTool extends Tool {
       }
 
       // Format results for LangChain
-      const formattedResults = this._formatResultsForLangChain(searchResults.messages);
+      const formattedResults = await this._formatResultsForLangChain(searchResults.messages);
 
       return JSON.stringify({
         success: true,
@@ -208,13 +213,43 @@ export class GmailSearchTool extends Tool {
    * Format Gmail API results for LangChain consumption
    * @private
    */
-  _formatResultsForLangChain(messages) {
+  async _formatResultsForLangChain(messages) {
     // Sort messages by internal date (most recent first) to ensure proper ordering
     const sortedMessages = messages.sort((a, b) => {
       const dateA = parseInt(a.internalDate) || 0;
       const dateB = parseInt(b.internalDate) || 0;
       return dateB - dateA; // Descending order (newest first)
     });
+
+    // Get user's account ID for database lookup
+    const { data: userAccount, error: accountError } = await this.supabase
+      .from('users')
+      .select('id')
+      .eq('id', this.userId)
+      .single();
+
+    if (accountError || !userAccount) {
+      console.warn('Could not get user account for email_record_id lookup:', accountError);
+    }
+
+    // Get email_record_ids for Gmail message IDs
+    const gmailMessageIds = sortedMessages.map(msg => msg.id);
+    let emailRecordMap = {};
+    
+    if (userAccount && gmailMessageIds.length > 0) {
+      const { data: emailRecords, error: recordError } = await this.supabase
+        .from('email_records')
+        .select('id, gmail_message_id')
+        .eq('user_id', userAccount.id)
+        .in('gmail_message_id', gmailMessageIds);
+
+      if (!recordError && emailRecords) {
+        emailRecordMap = emailRecords.reduce((map, record) => {
+          map[record.gmail_message_id] = record.id;
+          return map;
+        }, {});
+      }
+    }
 
     return sortedMessages.map(message => {
       const headers = message.payload?.headers || [];
@@ -244,6 +279,7 @@ export class GmailSearchTool extends Tool {
         label_ids: message.labelIds || [],
         internal_date: message.internalDate,
         relevance_score: 0.8, // High relevance since it's API search result
+        email_record_id: emailRecordMap[message.id] || null, // Add email_record_id if available
         source: 'gmail_api_direct'
       };
     });

@@ -356,6 +356,7 @@ async function getOptimizedContext(conversationId, sql, llm) {
 router.post('/stream', optionalJWT, async (req, res) => {
   console.log('🌊 STREAMING CHAT ROUTE HIT!');
   console.log('📨 Request body:', JSON.stringify(req.body));
+  console.log('🔍 DEBUG: Request received at:', new Date().toISOString());
 
   // Set up Server-Sent Events headers
   res.writeHead(200, {

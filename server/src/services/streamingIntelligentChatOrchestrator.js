@@ -407,7 +407,15 @@ export class StreamingIntelligentChatOrchestrator extends IntelligentChatOrchest
       }
 
       // Step 3: Handle template-based responses (bypass LLM entirely)
+      console.log('🔍 DEBUG: Checking bypass conditions:', {
+        shouldBypassLLM,
+        responseTemplate: !!responseTemplate,
+        responseTemplateType: typeof responseTemplate,
+        responseTemplateContent: responseTemplate
+      });
+      
       if (shouldBypassLLM && responseTemplate) {
+        console.log('🎯 DEBUG: Taking structured data path');
         let templateResponse;
 
         // Check if it's a simple string template or structured template
@@ -1307,48 +1315,56 @@ Please provide a natural, conversational response based on this information. Do 
    * Examples: "did {name} email me" → "did mike email me"
    */
   checkPatternMatch(normalizedPrompt) {
-    console.log(`🔍 checkPatternMatch called with: "${normalizedPrompt}"`);
-    if (!this.commonPrompts?.pattern_matches) {
-      console.log(`❌ No pattern_matches found in commonPrompts`);
-      return null;
-    }
-    console.log(`🔍 Found ${Object.keys(this.commonPrompts.pattern_matches).length} patterns to check`);
-
-    for (const [pattern, config] of Object.entries(this.commonPrompts.pattern_matches)) {
-      const extractedVars = this.extractVariables(pattern, normalizedPrompt);
-
-      if (extractedVars) {
-        console.log(`🎯 Pattern "${pattern}" matched with variables:`, extractedVars);
-
-        // Substitute variables in parameters
-        const resolvedParams = this.substituteVariables(config.params, extractedVars);
-
-        // Substitute variables in query field as well
-        let resolvedQuery = config.query;
-        if (resolvedQuery && extractedVars) {
-          resolvedQuery = resolvedQuery.replace(/\{([^}]+)\}/g, (match, varName) => {
-            return extractedVars[varName] || match;
-          });
-          console.log(`🎯 Query variable substitution: "${config.query}" → "${resolvedQuery}"`);
-        }
-
-        return {
-          intents: config.tools.map(tool => ({ tool, confidence: 'high', method: 'pattern' })),
-          tools: config.tools,
-          params: resolvedParams,
-          query: resolvedQuery,
-          variables: extractedVars,
-          pattern: pattern,
-          confidence: 'high',
-          method: 'pattern_match',
-          response_template: config.response_template,
-          bypass_llm: config.bypass_llm,
-          dateRange: config.dateRange
-        };
+    try {
+      console.log(`🔍 checkPatternMatch called with: "${normalizedPrompt}"`);
+      if (!this.commonPrompts?.pattern_matches) {
+        console.log(`❌ No pattern_matches found in commonPrompts`);
+        return null;
       }
+      console.log(`🔍 Found ${Object.keys(this.commonPrompts.pattern_matches).length} patterns to check`);
+      console.log(`🔍 Available patterns:`, Object.keys(this.commonPrompts.pattern_matches));
+
+      for (const [pattern, config] of Object.entries(this.commonPrompts.pattern_matches)) {
+        console.log(`🔍 Testing pattern: "${pattern}"`);
+        const extractedVars = this.extractVariables(pattern, normalizedPrompt);
+        console.log(`🔍 Pattern "${pattern}" extraction result:`, extractedVars);
+
+        if (extractedVars) {
+          console.log(`🎯 Pattern "${pattern}" matched with variables:`, extractedVars);
+
+          // Substitute variables in parameters
+          const resolvedParams = this.substituteVariables(config.params, extractedVars);
+
+          // Substitute variables in query field as well
+          let resolvedQuery = config.query;
+          if (resolvedQuery && extractedVars) {
+            resolvedQuery = resolvedQuery.replace(/\{([^}]+)\}/g, (match, varName) => {
+              return extractedVars[varName] || match;
+            });
+            console.log(`🎯 Query variable substitution: "${config.query}" → "${resolvedQuery}"`);
+          }
+
+          return {
+            intents: config.tools.map(tool => ({ tool, confidence: 'high', method: 'pattern' })),
+            tools: config.tools,
+            params: resolvedParams,
+            query: resolvedQuery,
+            variables: extractedVars,
+            pattern: pattern,
+            confidence: 'high',
+            method: 'pattern_match',
+            response_template: config.response_template,
+            bypass_llm: config.bypass_llm,
+            dateRange: config.dateRange
+          };
+        }
     }
 
     return null;
+    } catch (error) {
+      console.error(`❌ Error in checkPatternMatch:`, error);
+      return null;
+    }
   }
 
   /**
@@ -1362,7 +1378,7 @@ Please provide a natural, conversational response based on this information. Do 
   extractVariables(pattern, input) {
     // Convert pattern to regex: "did {name} email me" → /^did ([a-zA-Z0-9]+) email me$/
     const regexPattern = pattern
-      .replace(/\{name\}/g, '([a-zA-Z0-9]+)')        // Names: letters/numbers
+      .replace(/\{name\}/g, '([a-zA-Z0-9 ]+)')       // Names: letters/numbers/spaces (improved)
       .replace(/\{subject\}/g, '([a-zA-Z0-9 ]+)')    // Subjects: letters/numbers/spaces
       .replace(/\{number\}/g, '(\\d+)')              // Numbers: digits only
       .replace(/\{([^}]+)\}/g, '([a-zA-Z0-9 ]+)');   // Generic: letters/numbers/spaces
