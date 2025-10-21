@@ -59,13 +59,34 @@ export const smtpServer = new SMTPServer({
   authOptional: true,
   allowInsecureAuth: true,
   disabledCommands: ['AUTH'],
+  maxClients: 10, // Limit concurrent connections
+  useXClient: false,
+  useXForward: false,
+  banner: 'HomeOps SMTP Server Ready',
 
   onData(stream, session, callback) {
-    console.log(`📧 SMTP: Receiving email from ${session.envelope.mailFrom?.address}`);
+    const remoteAddr = session.remoteAddress || session.clientHostname || 'unknown';
+    const mailFrom = session.envelope?.mailFrom?.address || 'unknown';
+    console.log(`📧 SMTP: Receiving email from ${mailFrom} (remote: ${remoteAddr})`);
+
+    // Add timeout protection
+    const timeout = setTimeout(() => {
+      console.error('📧 SMTP: Email parsing timeout');
+      callback(new Error('Email parsing timeout'));
+    }, 30000); // 30 second timeout
 
     simpleParser(stream)
       .then(async (parsed) => {
+        clearTimeout(timeout);
+
         const { from, to, subject, text, html, messageId, date } = parsed;
+
+        // Validate parsed email
+        if (!from && !to) {
+          console.warn('📧 SMTP: Received email with no from/to addresses');
+          callback();
+          return;
+        }
 
         // Handle multiple recipients (to, cc, bcc)
         const recipients = [
@@ -74,7 +95,18 @@ export const smtpServer = new SMTPServer({
           ...(parsed.bcc?.value || [])
         ];
 
+        if (recipients.length === 0) {
+          console.warn('📧 SMTP: No valid recipients found in email');
+          callback();
+          return;
+        }
+
         for (const recipient of recipients) {
+          if (!recipient?.address) {
+            console.warn('📧 SMTP: Skipping invalid recipient:', recipient);
+            continue;
+          }
+
           const recipientAddress = recipient.address;
           const userId = await extractUserIdFromAddress(recipientAddress);
 
@@ -83,13 +115,13 @@ export const smtpServer = new SMTPServer({
             continue;
           }
 
-          console.log(`📩 Processing email directly for user ${userId}: ${subject}`);
+          console.log(`📩 Processing email directly for user ${userId}: ${subject || '(no subject)'}`);
 
-          // Queue email for processing through Redis workers
+          // Create email data with better session info
           const emailData = {
             userId,
             recipientAddress,
-            from: from?.text || from?.address,
+            from: from?.text || from?.address || 'unknown',
             subject: subject || '(no subject)',
             text: text || '',
             html: html || '',
@@ -97,14 +129,19 @@ export const smtpServer = new SMTPServer({
             receivedAt: new Date().toISOString(),
             originalDate: date ? date.toISOString() : null,
             sessionInfo: {
-              remoteAddress: session.remoteAddress,
-              hostNameAppearsAs: session.hostNameAppearsAs
+              remoteAddress: session.remoteAddress || 'unknown',
+              clientHostname: session.clientHostname || 'unknown',
+              hostNameAppearsAs: session.hostNameAppearsAs || 'unknown',
+              envelope: {
+                mailFrom: session.envelope?.mailFrom?.address || 'unknown',
+                rcptTo: session.envelope?.rcptTo?.map(r => r.address) || []
+              }
             }
           };
 
           try {
             // SMTP processing disabled - use HTTP route instead
-            console.log(`📧 SMTP email received: ${subject} (use HTTP route for processing)`);
+            console.log(`📧 SMTP email received: ${subject || '(no subject)'} (use HTTP route for processing)`);
           } catch (error) {
             console.error('❌ Failed to queue email for processing:', error);
           }
@@ -113,6 +150,7 @@ export const smtpServer = new SMTPServer({
         callback();
       })
       .catch((error) => {
+        clearTimeout(timeout);
         console.error('📧 SMTP: Email parsing error:', error);
         callback(error);
       });
@@ -124,12 +162,19 @@ export const smtpServer = new SMTPServer({
   },
 
   onConnect(session, callback) {
-    console.log(`📧 SMTP: Connection from ${session.remoteAddress}`);
+    const remoteAddr = session.remoteAddress || session.clientHostname || 'unknown';
+    console.log(`📧 SMTP: Connection from ${remoteAddr} (hostname: ${session.hostNameAppearsAs || 'unknown'})`);
     callback();
   },
 
   onClose(session) {
-    console.log(`📧 SMTP: Connection closed from ${session.remoteAddress}`);
+    const remoteAddr = session.remoteAddress || session.clientHostname || 'unknown';
+    const hostname = session.hostNameAppearsAs || 'unknown';
+    console.log(`📧 SMTP: Connection closed from ${remoteAddr} (hostname: ${hostname})`);
+  },
+
+  onError(err) {
+    console.error('📧 SMTP: Server error:', err);
   }
 });
 
