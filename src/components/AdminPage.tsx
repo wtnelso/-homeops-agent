@@ -16,8 +16,7 @@ import {
   Play,
   Square,
   TrendingUp,
-  Clock,
-  AlertTriangle
+  Clock
 } from 'lucide-react';
 import UserDropdown from './ui/UserDropdown';
 import { PageLoader, InlineLoader } from './ui/Loader';
