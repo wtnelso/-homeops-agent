@@ -48,8 +48,16 @@ router.post('/', async (req, res) => {
     console.log('📧 Received inbound email request');
     console.log('🔍 Raw request body:', JSON.stringify(req.body, null, 2));
 
-    // Extract email data from request body
-    const emailData = req.body;
+    // Extract email data from SendGrid webhook format
+    const emailData = {
+      from: req.body.from || req.body.sender,
+      to: req.body.to || req.body.recipient,
+      subject: req.body.subject,
+      text: req.body.text || req.body['body-plain'],
+      html: req.body.html || req.body['body-html'],
+      messageId: req.body.messageId || req.body['Message-Id'],
+      date: req.body.date || new Date().toISOString()
+    };
     console.log('🔍 Extracted emailData:', JSON.stringify(emailData, null, 2));
 
     // Validate required fields
