@@ -23,11 +23,11 @@ export class EmbeddingWorker {
    * Main entry point for background processing
    */
   static async processEmailJob(jobData) {
-    const { job_id, account_id, batch_type, processing_options } = jobData;
-    
+    const { job_id, user_id, batch_type, processing_options } = jobData;
+
     try {
-      console.log(`🚀 Processing job ${job_id} for account ${account_id}`);
-      
+      console.log(`🚀 Processing job ${job_id} for user ${user_id}`);
+
       // Step 1: Update job status to processing
       await this.updateJobStatus(job_id, {
         status: 'processing',
@@ -35,7 +35,7 @@ export class EmbeddingWorker {
       });
 
       // Step 2: Get Gmail integration and access token
-      const gmailIntegration = await this.getGmailIntegration(account_id);
+      const gmailIntegration = await this.getGmailIntegration(user_id);
       if (!gmailIntegration) {
         throw new Error('Gmail integration not found or inactive');
       }
@@ -43,11 +43,11 @@ export class EmbeddingWorker {
       // Step 3: Initialize services
       const gmailService = new GmailService({
         ...gmailIntegration,
-        account_id // Add account_id to integration for refresh functionality
+        user_id // Add user_id to integration for refresh functionality
       });
       const processor = new EmailEmbeddingProcessor({
         job_id,
-        account_id,
+        user_id,
         batch_type,
         ...processing_options
       });
@@ -137,9 +137,9 @@ export class EmbeddingWorker {
       
       await this.updateJobStatus(job_id, jobUpdate);
 
-      // Step 10: Generate account theme insights after batch completion
+      // Step 10: Generate user theme insights after batch completion
       if (processed > 0) {
-        await this.generateAccountThemeInsights(account_id, job_id, processed);
+        await this.generateUserThemeInsights(user_id, job_id, processed);
       }
 
       console.log(`✅ Job ${job_id} completed: ${processed} processed, ${failed} failed`);
@@ -156,14 +156,14 @@ export class EmbeddingWorker {
   }
 
   /**
-   * Get Gmail integration for account
+   * Get Gmail integration for user
    */
-  static async getGmailIntegration(account_id) {
+  static async getGmailIntegration(user_id) {
     try {
       const { data: integration, error } = await supabase
         .from('account_integrations')
         .select('access_token, token_expires_at, refresh_token')
-        .eq('account_id', account_id)
+        .eq('user_id', user_id)
         .eq('integration_id', 'gmail')
         .eq('status', 'connected')
         .single();
@@ -202,17 +202,17 @@ export class EmbeddingWorker {
   }
 
   /**
-   * Generate account theme insights after batch completion
+   * Generate user theme insights after batch completion
    */
-  static async generateAccountThemeInsights(account_id, job_id, processed_count) {
+  static async generateUserThemeInsights(user_id, job_id, processed_count) {
     try {
-      console.log(`📊 Generating theme insights for account ${account_id}...`);
+      console.log(`📊 Generating theme insights for user ${user_id}...`);
 
-      // Get current theme summary for this account
+      // Get current theme summary for this user
       const { data: themeSummary, error } = await supabase
         .from('account_theme_summary')
         .select('*')
-        .eq('account_id', account_id)
+        .eq('user_id', user_id)
         .order('total_emails', { ascending: false });
 
       if (error) {
@@ -221,7 +221,7 @@ export class EmbeddingWorker {
       }
 
       if (!themeSummary || themeSummary.length === 0) {
-        console.log('📊 No themes found for this account yet');
+        console.log('📊 No themes found for this user yet');
         return;
       }
 
@@ -233,7 +233,7 @@ export class EmbeddingWorker {
 
       // Generate insight summary
       const insights = {
-        account_id,
+        user_id,
         batch_job_id: job_id,
         total_theme_emails: totalThemeEmails,
         emails_processed_this_batch: processed_count,
@@ -251,7 +251,7 @@ export class EmbeddingWorker {
       };
 
       // Log insights for this batch
-      console.log(`📈 Account Theme Insights (Job ${job_id}):`);
+      console.log(`📈 User Theme Insights (Job ${job_id}):`);
       console.log(`   📧 Total theme emails: ${insights.total_theme_emails}`);
       console.log(`   🎯 Unique themes: ${insights.unique_themes}`);
       console.log(`   🔥 High priority themes: ${insights.high_priority_themes}`);

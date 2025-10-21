@@ -250,6 +250,39 @@ Requirements:
       windowSizeMs: 60000,            // 1 minute window for rate limiting
       maxBurstRequests: 10,           // Allow bursts up to 10 requests before rate limiting kicks in
     }
+  },
+
+  // ===== QUEUE PROCESSING CONFIGURATION =====
+
+  // BullMQ Queue Configuration (simple hybrid approach)
+  queueProcessing: {
+    // Redis connection settings
+    redis: {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: process.env.REDIS_PORT || 6379,
+      password: process.env.REDIS_PASSWORD,
+      db: process.env.REDIS_DB || 0,
+      maxRetriesPerRequest: null
+    },
+
+    // Queue settings
+    queue: {
+      name: 'email-embeddings',
+      concurrency: 2,                   // Process 2 jobs at once max
+      removeOnComplete: 10,             // Keep last 10 completed jobs
+      removeOnFail: 50,                 // Keep last 50 failed jobs for debugging
+      maxRetries: 3,                    // Retry failed jobs 3 times
+      retryDelay: 5000,                 // 5s, 10s, 20s exponential backoff
+      onboardingPriority: 10,           // Higher priority for onboarding jobs
+      regularPriority: 1                // Normal priority for regular processing
+    },
+
+    // Processing priorities (true = high priority for chat, false = normal for background)
+    priorities: {
+      chat: true,                       // Chat gets 80% of rate limit capacity
+      email_processing: false,          // Email processing uses remaining 20%
+      background_capacity: 0.2          // 20% of rate limit reserved for background
+    }
   }
 };
 

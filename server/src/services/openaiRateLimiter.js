@@ -22,15 +22,18 @@ export class OpenAIRateLimiter {
 
   /**
    * Execute an OpenAI API call with rate limiting and retry logic
+   * @param {Function} apiCall - The API call function
+   * @param {string} requestType - 'llm' or 'embedding'
+   * @param {boolean} isHighPriority - true for chat, false for background email processing
    */
-  async executeWithRateLimit(apiCall, requestType = 'llm') {
+  async executeWithRateLimit(apiCall, requestType = 'llm', isHighPriority = false) {
     const maxRetries = this.config.maxRetries;
     let lastError = null;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         // Wait for rate limit clearance
-        await this.waitForRateLimit(requestType);
+        await this.waitForRateLimit(requestType, isHighPriority);
 
         // Track this request
         this.trackRequest(requestType);
@@ -72,24 +75,28 @@ export class OpenAIRateLimiter {
   /**
    * Wait until we're within rate limits for the request type
    */
-  async waitForRateLimit(requestType) {
+  async waitForRateLimit(requestType, isHighPriority = false) {
     const now = Date.now();
     const windowSize = this.config.windowSizeMs;
     const maxRequests = requestType === 'llm'
       ? this.config.llmRequestsPerMinute
       : this.config.embeddingRequestsPerMinute;
 
+    // Reserve 80% capacity for high-priority requests (chat)
+    const effectiveLimit = isHighPriority ? maxRequests : Math.floor(maxRequests * 0.2);
+
     // Clean old entries outside the current window
     this.requestWindows[requestType] = this.requestWindows[requestType]
       .filter(timestamp => now - timestamp < windowSize);
 
     // Check if we're within limits
-    while (this.requestWindows[requestType].length >= maxRequests) {
+    while (this.requestWindows[requestType].length >= effectiveLimit) {
       const oldestRequest = Math.min(...this.requestWindows[requestType]);
       const waitTime = (oldestRequest + windowSize) - now;
 
       if (waitTime > 0) {
-        console.log(`⏳ Rate limit: waiting ${waitTime}ms for ${requestType} request slot...`);
+        const priority = isHighPriority ? 'HIGH' : 'low';
+        console.log(`⏳ Rate limit: waiting ${waitTime}ms for ${requestType} request slot (${priority} priority)...`);
         await this.sleep(Math.min(waitTime, 1000)); // Wait max 1 second at a time
 
         // Clean old entries again
@@ -170,6 +177,20 @@ export class OpenAIRateLimiter {
       },
       window_size_minutes: windowSize / 60000
     };
+  }
+
+  /**
+   * Helper: Execute chat request with high priority
+   */
+  async executeChatRequest(apiCall, requestType = 'llm') {
+    return this.executeWithRateLimit(apiCall, requestType, true);
+  }
+
+  /**
+   * Helper: Execute background processing with normal priority
+   */
+  async executeBackgroundRequest(apiCall, requestType = 'llm') {
+    return this.executeWithRateLimit(apiCall, requestType, false);
   }
 
   /**

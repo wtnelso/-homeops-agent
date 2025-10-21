@@ -26,7 +26,10 @@ import passwordResetSessionRoutes from './routes/passwordResetSession.js';
 import userProviderRoutes from './routes/userProvider.js';
 import familySyncRoutes from './routes/familySync.js';
 import cacheManagementRoutes from './routes/cacheManagement.js';
+import gmailForwardingRoutes from './routes/gmailForwarding.js';
+import inboundEmailRoutes from './routes/inboundEmail.js';
 import { SERVER_CONFIG, validateServerConfig } from './config/serverConfig.js';
+// import './services/emailQueue.js'; // Initialize queue worker - DISABLED for direct inbound email processing
 import { MemoryCleanupService } from './services/memoryCleanupService.js';
 import { initializeServer } from './serverInit.js';
 
@@ -70,6 +73,9 @@ app.use('/api/password-reset-session', passwordResetSessionRoutes);
 app.use('/api/user', userProviderRoutes);
 app.use('/api/family-sync', familySyncRoutes);
 app.use('/api/cache', cacheManagementRoutes);
+// app.use('/testing', testingRoutes); // Removed testing routes
+app.use('/api/gmail-forwarding', gmailForwardingRoutes);
+app.use('/inbound-email', inboundEmailRoutes);
 app.use('/health', healthRoutes);
 
 // Root endpoint
@@ -90,7 +96,9 @@ app.get('/', (req, res) => {
       profileSuggestions: '/api/profile-suggestions',
       oauth: '/api/oauth',
       passwordResetSession: '/api/password-reset-session',
-      familySync: '/api/family-sync'
+      familySync: '/api/family-sync',
+      testing: '/api/testing',
+      inboundEmail: '/inbound-email'
     }
   });
 });
@@ -135,6 +143,15 @@ app.listen(SERVER_CONFIG.PORT, '0.0.0.0', async () => {
     MemoryCleanupService.startAll();
   } catch (error) {
     console.error('❌ Failed to start memory management services:', error);
+  }
+
+  // Start SMTP server for email forwarding
+  try {
+    // const { startSMTPServer } = await import('./services/inboundEmailService.js');
+    // await startSMTPServer();
+    console.log('📧 SMTP server disabled for debugging');
+  } catch (error) {
+    console.error('❌ Failed to start SMTP server:', error);
   }
 });
 

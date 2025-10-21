@@ -47,7 +47,7 @@ import { EmailConfig } from '../config/emailConfig.js';
 import { TokenUsageTracker } from './tokenUsageTracker.js';
 import { globalRateLimiter } from './openaiRateLimiter.js';
 import { AgentMemoryService } from './agentMemoryService.js';
-import { accountProfileService } from './accountProfileService.js';
+import { userProfileService } from './userProfileService.js';
 import { EmailRoutingEngine } from '../config/emailRoutingConfig.js';
 import { profileSuggestionsService } from './profileSuggestionsService.js';
 import { RedisProfileCache } from './redisProfileCache.js';
@@ -141,7 +141,7 @@ export class EmailEmbeddingProcessor {
       // Step 4: Extract and store agent memory (unified system)
       const fullText = `${email.subject || ''}\n\n${content}`;
       await AgentMemoryService.extractAndStoreMemories(
-        this.config.account_id,
+        this.config.user_id,
         email.id || email.messageId || `email_${Date.now()}`,
         fullText,
         'email'
@@ -418,18 +418,18 @@ export class EmailEmbeddingProcessor {
    */
   async getProfileContext() {
     try {
-      if (!this.config.account_id) {
+      if (!this.config.user_id) {
         return null;
       }
 
       // Check Redis cache first
-      const cachedContext = await RedisProfileCache.getCachedProfileContext(this.config.account_id);
+      const cachedContext = await RedisProfileCache.getCachedProfileContext(this.config.user_id);
       if (cachedContext) {
         return cachedContext;
       }
 
       // Cache miss - fetch from database
-      const profileResult = await accountProfileService.getProfile(this.config.account_id);
+      const profileResult = await userProfileService.getProfile(this.config.user_id, this.config.family_id);
 
       if (!profileResult.success || !profileResult.profile) {
         return null;
@@ -542,7 +542,7 @@ export class EmailEmbeddingProcessor {
       }
 
       // Cache the context for future requests (async, don't wait)
-      RedisProfileCache.cacheProfileContext(this.config.account_id, context)
+      RedisProfileCache.cacheProfileContext(this.config.user_id, context)
         .catch(err => console.warn('⚠️  Failed to cache profile context:', err.message));
 
       return context;
@@ -771,7 +771,7 @@ export class EmailEmbeddingProcessor {
         .insert({
           id: embeddingId, // Primary key for linking to analysis data
           job_id: this.config.job_id, // Links to processing batch for job tracking
-          account_id: this.config.account_id, // User isolation for multi-tenant security
+          user_id: this.config.user_id || this.config.account_id, // Use user_id column (backward compatible)
           email_record_id: emailRecordId, // Links to full email record for display
           gmail_message_id: email.id, // Gmail's unique identifier for deduplication
           embedding: JSON.stringify(embedding), // 1536-dimensional vector for semantic search & similarity matching
@@ -792,7 +792,7 @@ export class EmailEmbeddingProcessor {
       const analysisData = {
         job_id: this.config.job_id, // Processing batch tracking
         email_embedding_id: embeddingId, // Links to vector embedding for hybrid search
-        account_id: this.config.account_id, // User isolation for multi-tenant access
+        user_id: this.config.user_id, // User isolation for multi-tenant access
         gmail_message_id: email.id, // Gmail deduplication key
         
         // === FAMILY LOGISTICS INTELLIGENCE ===
@@ -857,14 +857,14 @@ export class EmailEmbeddingProcessor {
 
       const theme_name = analysis.primary_theme;
       const relevance_score = analysis.family_relevance_score || 0.5;
-      const account_id = this.config.account_id;
+      const user_id = this.config.user_id;
       const job_id = this.config.job_id;
 
       // Use UPSERT to insert or update the theme summary
       const { error } = await supabase
         .from('account_theme_summary')
         .upsert({
-          account_id: account_id,
+          user_id: user_id,
           theme_name: theme_name,
           total_emails: 1, // Will be handled by SQL increment logic
           high_relevance_count: relevance_score > 0.7 ? 1 : 0,
@@ -876,14 +876,14 @@ export class EmailEmbeddingProcessor {
           last_updated_at: new Date().toISOString(),
           last_batch_id: job_id
         }, {
-          onConflict: 'account_id,theme_name',
+          onConflict: 'user_id,theme_name',
           ignoreDuplicates: false
         });
 
       if (error) {
         // If upsert failed, try updating existing record
         console.log('🔄 Upsert failed, attempting manual aggregation update...');
-        await this.updateThemeSummary(account_id, theme_name, relevance_score, job_id);
+        await this.updateThemeSummary(user_id, theme_name, relevance_score, job_id);
       } else {
         console.log(`✅ Theme summary updated for ${theme_name}`);
       }
@@ -897,13 +897,13 @@ export class EmailEmbeddingProcessor {
   /**
    * Manually update theme summary with proper aggregation
    */
-  async updateThemeSummary(account_id, theme_name, relevance_score, job_id) {
+  async updateThemeSummary(user_id, theme_name, relevance_score, job_id) {
     try {
       // Get existing record
       const { data: existing, error: fetchError } = await supabase
         .from('account_theme_summary')
         .select('*')
-        .eq('account_id', account_id)
+        .eq('user_id', user_id)
         .eq('theme_name', theme_name)
         .single();
 
@@ -931,7 +931,7 @@ export class EmailEmbeddingProcessor {
             last_updated_at: now,
             last_batch_id: job_id
           })
-          .eq('account_id', account_id)
+          .eq('user_id', user_id)
           .eq('theme_name', theme_name);
 
         if (updateError) throw updateError;
@@ -942,7 +942,7 @@ export class EmailEmbeddingProcessor {
         const { error: insertError } = await supabase
           .from('account_theme_summary')
           .insert({
-            account_id: account_id,
+            user_id: user_id,
             theme_name: theme_name,
             total_emails: 1,
             high_relevance_count: relevance_score > 0.7 ? 1 : 0,
@@ -1213,7 +1213,7 @@ export class EmailEmbeddingProcessor {
       // For now, create a profile suggestion even for preferences
       // Later we can auto-update high-confidence preferences
       await profileSuggestionsService.createSuggestion({
-        accountId: this.config.account_id,
+        userId: this.config.user_id,
         suggestionType: 'preference_update',
         suggestedData: {
           preference_text: decision.original_text,
@@ -1395,7 +1395,7 @@ export class EmailEmbeddingProcessor {
           }
 
           await profileSuggestionsService.createSuggestion({
-            accountId: this.config.account_id,
+            userId: this.config.user_id,
             suggestionType: suggestionType,
             suggestedData: enhancedSuggestionData,
             confidenceScore: decision.confidence,
@@ -1412,7 +1412,7 @@ export class EmailEmbeddingProcessor {
       if (analysis.contact_suggestions && analysis.contact_suggestions.length > 0) {
         for (const contactSuggestion of analysis.contact_suggestions) {
           await profileSuggestionsService.createSuggestion({
-            accountId: this.config.account_id,
+            userId: this.config.user_id,
             suggestionType: 'contact_add',
             suggestedData: contactSuggestion,
             confidenceScore: decision.confidence,
@@ -1432,7 +1432,7 @@ export class EmailEmbeddingProcessor {
 
         // Since we can't determine fuzzy matching without a clear name, default to contact
         await profileSuggestionsService.createSuggestion({
-          accountId: this.config.account_id,
+          userId: this.config.user_id,
           suggestionType: 'contact_add',
           suggestedData: {
             extracted_info: decision.original_text,

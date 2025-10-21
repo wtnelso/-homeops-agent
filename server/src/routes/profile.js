@@ -18,7 +18,7 @@ const supabase = createClient(
 );
 
 // Get account profile
-router.post('/get', validateJWT, async (req, res) => {
+router.post('/get-profile', validateJWT, async (req, res) => {
   try {
     console.log('📋 Profile API: Get request');
 
@@ -181,38 +181,98 @@ router.get('/stats', validateJWT, async (req, res) => {
   }
 });
 
-// Complete user onboarding
-router.post('/complete-onboarding', validateJWT, async (req, res) => {
+// Get email processing status
+router.get('/status/:user_id', validateJWT, async (req, res) => {
   try {
-    console.log('🎉 Profile API: Complete onboarding request');
+    const { user_id } = req.params;
 
-    const { account_id } = req.body;
+    const { data, error } = await supabase
+      .from('users')
+      .select('email_processing_status, email_processing_job_id')
+      .eq('id', user_id)
+      .single();
 
-    if (!account_id) {
-      return res.status(400).json({
-        success: false,
-        error: 'Account ID required'
-      });
+    if (error) {
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
-
-    // For now, just log the completion
-    // In a full implementation, you might update a user status in Supabase
-    // or perform additional setup tasks
-    console.log(`✅ User onboarding completed for account: ${account_id}`);
-    console.log(`📅 Completed at: ${new Date().toISOString()}`);
 
     res.json({
       success: true,
-      message: 'Onboarding completed successfully',
-      timestamp: new Date().toISOString()
+      status: data?.email_processing_status || 'not_started',
+      job_id: data?.email_processing_job_id
     });
 
   } catch (error) {
-    console.error('Complete onboarding API error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
+    console.error('Status check error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// Complete user onboarding
+router.post('/complete-onboarding', validateJWT, async (req, res) => {
+  try {
+    const { account_id } = req.body;
+    if (!account_id) {
+      return res.status(400).json({ success: false, error: 'Account ID required' });
+    }
+
+    const completedAt = new Date().toISOString();
+    console.log(`✅ Onboarding completed for account: ${account_id}`);
+
+    // Update user completion status
+    await supabase
+      .from('users')
+      .update({
+        onboarding_completed_at: completedAt,
+        email_processing_status: 'starting'
+      })
+      .eq('id', account_id);
+
+    // Start email processing (fire and forget)
+    fetch(`http://localhost:${process.env.PORT || 10000}/api/embeddings/process`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': req.headers.authorization
+      },
+      body: JSON.stringify({
+        account_id,
+        batch_type: 'onboarding',
+        processing_options: { email_limit: 1000 }
+      })
+    }).then(async (embeddingsResponse) => {
+      if (embeddingsResponse.ok) {
+        const result = await embeddingsResponse.json();
+        if (result.job_id) {
+          // Store job ID for frontend polling
+          await supabase
+            .from('users')
+            .update({
+              email_processing_job_id: result.job_id,
+              email_processing_status: 'processing'
+            })
+            .eq('id', account_id);
+        }
+      } else {
+        // Mark as failed if job couldn't start
+        await supabase
+          .from('users')
+          .update({ email_processing_status: 'failed' })
+          .eq('id', account_id);
+      }
+    }).catch(() => {
+      // Silently handle errors - user can still use the app
     });
+
+    res.json({
+      success: true,
+      message: 'Onboarding completed',
+      timestamp: completedAt
+    });
+
+  } catch (error) {
+    console.error('Complete onboarding error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
