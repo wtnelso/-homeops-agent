@@ -5,8 +5,6 @@
  * Architecture: Gmail → forward → SMTP server → Redis queue → workers
  */
 
-import { SMTPServer } from 'smtp-server';
-import { simpleParser } from 'mailparser';
 import { createClient } from '@supabase/supabase-js';
 // Removed Redis dependencies - using direct processing only
 import crypto from 'crypto';
@@ -51,132 +49,7 @@ async function extractUserIdFromAddress(recipientAddress) {
   }
 }
 
-/**
- * SMTP Server Configuration
- */
-export const smtpServer = new SMTPServer({
-  secure: false,
-  authOptional: true,
-  allowInsecureAuth: true,
-  disabledCommands: ['AUTH'],
-  maxClients: 10, // Limit concurrent connections
-  useXClient: false,
-  useXForward: false,
-  banner: 'HomeOps SMTP Server Ready',
-
-  onData(stream, session, callback) {
-    const remoteAddr = session.remoteAddress || session.clientHostname || 'unknown';
-    const mailFrom = session.envelope?.mailFrom?.address || 'unknown';
-    console.log(`📧 SMTP: Receiving email from ${mailFrom} (remote: ${remoteAddr})`);
-
-    // Add timeout protection
-    const timeout = setTimeout(() => {
-      console.error('📧 SMTP: Email parsing timeout');
-      callback(new Error('Email parsing timeout'));
-    }, 30000); // 30 second timeout
-
-    simpleParser(stream)
-      .then(async (parsed) => {
-        clearTimeout(timeout);
-
-        const { from, to, subject, text, html, messageId, date } = parsed;
-
-        // Validate parsed email
-        if (!from && !to) {
-          console.warn('📧 SMTP: Received email with no from/to addresses');
-          callback();
-          return;
-        }
-
-        // Handle multiple recipients (to, cc, bcc)
-        const recipients = [
-          ...(to?.value || []),
-          ...(parsed.cc?.value || []),
-          ...(parsed.bcc?.value || [])
-        ];
-
-        if (recipients.length === 0) {
-          console.warn('📧 SMTP: No valid recipients found in email');
-          callback();
-          return;
-        }
-
-        for (const recipient of recipients) {
-          if (!recipient?.address) {
-            console.warn('📧 SMTP: Skipping invalid recipient:', recipient);
-            continue;
-          }
-
-          const recipientAddress = recipient.address;
-          const userId = await extractUserIdFromAddress(recipientAddress);
-
-          if (!userId) {
-            console.warn(`⚠️ Unable to extract user ID from ${recipientAddress}`);
-            continue;
-          }
-
-          console.log(`📩 Processing email directly for user ${userId}: ${subject || '(no subject)'}`);
-
-          // Create email data with better session info
-          const emailData = {
-            userId,
-            recipientAddress,
-            from: from?.text || from?.address || 'unknown',
-            subject: subject || '(no subject)',
-            text: text || '',
-            html: html || '',
-            messageId: messageId || `${Date.now()}-${Math.random()}`,
-            receivedAt: new Date().toISOString(),
-            originalDate: date ? date.toISOString() : null,
-            sessionInfo: {
-              remoteAddress: session.remoteAddress || 'unknown',
-              clientHostname: session.clientHostname || 'unknown',
-              hostNameAppearsAs: session.hostNameAppearsAs || 'unknown',
-              envelope: {
-                mailFrom: session.envelope?.mailFrom?.address || 'unknown',
-                rcptTo: session.envelope?.rcptTo?.map(r => r.address) || []
-              }
-            }
-          };
-
-          try {
-            // SMTP processing disabled - use HTTP route instead
-            console.log(`📧 SMTP email received: ${subject || '(no subject)'} (use HTTP route for processing)`);
-          } catch (error) {
-            console.error('❌ Failed to queue email for processing:', error);
-          }
-        }
-
-        callback();
-      })
-      .catch((error) => {
-        clearTimeout(timeout);
-        console.error('📧 SMTP: Email parsing error:', error);
-        callback(error);
-      });
-  },
-
-  onAuth(auth, session, callback) {
-    // No authentication required for inbound mail
-    callback(null, { user: 'anonymous' });
-  },
-
-  onConnect(session, callback) {
-    const remoteAddr = session.remoteAddress || session.clientHostname || 'unknown';
-    console.log(`📧 SMTP: Connection from ${remoteAddr} (hostname: ${session.hostNameAppearsAs || 'unknown'})`);
-    callback();
-  },
-
-  onClose(session) {
-    const remoteAddr = session.remoteAddress || session.clientHostname || 'unknown';
-    const hostname = session.hostNameAppearsAs || 'unknown';
-    console.log(`📧 SMTP: Connection closed from ${remoteAddr} (hostname: ${hostname})`);
-  },
-
-  onError(err) {
-    console.error('📧 SMTP: Server error:', err);
-  }
-});
+// SMTP Server removed - using SendGrid webhook instead
 
 /**
  * Process email directly (temporary function to test comprehensive AI analysis)
@@ -580,23 +453,7 @@ export const analysisWorker = new Worker('inbound-emails', async (job) => {
 });
 */
 
-/**
- * Start SMTP Server
- */
-export function startSMTPServer(port = process.env.SMTP_PORT || 2525) {
-  return new Promise((resolve, reject) => {
-    smtpServer.listen(port, (err) => {
-      if (err) {
-        console.error('❌ Failed to start SMTP server:', err);
-        reject(err);
-      } else {
-        console.log(`📧 SMTP server listening on port ${port}`);
-        console.log(`📬 Ready to receive emails at *@inbound.homeops.ai`);
-        resolve(smtpServer);
-      }
-    });
-  });
-}
+// SMTP server functions removed - using SendGrid webhook
 
 /**
  * Get queue statistics (disabled)
@@ -651,8 +508,6 @@ analysisWorker.on('error', (err) => {
 */
 
 export default {
-  startSMTPServer,
   generateInboundAddress,
-  getQueueStats,
-  smtpServer
+  getQueueStats
 };

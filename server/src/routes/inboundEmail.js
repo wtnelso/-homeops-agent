@@ -99,7 +99,7 @@ router.post('/', async (req, res) => {
       subject: emailData.subject,
       text_content: emailData.text,
       html_content: emailData.html,
-      message_id: emailData.messageId,
+      message_id: emailData.messageId || `inbound_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       received_at: receivedAt,
       original_date: emailData.date,
       processing_status: 'received',

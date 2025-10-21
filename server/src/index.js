@@ -145,14 +145,8 @@ app.listen(SERVER_CONFIG.PORT, '0.0.0.0', async () => {
     console.error('❌ Failed to start memory management services:', error);
   }
 
-  // Start SMTP server for email forwarding
-  try {
-    const { startSMTPServer } = await import('./services/inboundEmailService.js');
-    await startSMTPServer();
-    console.log('📧 SMTP server started for live email processing');
-  } catch (error) {
-    console.error('❌ Failed to start SMTP server:', error);
-  }
+  // Email processing via SendGrid webhook to /inbound-email route
+  console.log('📧 Email processing via SendGrid webhook enabled');
 });
 
 // Graceful shutdown
