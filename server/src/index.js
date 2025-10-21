@@ -147,9 +147,9 @@ app.listen(SERVER_CONFIG.PORT, '0.0.0.0', async () => {
 
   // Start SMTP server for email forwarding
   try {
-    // const { startSMTPServer } = await import('./services/inboundEmailService.js');
-    // await startSMTPServer();
-    console.log('📧 SMTP server disabled for debugging');
+    const { startSMTPServer } = await import('./services/inboundEmailService.js');
+    await startSMTPServer();
+    console.log('📧 SMTP server started for live email processing');
   } catch (error) {
     console.error('❌ Failed to start SMTP server:', error);
   }
