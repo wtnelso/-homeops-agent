@@ -107,6 +107,9 @@ export interface UserSessionData {
     agent_name: string | null;
     account_name: string | null;
     timezone: string | null;
+    onboarding_completed_at: string | null;
+    email_processing_status: string;
+    email_processing_job_id: string | null;
   };
   family: Family | null;
   integrations: UserIntegration[];
@@ -202,6 +205,9 @@ export class UserSessionService {
           agent_name: userData.agent_name,
           account_name: userData.account_name,
           timezone: userData.timezone,
+          onboarding_completed_at: userData.onboarding_completed_at,
+          email_processing_status: userData.email_processing_status || 'not_started',
+          email_processing_job_id: userData.email_processing_job_id,
         },
         family: familyData,
         integrations: integrationsData || []

@@ -142,7 +142,8 @@ const IntegrationsSection: React.FC = () => {
               image_url: integration.image_url,
               category: integration.category,
               required_scopes: integration.required_scopes,
-              isConnected: integration.isConnected
+              isConnected: integration.isConnected,
+              config: integration.config
             };
 
             return (

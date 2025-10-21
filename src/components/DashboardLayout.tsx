@@ -164,15 +164,23 @@ const DashboardLayout: React.FC = () => {
   // Check if current user is in demo mode
   const isCurrentlyInDemo = isDemoMode(userData?.user?.email);
 
-  // Auto-launch onboarding for demo users on first visit
+  // Auto-launch onboarding for new users
   useEffect(() => {
+    // Demo users use demo service logic
     if (isCurrentlyInDemo && demoChatService.shouldLaunchOnboarding()) {
-      // Small delay to ensure UI is ready
+      setTimeout(() => {
+        setOnboardingModalOpen(true);
+      }, 500);
+      return;
+    }
+
+    // Regular users check if onboarding is completed
+    if (userData?.user?.onboarding_completed_at === null) {
       setTimeout(() => {
         setOnboardingModalOpen(true);
       }, 500);
     }
-  }, [isCurrentlyInDemo]);
+  }, [isCurrentlyInDemo, userData?.user?.onboarding_completed_at]);
 
   const currentPage = getCurrentPage();
 

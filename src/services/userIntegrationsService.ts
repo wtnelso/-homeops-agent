@@ -2,6 +2,7 @@
 // Handles user-level integration management with upsert logic (family architecture)
 
 import { supabase } from '../lib/supabase';
+import { GmailForwardingService } from './gmailForwardingService';
 
 export interface UserIntegration {
   id: string;
@@ -50,7 +51,7 @@ export class UserIntegrationsService {
    */
   static async getIntegrationsForUser(userId: string): Promise<IntegrationWithUserStatus[]> {
     try {
-      // Get all available integrations
+      // Get all available integrations (only show those with status 'available')
       const { data: availableIntegrations, error: integrationsError } = await supabase
         .from('integrations')
         .select(`
@@ -66,6 +67,7 @@ export class UserIntegrationsService {
           sort_order,
           required_scopes
         `)
+        .eq('status', 'available')
         .order('sort_order');
 
       if (integrationsError) throw integrationsError;
@@ -115,6 +117,14 @@ export class UserIntegrationsService {
     config?: Record<string, any>;
   }): Promise<{ success: boolean; integration?: UserIntegration; error?: string }> {
     try {
+      // Special handling for gmail-forwarding - use dedicated service
+      if (params.integrationId === 'gmail-forwarding') {
+        return await GmailForwardingService.installGmailForwarding({
+          userId: params.userId,
+          installedByUserId: params.installedByUserId
+        });
+      }
+
       const upsertData = {
         user_id: params.userId,
         integration_id: params.integrationId,

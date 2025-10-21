@@ -28,6 +28,8 @@ export interface IntegrationWithStatus extends AvailableIntegration {
   lastError: string | null;
   installedByUserId: string | null;
   accountIntegrationId?: string;
+  // Config data from user_integrations (includes email_address for gmail-forwarding)
+  config?: Record<string, any> | null;
 }
 
 export class IntegrationsDataService {
@@ -73,12 +75,13 @@ export class IntegrationsDataService {
       how_it_works: integration.how_it_works,
       required_scopes: integration.required_scopes,
       isConnected: integration.isConnected, // Already simplified in AccountIntegrationsService
-      connectedAt: integration.account_integration?.connected_at || null,
-      lastSyncAt: integration.account_integration?.last_sync_at || null,
-      totalSyncs: integration.account_integration?.total_syncs || 0,
-      lastError: integration.account_integration?.last_error || null,
-      installedByUserId: integration.account_integration?.installed_by_user_id || null,
-      accountIntegrationId: integration.account_integration?.id
+      connectedAt: integration.user_integration?.connected_at || null,
+      lastSyncAt: integration.user_integration?.last_sync_at || null,
+      totalSyncs: integration.user_integration?.total_syncs || 0,
+      lastError: integration.user_integration?.last_error || null,
+      installedByUserId: integration.user_integration?.installed_by_user_id || null,
+      accountIntegrationId: integration.user_integration?.id,
+      config: integration.user_integration?.config || null
     }));
   }
 

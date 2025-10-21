@@ -5,6 +5,7 @@ import { DataUpdateService } from '../../../services/dataUpdate';
 import { HOUSEHOLD_TYPES } from '../../../config/constants';
 import TimezoneSelect from '../../ui/TimezoneSelect';
 import { useUserDataForm, getAccountFormData, defaultAccountFormData } from '../../../hooks/useUserDataForm';
+import EmailProcessingStatusCard from './EmailProcessingStatusCard';
 
 const AccountSection: React.FC = () => {
   const { userData, refreshUserData } = useAuth();
@@ -176,6 +177,8 @@ const AccountSection: React.FC = () => {
             </div>
           </div>
 
+          {/* Email Processing Status */}
+          <EmailProcessingStatusCard />
 
           {/* Save Button */}
           <div className="mt-6 flex justify-end">
