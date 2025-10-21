@@ -131,7 +131,7 @@ app.listen(SERVER_CONFIG.PORT, '0.0.0.0', async () => {
   console.log(`🔗 Health check: http://localhost:${SERVER_CONFIG.PORT}/health`);
   console.log(`🌐 CORS origins:`, SERVER_CONFIG.CORS.ALLOWED_ORIGINS);
 
-  // Initialize server services (Redis queues, etc.)
+  // Initialize server services (in-memory queues only)
   try {
     await initializeServer();
   } catch (error) {

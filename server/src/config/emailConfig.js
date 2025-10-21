@@ -254,16 +254,10 @@ Requirements:
 
   // ===== QUEUE PROCESSING CONFIGURATION =====
 
-  // BullMQ Queue Configuration (simple hybrid approach)
+  // Queue Processing Configuration (Redis disabled)
   queueProcessing: {
-    // Redis connection settings
-    redis: {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: process.env.REDIS_PORT || 6379,
-      password: process.env.REDIS_PASSWORD,
-      db: process.env.REDIS_DB || 0,
-      maxRetriesPerRequest: null
-    },
+    // Redis connection settings (disabled)
+    redis: null,
 
     // Queue settings
     queue: {

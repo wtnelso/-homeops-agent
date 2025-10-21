@@ -50,7 +50,7 @@ import { AgentMemoryService } from './agentMemoryService.js';
 import { userProfileService } from './userProfileService.js';
 import { EmailRoutingEngine } from '../config/emailRoutingConfig.js';
 import { profileSuggestionsService } from './profileSuggestionsService.js';
-import { RedisProfileCache } from './redisProfileCache.js';
+// Redis cache disabled - using direct DB queries only
 import { enhancedMapPreferenceType } from '../utils/preferenceTypeMapper.js';
 import { parseActivitySchedule, convertBirthdayToMonthDay, normalizeGradeText, generateActivityExpiration } from '../utils/scheduleParser.js';
 import { detectFrequency } from '../config/frequencies.js';
@@ -422,13 +422,7 @@ export class EmailEmbeddingProcessor {
         return null;
       }
 
-      // Check Redis cache first
-      const cachedContext = await RedisProfileCache.getCachedProfileContext(this.config.user_id);
-      if (cachedContext) {
-        return cachedContext;
-      }
-
-      // Cache miss - fetch from database
+      // Redis cache disabled - fetch from database directly
       const profileResult = await userProfileService.getProfile(this.config.user_id, this.config.family_id);
 
       if (!profileResult.success || !profileResult.profile) {
@@ -541,9 +535,7 @@ export class EmailEmbeddingProcessor {
         context.contacts = profile.contacts.important_contacts.map(contact => contact.name).filter(Boolean);
       }
 
-      // Cache the context for future requests (async, don't wait)
-      RedisProfileCache.cacheProfileContext(this.config.user_id, context)
-        .catch(err => console.warn('⚠️  Failed to cache profile context:', err.message));
+      // Redis cache disabled - no caching
 
       return context;
     } catch (error) {

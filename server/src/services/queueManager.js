@@ -13,6 +13,34 @@ export class QueueManager {
   static initialized = false;
 
   /**
+   * Initialize in-memory only queue system (Redis disabled)
+   */
+  static async initializeInMemoryOnly() {
+    if (this.initialized) {
+      return {
+        success: true,
+        queueType: 'in-memory',
+        redisAvailable: false,
+        usingFallback: true
+      };
+    }
+
+    console.log('🚀 Initializing in-memory only queue system...');
+
+    this.isRedisAvailable = false;
+    this.initialized = true;
+
+    console.log('✅ Using in-memory queue system (Redis disabled)');
+
+    return {
+      success: true,
+      queueType: 'in-memory',
+      redisAvailable: false,
+      usingFallback: true
+    };
+  }
+
+  /**
    * Initialize the queue system (called on server startup)
    */
   static async initialize() {
@@ -21,6 +49,20 @@ export class QueueManager {
     }
 
     console.log('🚀 Initializing queue system...');
+
+    // Check if Redis is disabled via environment variable
+    if (process.env.DISABLE_REDIS === 'true') {
+      console.log('⚠️  Redis disabled via DISABLE_REDIS environment variable');
+      this.isRedisAvailable = false;
+      this.initialized = true;
+
+      return {
+        success: true,
+        queueType: 'in-memory',
+        redisAvailable: false,
+        usingFallback: true
+      };
+    }
 
     try {
       // Try to initialize Redis queues

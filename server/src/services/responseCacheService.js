@@ -42,6 +42,10 @@ class ResponseCacheService {
    */
   async initializeRedis() {
     try {
+      // Redis disabled - using in-memory cache only
+      console.log('⚠️  Redis disabled - using in-memory cache fallback');
+      return;
+
       // Only try to connect if Redis URL is provided
       if (process.env.REDIS_URL || process.env.REDIS_CONNECTION_STRING) {
         const { createClient } = await import('redis');

@@ -7,7 +7,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { EmailConfig } from '../config/emailConfig.js';
-import { RedisQueueService } from './redisQueueService.js';
+// import { RedisQueueService } from './redisQueueService.js'; // Redis disabled
+import { globalScalableQueue } from './scalableJobQueue.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const supabase = createClient(
@@ -73,10 +74,12 @@ export class OnboardingService {
 
       console.log(`✅ Created onboarding job ${job_id} for account ${account_id}`);
 
-      // Add to Redis queue (with fallback to in-memory)
-      const queueResult = await RedisQueueService.addOnboardingJob({
+      // Add to in-memory queue (Redis disabled)
+      const queueResult = await globalScalableQueue.addJob({
         ...jobData,
-        email_count: jobConfig.maxEmails
+        email_count: jobConfig.maxEmails,
+        queueType: 'initial_load',
+        priority: 'high'
       });
 
       // Update user's account to show onboarding in progress

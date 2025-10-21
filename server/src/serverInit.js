@@ -15,36 +15,21 @@ export async function initializeServer() {
   console.log('🚀 Starting server initialization...');
 
   try {
-    // Initialize queue system (Redis or fallback)
-    console.log('📋 Initializing queue system...');
-    const queueResult = await QueueManager.initialize();
+    // Force in-memory queue system (Redis disabled)
+    console.log('📋 Initializing in-memory queue system...');
+    const queueResult = await QueueManager.initializeInMemoryOnly();
 
     console.log(`✅ Queue system initialized: ${queueResult.queueType}`);
 
-    // Initialize Redis profile cache
-    console.log('💾 Initializing Redis profile cache...');
-    const cacheResult = await RedisProfileCache.initialize();
+    // Skip Redis profile cache initialization
+    console.log('💾 Redis profile cache disabled - using direct DB queries');
+    const cacheResult = { cacheEnabled: false };
 
-    if (cacheResult.cacheEnabled) {
-      console.log('✅ Redis profile cache enabled');
-    } else {
-      console.log('⚠️  Redis profile cache disabled - using direct DB queries');
-    }
-
-    if (queueResult.redisAvailable) {
-      console.log('🎯 Redis features enabled:');
-      console.log('   ✅ Job persistence (survive restarts)');
-      console.log('   ✅ Automatic retry with exponential backoff');
-      console.log('   ✅ Built-in cron scheduling (2:00 AM daily)');
-      console.log('   ✅ Priority queue management');
-      console.log('   ✅ Horizontal scaling ready');
-    } else {
-      console.log('⚠️  In-memory queue features:');
-      console.log('   ❌ Jobs lost on restart');
-      console.log('   ❌ Manual cron job management needed');
-      console.log('   ✅ Basic priority queuing');
-      console.log('   💡 Deploy Redis for production features');
-    }
+    console.log('⚠️  In-memory queue features:');
+    console.log('   ❌ Jobs lost on restart');
+    console.log('   ❌ Manual cron job management needed');
+    console.log('   ✅ Basic priority queuing');
+    console.log('   💡 Redis disabled to avoid connection issues');
 
     // Setup graceful shutdown
     setupGracefulShutdown();
@@ -75,8 +60,7 @@ function setupGracefulShutdown() {
       // Close queue system
       await QueueManager.shutdown();
 
-      // Close Redis cache
-      await RedisProfileCache.shutdown();
+      // Skip Redis cache shutdown (disabled)
 
       // Close other services (database connections, etc.)
       console.log('✅ Graceful shutdown complete');

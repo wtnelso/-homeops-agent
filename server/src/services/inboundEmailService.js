@@ -410,23 +410,8 @@ export const emailWorker = new Worker('inbound-emails', async (job) => {
 
     console.log(`✅ Email stored with ID: ${emailRecord.id}`);
 
-    // Queue for comprehensive AI analysis if enabled
-    if (emailData.text?.length > 10) {
-      await emailQueue.add('analyze-email', {
-        emailId: emailRecord.id,
-        userId: emailData.userId,
-        subject: emailData.subject,
-        text: emailData.text,
-        html: emailData.html || '',
-        from: emailData.from,
-        receivedAt: emailData.receivedAt,
-        originalDate: emailData.originalDate,
-        messageId: emailData.messageId
-      }, {
-        delay: 1000, // Small delay to ensure email is committed
-        attempts: 2
-      });
-    }
+    // Queue disabled - processing via HTTP route only
+    console.log(`📧 Email stored, processing disabled in SMTP (use HTTP route)`);
 
     return { success: true, emailId: emailRecord.id };
 
@@ -569,23 +554,19 @@ export function startSMTPServer(port = process.env.SMTP_PORT || 2525) {
 }
 
 /**
- * Get queue statistics
+ * Get queue statistics (disabled)
  */
 export async function getQueueStats() {
-  const waiting = await emailQueue.getWaiting();
-  const active = await emailQueue.getActive();
-  const completed = await emailQueue.getCompleted();
-  const failed = await emailQueue.getFailed();
-
   return {
-    waiting: waiting.length,
-    active: active.length,
-    completed: completed.length,
-    failed: failed.length,
+    waiting: 0,
+    active: 0,
+    completed: 0,
+    failed: 0,
     workers: {
-      emailWorker: false, // emailWorker.isRunning(),
-      analysisWorker: false // analysisWorker.isRunning()
-    }
+      emailWorker: false,
+      analysisWorker: false
+    },
+    note: 'Queue disabled - using HTTP route processing'
   };
 }
 

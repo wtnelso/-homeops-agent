@@ -14,6 +14,12 @@ export class RedisProfileCache {
    */
   static async initialize() {
     try {
+      // Check if Redis is disabled via environment variable
+      if (process.env.DISABLE_REDIS === 'true') {
+        console.log('⚠️  Redis disabled via DISABLE_REDIS environment variable');
+        return { success: true, cacheEnabled: false };
+      }
+
       // Check if Redis is available first
       if (!process.env.REDIS_HOST && !process.env.REDIS_URL) {
         console.log('⚠️  Redis not configured, profile caching disabled');
