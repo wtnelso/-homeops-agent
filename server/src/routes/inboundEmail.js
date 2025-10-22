@@ -136,7 +136,7 @@ async function forwardVerificationEmail(userId, emailData, forwardingAddress) {
     subject: emailData.subject,
     text_content: emailData.text,
     html_content: emailData.html,
-    message_id: emailData.messageId || `gmail_verification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    message_id: emailData.messageId || `gmail_verification_${Date.now()}_${crypto.randomUUID()}`,
     received_at: receivedAt,
     original_date: emailData.date,
     processing_status: 'received',
@@ -228,6 +228,13 @@ router.post('/', upload.none(), async (req, res) => {
       messageId: parsedEmail.messageId,
       date: parsedEmail.date.toISOString()
     };
+
+    console.log('🔍 Message ID details:', {
+      messageId: parsedEmail.messageId,
+      messageIdType: typeof parsedEmail.messageId,
+      messageIdLength: parsedEmail.messageId?.length,
+      willUseFallback: !parsedEmail.messageId
+    });
     console.log('🔍 Extracted emailData:', JSON.stringify(emailData, null, 2));
 
     // Validate required fields
@@ -310,7 +317,7 @@ router.post('/', upload.none(), async (req, res) => {
       subject: emailData.subject,
       text_content: emailData.text,
       html_content: emailData.html,
-      message_id: emailData.messageId || `inbound_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      message_id: emailData.messageId || `inbound_${Date.now()}_${crypto.randomUUID()}`,
       received_at: receivedAt,
       original_date: emailData.date,
       processing_status: 'received',
