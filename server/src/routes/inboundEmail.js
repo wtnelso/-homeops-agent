@@ -62,6 +62,43 @@ function isGmailVerificationEmail(emailData) {
 }
 
 /**
+ * Parse email from field to separate name and address
+ * Examples:
+ * - "Charleston City Paper" <newsletter@charlestoncitypaper.com> -> {name: "Charleston City Paper", address: "newsletter@charlestoncitypaper.com"}
+ * - newsletter@charlestoncitypaper.com -> {name: null, address: "newsletter@charlestoncitypaper.com"}
+ * - Kenny Flowers <holla@kennyflowers.com> -> {name: "Kenny Flowers", address: "holla@kennyflowers.com"}
+ */
+function parseFromField(fromText) {
+  if (!fromText) {
+    return { name: null, address: null };
+  }
+
+  // Check if it's in the format "Name" <email@domain.com>
+  const nameEmailMatch = fromText.match(/^"?([^"<]+?)"?\s*<([^>]+)>$/);
+  if (nameEmailMatch) {
+    return {
+      name: nameEmailMatch[1].trim(),
+      address: nameEmailMatch[2].trim()
+    };
+  }
+
+  // Check if it's just an email address
+  const emailOnlyMatch = fromText.match(/^([^<>\s]+@[^<>\s]+)$/);
+  if (emailOnlyMatch) {
+    return {
+      name: null,
+      address: emailOnlyMatch[1].trim()
+    };
+  }
+
+  // Fallback: treat the whole thing as the address
+  return {
+    name: null,
+    address: fromText.trim()
+  };
+}
+
+/**
  * Create simple HomeOps wrapper around original Gmail verification content
  */
 function createVerificationEmailTemplate(originalHtml, originalText, forwardingAddress) {
@@ -129,10 +166,15 @@ async function forwardVerificationEmail(userId, emailData, forwardingAddress) {
 
   // Save Gmail verification email to database first
   const receivedAt = emailData.date || new Date().toISOString();
+
+  // Parse the from field for Gmail verification too
+  const fromParsed = parseFromField(emailData.from);
+
   const emailInsertData = {
     user_id: userId,
     recipient_address: emailData.to,
-    from_address: emailData.from,
+    from_name: fromParsed.name,
+    from_address: fromParsed.address,
     subject: emailData.subject,
     text_content: emailData.text,
     html_content: emailData.html,
@@ -219,8 +261,13 @@ router.post('/', upload.none(), async (req, res) => {
     console.log('🔍 Parsed email HTML:', parsedEmail.html);
     console.log('🔍 Parsed email text:', parsedEmail.text?.substring(0, 200) + '...');
 
+    // Parse the from field to separate name and address
+    const fromParsed = parseFromField(parsedEmail.from.text);
+
     const emailData = {
-      from: parsedEmail.from.text,
+      from: parsedEmail.from.text, // Keep original for compatibility
+      fromName: fromParsed.name,
+      fromAddress: fromParsed.address,
       to: parsedEmail.to.text,
       subject: parsedEmail.subject,
       text: parsedEmail.text,
@@ -235,6 +282,12 @@ router.post('/', upload.none(), async (req, res) => {
       messageIdLength: parsedEmail.messageId?.length,
       willUseFallback: !parsedEmail.messageId
     });
+
+    console.log('🔍 From field parsing:', {
+      original: parsedEmail.from.text,
+      parsed: fromParsed
+    });
+
     console.log('🔍 Extracted emailData:', JSON.stringify(emailData, null, 2));
 
     // Validate required fields
@@ -313,7 +366,8 @@ router.post('/', upload.none(), async (req, res) => {
     const emailInsertData = {
       user_id: userId,
       recipient_address: emailData.to,
-      from_address: emailData.from,
+      from_name: emailData.fromName,
+      from_address: emailData.fromAddress,
       subject: emailData.subject,
       text_content: emailData.text,
       html_content: emailData.html,
