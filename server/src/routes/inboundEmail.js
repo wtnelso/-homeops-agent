@@ -46,7 +46,9 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     console.log('📧 Received inbound email request');
+    console.log('🔍 Request headers:', JSON.stringify(req.headers, null, 2));
     console.log('🔍 Raw request body:', JSON.stringify(req.body, null, 2));
+    console.log('🔍 Request body keys:', Object.keys(req.body || {}));
 
     // Extract email data from SendGrid webhook format
     const emailData = {
