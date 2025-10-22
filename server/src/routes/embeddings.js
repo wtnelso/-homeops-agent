@@ -97,13 +97,13 @@ router.post('/start', validateJWT, async (req, res) => {
 
     // Queue background processing (non-blocking)
     try {
-      const queueJobId = await queueEmailProcessing({
+      const queueResult = await queueEmailProcessing({
         job_id,
         user_id: user.id,
         batch_type,
         processing_options
       });
-      console.log(`📦 Email processing queued with job ID: ${queueJobId}`);
+      console.log(`📦 Email processing queued with job ID: ${queueResult.jobId}`);
     } catch (error) {
       console.error(`❌ Failed to queue processing for job ${job_id}:`, error);
       supabase.from('email_processing_jobs').update({

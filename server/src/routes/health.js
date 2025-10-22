@@ -26,18 +26,31 @@ router.get('/', (req, res) => {
 // Detailed readiness check
 router.get('/ready', async (req, res) => {
   try {
-    // Check database connection
-    // TODO: Add actual database connectivity check
     const checks = {
       server: 'healthy',
       database: 'checking...',
+      redis: 'checking...',
       openai: 'checking...',
       dependencies: 'healthy'
     };
 
-    // For now, return basic readiness
-    res.status(200).json({
-      status: 'ready',
+    // Check Redis connection
+    try {
+      const { default: Redis } = await import('ioredis');
+      const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+      await redis.ping();
+      await redis.quit();
+      checks.redis = 'healthy';
+    } catch (error) {
+      checks.redis = `error: ${error.message}`;
+    }
+
+    // Determine overall status
+    const hasErrors = Object.values(checks).some(status => status.startsWith('error'));
+    const allReady = !hasErrors && !Object.values(checks).includes('checking...');
+
+    res.status(allReady ? 200 : 503).json({
+      status: allReady ? 'ready' : 'not_ready',
       checks,
       timestamp: new Date().toISOString()
     });
