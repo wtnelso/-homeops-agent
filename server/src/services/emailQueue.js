@@ -3,9 +3,13 @@
  * Handles email processing with basic rate limit retries
  */
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 import Redis from 'ioredis';
 
 // Redis client setup
+console.log('🔍 Redis URL check:', process.env.REDIS_URL ? 'Found' : 'Missing');
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 redis.on('connect', () => {
