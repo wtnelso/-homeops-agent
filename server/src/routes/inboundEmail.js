@@ -62,10 +62,58 @@ function isGmailVerificationEmail(emailData) {
 }
 
 /**
- * Forward Gmail verification email to user with original HTML content
+ * Create simple HomeOps wrapper around original Gmail verification content
+ */
+function createVerificationEmailTemplate(originalHtml, originalText) {
+  const wrappedHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Forwarding Verification - HomeOps</title>
+</head>
+<body style="margin: 0; padding: 20px; font-family: arial, sans-serif; background-color: #ffffff;">
+    <!-- HomeOps Introduction -->
+    <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #6366f1;">
+        <p style="margin: 0; color: #374151; font-size: 16px;">
+            To complete HomeOps email forwarding, here&rsquo;s the email from Google to verify forwarding:
+        </p>
+    </div>
+
+    <!-- Original Gmail Verification Content (Preserved Exactly) -->
+    <div style="margin: 20px 0;">
+        ${originalHtml}
+    </div>
+
+    <!-- HomeOps Closing -->
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <p style="margin: 0; color: #374151; font-size: 16px;">
+            Cheers,<br>
+            The HomeOps Team
+        </p>
+    </div>
+</body>
+</html>`;
+
+  const wrappedText = `
+To complete HomeOps email forwarding, here's the email from Google to verify forwarding:
+
+--- Gmail Verification ---
+${originalText}
+
+Cheers,
+The HomeOps Team
+`;
+
+  return { html: wrappedHtml, text: wrappedText };
+}
+
+/**
+ * Forward Gmail verification email to user with HomeOps-branded wrapper
  */
 async function forwardVerificationEmail(userId, emailData) {
-  console.log('📧 Forwarding Gmail verification email with original HTML');
+  console.log('📧 Forwarding Gmail verification email with HomeOps branding');
 
   if (!userId) {
     return { success: false, error: 'No user found for verification email' };
@@ -82,12 +130,45 @@ async function forwardVerificationEmail(userId, emailData) {
     return { success: false, error: 'User not found' };
   }
 
-  // Send email using SendGrid with original HTML content
+  // Save Gmail verification email to database first
+  const receivedAt = emailData.date || new Date().toISOString();
+  const emailInsertData = {
+    user_id: userId,
+    recipient_address: emailData.to,
+    from_address: emailData.from,
+    subject: emailData.subject,
+    text_content: emailData.text,
+    html_content: emailData.html,
+    message_id: emailData.messageId || `gmail_verification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    received_at: receivedAt,
+    original_date: emailData.date,
+    processing_status: 'gmail_verification_forwarded',
+    session_info: null
+  };
+
+  console.log(`📝 Storing Gmail verification email in database`);
+  const { data: emailRecord, error: emailError } = await supabase
+    .from('inbound_emails')
+    .insert(emailInsertData)
+    .select('id')
+    .single();
+
+  if (emailError) {
+    console.error('❌ Failed to store Gmail verification email:', emailError);
+    // Continue with forwarding even if database save fails
+  } else {
+    console.log(`✅ Gmail verification email stored with ID: ${emailRecord.id}`);
+  }
+
+  // Create branded template with original Gmail content
+  const emailTemplate = createVerificationEmailTemplate(emailData.html, emailData.text);
+
+  // Send email using SendGrid with HomeOps-branded template
   const emailResult = await sendEmail({
     to: user.email,
-    subject: emailData.subject,
-    html: emailData.html,  // Original Gmail verification HTML with clickable links
-    text: emailData.text   // Fallback text version
+    subject: `[HomeOps] ${emailData.subject}`,
+    html: emailTemplate.html,
+    text: emailTemplate.text
   });
 
   if (!emailResult.success) {
@@ -102,10 +183,12 @@ async function forwardVerificationEmail(userId, emailData) {
 
   return {
     success: true,
-    message: 'Gmail verification email forwarded with HTML',
+    message: 'Gmail verification email forwarded with HomeOps branding',
     forwardedTo: user.email,
     messageId: emailResult.messageId,
+    emailId: emailRecord?.id,
     preservedHTML: true,
+    brandedTemplate: true,
     skippedAI: true
   };
 }
