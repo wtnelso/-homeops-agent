@@ -73,26 +73,22 @@ function createVerificationEmailTemplate(originalHtml, originalText) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gmail Forwarding Verification - HomeOps</title>
 </head>
-<body style="margin: 0; padding: 20px; font-family: arial, sans-serif; background-color: #ffffff;">
+<body style="margin: 0; padding: 20px; font-family: arial, sans-serif; background-color: #ffffff; line-height: 1.5;">
     <!-- HomeOps Introduction -->
-    <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #6366f1;">
-        <p style="margin: 0; color: #374151; font-size: 16px;">
-            To complete HomeOps email forwarding, here&rsquo;s the email from Google to verify forwarding:
-        </p>
-    </div>
+    <p style="margin: 0 0 20px 0; color: #374151; font-size: 16px;">
+        To complete HomeOps email forwarding, here&rsquo;s the email from Google to verify forwarding:
+    </p>
 
-    <!-- Original Gmail Verification Content (Preserved Exactly) -->
-    <div style="margin: 20px 0;">
+    <!-- Original Gmail Verification Content (Indented) -->
+    <div style="margin: 20px 0 30px 30px; padding-left: 20px; border-left: 3px solid #dadce0; color: #5f6368;">
         ${originalHtml || (originalText ? originalText.replace(/\n/g, '<br>') : '')}
     </div>
 
     <!-- HomeOps Closing -->
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-        <p style="margin: 0; color: #374151; font-size: 16px;">
-            Cheers,<br>
-            The HomeOps Team
-        </p>
-    </div>
+    <p style="margin: 0; color: #374151; font-size: 16px;">
+        Cheers,<br>
+        The HomeOps Team
+    </p>
 </body>
 </html>`;
 
