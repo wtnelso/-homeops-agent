@@ -453,11 +453,15 @@ export async function processInboundEmailAI(emailData, emailId, userId) {
   try {
     console.log(`🚀 Starting AI processing with family context for email ${emailId}`);
 
-    // Step 1: Analyze the email with family context
-    const analysisResult = await analyzeInboundEmail(emailData, userId);
-
-    // Step 2: Generate embedding for semantic search
-    const embeddingResult = await generateEmailEmbedding(emailData);
+    // Steps 1 & 2: Run AI analysis and embedding generation in parallel
+    console.log(`⚡ Running AI analysis and embedding generation in parallel...`);
+    const parallelStartTime = Date.now();
+    const [analysisResult, embeddingResult] = await Promise.all([
+      analyzeInboundEmail(emailData, userId),
+      generateEmailEmbedding(emailData)
+    ]);
+    const parallelEndTime = Date.now();
+    console.log(`⚡ Parallel AI processing completed in ${parallelEndTime - parallelStartTime}ms`);
 
     // Step 3: Store the analysis results
     const storeResult = await storeSimpleAnalysis(emailId, analysisResult);
