@@ -25,6 +25,7 @@
     "@langchain/core": "^0.3.75",
     "@langchain/openai": "^0.6.11",
     "@neondatabase/serverless": "^1.0.1",
+    "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.57.4",
     "chrono-node": "^2.9.0",
     "cookie-parser": "^1.4.7",

@@ -8,6 +8,7 @@ import multer from 'multer';
 import { simpleParser } from 'mailparser';
 import { createClient } from '@supabase/supabase-js';
 import { userProfileService } from '../services/userProfileService.js';
+import { sendEmail } from '../services/emailService.js';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -16,27 +17,97 @@ const supabase = createClient(
 );
 
 /**
- * Extract user ID from inbound email address by matching against gmail-forwarding integrations
+ * Extract user ID from forwarding address (e.g., turnernelson1-659959@inbound.homeops.ai)
  */
-async function extractUserIdFromAddress(recipientAddress) {
+async function extractUserIdFromForwardingAddress(forwardingAddress) {
   try {
     const { data: integration, error } = await supabase
       .from('user_integrations')
       .select('user_id')
       .eq('integration_id', 'gmail-forwarding')
       .eq('status', 'connected')
-      .contains('config', { email_address: recipientAddress })
+      .contains('config', { email_address: forwardingAddress })
       .single();
 
-    if (error || !integration) {
-      return null;
-    }
-
-    return integration.user_id;
+    return integration?.user_id || null;
   } catch (error) {
-    console.error('❌ Error extracting user ID from address:', error);
+    console.error('❌ Error extracting user ID from forwarding address:', error);
     return null;
   }
+}
+
+/**
+ * Extract user ID from direct email address (e.g., turner.nelson1@gmail.com)
+ */
+async function extractUserIdFromDirectEmail(emailAddress) {
+  try {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', emailAddress)
+      .single();
+
+    return user?.id || null;
+  } catch (error) {
+    console.error('❌ Error extracting user ID from direct email:', error);
+    return null;
+  }
+}
+
+/**
+ * Check if email is a Gmail forwarding verification email
+ */
+function isGmailVerificationEmail(emailData) {
+  return emailData.from?.includes('forwarding-noreply@google.com');
+}
+
+/**
+ * Forward Gmail verification email to user with original HTML content
+ */
+async function forwardVerificationEmail(userId, emailData) {
+  console.log('📧 Forwarding Gmail verification email with original HTML');
+
+  if (!userId) {
+    return { success: false, error: 'No user found for verification email' };
+  }
+
+  // Get user's email address
+  const { data: user, error: userError } = await supabase
+    .from('users')
+    .select('email')
+    .eq('id', userId)
+    .single();
+
+  if (userError || !user) {
+    return { success: false, error: 'User not found' };
+  }
+
+  // Send email using SendGrid with original HTML content
+  const emailResult = await sendEmail({
+    to: user.email,
+    subject: emailData.subject,
+    html: emailData.html,  // Original Gmail verification HTML with clickable links
+    text: emailData.text   // Fallback text version
+  });
+
+  if (!emailResult.success) {
+    console.error('❌ Failed to forward Gmail verification email:', emailResult.error);
+    return {
+      success: false,
+      error: `Failed to forward email: ${emailResult.error}`
+    };
+  }
+
+  console.log(`✅ Gmail verification email forwarded to: ${user.email}`);
+
+  return {
+    success: true,
+    message: 'Gmail verification email forwarded with HTML',
+    forwardedTo: user.email,
+    messageId: emailResult.messageId,
+    preservedHTML: true,
+    skippedAI: true
+  };
 }
 
 const router = express.Router();
@@ -79,11 +150,44 @@ router.post('/', upload.none(), async (req, res) => {
       });
     }
 
-    // Extract user ID from recipient address
-    console.log('🔍 emailData.to value:', emailData.to);
-    console.log('🔍 emailData.to type:', typeof emailData.to);
-    const userId = await extractUserIdFromAddress(emailData.to);
-    console.log(`👤 Found user ID: ${userId} for address: ${emailData.to}`);
+    // Extract user ID - try forwarding address first, then direct email
+    const envelopeRecipient = req.body.to; // SendGrid envelope (turnernelson1-659959@inbound.homeops.ai)
+    const originalRecipient = emailData.to; // Original email (turner.nelson1@gmail.com)
+
+    console.log('🔍 Envelope recipient (forwarding):', envelopeRecipient);
+    console.log('🔍 Original recipient (direct):', originalRecipient);
+
+    // Try forwarding address first
+    let userId = await extractUserIdFromForwardingAddress(envelopeRecipient);
+
+    // If not found, try direct email lookup
+    if (!userId) {
+      console.log(`⚠️ No user found for forwarding address, trying direct email...`);
+      userId = await extractUserIdFromDirectEmail(originalRecipient);
+    }
+
+    console.log(`👤 Found user ID: ${userId}`);
+
+    // Handle Gmail verification emails specially - forward without AI processing
+    if (isGmailVerificationEmail(emailData)) {
+      const forwardResult = await forwardVerificationEmail(userId, emailData);
+
+      if (forwardResult.success) {
+        return res.status(200).json({
+          success: true,
+          message: forwardResult.message,
+          forwardedTo: forwardResult.forwardedTo,
+          skippedAI: true,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: forwardResult.error,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
 
     let userProfile = null;
     let familyContext = null;
