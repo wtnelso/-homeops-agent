@@ -83,7 +83,7 @@ function createVerificationEmailTemplate(originalHtml, originalText) {
 
     <!-- Original Gmail Verification Content (Preserved Exactly) -->
     <div style="margin: 20px 0;">
-        ${originalHtml}
+        ${originalHtml || (originalText ? originalText.replace(/\n/g, '<br>') : '')}
     </div>
 
     <!-- HomeOps Closing -->
@@ -142,7 +142,7 @@ async function forwardVerificationEmail(userId, emailData) {
     message_id: emailData.messageId || `gmail_verification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     received_at: receivedAt,
     original_date: emailData.date,
-    processing_status: 'gmail_verification_forwarded',
+    processing_status: 'received',
     session_info: null
   };
 
