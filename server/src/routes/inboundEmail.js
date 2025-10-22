@@ -55,13 +55,17 @@ router.post('/', upload.none(), async (req, res) => {
     console.log('🔍 Request body keys:', Object.keys(req.body || {}));
 
     // Extract email data from SendGrid webhook format
+    const headers = req.body.headers || '';
+    const messageIdMatch = headers.match(/Message-ID:\s*<([^>]+)>/i);
+    const messageId = messageIdMatch ? messageIdMatch[1] : null;
+
     const emailData = {
-      from: req.body.from || req.body.sender,
-      to: req.body.to || req.body.recipient,
+      from: req.body.from,
+      to: req.body.to,
       subject: req.body.subject,
-      text: req.body.text || req.body['body-plain'],
-      html: req.body.html || req.body['body-html'],
-      messageId: req.body.messageId || req.body['Message-Id'],
+      text: req.body.text || req.body.email,
+      html: req.body.html,
+      messageId: messageId,
       date: req.body.date || new Date().toISOString()
     };
     console.log('🔍 Extracted emailData:', JSON.stringify(emailData, null, 2));
