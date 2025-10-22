@@ -64,7 +64,7 @@ function isGmailVerificationEmail(emailData) {
 /**
  * Create simple HomeOps wrapper around original Gmail verification content
  */
-function createVerificationEmailTemplate(originalHtml, originalText) {
+function createVerificationEmailTemplate(originalHtml, originalText, forwardingAddress) {
   const wrappedHtml = `
 <!DOCTYPE html>
 <html lang="en">
@@ -76,7 +76,8 @@ function createVerificationEmailTemplate(originalHtml, originalText) {
 <body style="margin: 0; padding: 20px; font-family: arial, sans-serif; background-color: #ffffff; line-height: 1.5;">
     <!-- HomeOps Introduction -->
     <p style="margin: 0 0 20px 0; color: #374151; font-size: 16px;">
-        To complete HomeOps email forwarding, here&rsquo;s the email from Google to verify forwarding:
+        Hey there!<br><br>
+        In order to complete the Gmail Forwarding Verification process, we follow the steps below. The below email was forwarded to ${forwardingAddress} from Google, so we&rsquo;re forwarding it on to you here!
     </p>
 
     <!-- Original Gmail Verification Content (Indented) -->
@@ -108,7 +109,7 @@ The HomeOps Team
 /**
  * Forward Gmail verification email to user with HomeOps-branded wrapper
  */
-async function forwardVerificationEmail(userId, emailData) {
+async function forwardVerificationEmail(userId, emailData, forwardingAddress) {
   console.log('📧 Forwarding Gmail verification email with HomeOps branding');
 
   if (!userId) {
@@ -157,12 +158,18 @@ async function forwardVerificationEmail(userId, emailData) {
   }
 
   // Create branded template with original Gmail content
-  const emailTemplate = createVerificationEmailTemplate(emailData.html, emailData.text);
+  const emailTemplate = createVerificationEmailTemplate(emailData.html, emailData.text, forwardingAddress);
 
   // Send email using SendGrid with HomeOps-branded template
+  // Ensure proper subject formatting with closing parenthesis if missing
+  let formattedSubject = emailData.subject;
+  if (formattedSubject && formattedSubject.includes('(') && !formattedSubject.includes(')')) {
+    formattedSubject = formattedSubject + ')';
+  }
+
   const emailResult = await sendEmail({
     to: user.email,
-    subject: `[HomeOps] ${emailData.subject}`,
+    subject: `[HomeOps] ${formattedSubject}`,
     html: emailTemplate.html,
     text: emailTemplate.text
   });
@@ -252,7 +259,7 @@ router.post('/', upload.none(), async (req, res) => {
 
     // Handle Gmail verification emails specially - forward without AI processing
     if (isGmailVerificationEmail(emailData)) {
-      const forwardResult = await forwardVerificationEmail(userId, emailData);
+      const forwardResult = await forwardVerificationEmail(userId, emailData, envelopeRecipient);
 
       if (forwardResult.success) {
         return res.status(200).json({
