@@ -211,14 +211,17 @@ router.post('/', upload.none(), async (req, res) => {
 
     // Parse the raw email content from SendGrid
     const rawEmail = req.body.email;
+    console.log('🔍 Raw email from SendGrid:', rawEmail?.substring(0, 500) + '...');
     const parsedEmail = await simpleParser(rawEmail);
+    console.log('🔍 Parsed email HTML:', parsedEmail.html);
+    console.log('🔍 Parsed email text:', parsedEmail.text?.substring(0, 200) + '...');
 
     const emailData = {
       from: parsedEmail.from.text,
       to: parsedEmail.to.text,
       subject: parsedEmail.subject,
       text: parsedEmail.text,
-      html: parsedEmail.html,
+      html: parsedEmail.html || null,
       messageId: parsedEmail.messageId,
       date: parsedEmail.date.toISOString()
     };
