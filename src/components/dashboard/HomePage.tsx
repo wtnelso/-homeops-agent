@@ -15,12 +15,12 @@ const HomePage: React.FC = () => {
   ];
 
   return (
-    <div className="h-full bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="h-full w-full bg-white dark:bg-gray-900 overflow-hidden">
       {/* Full-width chat interface with embedded suggestions */}
       <ChatInterface
         showConversationList={false}
         initialPrompts={initialPrompts}
-        className="h-full"
+        className="h-full w-full"
         triggerMessage={null}
       />
     </div>

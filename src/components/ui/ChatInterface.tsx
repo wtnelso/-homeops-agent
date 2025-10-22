@@ -10,6 +10,7 @@ import StreamingMessage from './StreamingMessage';
 import ChatInput from './ChatInput';
 import ProfileSuggestions from './ProfileSuggestions';
 import DefaultPrompts from './DefaultPrompts';
+import HomeOpsLogo from './HomeOpsLogo';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStreamingChat } from '../../hooks/useStreamingChat';
 import { profileSuggestionsService } from '../../services/profileSuggestionsService';
@@ -46,6 +47,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   // UI state
   const [error, setError] = useState<string | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Profile suggestions state
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -70,10 +83,52 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (streamingMessages.length > 0) {
+      // Use a small delay to ensure content is rendered
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        } else if (scrollContainerRef.current) {
+          // Fallback: scroll the container to bottom
+          scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 150);
     }
   }, [streamingMessages]);
+
+  // Auto-scroll when streaming starts (for immediate feedback)
+  useEffect(() => {
+    if (isStreaming) {
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        } else if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 50);
+    }
+  }, [isStreaming]);
+
+  // Immediate scroll when new message is added (for instant feedback)
+  useEffect(() => {
+    if (streamingMessages.length > 0) {
+      // Immediate scroll without delay
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'instant' });
+      } else if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTo({
+          top: scrollContainerRef.current.scrollHeight,
+          behavior: 'instant'
+        });
+      }
+    }
+  }, [streamingMessages.length]);
 
   // Scroll detection for scroll-to-bottom button
   useEffect(() => {
@@ -84,14 +139,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
       const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
       const hasScrollableContent = scrollHeight > clientHeight;
-      const shouldShow = hasScrollableContent && (scrollTop > 0 || distanceFromBottom > 50) && streamingMessages.length > 0;
+      const shouldShow = hasScrollableContent && distanceFromBottom > 100 && streamingMessages.length > 0;
 
       setShowScrollButton(shouldShow);
     };
 
-    handleScroll();
+    // Add scroll listener
     scrollContainer.addEventListener('scroll', handleScroll);
-    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+
+    // Use ResizeObserver to detect content changes
+    const resizeObserver = new ResizeObserver(() => {
+      handleScroll();
+    });
+    
+    resizeObserver.observe(scrollContainer);
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      resizeObserver.disconnect();
+    };
   }, [streamingMessages]);
 
   // Load suggestions count when user data is available
@@ -180,6 +246,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    } else if (scrollContainerRef.current) {
+      // Fallback: scroll the container to bottom
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   };
 
@@ -194,7 +266,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   return (
-    <div className={`flex h-full bg-gray-50 dark:bg-gray-900 ${className}`}>
+    <div className={`flex flex-col h-full w-full bg-white dark:bg-gray-900 ${className} ${isMobile ? 'mobile-chat-container' : ''}`}>
       {/* Conversation Sidebar */}
       {showConversationList && (
         <div className="hidden md:block md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
@@ -216,10 +288,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="border-b border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-800">
-          <div className="w-full max-w-none px-2 sm:px-4 md:max-w-3xl md:mx-auto flex justify-between items-center">
-            <h1 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100">
-              HomeOps AI
-            </h1>
+          <div className="w-full max-w-none px-2 sm:px-4 md:max-w-3xl md:mx-auto flex justify-end items-center">
             <div className="flex space-x-1 sm:space-x-2">
               {isStreaming && (
                 <button
@@ -259,49 +328,65 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
         )}
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-hidden relative">
-          <div ref={scrollContainerRef} className="h-full overflow-y-auto">
-            <div className="w-full max-w-none px-2 sm:px-4 md:max-w-3xl md:mx-auto py-4 sm:py-8">
-              {/* Welcome State */}
+        {/* Messages Area - Full Screen Native App Style */}
+        <div className={`flex-1 relative ${isMobile ? 'mobile-chat-messages' : ''}`}>
+          <div ref={scrollContainerRef} className="h-full w-full overflow-y-auto chat-scrollbar native-scroll-container">
+            <div className={`w-full px-4 sm:px-6 py-4 sm:py-6 ${isMobile ? 'pb-32' : ''}`}>
+              {/* Welcome State - Full Screen */}
               {streamingMessages.length === 0 && !isStreaming && (
-                <div className="flex flex-col items-center justify-center h-full text-center px-2 sm:px-4">
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-medium text-gray-900 dark:text-white mb-6 sm:mb-8">
-                    HomeOps AI
-                  </h2>
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  {/* Logo Section */}
+                  <div className="mb-8 sm:mb-12">
+                    <div className="flex justify-center mb-4">
+                      <HomeOpsLogo 
+                        width={80} 
+                        height={80} 
+                        variant="icon" 
+                        className=""
+                      />
+                    </div>
+                    <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                      HomeOps helps you stay ahead by surfacing what matters — from school updates to appointments — and turning mental clutter into calm, organized action.
+                    </p>
+                    {/* Updated UI - Backend connected successfully */}
+                  </div>
 
                   {initialPrompts.length > 0 && !promptsAnimating && (
-                    <DefaultPrompts
-                      prompts={initialPrompts}
-                      onPromptClick={handleSendMessage}
-                      onSuggestionsClick={handleSuggestionsClick}
-                      loading={isStreaming}
-                      disabled={userData?.user && userData.user.is_active === false}
-                      suggestionsCount={suggestionsCount}
-                      loadingCount={loadingCount}
-                    />
+                    <div className="w-full max-w-3xl">
+                      <DefaultPrompts
+                        prompts={initialPrompts}
+                        onPromptClick={handleSendMessage}
+                        onSuggestionsClick={handleSuggestionsClick}
+                        loading={isStreaming}
+                        disabled={userData?.user && userData.user.is_active === false}
+                        suggestionsCount={suggestionsCount}
+                        loadingCount={loadingCount}
+                      />
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* Animated prompts during transition */}
+              {/* Animated prompts during transition - hidden during animation */}
               {promptsAnimating && (
-                <DefaultPrompts
-                  prompts={initialPrompts}
-                  onPromptClick={handleSendMessage}
-                  onSuggestionsClick={handleSuggestionsClick}
-                  loading={isStreaming}
-                  disabled={userData?.user && userData.user.is_active === false}
-                  suggestionsCount={suggestionsCount}
-                  loadingCount={loadingCount}
-                  showAnimated={true}
-                  animationDelay={600}
-                />
+                <div className="opacity-0 pointer-events-none">
+                  <DefaultPrompts
+                    prompts={initialPrompts}
+                    onPromptClick={handleSendMessage}
+                    onSuggestionsClick={handleSuggestionsClick}
+                    loading={isStreaming}
+                    disabled={userData?.user && userData.user.is_active === false}
+                    suggestionsCount={suggestionsCount}
+                    loadingCount={loadingCount}
+                    showAnimated={true}
+                    animationDelay={600}
+                  />
+                </div>
               )}
 
-              {/* Chat Messages */}
+              {/* Chat Messages - Full Width */}
               {streamingMessages.length > 0 && (
-                <div className="space-y-4 sm:space-y-6 px-2 sm:px-4">
+                <div className="space-y-4 sm:space-y-6 w-full">
                   {streamingMessages.map((message) => (
                     <StreamingMessage
                       key={message.id}
@@ -327,35 +412,32 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           )}
         </div>
 
-        {/* Input Area */}
-        <div className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
-          <div className="w-full max-w-none px-2 sm:px-4 md:max-w-3xl md:mx-auto p-3 sm:p-4">
+        {/* Input Area - Claude Style */}
+        <div className={`bg-white border-t border-gray-100 ${isMobile ? 'mobile-chat-input' : ''}`}>
+          <div className={`w-full max-w-none px-4 sm:px-6 md:max-w-4xl md:mx-auto ${isMobile ? 'py-4' : 'py-6'}`}>
             <ChatInput
               onSend={handleSendMessage}
               loading={isStreaming}
               suggestions={streamingMessages.length === 0 ? [] : []}
               disabled={userData?.user && userData.user.is_active === false}
+              autoFocus={isMobile && streamingMessages.length === 0} // Auto-focus on mobile when no messages
               placeholder={
                 userData?.user && userData.user.is_active === false
                   ? "Account is inactive. Go to Settings to activate your account."
-                  : "Message HomeOps AI..."
+                  : "Ask HomeOps anything..."
               }
             />
 
             {isStreaming && (
-              <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-3">
+              <div className="flex items-center justify-center space-x-2 text-sm text-gray-500 mt-4">
                 <div className="flex space-x-1">
-                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-claude-thinking"></div>
-                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-claude-thinking"></div>
-                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-claude-thinking"></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 </div>
-                <span>HomeOps AI is thinking...</span>
+                <span className="font-medium">HomeOps is thinking...</span>
               </div>
             )}
-
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2 px-2">
-              HomeOps AI can make mistakes. Check important info.
-            </p>
           </div>
         </div>
       </div>

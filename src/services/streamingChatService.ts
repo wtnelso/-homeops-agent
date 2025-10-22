@@ -183,6 +183,18 @@ export class StreamingChatService {
           }
         }
         break;
+      case 'tool_start':
+        // Tool execution started - could show loading indicator
+        if (callbacks.onToolStart) {
+          callbacks.onToolStart(data);
+        }
+        break;
+      case 'tool_complete':
+        // Tool execution completed - could hide loading indicator
+        if (callbacks.onToolComplete) {
+          callbacks.onToolComplete(data);
+        }
+        break;
       default:
         console.warn('Unknown stream message type:', data.type);
     }

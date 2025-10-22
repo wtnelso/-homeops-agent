@@ -37,6 +37,7 @@ import FamilyContactsPage from './components/dashboard/FamilyContactsPage'
 import MemoryPage from './components/dashboard/MemoryPage'
 import CalendarPage from './components/dashboard/CalendarPage'
 import EmailPage from './components/dashboard/EmailPage'
+import MentalLoadManager from './components/dashboard/MentalLoadManager'
 import OverviewPage from './components/dashboard/OverviewPage'
 import AnalyticsPage from './components/dashboard/AnalyticsPage'
 import ReportsPage from './components/dashboard/ReportsPage'
@@ -99,6 +100,7 @@ const AppContent = () => {
                     </Route>
                     <Route path="memory" element={<MemoryPage />} />
                     <Route path="calendar" element={<CalendarPage />} />
+                    <Route path="mental-load" element={<MentalLoadManager />} />
                     <Route path="email" element={<EmailPage />} />
                     <Route path="overview" element={<OverviewPage />} />
                     <Route path="analytics" element={<AnalyticsPage />} />

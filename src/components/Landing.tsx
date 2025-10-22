@@ -1,138 +1,75 @@
 import { Link } from 'react-router-dom';
-import { 
-  Download,
-  Briefcase,
-  Monitor,
-  Database,
-  Bot,
-  Search,
-  Users
-} from 'lucide-react';
 import { ROUTES } from '../config/routes';
 import { IS_LIVE } from '../config/vars';
-import Layout from './Layout';
+import HomeOpsLogo from './ui/HomeOpsLogo';
 
 const Landing: React.FC = () => {
   return (
-    <Layout>
-      <div className="max-w-6xl mx-auto px-4">
-      {/* Hero Section */}
-      <main className="grid lg:grid-cols-2 place-items-center pt-16 pb-8 md:pt-12 md:pb-24">
-        <div className="py-6 md:order-1 hidden md:block">
-          <img
-            src="/api/placeholder/620/400"
-            alt="HomeOps Dashboard"
-            className="w-full max-w-lg mx-auto"
-            width={620}
-            height={400}
-          />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 sm:p-6">
+        <div className="flex items-center space-x-3">
+          <HomeOpsLogo width={32} height={32} variant="icon" />
+          <h1 className="text-xl font-semibold text-gray-900">HomeOps</h1>
         </div>
-        <div>
-          <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold lg:tracking-tight xl:tracking-tighter">
-            AI-Powered Family Operations Platform
-          </h1>
-          <p className="text-lg mt-4 text-slate-600 max-w-xl">
-            HomeOps is your intelligent family operations center. Transform email chaos into organized insights with AI-powered email categorization, task extraction, and family coordination.
-          </p>
-          {IS_LIVE && (
-          <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center items-center">
+        <div className="flex items-center space-x-4">
+          <Link
+            to={ROUTES.LOGIN}
+            className="text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Sign In
+          </Link>
+          <Link
+            to={ROUTES.SIGNUP}
+            className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            Get Started
+          </Link>
+        </div>
+      </div>
+
+      {/* Main Content - Claude-like Design */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6">
+        <div className="max-w-2xl mx-auto text-center">
+          {/* Logo Section */}
+          <div className="mb-8">
+            <div className="flex justify-center mb-6">
+              <HomeOpsLogo width={120} height={120} variant="icon" />
+            </div>
+            
+            {/* Welcome Message */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              How can I help you today?
+            </h1>
+            
+            <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-xl mx-auto">
+              HomeOps helps you stay ahead by surfacing what matters — from school updates to appointments — and turning mental clutter into calm, organized action.
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to={ROUTES.LOGIN}
-              className="flex gap-1 items-center justify-center bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+              className="bg-gray-900 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-800 transition-colors flex items-center justify-center"
             >
-              <Download className="text-white w-5 h-5" />
-              Launch HomeOps
+              Sign In
+            </Link>
+            <Link
+              to={ROUTES.SIGNUP}
+              className="border border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+            >
+              Get Started
             </Link>
           </div>
-          )}
-        </div>
-      </main>
-
-      {/* Features Section */}
-      <div className="mt-16 md:mt-0">
-        <h2 className="text-4xl lg:text-5xl font-bold lg:tracking-tight">
-          Everything you need for family operations
-        </h2>
-        <p className="text-lg mt-4 text-slate-600">
-          HomeOps comes with intelligent email processing, family task coordination, and privacy-first design for modern families.
-        </p>
-      </div>
-
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 mt-16 gap-16">
-        <div className="flex gap-4 items-start">
-          <div className="mt-1 bg-black rounded-full p-2 w-8 h-8 shrink-0">
-            <Briefcase className="text-white w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-lg">AI Email Intelligence</h3>
-            <p className="text-slate-500 mt-2 leading-relaxed">
-              Automatically categorize emails into Family, Work, Commerce, and Priority with advanced AI processing.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-4 items-start">
-          <div className="mt-1 bg-black rounded-full p-2 w-8 h-8 shrink-0">
-            <Monitor className="text-white w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-lg">Real-time Family Dashboard</h3>
-            <p className="text-slate-500 mt-2 leading-relaxed">
-              Track emotional load, family events, and household tasks in one unified dashboard interface.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-4 items-start">
-          <div className="mt-1 bg-black rounded-full p-2 w-8 h-8 shrink-0">
-            <Database className="text-white w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-lg">Task Extraction</h3>
-            <p className="text-slate-500 mt-2 leading-relaxed">
-              Automatically extract and organize family tasks from emails with intelligent priority scoring.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-4 items-start">
-          <div className="mt-1 bg-black rounded-full p-2 w-8 h-8 shrink-0">
-            <Bot className="text-white w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-lg">Privacy-First AI</h3>
-            <p className="text-slate-500 mt-2 leading-relaxed">
-              Enterprise-grade privacy protection with local processing and encrypted data handling for family security.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-4 items-start">
-          <div className="mt-1 bg-black rounded-full p-2 w-8 h-8 shrink-0">
-            <Search className="text-white w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-lg">Smart Insights</h3>
-            <p className="text-slate-500 mt-2 leading-relaxed">
-              Get actionable insights about family schedules, task patterns, and emotional load forecasting.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-4 items-start">
-          <div className="mt-1 bg-black rounded-full p-2 w-8 h-8 shrink-0">
-            <Users className="text-white w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-lg">Family Coordination</h3>
-            <p className="text-slate-500 mt-2 leading-relaxed">
-              Coordinate multiple family members with shared calendars, task assignments, and progress tracking.
-            </p>
-          </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <div className="p-4 sm:p-6 text-center text-sm text-gray-500">
+        <p>HomeOps AI can make mistakes. Please verify important information.</p>
       </div>
-    </Layout>
+    </div>
   );
 };
 

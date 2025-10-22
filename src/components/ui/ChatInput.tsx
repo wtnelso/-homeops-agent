@@ -11,6 +11,7 @@ interface ChatInputProps {
   suggestions?: string[];
   demoTypingText?: string | null;
   onDemoTypingComplete?: () => void;
+  autoFocus?: boolean; // New prop for auto-focus on mobile
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
@@ -22,7 +23,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   maxLength = 2000,
   suggestions = [],
   demoTypingText = null,
-  onDemoTypingComplete
+  onDemoTypingComplete,
+  autoFocus = false
 }) => {
   const [input, setInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -42,6 +44,32 @@ const ChatInput: React.FC<ChatInputProps> = ({
   useEffect(() => {
     adjustTextareaHeight();
   }, [input]);
+
+  // Auto-focus on mobile devices
+  useEffect(() => {
+    if (autoFocus && textareaRef.current && !disabled && !loading) {
+      // Small delay to ensure the component is fully rendered
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocus, disabled, loading]);
+
+  // Mobile keyboard handling
+  useEffect(() => {
+    const handleResize = () => {
+      // Adjust viewport height when keyboard appears/disappears on mobile
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Set initial value
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Demo typing effect
   useEffect(() => {
@@ -155,31 +183,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
         </div>
       )}
 
-      {/* Input Area */}
-      <div className="flex gap-3 items-end">
-        {/* Attachment Button */}
-        {onAttachment && (
-          <div className="flex-shrink-0">
-            <input
-              ref={fileInputRef}
-              type="file"
-              onChange={handleFileSelect}
-              className="hidden"
-              accept="image/*,.pdf,.doc,.docx,.txt"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled || loading}
-              className="p-3 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Attach file"
-            >
-              <Paperclip className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
+      {/* Input Area - Claude Style */}
+      <div className="relative">
         {/* Text Input */}
-        <div className="flex-1 relative">
+        <div className="relative">
           <textarea
             ref={textareaRef}
             value={input}
@@ -189,26 +196,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
             onBlur={handleInputBlur}
             disabled={disabled || loading}
             placeholder={loading ? "AI is thinking..." : isTypingDemo ? "" : placeholder}
-            className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 pr-12 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all resize-none min-h-[48px] max-h-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 pr-14 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-300 transition-all resize-none min-h-[52px] max-h-[120px] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             rows={1}
           />
           
-          {/* Character Counter */}
-          {input.length > maxLength * 0.8 && (
-            <div className={`absolute bottom-1 right-12 text-xs ${
-              input.length >= maxLength ? 'text-red-500' : 'text-gray-400'
-            }`}>
-              {input.length}/{maxLength}
-            </div>
-          )}
-        </div>
-
-        {/* Send Button */}
-        <div className="flex-shrink-0">
+          {/* Send Button - Inside Input */}
           <button
             onClick={handleSend}
             disabled={!input.trim() || disabled || loading}
-            className="bg-brand-600 hover:bg-brand-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white p-3 rounded-lg transition-all duration-200 flex items-center justify-center min-w-[48px]"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:cursor-not-allowed text-gray-600 hover:text-gray-700 disabled:text-gray-400 p-2 rounded-lg transition-all duration-200 flex items-center justify-center"
             title={loading ? "Sending..." : "Send message"}
           >
             {loading ? (
@@ -217,19 +213,23 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <Send className="w-4 h-4" />
             )}
           </button>
+          
+          {/* Character Counter */}
+          {input.length > maxLength * 0.8 && (
+            <div className={`absolute bottom-1 right-16 text-xs ${
+              input.length >= maxLength ? 'text-red-500' : 'text-gray-400'
+            }`}>
+              {input.length}/{maxLength}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Input Help Text */}
-      <div className="flex justify-between items-center mt-2 px-1">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+      {/* Minimal Help Text - Claude Style */}
+      <div className="mt-2 text-center">
+        <p className="text-xs text-gray-400">
           Press Enter to send, Shift+Enter for new line
         </p>
-        {loading && (
-          <p className="text-xs text-brand-600 dark:text-brand-400">
-            AI is processing your request...
-          </p>
-        )}
       </div>
     </div>
   );

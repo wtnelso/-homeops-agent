@@ -18,6 +18,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useAdminStatus } from '../hooks/useAdminStatus';
 import { ROUTES } from '../config/routes';
 import { AUTH_IMAGES } from '../config/authImages';
+import HomeOpsLogo from './ui/HomeOpsLogo';
 import UserDropdown from './ui/UserDropdown';
 import OnboardingModal from './ui/OnboardingModal';
 import { isDemoMode } from '../demo/config/demoConfig';
@@ -108,6 +109,13 @@ const DashboardLayout: React.FC = () => {
       path: '/dashboard/calendar'
     },
     {
+      id: 'mental-load',
+      title: 'Mental Load Manager',
+      icon: Target,
+      description: 'Manage mental load with calendar and signals',
+      path: '/dashboard/mental-load'
+    },
+    {
       id: 'email',
       title: 'Email',
       icon: Mail,
@@ -128,7 +136,8 @@ const DashboardLayout: React.FC = () => {
     return dashboardPages.find(page =>
       currentPath === page.path ||
       (page.id === 'settings' && currentPath.startsWith('/dashboard/settings')) ||
-      (page.id === 'family' && currentPath.startsWith('/dashboard/family'))
+      (page.id === 'family' && currentPath.startsWith('/dashboard/family')) ||
+      (page.id === 'mental-load' && currentPath.startsWith('/dashboard/mental-load'))
     );
   };
 
@@ -177,41 +186,64 @@ const DashboardLayout: React.FC = () => {
   const currentPage = getCurrentPage();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-slate-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col font-family-inter">
+    <div className="min-h-screen bg-white dark:bg-gray-900 font-family-inter">
       {/* Demo Banner - only show in demo mode when not in staging */}
       {isCurrentlyInDemo && import.meta.env.VITE_APP_ENV !== 'STAGING' && (
         <DemoBanner onResetDemo={handleResetDemo} />
       )}
 
-      {/* Main Dashboard Layout */}
-      <div className="flex flex-1">
+      {/* Top Navigation Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between h-14 px-4">
+          {/* Hamburger Menu Button */}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          {/* Logo/Title */}
+          <div className="flex items-center space-x-2">
+            <HomeOpsLogo width={24} height={24} variant="icon" />
+            <span className="text-lg font-semibold text-gray-900 dark:text-white">HomeOps</span>
+          </div>
+
+          {/* Right side - could add user menu, notifications, etc. */}
+          <div className="w-9 h-9"></div>
+        </div>
+      </div>
+
       {/* Mobile Sidebar Overlay */}
-      <div className={`lg:hidden fixed inset-0 z-50 ${sidebarOpen ? 'block' : 'hidden'}`}>
+      <div className={`lg:hidden fixed inset-0 z-40 ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Sidebar */}
+      {/* Collapsible Sidebar */}
       <div className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white/95 backdrop-blur-xl dark:bg-gray-800/95 border-r border-blue-200/50 dark:border-gray-700/50 shadow-xl
+        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl lg:shadow-none
         transform transition-transform duration-300 ease-in-out lg:transform-none
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        pt-14 lg:pt-0
       `}>
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-blue-200/30 dark:border-gray-700/50 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-blue-200/30 dark:border-gray-700/50 bg-white dark:bg-gray-800">
           <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity duration-200" onClick={() => window.location.href = '/'}>
-            <img
-              src={AUTH_IMAGES.hero.logo}
-              alt="HomeOps Logo"
-              className="w-8 h-8 rounded-lg"
+            <HomeOpsLogo 
+              width={32} 
+              height={32} 
+              variant="icon" 
+              className=""
             />
             <div>
-              <h1 className="text-lg font-bold text-white tracking-tight">HomeOps</h1>
-              <p className="text-xs text-blue-100">{userData?.user?.account_name || 'Family Dashboard'}</p>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">HomeOps</h1>
             </div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-1 text-blue-200 hover:text-white transition-colors duration-200"
+            className="lg:hidden p-1 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
           >
             <X className="w-5 h-5" />
           </button>
@@ -309,64 +341,22 @@ const DashboardLayout: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-0 flex flex-col">
-        {/* Header Bar */}
-        <div className="bg-white/80 backdrop-blur-xl dark:bg-gray-800/80 border-b border-blue-200/30 dark:border-gray-700/50 px-4 lg:px-6 py-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 transition-colors duration-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              
-              {/* Page title - visible on all devices */}
-              <div>
-                {currentPage && (
-                  <div>
-                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{currentPage.title}</h1>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right side with user menu */}
-            <div className="flex items-center space-x-4">
-
-              {/* Admin-only onboarding launch button */}
-              {isAdmin && !adminLoading && (
-                <button
-                  onClick={handleLaunchOnboarding}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                  title="Launch Onboarding (Admin Only)"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Onboarding</span>
-                </button>
-              )}
-
-              <UserDropdown onAccountSettings={handleAccountSettings} />
-            </div>
-          </div>
-        </div>
+      <div className="flex-1 flex flex-col pt-14 lg:pt-0">
 
         {/* Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-hidden">
+        <main className="flex-1 overflow-hidden">
           {/* Active Page Content */}
-          <div className="bg-white/80 backdrop-blur-xl dark:bg-gray-800/80 rounded-2xl shadow-xl border border-blue-200/30 dark:border-gray-700/50 overflow-hidden transition-all duration-300">
+          <div className="h-full w-full overflow-hidden">
             <Outlet />
           </div>
         </main>
-      </div>
-      </div>
 
-      {/* Onboarding Modal */}
-      <OnboardingModal
-        isOpen={onboardingModalOpen}
-        onClose={handleOnboardingComplete}
-      />
+        {/* Onboarding Modal */}
+        <OnboardingModal
+          isOpen={onboardingModalOpen}
+          onClose={handleOnboardingComplete}
+        />
+      </div>
     </div>
   );
 };
