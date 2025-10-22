@@ -5,6 +5,7 @@
 
 import express from 'express';
 import multer from 'multer';
+import { simpleParser } from 'mailparser';
 import { createClient } from '@supabase/supabase-js';
 import { userProfileService } from '../services/userProfileService.js';
 
@@ -54,19 +55,18 @@ router.post('/', upload.none(), async (req, res) => {
     console.log('🔍 Raw request body:', JSON.stringify(req.body, null, 2));
     console.log('🔍 Request body keys:', Object.keys(req.body || {}));
 
-    // Extract email data from SendGrid webhook format
-    const headers = req.body.headers || '';
-    const messageIdMatch = headers.match(/Message-ID:\s*<([^>]+)>/i);
-    const messageId = messageIdMatch ? messageIdMatch[1] : null;
+    // Parse the raw email content from SendGrid
+    const rawEmail = req.body.email;
+    const parsedEmail = await simpleParser(rawEmail);
 
     const emailData = {
-      from: req.body.from,
-      to: req.body.to,
-      subject: req.body.subject,
-      text: req.body.text || req.body.email,
-      html: req.body.html,
-      messageId: messageId,
-      date: req.body.date || new Date().toISOString()
+      from: parsedEmail.from.text,
+      to: parsedEmail.to.text,
+      subject: parsedEmail.subject,
+      text: parsedEmail.text,
+      html: parsedEmail.html,
+      messageId: parsedEmail.messageId,
+      date: parsedEmail.date.toISOString()
     };
     console.log('🔍 Extracted emailData:', JSON.stringify(emailData, null, 2));
 
