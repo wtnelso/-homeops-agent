@@ -343,42 +343,32 @@ router.post('/', upload.none(), async (req, res) => {
 
     console.log(`✅ Email stored with ID: ${emailRecord.id}`);
 
-    // Process with simple AI analysis + embeddings (linear, direct)
-    console.log(`🧠 Performing simple AI analysis with family context for email ${emailRecord.id}`);
+    // Queue email for background AI processing
+    console.log(`📤 Queueing email ${emailRecord.id} for background AI processing`);
 
-    // Import simple AI processor
-    const { processInboundEmailAI } = await import('../services/simpleInboundEmailAI.js');
+    // Import queue service
+    const { queueEmail } = await import('../services/emailQueue.js');
 
-    // Process with family context + embeddings
-    const aiResult = await processInboundEmailAI(emailData, emailRecord.id, userId);
+    // Queue the email for processing
+    const queueResult = await queueEmail(emailData, emailRecord.id, userId);
 
-    if (!aiResult.success) {
-      console.error(`❌ AI processing failed for email ${emailRecord.id}: ${aiResult.error}`);
+    if (!queueResult.success) {
+      console.error(`❌ Failed to queue email ${emailRecord.id}: ${queueResult.error}`);
       return res.status(500).json({
         success: false,
-        error: `AI processing failed: ${aiResult.error}`,
+        error: `Failed to queue email: ${queueResult.error}`,
         timestamp: new Date().toISOString()
       });
     }
 
-    console.log(`✅ Email processed successfully with AI analysis + embeddings for email ${emailRecord.id}:`, {
-      category: aiResult.analysis.primary_category,
-      urgency: aiResult.analysis.urgency_level,
-      family_relevance: aiResult.analysis.family_relevance,
-      tokens_used: aiResult.tokens_used,
-      family_context_used: aiResult.family_context_used,
-      embedding_created: aiResult.embedding_created,
-      content_analysis_created: aiResult.content_analysis_created
-    });
+    console.log(`✅ Email ${emailRecord.id} queued successfully for background processing`);
 
+    // Return immediate response - processing will happen in background
     res.status(200).json({
       success: true,
-      message: 'Email processed with AI analysis + embeddings',
+      message: 'Email received and queued for processing',
       emailId: emailRecord.id,
-      analysis: aiResult.analysis,
-      tokens_used: aiResult.tokens_used,
-      embedding_created: aiResult.embedding_created,
-      content_analysis_created: aiResult.content_analysis_created,
+      queued: true,
       timestamp: new Date().toISOString()
     });
 
