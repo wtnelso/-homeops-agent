@@ -44,7 +44,7 @@ async function extractUserIdFromDirectEmail(emailAddress) {
     const { data: user, error } = await supabase
       .from('users')
       .select('id')
-      .eq('email', emailAddress)
+      .ilike('email', emailAddress) // Case-insensitive search
       .single();
 
     return user?.id || null;
@@ -240,8 +240,8 @@ router.post('/', upload.none(), async (req, res) => {
     }
 
     // Extract user ID - try forwarding address first, then direct email
-    const envelopeRecipient = req.body.to; // SendGrid envelope (turnernelson1-659959@inbound.homeops.ai)
-    const originalRecipient = emailData.to; // Original email (turner.nelson1@gmail.com)
+    const envelopeRecipient = req.body.to?.toLowerCase(); // SendGrid envelope (turnernelson1-659959@inbound.homeops.ai)
+    const originalRecipient = emailData.to?.toLowerCase(); // Original email (turner.nelson1@gmail.com)
 
     console.log('🔍 Envelope recipient (forwarding):', envelopeRecipient);
     console.log('🔍 Original recipient (direct):', originalRecipient);
