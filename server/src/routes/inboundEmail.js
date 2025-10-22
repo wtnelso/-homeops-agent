@@ -4,6 +4,7 @@
  */
 
 import express from 'express';
+import multer from 'multer';
 import { createClient } from '@supabase/supabase-js';
 import { userProfileService } from '../services/userProfileService.js';
 
@@ -39,11 +40,14 @@ async function extractUserIdFromAddress(recipientAddress) {
 
 const router = express.Router();
 
+// Configure multer for multipart/form-data parsing
+const upload = multer();
+
 /**
  * POST /inbound-email
  * Process incoming email with direct AI analysis + embeddings
  */
-router.post('/', async (req, res) => {
+router.post('/', upload.none(), async (req, res) => {
   try {
     console.log('📧 Received inbound email request');
     console.log('🔍 Request headers:', JSON.stringify(req.headers, null, 2));
