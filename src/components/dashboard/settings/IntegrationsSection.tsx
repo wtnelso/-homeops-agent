@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { IntegrationsDataService, IntegrationWithStatus } from '../../../services/integrationsData';
 import { UserIntegrationsService } from '../../../services/userIntegrationsService';
 import { OAuthCoordinator } from '../../../config/oauth';
+import { OAUTH_RETURN_URLS } from '../../../config/routes';
 import IntegrationCard from '../../ui/IntegrationCard';
 import Loader from '../../ui/Loader';
 
@@ -79,7 +80,7 @@ const IntegrationsSection: React.FC = () => {
         
         if (OAuthCoordinator.requiresOAuth(integrationId)) {
           // OAuth flow will handle the connection and call our callback
-          OAuthCoordinator.startFlow(integrationId);
+          OAuthCoordinator.startFlow(integrationId, OAUTH_RETURN_URLS.INTEGRATIONS_SETTINGS);
         } else {
           // Handle non-OAuth connection
           const result = await UserIntegrationsService.installIntegration({

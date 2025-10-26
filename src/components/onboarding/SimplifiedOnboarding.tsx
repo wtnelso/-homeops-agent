@@ -24,10 +24,8 @@ import TimezoneSelect from '../ui/TimezoneSelect';
 import { OnboardingService } from '../../services/onboardingService';
 import { IntegrationsDataService, IntegrationWithStatus } from '../../services/integrationsData';
 import IntegrationDetailsModal from '../ui/IntegrationDetailsModal';
-import Loader from '../ui/Loader';
-import { OAuthCallbackHandler } from '../../services/oauthCallback';
-import { OAuthRedirectHandler } from '../../services/oauthRedirectHandler';
 import { OAuthCoordinator } from '../../config/oauth';
+import { OAuthRedirectHandler } from '../../services/oauthRedirectHandler';
 
 // Simplified onboarding data structure
 export interface SimplifiedOnboardingData {
@@ -481,7 +479,13 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
       console.log('💾 Starting comprehensive onboarding completion...', data);
 
       // Use the new comprehensive onboarding service
-      const result = await OnboardingService.completeOnboarding(data, userData?.user?.family_id, userData?.user?.id);
+      if (!userData?.user?.id) {
+        throw new Error('User ID is required');
+      }
+      if (!userData.user.family_id) {
+        throw new Error('Family ID is required');
+      }
+      const result = await OnboardingService.completeOnboarding(data, userData.user.family_id, userData.user.id);
 
       // Generate user-friendly message
       const message = OnboardingService.getCompletionMessage(result);

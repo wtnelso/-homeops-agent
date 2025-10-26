@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { OAuthCallbackHandler } from '../services/oauthCallback';
-import { OAuthRedirectHandler } from '../services/oauthRedirectHandler';
 import { OAUTH_RETURN_URLS } from '../config/routes';
 import Loader from './ui/Loader';
 
@@ -12,7 +11,7 @@ const OAuthCallback: React.FC = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      let returnUrl = OAUTH_RETURN_URLS.INTEGRATIONS_SETTINGS; // Default fallback
+      let returnUrl: string = OAUTH_RETURN_URLS.INTEGRATIONS_SETTINGS; // Default fallback
 
       try {
         console.log('🎨 OAuth Callback Component: Starting callback processing');
