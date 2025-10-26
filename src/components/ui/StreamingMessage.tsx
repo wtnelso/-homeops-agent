@@ -8,6 +8,7 @@ import { X } from 'lucide-react';
 import { StreamingMessage as StreamingMessageType } from '../../hooks/useStreamingChat';
 import CalendarEventTemplate from './CalendarEventTemplate';
 import EmailListTemplate from './EmailListTemplate';
+import EventSchedulingTemplate from './EventSchedulingTemplate';
 
 /**
  * Simple markdown parser for chat messages
@@ -139,9 +140,16 @@ function parseBoldText(text: string): React.ReactNode[] {
 interface StreamingMessageProps {
   message: StreamingMessageType;
   onAbort?: () => void;
+  onSendInvite?: (eventData: {
+    eventId: string;
+    title: string;
+    startTime: string;
+    endTime?: string;
+    attendees: string[];
+  }) => Promise<void>;
 }
 
-const StreamingMessage: React.FC<StreamingMessageProps> = ({ message, onAbort }) => {
+const StreamingMessage: React.FC<StreamingMessageProps> = ({ message, onAbort, onSendInvite }) => {
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
 
@@ -158,6 +166,8 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({ message, onAbort })
             {isAssistant && message.type === 'structured' && message.structuredData ? (
               message.structuredData.template_name === 'email_list' ? (
                 <EmailListTemplate data={message.structuredData} />
+              ) : message.structuredData.template_name === 'event_scheduling' ? (
+                <EventSchedulingTemplate data={message.structuredData} onSendInvite={onSendInvite} />
               ) : (
                 <CalendarEventTemplate data={message.structuredData} />
               )

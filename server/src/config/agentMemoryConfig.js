@@ -5,6 +5,8 @@
  * pattern matching, and intelligent data filtering.
  */
 
+import { randomUUID } from 'crypto';
+
 export const MEMORY_CONFIG = {
   // Default limits and timeouts
   DEFAULT_MEMORY_LIMIT: 5,
@@ -91,48 +93,43 @@ export const MEMORY_CONFIG = {
   // Memory key generation utilities
   MEMORY_KEY_UTILS: {
     /**
-     * Generate semantic memory key based on content and type
+     * Generate memory key with consistent ID-based approach for family members
      */
     generateSemanticKey(suggestionType, data, accountId = null) {
-      const memberName = data.member_name?.toLowerCase().replace(/\s+/g, '_');
+      console.log(`🔍 DEBUG KEY GENERATION: Input data:`, {
+        suggestionType,
+        data: JSON.stringify(data, null, 2),
+        accountId
+      });
 
+      // Create a predictable prefix based on suggestion type for better organization
+      let prefix = '';
       switch (suggestionType) {
         case 'family_info':
-          if (data.member_name) {
-            // Has specific activities or schedule info
-            if (data.activity) {
-              const activity = data.activity.toLowerCase().replace(/\s+/g, '_');
-              return `${memberName}_${activity}`;
-            }
-            // Has school info
-            if (data.school || data.grade) {
-              return `${memberName}_school_info`;
-            }
-            // General profile info
-            return `${memberName}_profile`;
-          }
-          return 'family_general_info';
-
+          prefix = 'family_member';
+          break;
         case 'contact_add':
-          if (data.name && data.role) {
-            const name = data.name.toLowerCase().replace(/\s+/g, '_');
-            const role = data.role.toLowerCase().replace(/\s+/g, '_');
-            return `contact_${name}_${role}`;
-          }
-          return 'contact_general';
-
+          prefix = 'contact';
+          break;
         case 'preference_update':
-          if (data.preference_type && accountId) {
-            const prefType = data.preference_type.toLowerCase().replace(/\s+/g, '_');
-            // Note: Counter will be added by the service that calls this function
-            // This returns the base key pattern that will be used with a counter
-            return `pref_${prefType}_${accountId}`;
-          }
-          return 'preference_general';
-
+          prefix = 'preference';
+          break;
         default:
-          return `${suggestionType}_general`;
+          prefix = suggestionType.replace(/_/g, '');
       }
+
+      // For family_info, use family_member_id if available for consistency
+      if (suggestionType === 'family_info' && data?.family_member_id) {
+        const key = `${prefix}_${data.family_member_id}`;
+        console.log(`🔍 DEBUG KEY GENERATION: Generated ID-based key: ${key}`);
+        return key;
+      }
+
+      // Fallback to UUID-style key for anonymity when no ID available
+      const uuid = randomUUID();
+      const key = `${prefix}_${uuid}`;
+      console.log(`🔍 DEBUG KEY GENERATION: Generated UUID-style key: ${key}`);
+      return key;
     },
 
     /**
@@ -216,10 +213,16 @@ export const MEMORY_CONFIG = {
         case 'family_info':
           // Only include essential family info fields
           cleanData = {
-            member_name: data.member_name,
+            name: data.name || data.member_name,
+            relationship: data.relationship,
+            category: data.category || data.relationship,
+            age: data.age,
+            grade: data.grade,
+            birthday_month: data.birthday_month,
+            birthday_day: data.birthday_day,
+            email: data.email,
             activity: data.activity,
             school: data.school,
-            grade: data.grade,
             notes: data.notes
           };
           break;
@@ -241,7 +244,7 @@ export const MEMORY_CONFIG = {
           return {
             ...baseValue,
             context_type: data.activity ? 'activity_schedule' :
-                         data.school ? 'school_info' : 'profile_info'
+                         data.school ? 'school_info' : 'family_info'
           };
 
         case 'contact_add':

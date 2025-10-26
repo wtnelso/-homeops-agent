@@ -8,6 +8,8 @@ export interface IntegrationDisplay {
   long_description?: string;
   platform_url?: string;
   how_it_works?: string;
+  setup_instructions?: string;
+  why_setup?: string;
   image_url: string | null;
   category: string;
   required_scopes?: string[];

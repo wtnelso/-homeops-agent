@@ -34,6 +34,7 @@ import HomePage from './components/dashboard/HomePage'
 import FamilyPage from './components/dashboard/FamilyPage'
 import FamilyActivitiesPage from './components/dashboard/FamilyActivitiesPage'
 import FamilyContactsPage from './components/dashboard/FamilyContactsPage'
+import FamilyKeywordsPage from './components/dashboard/FamilyKeywordsPage'
 import MemoryPage from './components/dashboard/MemoryPage'
 import CalendarPage from './components/dashboard/CalendarPage'
 import EmailPage from './components/dashboard/EmailPage'
@@ -96,6 +97,7 @@ const AppContent = () => {
                       <Route path="members" element={<FamilyPage />} />
                       <Route path="activities" element={<FamilyActivitiesPage />} />
                       <Route path="contacts" element={<FamilyContactsPage />} />
+                      <Route path="keywords" element={<FamilyKeywordsPage />} />
                     </Route>
                     <Route path="memory" element={<MemoryPage />} />
                     <Route path="calendar" element={<CalendarPage />} />

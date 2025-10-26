@@ -1209,13 +1209,12 @@ export class ProfileSuggestionsService {
       console.log('🔄 Syncing family contact update to agent memory');
 
       // Generate content hash for the contact data
-      const cleanData = this.cleanSuggestionData(contactData);
       const contentHash = createHash('sha256')
-        .update(JSON.stringify(cleanData))
+        .update(JSON.stringify(contactData))
         .digest('hex');
 
       // Generate memory key for this contact
-      const memoryKey = agentMemoryConfig.generateMemoryKey('contact_add', cleanData);
+      const memoryKey = agentMemoryConfig.generateMemoryKey('contact_add', contactData);
 
       // Check if this record exists in agent memory and compare hashes
       const existingMemory = await AgentMemoryService.getMemoryByKey(userId, 'contacts', memoryKey);
@@ -1228,7 +1227,7 @@ export class ProfileSuggestionsService {
       // Prepare memory entry with new content hash
       const structuredValue = JSON.stringify({
         type: 'contact_info',
-        data: cleanData
+        data: contactData
       });
 
       const memoryEntry = {
@@ -1241,7 +1240,7 @@ export class ProfileSuggestionsService {
         source_type: 'supabase_sync',
         source_id: contactData.id || null,
         expires_at: null,
-        tags: this.generateMemoryTags('contact_add', cleanData),
+        tags: this.generateMemoryTags('contact_add', contactData),
         familyId: familyId,
         contentHash: contentHash
       };
@@ -1287,13 +1286,12 @@ export class ProfileSuggestionsService {
       };
 
       // Generate content hash for the member data
-      const cleanData = this.cleanSuggestionData(familyInfoData);
       const contentHash = createHash('sha256')
-        .update(JSON.stringify(cleanData))
+        .update(JSON.stringify(familyInfoData))
         .digest('hex');
 
       // Generate memory key for this family member
-      const memoryKey = agentMemoryConfig.generateMemoryKey('family_info', cleanData);
+      const memoryKey = agentMemoryConfig.generateMemoryKey('family_info', familyInfoData);
 
       // Check if this record exists in agent memory and compare hashes
       const existingMemory = await AgentMemoryService.getMemoryByKey(userId, 'family_info', memoryKey);
@@ -1303,11 +1301,11 @@ export class ProfileSuggestionsService {
         return { success: true, message: 'No changes detected' };
       }
 
-      // Prepare memory entry with new content hash
-      const structuredValue = JSON.stringify({
+      // Prepare memory entry with simple structured value
+      const structuredValue = {
         type: 'family_member',
-        data: cleanData
-      });
+        data: familyInfoData
+      };
 
       const memoryEntry = {
         user_id: userId,
@@ -1319,7 +1317,7 @@ export class ProfileSuggestionsService {
         source_type: 'supabase_sync',
         source_id: memberData.id || null,
         expires_at: null,
-        tags: this.generateMemoryTags('family_info', cleanData),
+        tags: this.generateMemoryTags('family_info', familyInfoData),
         familyId: familyId,
         contentHash: contentHash
       };
@@ -1365,13 +1363,12 @@ export class ProfileSuggestionsService {
       };
 
       // Generate content hash for the activity data
-      const cleanData = this.cleanSuggestionData(activityInfoData);
       const contentHash = createHash('sha256')
-        .update(JSON.stringify(cleanData))
+        .update(JSON.stringify(activityInfoData))
         .digest('hex');
 
       // Generate memory key for this family activity
-      const memoryKey = agentMemoryConfig.generateMemoryKey('family_info', cleanData);
+      const memoryKey = agentMemoryConfig.generateMemoryKey('family_info', activityInfoData);
 
       // Check if this record exists in agent memory and compare hashes
       const existingMemory = await AgentMemoryService.getMemoryByKey(userId, 'family_info', memoryKey);
@@ -1384,7 +1381,7 @@ export class ProfileSuggestionsService {
       // Prepare memory entry with new content hash
       const structuredValue = JSON.stringify({
         type: 'family_activity',
-        data: cleanData
+        data: activityInfoData
       });
 
       const memoryEntry = {
@@ -1397,7 +1394,7 @@ export class ProfileSuggestionsService {
         source_type: 'supabase_sync',
         source_id: activityData.id || null,
         expires_at: activityData.end_date ? new Date(activityData.end_date).toISOString() : null,
-        tags: this.generateMemoryTags('family_info', cleanData),
+        tags: this.generateMemoryTags('family_info', activityInfoData),
         familyId: familyId,
         contentHash: contentHash
       };

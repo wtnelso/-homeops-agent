@@ -59,7 +59,7 @@ export class FamilyProfileSyncService {
           member_age: member.age,
           member_id: member.id
         },
-        memory_type: 'family_member',
+        memory_type: 'family_info',
         confidence_score: 0.95,
         priority: 1,
         source_type: 'family_profile_sync',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Baby, User, ChevronDown, ChevronRight, Plus, Edit, Trash2, Calendar, GraduationCap, Dumbbell, Palette, BookOpen, Users2, TreePine, Home, Heart as HeartIcon, Zap, School, Building, Building2, University, UserCheck, Crown, Dog, UserX, Target, UserPlus } from 'lucide-react';
+import { Heart, Baby, User, ChevronDown, ChevronRight, Plus, Edit, Trash2, Calendar, GraduationCap, Dumbbell, Palette, BookOpen, Users2, TreePine, Home, Heart as HeartIcon, Zap, School, Building, Building2, University, UserCheck, Crown, Dog, UserX, Target, UserPlus, Hash, Tag, Mail, MapPin, Sparkles, Search, Filter } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import AddMemberModal from '../../ui/AddMemberModal';
@@ -7,6 +7,7 @@ import DeleteMemberModal from '../../ui/DeleteMemberModal';
 import AddHobbyModal from '../../ui/AddHobbyModal';
 import AddSchoolModal from '../../ui/AddSchoolModal';
 import AddContactModal from '../../ui/AddContactModal';
+import AddKeywordModal from '../../ui/AddKeywordModal';
 import DeleteConfirmationModal from '../../ui/DeleteConfirmationModal';
 import SourceIndicator from '../../ui/SourceIndicator';
 // import { familyProfileService } from '../../../services/familyProfileService';
@@ -144,7 +145,7 @@ const getMemberTypeIcon = (type: string) => {
 
 
 interface FamilyProfileSectionProps {
-  defaultTab?: 'members' | 'activities' | 'contacts';
+  defaultTab?: 'members' | 'activities' | 'contacts' | 'keywords';
 }
 
 const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab = 'members' }) => {
@@ -229,16 +230,26 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
   const [editingContact, setEditingContact] = useState<any>(null);
   const [, setEditingContactIndex] = useState<number>(-1);
 
+  // Keyword modal state
+  const [showKeywordModal, setShowKeywordModal] = useState(false);
+  const [editingKeyword, setEditingKeyword] = useState<any>(null);
+  const [, setEditingKeywordIndex] = useState<number>(-1);
+
+  // Keyword search and filter state
+  const [keywordSearchTerm, setKeywordSearchTerm] = useState('');
+  const [keywordSortBy, setKeywordSortBy] = useState<'name' | 'category' | 'recent'>('name');
+
   // Delete confirmation modal state
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteItem, setDeleteItem] = useState<{
-    type: 'activity' | 'school' | 'contact';
+    type: 'activity' | 'school' | 'contact' | 'keyword';
     name: string;
     memberIndex?: number;
     itemIndex?: number;
     activityId?: string;
     schoolId?: string;
     contactId?: string;
+    keywordId?: string;
   } | null>(null);
 
 
@@ -323,7 +334,17 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
     console.log('📝 Updating member - family_member_id:', editingMember.family_member_id);
     console.log('📝 Updating member - updatedMemberData:', updatedMemberData);
 
-    const result = await FamilyManagementService.updateFamilyMember(editingMember.family_member_id, updatedMemberData);
+    // Check if this is the user's own record (Me)
+    const isUserRecord = editingMember.family_member_id === userData?.user?.id;
+
+    let result;
+    if (isUserRecord) {
+      // For user's own record, update using user_id column instead of id column
+      result = await FamilyManagementService.updateFamilyMemberByUserId(editingMember.family_member_id, updatedMemberData, userData?.user?.id);
+    } else {
+      // For other family members, update using id column
+      result = await FamilyManagementService.updateFamilyMember(editingMember.family_member_id, updatedMemberData, userData?.user?.id);
+    }
 
     if (result.success) {
       showToast('Member updated successfully!', 'success');
@@ -902,6 +923,91 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
     }
   };
 
+  // Keyword handlers
+  const startAddKeyword = () => {
+    setEditingKeyword(null);
+    setEditingKeywordIndex(-1);
+    setShowKeywordModal(true);
+  };
+
+  const startEditKeyword = (keyword: any, keywordIndex: number) => {
+    setEditingKeyword(keyword);
+    setEditingKeywordIndex(keywordIndex);
+    setShowKeywordModal(true);
+  };
+
+  // Handle keyword add/edit
+  const handleKeywordSubmit = async (keywordData: any) => {
+    try {
+      const familyId = userData?.user?.family_id || '';
+
+      const keywordForDb = {
+        family_id: familyId,
+        keyword: keywordData.keyword,
+        category: keywordData.category
+      };
+
+      if (editingKeyword) {
+        // Update existing keyword
+        const keywordId = editingKeyword.id;
+        if (keywordId) {
+          const result = await FamilyManagementService.updateKeyword(keywordId, keywordForDb);
+          if (result.success) {
+            showToast('Keyword updated successfully!', 'success');
+            await refreshUserData();
+          } else {
+            throw new Error(result.error);
+          }
+        }
+      } else {
+        // Add new keyword
+        const result = await FamilyManagementService.addKeyword(keywordForDb);
+        if (result.success) {
+          showToast('Keyword added successfully!', 'success');
+          await refreshUserData();
+        } else {
+          throw new Error(result.error);
+        }
+      }
+
+      // Reset state
+      setEditingKeyword(null);
+      setEditingKeywordIndex(-1);
+    } catch (error) {
+      console.error('❌ Error saving keyword:', error);
+      showToast('Failed to save keyword. Please try again.', 'error');
+      throw error;
+    }
+  };
+
+  // Show delete confirmation for keyword
+  const handleDeleteKeyword = (keywordId: string) => {
+    setDeleteItem({
+      type: 'keyword',
+      name: 'this keyword',
+      keywordId: keywordId
+    });
+    setShowDeleteConfirmation(true);
+  };
+
+  // Actual delete keyword function
+  const confirmDeleteKeyword = async () => {
+    if (!deleteItem || !deleteItem.keywordId) return;
+
+    try {
+      const result = await FamilyManagementService.deleteKeyword(deleteItem.keywordId);
+      if (result.success) {
+        showToast('Keyword deleted successfully!', 'success');
+        await refreshUserData();
+      } else {
+        throw new Error(result.error || 'Failed to delete keyword');
+      }
+    } catch (error) {
+      console.error('Error deleting keyword:', error);
+      showToast('Failed to delete keyword. Please try again.', 'error');
+    }
+  };
+
   // Unified confirm delete function
   const handleConfirmDelete = async () => {
     if (!deleteItem) return;
@@ -918,6 +1024,8 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
       await confirmDeleteSchool();
     } else if (deleteItem.type === 'contact') {
       await confirmDeleteContact();
+    } else if (deleteItem.type === 'keyword') {
+      await confirmDeleteKeyword();
     }
 
     // Reset state
@@ -1649,7 +1757,7 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
               ) : null}
 
             </div>
-          ) : (
+          ) : defaultTab === 'contacts' ? (
             /* Family Contacts Content */
             <div className="space-y-6">
               {/* Contact Cards Grid */}
@@ -1759,7 +1867,194 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
               ) : null}
 
             </div>
-          )}
+          ) : defaultTab === 'keywords' ? (
+            /* Family Keywords Content */
+            <div className="space-y-6">
+              {/* Search and Filter Controls */}
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search keywords..."
+                    value={keywordSearchTerm}
+                    onChange={(e) => setKeywordSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Sort Dropdown */}
+                <div className="relative">
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <select
+                    value={keywordSortBy}
+                    onChange={(e) => setKeywordSortBy(e.target.value as 'name' | 'category' | 'recent')}
+                    className="pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+                  >
+                    <option value="name">Sort by Name</option>
+                    <option value="category">Sort by Category</option>
+                    <option value="recent">Sort by Recent</option>
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Keywords Grid */}
+              {(() => {
+                // Filter and sort keywords
+                let filteredAndSortedKeywords = userData.family?.keywords && Array.isArray(userData.family.keywords) ? [...userData.family.keywords] : [];
+
+                // Filter by search term
+                if (keywordSearchTerm) {
+                  filteredAndSortedKeywords = filteredAndSortedKeywords.filter((keyword: any) =>
+                    keyword.keyword?.toLowerCase().includes(keywordSearchTerm.toLowerCase()) ||
+                    keyword.category?.toLowerCase().includes(keywordSearchTerm.toLowerCase())
+                  );
+                }
+
+                // Sort keywords
+                filteredAndSortedKeywords.sort((a: any, b: any) => {
+                  switch (keywordSortBy) {
+                    case 'name':
+                      return (a.keyword || '').localeCompare(b.keyword || '');
+                    case 'category':
+                      return (a.category || '').localeCompare(b.category || '');
+                    case 'recent':
+                      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+                    default:
+                      return 0;
+                  }
+                });
+
+                return (
+                  <div className={`grid gap-4 overflow-visible w-full min-w-0 ${
+                    (filteredAndSortedKeywords.length + 1) <= 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+                    (filteredAndSortedKeywords.length + 1) <= 5 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' :
+                    'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+                  }`}>
+                    {/* Add Keyword Tile - Always Present */}
+                    <div
+                      onClick={startAddKeyword}
+                      className="relative p-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 text-center cursor-pointer group"
+                    >
+                      {/* Add Icon */}
+                      <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-blue-400 bg-white dark:bg-gray-700 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-all duration-200">
+                        <Plus className="w-8 h-8 text-gray-400 group-hover:text-blue-500" />
+                      </div>
+
+                      {/* Add Text */}
+                      <h3 className="font-semibold text-sm mb-2 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                        Add Keyword
+                      </h3>
+
+                      {/* Helper Text */}
+                      <div className="text-xs text-gray-500 dark:text-gray-500 group-hover:text-blue-500">
+                        Track important topics
+                      </div>
+                    </div>
+
+                    {filteredAndSortedKeywords.length > 0 ? (
+                      filteredAndSortedKeywords.map((keyword: any, keywordIndex: number) => {
+                    // Helper function to get category styling and icon
+                    const getCategoryStyle = (category: string) => {
+                      const styles = {
+                        activity: {
+                          bg: 'bg-green-100 dark:bg-green-900/30',
+                          text: 'text-green-700 dark:text-green-300',
+                          icon: Sparkles
+                        },
+                        school: {
+                          bg: 'bg-blue-100 dark:bg-blue-900/30',
+                          text: 'text-blue-700 dark:text-blue-300',
+                          icon: School
+                        },
+                        email_domain: {
+                          bg: 'bg-orange-100 dark:bg-orange-900/30',
+                          text: 'text-orange-700 dark:text-orange-300',
+                          icon: Mail
+                        },
+                        location: {
+                          bg: 'bg-purple-100 dark:bg-purple-900/30',
+                          text: 'text-purple-700 dark:text-purple-300',
+                          icon: MapPin
+                        },
+                        other: {
+                          bg: 'bg-gray-100 dark:bg-gray-700',
+                          text: 'text-gray-600 dark:text-gray-400',
+                          icon: Tag
+                        }
+                      };
+                      return styles[category as keyof typeof styles] || styles.other;
+                    };
+
+                    const style = getCategoryStyle(keyword.category || 'other');
+                    const IconComponent = style.icon;
+
+                    return (
+                      <div
+                        key={keywordIndex}
+                        className="relative p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-blue-300 hover:shadow-md transition-all duration-200 text-center group"
+                      >
+                        {/* Keyword Icon */}
+                        <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 ${style.bg} border-gray-200 dark:border-gray-600`}>
+                          <IconComponent className={`w-8 h-8 ${style.text}`} />
+                        </div>
+
+                        {/* Keyword */}
+                        <h3 className="font-semibold text-sm mb-2 truncate text-gray-900 dark:text-white">
+                          {keyword.keyword}
+                        </h3>
+
+                        {/* Category Badge */}
+                        <div className="flex items-center justify-center mb-2">
+                          <div className={`text-xs ${style.bg} ${style.text} px-3 py-1 rounded-full capitalize`}>
+                            {keyword.category === 'email_domain' ? 'Email Domain' : keyword.category?.replace('_', ' ')}
+                          </div>
+                        </div>
+
+                        {/* Edit button */}
+                        <button
+                          onClick={() => startEditKeyword(keyword, keywordIndex)}
+                          className="absolute top-2 right-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                          title="Edit keyword"
+                        >
+                          <Edit className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                        </button>
+
+                        {/* Delete button */}
+                        <button
+                          onClick={() => keyword.id && handleDeleteKeyword(keyword.id)}
+                          className="absolute top-2 right-8 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                          title="Remove keyword"
+                        >
+                          <Trash2 className="w-3 h-3 text-gray-400 hover:text-red-500 transition-colors" />
+                        </button>
+                      </div>
+                    );
+                  })
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400 col-span-full">
+                        <Hash className="w-12 h-12 opacity-50 mx-auto mb-2" />
+                        {(!userData.family?.keywords || !Array.isArray(userData.family.keywords) || userData.family.keywords.length === 0) ? (
+                          <>
+                            <p>No keywords added yet</p>
+                            <p className="text-sm">Click "Add Keyword" to get started</p>
+                          </>
+                        ) : (
+                          <>
+                            <p>No keywords match your search</p>
+                            <p className="text-sm">Try adjusting your search terms or filters</p>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -1844,6 +2139,20 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
         onAdd={handleContactSubmit}
         editingContact={editingContact}
         isEditing={!!editingContact}
+      />
+
+      {/* Keyword Modal */}
+      <AddKeywordModal
+        isOpen={showKeywordModal}
+        onClose={() => {
+          setShowKeywordModal(false);
+          // Clear editing data immediately to prevent flash of wrong data
+          setEditingKeyword(null);
+          setEditingKeywordIndex(-1);
+        }}
+        onAdd={handleKeywordSubmit}
+        editingKeyword={editingKeyword}
+        isEditing={!!editingKeyword}
       />
 
       {/* Delete Confirmation Modal */}

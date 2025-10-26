@@ -68,7 +68,11 @@
         "calendar": { "action": "list_events" },
         "family_activities": {}
       },
-      "response_template": "Here's what's happening next week:",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's happening next week"
+      },
       "bypass_llm": true
     },
 
@@ -95,7 +99,11 @@
         "calendar": { "action": "list_events" },
         "family_activities": {}
       },
-      "response_template": "Here's what was happening last week:",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what was happening last week"
+      },
       "bypass_llm": true
     },
 
@@ -104,7 +112,11 @@
       "dateRange": "today",
       "query": null,
       "params": { "calendar": { "action": "list_events" } },
-      "response_template": "Here's what's on your calendar today ({current_date}):",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's on your calendar today"
+      },
       "bypass_llm": true
     },
     "what is on my calendar": {
@@ -112,7 +124,11 @@
       "dateRange": "today",
       "query": null,
       "params": { "calendar": { "action": "list_events" } },
-      "response_template": "Here's what's on your calendar today ({current_date}):",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here's what's on your calendar today"
+      },
       "bypass_llm": true
     },
     "what's happening today": {
@@ -144,7 +160,11 @@
       "dateRange": "today",
       "query": null,
       "params": { "calendar": { "action": "list_events" } },
-      "response_template": "Your calendar for today ({current_date}):",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Your calendar for today"
+      },
       "bypass_llm": true
     },
     "what is on my calendar today": {
@@ -152,7 +172,11 @@
       "dateRange": "today",
       "query": null,
       "params": { "calendar": { "action": "list_events" } },
-      "response_template": "Your calendar for today ({current_date}):",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Your calendar for today"
+      },
       "bypass_llm": true
     },
     "what's on my calendar this week": {
@@ -160,7 +184,11 @@
       "dateRange": "this_week",
       "query": null,
       "params": { "calendar": { "action": "list_events" } },
-      "response_template": "Your calendar for this week ({date_range}):",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Your calendar for this week"
+      },
       "bypass_llm": true
     },
     "what is on my calendar this week": {
@@ -168,7 +196,11 @@
       "dateRange": "this_week",
       "query": null,
       "params": { "calendar": { "action": "list_events" } },
-      "response_template": "Your calendar for this week ({date_range}):",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Your calendar for this week"
+      },
       "bypass_llm": true
     },
     "what's on my calendar tomorrow": {
@@ -245,7 +277,11 @@
       "dateRange": "today",
       "query": "activities",
       "params": { "family_activities": {} },
-      "response_template": "Here are your family activities for today:",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here are your family activities for today"
+      },
       "bypass_llm": true
     },
     "what activities do we have this week": {
@@ -253,7 +289,11 @@
       "dateRange": "this_week",
       "query": "activities",
       "params": { "family_activities": {} },
-      "response_template": "Here are your family activities for this week ({date_range}):",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here are your family activities for this week"
+      },
       "bypass_llm": true
     },
 
@@ -287,7 +327,11 @@
         "gmail_search": { "query": "from:school OR subject:school OR school events" },
         "calendar": { "action": "list_events" }
       },
-      "response_template": "Here are upcoming school events from your email and calendar:",
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Here are upcoming school events from your email and calendar"
+      },
       "bypass_llm": true
     },
 
@@ -480,19 +524,37 @@
       "tools": ["calendar"],
       "dateRange": "next_{number}_days",
       "query": null,
-      "params": { "calendar": { "action": "list_events" } }
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Your calendar for the next {number} days"
+      },
+      "bypass_llm": true
     },
     "what's on my calendar for the next several days": {
       "tools": ["calendar"],
       "dateRange": "next_7_days",
       "query": null,
-      "params": { "calendar": { "action": "list_events" } }
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Your calendar for the next several days"
+      },
+      "bypass_llm": true
     },
     "what's on my calendar for the next few days": {
       "tools": ["calendar"],
       "dateRange": "next_3_days",
       "query": null,
-      "params": { "calendar": { "action": "list_events" } }
+      "params": { "calendar": { "action": "list_events" } },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "calendar_event",
+        "title": "Your calendar for the next few days"
+      },
+      "bypass_llm": true
     }
   },
 

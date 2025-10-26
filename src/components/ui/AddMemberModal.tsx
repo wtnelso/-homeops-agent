@@ -134,14 +134,23 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onAdd,
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
               Name <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              value={memberData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              placeholder="Name"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-              required
-            />
+            {isEditing && editingMember?.type === 'user' ? (
+              <input
+                type="text"
+                value={memberData.name}
+                readOnly
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              />
+            ) : (
+              <input
+                type="text"
+                value={memberData.name}
+                onChange={(e) => handleChange('name', e.target.value)}
+                placeholder="Name"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                required
+              />
+            )}
           </div>
 
           {/* Type Field */}
@@ -165,7 +174,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onAdd,
                   required
                 >
                   <option value="">Select type</option>
-                  <option value="partner">Partner</option>
+                  <option value="partner">Spouse/Partner</option>
                   <option value="child">Child</option>
                   <option value="pet">Pet</option>
                   <option value="parent">Parent</option>
@@ -187,18 +196,27 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onAdd,
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
               Email
             </label>
-            <input
-              type="email"
-              value={memberData.email}
-              onChange={(e) => handleChange('email', e.target.value)}
-              placeholder="Email address"
-              className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors ${
-                emailError
-                  ? 'border-red-500 dark:border-red-500 focus:ring-red-500 focus:border-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500'
-              }`}
-            />
-            {emailError && (
+            {isEditing && editingMember?.type === 'user' ? (
+              <input
+                type="email"
+                value={memberData.email}
+                readOnly
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              />
+            ) : (
+              <input
+                type="email"
+                value={memberData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                placeholder="Email address"
+                className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors ${
+                  emailError
+                    ? 'border-red-500 dark:border-red-500 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500'
+                }`}
+              />
+            )}
+            {emailError && !isEditing && (
               <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />

@@ -7,7 +7,7 @@ interface DeleteConfirmationModalProps {
   onClose: () => void;
   onConfirm: () => Promise<void>;
   itemName: string;
-  itemType: 'activity' | 'school' | 'contact';
+  itemType: 'activity' | 'school' | 'contact' | 'keyword';
 }
 
 const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
@@ -35,7 +35,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Delete ${itemType === 'activity' ? 'Activity' : 'School'}`}
+      title={`Delete ${itemType === 'activity' ? 'Activity' : itemType === 'school' ? 'School' : itemType === 'contact' ? 'Contact' : 'Keyword'}`}
       size="sm"
     >
       <div className="space-y-6">

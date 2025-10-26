@@ -110,13 +110,11 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
   };
 
   const handleSupport = () => {
-    console.log('Support clicked');
     setDropdownOpen(false);
-    window.open('mailto:support@homeops.example.com', '_blank');
+    window.open(`mailto:${import.meta.env.VITE_SUPPORT_EMAIL}`, '_blank');
   };
 
   const handleLogoutClick = async () => {
-    console.log('Logout clicked');
     setDropdownOpen(false);
     try {
       await signOut();

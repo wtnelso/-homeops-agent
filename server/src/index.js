@@ -28,6 +28,8 @@ import familySyncRoutes from './routes/familySync.js';
 import cacheManagementRoutes from './routes/cacheManagement.js';
 import gmailForwardingRoutes from './routes/gmailForwarding.js';
 import inboundEmailRoutes from './routes/inboundEmail.js';
+import onboardingRoutes from './routes/onboarding.js';
+import calendarRoutes from './routes/calendar.js';
 import { SERVER_CONFIG, validateServerConfig } from './config/serverConfig.js';
 // import './services/emailQueue.js'; // Initialize queue worker - DISABLED for direct inbound email processing
 import { MemoryCleanupService } from './services/memoryCleanupService.js';
@@ -76,6 +78,8 @@ app.use('/api/cache', cacheManagementRoutes);
 // app.use('/testing', testingRoutes); // Removed testing routes
 app.use('/api/gmail-forwarding', gmailForwardingRoutes);
 app.use('/inbound-email', inboundEmailRoutes);
+app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/calendar', calendarRoutes);
 app.use('/health', healthRoutes);
 
 // Root endpoint

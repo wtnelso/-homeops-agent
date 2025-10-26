@@ -21,6 +21,7 @@ export const ROUTES = {
   DASHBOARD_FAMILY_MEMBERS: '/dashboard/family/members',
   DASHBOARD_FAMILY_ACTIVITIES: '/dashboard/family/activities',
   DASHBOARD_FAMILY_CONTACTS: '/dashboard/family/contacts',
+  DASHBOARD_FAMILY_KEYWORDS: '/dashboard/family/keywords',
   DASHBOARD_SETTINGS: '/dashboard/settings',
   DASHBOARD_SETTINGS_PROFILE: '/dashboard/settings/profile',
   DASHBOARD_SETTINGS_ACCOUNT: '/dashboard/settings/account',
@@ -42,6 +43,12 @@ export const ROUTES = {
   STREAMING_TEST: '/streaming-test',
   OAUTH_CALLBACK: '/oauth/:provider/callback',
   SUPABASE_AUTH_CALLBACK: '/auth/callback',
+} as const;
+
+// OAuth return URLs configuration
+export const OAUTH_RETURN_URLS = {
+  ONBOARDING_STEP_3: '/dashboard/home?onboardingStep=3',
+  INTEGRATIONS_SETTINGS: '/dashboard/settings/integrations',
 } as const;
 
 // Page titles configuration

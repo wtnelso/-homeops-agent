@@ -10,7 +10,7 @@ import { STREAMING_CONFIG } from '../config/streamingConfig';
 export interface StreamingCallbacks {
   onChunk: (chunk: string) => void;
   onStatus: (message: string) => void;
-  onComplete: (response: string) => void;
+  onComplete: (response: string, conversationId?: string) => void;
   onError: (error: string) => void;
   onStructuredData: (data: StructuredData) => void;
 }
@@ -31,11 +31,12 @@ export interface StructuredData {
 }
 
 export interface StreamMessage {
-  type: 'chunk' | 'status' | 'complete' | 'error' | 'structured_data';
+  type: 'chunk' | 'status' | 'complete' | 'error' | 'structured_data' | 'tool_start' | 'tool_complete';
   content?: string;
   message?: string;
   error?: string;
   structuredData?: StructuredData;
+  conversationId?: string;
   index?: number;
   total?: number;
 }
@@ -138,6 +139,12 @@ export class StreamingChatService {
           if (line.startsWith('data: ')) {
             try {
               const data: StreamMessage = JSON.parse(line.slice(6));
+              if (data.type === 'complete') {
+                console.log('🔗 Raw complete message received:', data);
+              }
+              if (data.type === 'structured_data') {
+                console.log('🔗 Raw structured_data message received:', data);
+              }
               this.handleStreamData(data, callbacks);
             } catch (e) {
               console.error('Failed to parse stream data:', e);
@@ -164,7 +171,8 @@ export class StreamingChatService {
         break;
       case 'complete':
         if (data.message) {
-          callbacks.onComplete(data.message);
+          console.log('🔗 StreamingChatService: Complete message received with conversationId:', data.conversationId);
+          callbacks.onComplete(data.message, data.conversationId);
         }
         break;
       case 'error':
@@ -176,12 +184,26 @@ export class StreamingChatService {
         if (data.content) {
           try {
             const structuredData: StructuredData = JSON.parse(data.content);
+            console.log('🔗 StreamingChatService: Structured data received with conversationId:', data.conversationId);
             callbacks.onStructuredData(structuredData);
+            // Also trigger onComplete with conversation ID for structured responses
+            if (data.conversationId) {
+              console.log('🔗 StreamingChatService: Triggering onComplete from structured data with conversationId:', data.conversationId);
+              callbacks.onComplete('Structured response received', data.conversationId);
+            }
           } catch (e) {
             console.error('Failed to parse structured data:', e);
             callbacks.onError('Failed to parse structured response');
           }
         }
+        break;
+      case 'tool_start':
+        // Tool started - just log for now
+        console.log('🔧 Tool started:', data.message || 'Unknown tool');
+        break;
+      case 'tool_complete':
+        // Tool completed - just log for now
+        console.log('🔧 Tool completed:', data.message || 'Unknown tool');
         break;
       default:
         console.warn('Unknown stream message type:', data.type);

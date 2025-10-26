@@ -25,6 +25,8 @@ import { SemanticSearchTool } from '../tools/semanticSearchTool.js';
 import { AgentMemorySearchTool } from '../tools/agentMemorySearchTool.js';
 import { GoogleCalendarTool } from '../tools/googleCalendarTool.js';
 import  FamilyActiviesTool from '../tools/familyActivitiesTool.js';
+import { EventSchedulingTool } from '../tools/eventSchedulingTool.js';
+import { ConversationalLLMTool } from '../tools/conversationalLLMTool.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -208,6 +210,10 @@ export class StreamingIntelligentChatOrchestrator extends IntelligentChatOrchest
         modelName: process.env.OPENAI_MODEL || OPENAI_CONFIG.DEFAULT_MODEL,
         temperature: parseFloat(process.env.OPENAI_TEMPERATURE || OPENAI_CONFIG.DEFAULT_TEMPERATURE.toString()),
         streaming: true,
+        // Force using node-fetch to avoid undici cookies issue
+        configuration: {
+          fetch: (await import('node-fetch')).default
+        }
       });
 
       onStatus('Looking for relevant information...');
@@ -304,7 +310,8 @@ export class StreamingIntelligentChatOrchestrator extends IntelligentChatOrchest
         WHERE id = ${currentConversationId}
       `;
 
-      onComplete(fullResponse);
+      console.log('🔗 Orchestrator: Calling onComplete with conversationId:', currentConversationId);
+      onComplete(fullResponse, currentConversationId);
 
     } catch (error) {
       console.error('Streaming orchestrator error:', error);
@@ -362,7 +369,7 @@ export class StreamingIntelligentChatOrchestrator extends IntelligentChatOrchest
 
       // Get/create conversation
       let currentConversationId = conversationId;
-      if (!currentConversationId) {
+      if (!currentConversationId || currentConversationId === '') {
         const conversationTitle = sanitizedMessage.substring(0, 50).replace(/\n/g, ' ').trim() +
           (sanitizedMessage.length > 50 ? '...' : '');
 
@@ -383,26 +390,31 @@ export class StreamingIntelligentChatOrchestrator extends IntelligentChatOrchest
       let intentResult = null;
 
       if (detectedIntents && (Array.isArray(detectedIntents) ? detectedIntents.length > 0 : detectedIntents)) {
-        hasIntentMatch = true;
-        console.log('🎯 INTENT MATCH FOUND - executing tools');
-        onStatus('Gathering information from your integrations...');
-        const { toolResults, temporalRange: extractedTemporalRange } = await this.executeIntentToolsWithTimeRange(detectedIntents, userId, sanitizedMessage, userTimezone, onToolStart, onToolComplete);
-        temporalRange = extractedTemporalRange;
-        preExecutedToolResults = toolResults;
-        console.log('🔧 Pre-executed tool results:', preExecutedToolResults.length, 'results');
-        console.log('🔧 Tool results details:', preExecutedToolResults.map(r => ({ tool: r.tool, success: r.success, resultLength: typeof r.result === 'string' ? r.result.length : 'N/A' })));
-
-        // Check if this is a template-based response that should bypass LLM
+        // Check intent result first to decide if we should execute tools
         intentResult = Array.isArray(detectedIntents) ? detectedIntents[0] : detectedIntents;
         console.log('🔍 DEBUG: Intent result details:', {
           intentResult,
           bypass_llm: intentResult?.bypass_llm,
           response_template: intentResult?.response_template
         });
-        if (intentResult?.bypass_llm && intentResult?.response_template) {
-          shouldBypassLLM = true;
-          responseTemplate = intentResult.response_template;
-          console.log('🚀 DEBUG: Using template-based response, bypassing LLM entirely');
+
+        // All intents go through normal tool execution now (including conversational_llm tool)
+        {
+          hasIntentMatch = true;
+          console.log('🎯 INTENT MATCH FOUND - executing tools');
+          onStatus('Gathering information from your integrations...');
+          const { toolResults, temporalRange: extractedTemporalRange } = await this.executeIntentToolsWithTimeRange(detectedIntents, userId, sanitizedMessage, userTimezone, onToolStart, onToolComplete);
+          temporalRange = extractedTemporalRange;
+          preExecutedToolResults = toolResults;
+          console.log('🔧 Pre-executed tool results:', preExecutedToolResults.length, 'results');
+          console.log('🔧 Tool results details:', preExecutedToolResults.map(r => ({ tool: r.tool, success: r.success, resultLength: typeof r.result === 'string' ? r.result.length : 'N/A' })));
+
+          // Check if this is a template-based response that should bypass LLM
+          if (intentResult?.bypass_llm && intentResult?.response_template) {
+            shouldBypassLLM = true;
+            responseTemplate = intentResult.response_template;
+            console.log('🚀 DEBUG: Using template-based response, bypassing LLM entirely');
+          }
         }
       }
 
@@ -445,11 +457,13 @@ export class StreamingIntelligentChatOrchestrator extends IntelligentChatOrchest
 
           // Send structured data directly to frontend
           const structuredData = JSON.parse(templateResponse);
-          onStructuredData(structuredData);
+          console.log('🔗 Orchestrator (structured): Calling onStructuredData with conversationId:', currentConversationId);
+          onStructuredData(structuredData, currentConversationId);
         } else {
           // Stream the template response with typing effect for regular text
           await this.streamTemplateResponse(templateResponse, onChunk);
-          onComplete(templateResponse);
+          console.log('🔗 Orchestrator (template): Calling onComplete with conversationId:', currentConversationId);
+          onComplete(templateResponse, currentConversationId);
         }
         return;
       }
@@ -476,6 +490,10 @@ Please provide a natural, conversational response based on this information. Do 
           modelName: process.env.OPENAI_MODEL || OPENAI_CONFIG.DEFAULT_MODEL,
           temperature: parseFloat(process.env.OPENAI_TEMPERATURE || OPENAI_CONFIG.DEFAULT_TEMPERATURE.toString()),
           streaming: true,
+          // Force using node-fetch to avoid undici cookies issue
+          configuration: {
+            fetch: (await import('node-fetch')).default
+          }
         });
 
         // Get smart context with enhanced prompt
@@ -542,7 +560,8 @@ Please provide a natural, conversational response based on this information. Do 
           })}, NOW())
         `;
 
-        onComplete(fullResponse);
+        console.log('🔗 Orchestrator: Calling onComplete with conversationId:', currentConversationId);
+      onComplete(fullResponse, currentConversationId);
         return;
       }
 
@@ -552,6 +571,10 @@ Please provide a natural, conversational response based on this information. Do 
         modelName: process.env.OPENAI_MODEL || OPENAI_CONFIG.DEFAULT_MODEL,
         temperature: parseFloat(process.env.OPENAI_TEMPERATURE || OPENAI_CONFIG.DEFAULT_TEMPERATURE.toString()),
         streaming: true,
+        // Force using node-fetch to avoid undici cookies issue
+        configuration: {
+          fetch: (await import('node-fetch')).default
+        }
       });
 
       // Create tools locally for LangChain execution path
@@ -759,7 +782,8 @@ Please provide a natural, conversational response based on this information. Do 
         })}, NOW())
       `;
 
-      onComplete(finalContent);
+      console.log('🔗 Orchestrator (final): Calling onComplete with conversationId:', currentConversationId);
+      onComplete(finalContent, currentConversationId);
 
     } catch (error) {
       console.error('Streaming with tools error:', error);
@@ -834,7 +858,9 @@ Please provide a natural, conversational response based on this information. Do 
       }),
       agent_memory: () => new AgentMemorySearchTool({ userId }),
       calendar: () => new GoogleCalendarTool({ userId }),
-      family_activities: () => new FamilyActiviesTool({ userId })
+      family_activities: () => new FamilyActiviesTool({ userId }),
+      event_scheduling: () => new EventSchedulingTool({ userId }),
+      conversational_llm: () => new ConversationalLLMTool({ userId })
     };
 
     if (toolFactories[toolName]) {
@@ -855,8 +881,8 @@ Please provide a natural, conversational response based on this information. Do 
    * @private
    */
   createLangChainTools(userId) {
-    // For LangChain fallback, create essential tools including family_activities
-    const essentialTools = ['gmail_search', 'calendar', 'agent_memory', 'family_activities'];
+    // For LangChain fallback, create essential tools including family_activities and event_scheduling
+    const essentialTools = ['gmail_search', 'calendar', 'agent_memory', 'family_activities', 'event_scheduling', 'conversational_llm'];
     const tools = [];
 
     for (const toolName of essentialTools) {
@@ -1431,6 +1457,21 @@ Please provide a natural, conversational response based on this information. Do 
   }
 
   /**
+   * Check if a prompt matches keywords using fuzzy logic
+   */
+  fuzzyMatch(prompt, keywords) {
+    if (!keywords || !Array.isArray(keywords)) return false;
+
+    const promptLower = prompt.toLowerCase();
+
+    // Check if any of the keywords appear in the prompt
+    return keywords.some(keyword => {
+      const keywordLower = keyword.toLowerCase();
+      return promptLower.includes(keywordLower);
+    });
+  }
+
+  /**
    * LLM-BASED INTENT CLASSIFICATION (Fallback)
    *
    * Purpose: Handle complex queries that don't match predefined patterns
@@ -1442,26 +1483,46 @@ Please provide a natural, conversational response based on this information. Do 
       const llm = new ChatOpenAI({
         openAIApiKey: process.env.OPENAI_API_KEY,
         modelName: 'gpt-4o-mini',
-        temperature: 0.1
+        temperature: 0.1,
+        // Force using node-fetch to avoid undici cookies issue
+        configuration: {
+          fetch: (await import('node-fetch')).default
+        }
       });
 
       const classificationPrompt = `
 Analyze this user prompt and return intent information in JSON format.
 
-Available tools: calendar, gmail_search, family_activities, agent_memory_search
+Available tools: calendar, gmail_search, family_activities, agent_memory_search, event_scheduling, conversational_llm
 
 User prompt: "${normalizedPrompt}"
 
 Current date context: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 
-IMPORTANT: If the query is about calendar events, appointments, meetings, schedules, or "what's happening", you MUST include:
-- "bypass_llm": true
-- "response_template": {"type": "structured_data", "template_name": "calendar_event", "title": "appropriate title"}
+TOOL USAGE GUIDELINES:
+- Use "event_scheduling" for creating NEW events, scheduling meetings, or planning future activities
+- Use "calendar" for viewing EXISTING events, checking availability, or "what's happening" queries
+- Use "gmail_search" only for specific email lookup requests (e.g., "emails from John", "recent emails about project")
+- Use "family_activities" ONLY for factual data retrieval from existing activity databases (NOT for brainstorming or ideas)
+- Use "agent_memory_search" only for recalling specific stored information
+
+CONVERSATIONAL RESPONSES (USE conversational_llm TOOL):
+- General conversation: "family life is hard", emotional support, casual chat
+- ALL brainstorming and idea requests: "what are some good ideas", "suggestions for activities", "recommendations", "ideas for what to do", "what should we do"
+- Opinion requests: "what do you think", "how should I handle", advice seeking
+- Open-ended questions requiring reasoning or creativity
+- ANY request asking for suggestions, ideas, or recommendations
+
+CRITICAL: If user asks for "ideas", "suggestions", "what to do", "recommendations" - ALWAYS use conversational_llm tool, NEVER family_activities.
+
+Be VERY conservative with other tool usage. When in doubt, use conversational_llm tool.
+
+If creating/scheduling, you MUST include: "bypass_llm": true and "response_template": {"type": "structured_data", "template_name": "event_scheduling", "title": "appropriate title"}
 
 Return ONLY the JSON object - no markdown formatting, no explanations:
 ${JSON.stringify(this.llmSchema, null, 2)}
 
-Only include tools that are clearly needed. Be conservative. Include temporal dates if the query has time references.`;
+Only include tools for specific, actionable requests. For general conversation, brainstorming, or advice, use ["conversational_llm"].`;
 
       const response = await llm.invoke([
         { role: 'user', content: classificationPrompt }
@@ -1695,11 +1756,35 @@ Only include tools that are clearly needed. Be conservative. Include temporal da
       }
 
       try {
-        const parsedResult = typeof result.result === 'string' ? JSON.parse(result.result) : result.result;
-        console.log(`🔧 FORMAT TOOL RESULTS: Parsed result for ${result.tool}:`, JSON.stringify(parsedResult, null, 2));
+        // Determine if result is JSON or plain text
+        let parsedResult;
+        let isJsonResult = false;
+
+        if (typeof result.result === 'string') {
+          // Check if the string looks like JSON (starts with { or [)
+          const trimmed = result.result.trim();
+          if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+            parsedResult = JSON.parse(result.result);
+            isJsonResult = true;
+            console.log(`🔧 FORMAT TOOL RESULTS: Parsed JSON result for ${result.tool}:`, JSON.stringify(parsedResult, null, 2));
+          } else {
+            // Plain text result (like conversational_llm)
+            parsedResult = result.result;
+            console.log(`🔧 FORMAT TOOL RESULTS: Plain text result for ${result.tool} (${result.result.length} chars)`);
+          }
+        } else {
+          parsedResult = result.result;
+          isJsonResult = true;
+          console.log(`🔧 FORMAT TOOL RESULTS: Object result for ${result.tool}:`, JSON.stringify(parsedResult, null, 2));
+        }
 
         let toolContent = '';
-        if (result.tool === 'calendar') {
+
+        if (!isJsonResult) {
+          // Handle plain text results (like conversational_llm)
+          toolContent = parsedResult;
+          console.log(`🔧 FORMAT TOOL RESULTS: Using plain text result for ${result.tool} (${toolContent.length} chars)`);
+        } else if (result.tool === 'calendar') {
           // Extract events array from the result
           const events = parsedResult.events || [];
           console.log(`🔧 FORMAT TOOL RESULTS: Calendar events array length:`, events.length);

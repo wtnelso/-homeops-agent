@@ -439,13 +439,18 @@ router.post('/stream', optionalJWT, async (req, res) => {
         })}\n\n`);
       },
 
-      onComplete: (response) => {
-        res.write(`data: ${JSON.stringify({ type: 'complete', message: 'Response generated successfully' })}\n\n`);
+      onComplete: (response, conversationId) => {
+        res.write(`data: ${JSON.stringify({
+          type: 'complete',
+          message: 'Response generated successfully',
+          conversationId: conversationId
+        })}\n\n`);
         res.end();
       },
 
-      onStructuredData: (structuredData) => {
-        res.write(`data: ${JSON.stringify({ type: 'structured_data', content: JSON.stringify(structuredData) })}\n\n`);
+      onStructuredData: (structuredData, receivedConversationId) => {
+        console.log('🔗 chat.js: onStructuredData called with conversationId:', receivedConversationId);
+        res.write(`data: ${JSON.stringify({ type: 'structured_data', content: JSON.stringify(structuredData), conversationId: receivedConversationId })}\n\n`);
         res.end();
       },
 

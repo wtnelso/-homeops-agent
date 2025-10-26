@@ -95,15 +95,15 @@ export const OPENAI_CONFIG = {
 };
 
 export const TOOLS_CONFIG = {
-  // Gmail Tool Settings
+  // Gmail Tool Settings (DISABLED - using semantic_search only for email)
   gmail: {
-    enabled: true,
+    enabled: false,
     className: 'GmailSearchTool',
     importPath: '../tools/gmailSearchTool.js',
     maxResults: 8,
     timeoutMs: 5000,
     costPerCallCents: 0.2,
-    description: 'Direct Gmail API search with precise query operators',
+    description: 'Direct Gmail API search with precise query operators (DISABLED)',
     category: 'email',
     dependencies: ['oauth'],
     routing: {
@@ -131,7 +131,7 @@ export const TOOLS_CONFIG = {
     }
   },
 
-  // Semantic Search Tool Settings
+  // Semantic Search Tool Settings (PRIMARY EMAIL TOOL)
   semantic_search: {
     enabled: true,
     className: 'SemanticSearchTool',
@@ -139,13 +139,13 @@ export const TOOLS_CONFIG = {
     maxResults: 5,
     similarityThreshold: 0.4,
     costPerCallCents: 0.31,
-    description: 'AI-powered semantic email search using vector embeddings',
+    description: 'AI-powered semantic email search using vector embeddings - PRIMARY EMAIL TOOL',
     category: 'email',
     dependencies: ['openai', 'supabase'],
     routing: {
-      triggers: ['email', 'find', 'search', 'about'],
-      priority: 'high_for_content',
-      primaryForPlans: ['pro', 'enterprise']
+      triggers: ['email', 'inbox', 'gmail', 'from:', 'subject:', 'find', 'search', 'about', 'message', 'mail'],
+      priority: 'high',
+      standalone: true
     }
   },
 
@@ -178,6 +178,23 @@ export const TOOLS_CONFIG = {
     dependencies: ['supabase'],
     routing: {
       triggers: ['activities', 'schedule', 'practice', 'lesson', 'class', 'sport', 'music', 'dance', 'swimming'],
+      priority: 'high',
+      standalone: true
+    }
+  },
+
+  // Event Scheduling Tool Settings
+  event_scheduling: {
+    enabled: true,
+    className: 'EventSchedulingTool',
+    importPath: '../tools/eventSchedulingTool.js',
+    maxResults: 1,
+    costPerCallCents: 0.15,
+    description: 'Intelligent event scheduling with attendee resolution and time coordination',
+    category: 'scheduling',
+    dependencies: ['supabase', 'agent_memory'],
+    routing: {
+      triggers: ['schedule', 'book', 'set up', 'create event', 'meet with', 'dinner with', 'lunch with'],
       priority: 'high',
       standalone: true
     }

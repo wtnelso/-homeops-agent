@@ -97,7 +97,7 @@ export class GoogleCalendarTool extends Tool {
     console.log(`🗓️ Input received:`, JSON.stringify(input, null, 2));
 
     try {
-      const { action, query, temporalRange } = input || {};
+      const { action, query, temporalRange, startDate, endDate, startTime, duration } = input || {};
       console.log(`🗓️ Parsed - action: "${action}", query: "${query}"`);
 
       // Only require action parameter
@@ -297,17 +297,31 @@ export class GoogleCalendarTool extends Tool {
   /**
    * Find available time slots
    */
-  async findFreeTime(accessToken, { query, startDate, endDate, duration }) {
+  async findFreeTime(accessToken, { query, startDate, endDate, duration = "1 hour" }) {
     try {
-      console.log(`🔍 Finding free time: ${query}`);
+      console.log(`🔍 Finding free time from ${startDate} to ${endDate}, duration: ${duration}`);
 
-      // For now, return a simple response indicating this feature needs more implementation
+      if (!startDate || !endDate) {
+        throw new Error('Start date and end date are required for finding free time');
+      }
+
+      // Parse duration (default 1 hour)
+      const durationMinutes = this.parseDuration(duration);
+
+      // Get existing events in the date range
+      const existingEvents = await this.getEventsInRange(accessToken, startDate, endDate);
+
+      // Generate time slot suggestions
+      const suggestions = this.generateAvailableSlots(startDate, endDate, durationMinutes, existingEvents);
+
       return JSON.stringify({
         success: true,
         action: 'find_free_time',
         query: query,
-        message: 'Free time finding is available. Please specify your preferred time range and duration.',
-        suggestion: 'Try asking "What time am I free tomorrow afternoon?" or "Find 2 hours next week"'
+        dateRange: `${startDate} to ${endDate}`,
+        duration: duration,
+        suggestions: suggestions,
+        totalSuggestions: suggestions.length
       });
 
     } catch (error) {
@@ -360,6 +374,143 @@ export class GoogleCalendarTool extends Tool {
         details: error.message
       });
     }
+  }
+
+  /**
+   * Parse duration string into minutes
+   */
+  parseDuration(duration) {
+    if (!duration) return 60; // Default 1 hour
+
+    const durationMatch = duration.match(/(\d+)\s*(hour|minute|hr|min)/i);
+    if (durationMatch) {
+      const amount = parseInt(durationMatch[1]);
+      const unit = durationMatch[2].toLowerCase();
+      if (unit.startsWith('hour') || unit === 'hr') {
+        return amount * 60;
+      } else {
+        return amount;
+      }
+    }
+    return 60; // Default to 1 hour if can't parse
+  }
+
+  /**
+   * Get existing events in a date range
+   */
+  async getEventsInRange(accessToken, startDate, endDate) {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
+        `timeMin=${start.toISOString()}&` +
+        `timeMax=${end.toISOString()}&` +
+        `singleEvents=true&` +
+        `orderBy=startTime&` +
+        `maxResults=100`;
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Calendar API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.items || [];
+
+    } catch (error) {
+      console.error('🗓️ Error getting events:', error);
+      return []; // Return empty array on error
+    }
+  }
+
+  /**
+   * Generate available time slots based on existing events and business hours
+   */
+  generateAvailableSlots(startDate, endDate, durationMinutes, existingEvents) {
+    const suggestions = [];
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Iterate through each day in the range
+    let currentDate = new Date(start);
+    while (currentDate <= end && suggestions.length < 5) {
+      const daySlots = this.generateDaySlots(currentDate, durationMinutes, existingEvents);
+      suggestions.push(...daySlots);
+
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return suggestions.slice(0, 5); // Limit to 5 suggestions
+  }
+
+  /**
+   * Generate available slots for a specific day
+   */
+  generateDaySlots(date, durationMinutes, existingEvents) {
+    const slots = [];
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+
+    // Define business hours based on day type
+    let startHour, endHour;
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      // Weekend: 9 AM - 6 PM
+      startHour = 9;
+      endHour = 18;
+    } else {
+      // Weekday: 9 AM - 6 PM
+      startHour = 9;
+      endHour = 18;
+    }
+
+    // Generate hourly slots within business hours
+    for (let hour = startHour; hour < endHour; hour++) {
+      const slotStart = new Date(date);
+      slotStart.setHours(hour, 0, 0, 0);
+
+      const slotEnd = new Date(slotStart);
+      slotEnd.setMinutes(slotEnd.getMinutes() + durationMinutes);
+
+      // Check if this slot conflicts with existing events
+      const hasConflict = existingEvents.some(event => {
+        const eventStart = new Date(event.start?.dateTime || event.start?.date);
+        const eventEnd = new Date(event.end?.dateTime || event.end?.date);
+
+        // Check for overlap
+        return (slotStart < eventEnd && slotEnd > eventStart);
+      });
+
+      if (!hasConflict) {
+        slots.push({
+          date: date.toDateString(),
+          day: date.toLocaleDateString('en-US', { weekday: 'long' }),
+          startTime: slotStart.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          }),
+          endTime: slotEnd.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          }),
+          isoStart: slotStart.toISOString(),
+          isoEnd: slotEnd.toISOString()
+        });
+
+        // Limit to 2 slots per day to get variety across days
+        if (slots.length >= 2) break;
+      }
+    }
+
+    return slots;
   }
 
   /**

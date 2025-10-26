@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { FamilyActivity, FamilySchool, FamilyMember, FamilyContact } from './userSession';
+import { FamilyActivity, FamilySchool, FamilyMember, FamilyContact, FamilyKeyword } from './userSession';
 
 export class FamilyManagementService {
   /**
@@ -575,6 +575,84 @@ export class FamilyManagementService {
   }
 
   /**
+   * Update a family member by user_id (for the user's own record)
+   * @param userId - User ID to update (this updates the user's own family member record)
+   * @param updates - Partial family member data to update
+   * @param syncUserId - Optional user ID for agent memory sync
+   * @returns Promise with success status and updated member data
+   */
+  static async updateFamilyMemberByUserId(
+    userId: string,
+    updates: any,
+    syncUserId?: string
+  ): Promise<{
+    success: boolean;
+    member?: FamilyMember;
+    error?: string;
+  }> {
+    try {
+      console.log('🔍 UpdateFamilyMemberByUserId - userId:', userId);
+      console.log('🔍 UpdateFamilyMemberByUserId - updates:', updates);
+
+      const { data, error } = await supabase
+        .from('family_members')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId) // Use user_id instead of id
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating family member by user_id:', error);
+        return { success: false, error: error.message };
+      }
+
+      // Dual-write: Sync to agent memory
+      try {
+        if (!syncUserId) {
+          console.warn('⚠️ No syncUserId provided for agent memory sync, skipping...');
+          return { success: true, member: data };
+        }
+
+        console.log('🔄 Preparing to sync updated family member to agent memory:', {
+          userId: syncUserId,
+          familyId: data.family_id,
+          memberId: data.id,
+          memberName: data.name
+        });
+
+        const response = await fetch(`${import.meta.env.VITE_RENDER_SERVER_URL}/api/family-sync/member`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: syncUserId,
+            familyId: data.family_id,
+            memberData: data
+          }),
+        });
+
+        if (!response.ok) {
+          console.warn('⚠️ Failed to sync updated family member to agent memory:', await response.text());
+        } else {
+          console.log('✅ Updated family member synced to agent memory');
+        }
+      } catch (syncError) {
+        console.warn('⚠️ Error syncing updated family member to agent memory:', syncError);
+        // Don't fail the main operation if sync fails
+      }
+
+      return { success: true, member: data };
+    } catch (err) {
+      console.error('Unexpected error updating family member by user_id:', err);
+      return { success: false, error: 'Unexpected error occurred' };
+    }
+  }
+
+  /**
    * Update a family member
    * @param familyMemberId - ID of the family member to update (this comes as family_member_id from frontend but maps to id column in DB)
    * @param updates - Partial family member data to update
@@ -940,6 +1018,117 @@ export class FamilyManagementService {
     } catch (error) {
       console.error('❌ Error deleting contact:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Add a keyword to the family_keywords table
+   * @param keyword - Keyword data to insert
+   * @returns Promise with success status and keyword data
+   */
+  static async addKeyword(keyword: Omit<FamilyKeyword, 'id'>): Promise<{
+    success: boolean;
+    keyword?: FamilyKeyword;
+    error?: string;
+  }> {
+    try {
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return { success: false, error: 'No authenticated user' };
+      }
+
+      const keywordRecord = {
+        family_id: (keyword as any).family_id,
+        keyword: keyword.keyword,
+        category: keyword.category,
+        importance: 1,
+        auto_generated: false,
+        match_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('family_keywords')
+        .insert([keywordRecord])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding keyword:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, keyword: data };
+    } catch (err) {
+      console.error('Unexpected error adding keyword:', err);
+      return { success: false, error: 'Unexpected error occurred' };
+    }
+  }
+
+  /**
+   * Update a keyword in the family_keywords table
+   * @param keywordId - The ID of the keyword to update
+   * @param updates - Keyword data to update
+   * @returns Promise with success status and updated keyword data
+   */
+  static async updateKeyword(keywordId: string, updates: Partial<FamilyKeyword>): Promise<{
+    success: boolean;
+    keyword?: FamilyKeyword;
+    error?: string;
+  }> {
+    try {
+      const updateData: any = {
+        updated_at: new Date().toISOString()
+      };
+
+      if (updates.keyword !== undefined) updateData.keyword = updates.keyword;
+      if (updates.category !== undefined) updateData.category = updates.category;
+
+      const { data, error } = await supabase
+        .from('family_keywords')
+        .update(updateData)
+        .eq('id', keywordId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating keyword:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, keyword: data };
+    } catch (err) {
+      console.error('Unexpected error updating keyword:', err);
+      return { success: false, error: 'Unexpected error occurred' };
+    }
+  }
+
+  /**
+   * Delete a keyword from the family_keywords table
+   * @param keywordId - The ID of the keyword to delete
+   * @returns Promise with success status
+   */
+  static async deleteKeyword(keywordId: string): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
+    try {
+      const { error } = await supabase
+        .from('family_keywords')
+        .delete()
+        .eq('id', keywordId);
+
+      if (error) {
+        console.error('Error deleting keyword:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error('Unexpected error deleting keyword:', err);
+      return { success: false, error: 'Unexpected error occurred' };
     }
   }
 }

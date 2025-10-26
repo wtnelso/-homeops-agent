@@ -53,6 +53,21 @@ export interface FamilySchool {
   };
 }
 
+export interface FamilyKeyword {
+  id?: string;
+  keyword: string;
+  category: 'activity' | 'school' | 'email_domain' | 'location' | 'other';
+  source?: {
+    type: 'email' | 'manual' | 'chat';
+    confidence?: number;
+    timestamp: string;
+    updated_at?: string;
+    email_subject?: string;
+    source_id?: string;
+    original_text?: string;
+  };
+}
+
 export interface UserIntegration {
   id: string;
   integration_id: string;
@@ -83,7 +98,7 @@ export interface Family {
   name: string;
   family_type: string | null;
   contacts: FamilyContact[];
-  keywords: any[];
+  keywords: FamilyKeyword[];
   members: FamilyMember[];
   activities?: FamilyActivity[];
 }
@@ -255,7 +270,7 @@ export class UserSessionService {
    * Checks if user needs onboarding (hasn't completed setup)
    */
   static isOnboardingRequired(userData: UserSessionData): boolean {
-    return !userData.user.is_active;
+    return userData.user.onboarding_completed_at === null;
   }
 
   /**

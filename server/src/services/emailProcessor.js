@@ -101,7 +101,11 @@ export class EmailEmbeddingProcessor {
         maxTokens: EmailConfig.openaiConfig.maxTokens,
         topP: EmailConfig.openaiConfig.topP,
         frequencyPenalty: EmailConfig.openaiConfig.frequencyPenalty,
-        presencePenalty: EmailConfig.openaiConfig.presencePenalty
+        presencePenalty: EmailConfig.openaiConfig.presencePenalty,
+        // Force using node-fetch to avoid undici cookies issue
+        configuration: {
+          fetch: fetch
+        }
       });
       console.log('✅ Chat client created successfully');
 

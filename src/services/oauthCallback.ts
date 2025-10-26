@@ -3,6 +3,7 @@
 // Handles OAuth callbacks and completes integration installation
 
 import { OAuthCoordinator } from '../config/oauth';
+import { OAUTH_RETURN_URLS } from '../config/routes';
 
 export class OAuthCallbackHandler {
   /**
@@ -11,6 +12,7 @@ export class OAuthCallbackHandler {
   static async handleCallback(): Promise<{
     success: boolean;
     integrationId?: string;
+    returnUrl?: string;
     message?: string;
     error?: string;
   }> {
@@ -22,7 +24,20 @@ export class OAuthCallbackHandler {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
       const error = urlParams.get('error');
+      const state = urlParams.get('state');
       const integrationId = localStorage.getItem('oauth_integration_pending');
+
+      // Extract return URL from state parameter
+      let returnUrl: string | undefined;
+      if (state) {
+        try {
+          const stateData = JSON.parse(atob(state));
+          returnUrl = stateData.returnUrl;
+          console.log('🎯 Extracted return URL from state:', returnUrl);
+        } catch (error) {
+          console.warn('⚠️ Failed to parse OAuth state parameter:', error);
+        }
+      }
       
       console.log('📋 OAuth parameters:', {
         code: code ? `${code.substring(0, 10)}...` : 'NO CODE',
@@ -66,12 +81,11 @@ export class OAuthCallbackHandler {
 
       // Clear pending integration after successful processing
       localStorage.removeItem('oauth_integration_pending');
-      localStorage.removeItem('oauth_from_onboarding');
-      console.log('🧽 Cleared pending integration and context from localStorage');
 
       return {
         success: result.success,
         integrationId,
+        returnUrl,
         message: result.message,
         error: result.error
       };
@@ -108,21 +122,4 @@ export class OAuthCallbackHandler {
     }
   }
 
-  /**
-   * Get the stored return URL and clean it up
-   */
-  static getReturnUrl(): string {
-    const returnUrl = localStorage.getItem('oauth_return_url');
-    localStorage.removeItem('oauth_return_url');
-
-    // If we have a stored return URL, use it
-    if (returnUrl) {
-      console.log('🔄 Using stored return URL:', returnUrl);
-      return returnUrl;
-    }
-
-    // Default fallback to integrations page
-    console.log('🔄 No stored return URL, defaulting to integrations');
-    return '/dashboard/settings/integrations';
-  }
 }

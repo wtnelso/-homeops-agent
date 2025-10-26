@@ -1,9 +1,10 @@
 import { GOOGLE_CALENDAR_CONFIG } from '../config/integrations/google-calendar';
 import { UserSessionService } from './userSession';
 import { supabase } from '../lib/supabase';
+import { OAuthRedirectHandler } from './oauthRedirectHandler';
 
 export class GoogleCalendarService {
-  static buildOAuthUrl(): string {
+  static buildOAuthUrl(returnUrl: string): string {
     console.log('🔧 Building Google Calendar OAuth URL...');
     console.log('📋 OAuth Config:', {
       clientId: GOOGLE_CALENDAR_CONFIG.clientId ? `${GOOGLE_CALENDAR_CONFIG.clientId.substring(0, 10)}...` : 'MISSING',
@@ -16,13 +17,17 @@ export class GoogleCalendarService {
       console.error('❌ Google Calendar Client ID is missing!');
     }
 
+    // Create state parameter with return URL
+    const state = btoa(JSON.stringify({ returnUrl }));
+
     const params = new URLSearchParams({
       client_id: GOOGLE_CALENDAR_CONFIG.clientId || '',
       redirect_uri: GOOGLE_CALENDAR_CONFIG.redirectUri,
       response_type: 'code',
       scope: GOOGLE_CALENDAR_CONFIG.scopes.join(' '),
       access_type: 'offline',
-      prompt: 'consent'
+      prompt: 'consent',
+      state: state
     });
 
     const oauthUrl = `${GOOGLE_CALENDAR_CONFIG.authUrl}?${params.toString()}`;
@@ -30,15 +35,34 @@ export class GoogleCalendarService {
     return oauthUrl;
   }
 
-  static startOAuthFlow(): void {
+  static startOAuthFlow(returnUrl: string): void {
     console.log('🚀 Starting Google Calendar OAuth flow...');
+
+    // Add debug info to localStorage
+    const debugInfo: any = {
+      timestamp: new Date().toISOString(),
+      step: 'GoogleCalendarService_startOAuthFlow_called',
+      currentURL: window.location.href,
+      onboardingFlag: localStorage.getItem('oauth_from_onboarding'),
+      allOAuthKeys: Object.keys(localStorage).filter(key => key.includes('oauth'))
+    };
+    localStorage.setItem('google_calendar_debug', JSON.stringify(debugInfo));
+
     localStorage.setItem('oauth_integration_pending', 'google-calendar');
-    localStorage.setItem('oauth_return_url', window.location.pathname);
-    console.log('💾 Set pending integration in localStorage: google-calendar');
-    console.log('🔗 Stored return URL:', window.location.pathname);
-    
-    const oauthUrl = this.buildOAuthUrl();
+
+    // Update debug info
+    debugInfo.step = 'GoogleCalendarService_using_state_parameter';
+    debugInfo.returnURL = returnUrl;
+    localStorage.setItem('google_calendar_debug', JSON.stringify(debugInfo));
+
+    const oauthUrl = this.buildOAuthUrl(returnUrl);
     console.log('🌐 Redirecting to OAuth URL:', oauthUrl);
+
+    // Final debug info before redirect
+    debugInfo.step = 'GoogleCalendarService_about_to_redirect';
+    debugInfo.oauthUrl = oauthUrl;
+    localStorage.setItem('google_calendar_debug', JSON.stringify(debugInfo));
+
     window.location.href = oauthUrl;
   }
 

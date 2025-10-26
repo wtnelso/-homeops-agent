@@ -12,7 +12,8 @@ import {
   UserPlus,
   ChevronDown,
   ChevronRight,
-  Target
+  Target,
+  Hash
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdminStatus } from '../hooks/useAdminStatus';
@@ -90,6 +91,12 @@ const DashboardLayout: React.FC = () => {
           title: 'Contacts',
           icon: UserPlus,
           path: '/dashboard/family/contacts'
+        },
+        {
+          id: 'family-keywords',
+          title: 'Keywords',
+          icon: Hash,
+          path: '/dashboard/family/keywords'
         }
       ]
     },
@@ -166,21 +173,52 @@ const DashboardLayout: React.FC = () => {
 
   // Auto-launch onboarding for new users
   useEffect(() => {
+    console.log('🔍 DashboardLayout onboarding check:', {
+      isCurrentlyInDemo,
+      userEmail: userData?.user?.email,
+      onboardingCompletedAt: userData?.user?.onboarding_completed_at,
+      hasUserData: !!userData?.user,
+      userDataKeys: userData?.user ? Object.keys(userData.user) : 'no user data'
+    });
+
+    // Check URL parameters for onboarding step
+    const urlParams = new URLSearchParams(location.search);
+    const onboardingStep = urlParams.get('onboardingStep');
+    console.log('🔍 URL onboardingStep parameter:', onboardingStep);
+
     // Demo users use demo service logic
     if (isCurrentlyInDemo && demoChatService.shouldLaunchOnboarding()) {
+      console.log('🎭 Demo user launching onboarding');
       setTimeout(() => {
         setOnboardingModalOpen(true);
       }, 500);
       return;
     }
 
+    // Wait for userData to be fully loaded
+    if (!userData?.user) {
+      console.log('⏳ Waiting for userData to load...');
+      return;
+    }
+
     // Regular users check if onboarding is completed
-    if (userData?.user?.onboarding_completed_at === null) {
+    const onboardingCompleted = userData.user.onboarding_completed_at;
+
+    // If onboarding is NOT completed, show onboarding (respecting URL step parameter)
+    if (onboardingCompleted === null || onboardingCompleted === undefined) {
+      console.log('✅ Regular user launching onboarding - onboarding_completed_at:', onboardingCompleted);
       setTimeout(() => {
         setOnboardingModalOpen(true);
       }, 500);
+    } else if (onboardingStep) {
+      // If onboarding IS completed but URL has step parameter, redirect to clean /dashboard
+      console.log('🔄 Onboarding completed, removing step parameter from URL');
+      navigate('/dashboard', { replace: true });
+    } else {
+      console.log('❌ Onboarding not needed - onboarding_completed_at:', onboardingCompleted);
     }
-  }, [isCurrentlyInDemo, userData?.user?.onboarding_completed_at]);
+  }, [isCurrentlyInDemo, userData?.user, userData?.user?.onboarding_completed_at, location.search, navigate]);
+
 
   const currentPage = getCurrentPage();
 

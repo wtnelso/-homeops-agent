@@ -34,6 +34,8 @@ export interface IntegrationWithUserStatus {
   long_description?: string;
   platform_url?: string;
   how_it_works?: string;
+  setup_instructions?: string;
+  why_setup?: string;
   image_url: string | null;
   category: string;
   status: 'available' | 'coming_soon' | 'beta';
@@ -61,6 +63,8 @@ export class UserIntegrationsService {
           long_description,
           platform_url,
           how_it_works,
+          setup_instructions,
+          why_setup,
           image_url,
           category,
           status,
@@ -181,6 +185,7 @@ export class UserIntegrationsService {
           token_expires_at: null,
           connected_at: null,
           last_error: null,
+          config: {}, // Clear config data including generated email addresses
           updated_at: new Date().toISOString()
         })
         .eq('user_id', params.userId)

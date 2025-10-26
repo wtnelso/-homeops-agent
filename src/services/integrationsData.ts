@@ -18,6 +18,8 @@ export interface IntegrationWithStatus extends AvailableIntegration {
   long_description?: string;
   platform_url?: string;
   how_it_works?: string;
+  setup_instructions?: string;
+  why_setup?: string;
   required_scopes?: string[];
   // Simplified status
   isConnected: boolean; // true if status === 'connected', false otherwise
@@ -73,6 +75,8 @@ export class IntegrationsDataService {
       long_description: integration.long_description,
       platform_url: integration.platform_url,
       how_it_works: integration.how_it_works,
+      setup_instructions: integration.setup_instructions,
+      why_setup: integration.why_setup,
       required_scopes: integration.required_scopes,
       isConnected: integration.isConnected, // Already simplified in AccountIntegrationsService
       connectedAt: integration.user_integration?.connected_at || null,

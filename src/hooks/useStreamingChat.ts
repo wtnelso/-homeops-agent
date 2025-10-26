@@ -22,7 +22,7 @@ export interface StreamingMessage {
 export interface UseStreamingChatReturn {
   messages: StreamingMessage[];
   isStreaming: boolean;
-  sendStreamingMessage: (message: string, conversationId: string, userId: string) => Promise<void>;
+  sendStreamingMessage: (message: string, conversationId: string, userId: string, onConversationCreated?: (conversationId: string) => void) => Promise<void>;
   abortStream: () => void;
   addUserMessage: (content: string) => void;
   clearMessages: () => void;
@@ -87,7 +87,8 @@ export const useStreamingChat = (): UseStreamingChatReturn => {
   const sendStreamingMessage = useCallback(async (
     message: string,
     conversationId: string,
-    userId: string
+    userId: string,
+    onConversationCreated?: (conversationId: string) => void
   ): Promise<void> => {
     if (!isStreamingEnabled()) {
       throw new Error('Streaming is not enabled');
@@ -142,11 +143,18 @@ export const useStreamingChat = (): UseStreamingChatReturn => {
         ));
       },
 
-      onComplete: () => {
+      onComplete: (_, receivedConversationId) => {
         // Clear any pending timeouts
         if (debouncedUpdateRef.current) {
           clearTimeout(debouncedUpdateRef.current);
           debouncedUpdateRef.current = null;
+        }
+
+        // If we received a conversation ID and there's a callback, call it
+        console.log('🔗 useStreamingChat: Received conversationId:', receivedConversationId, 'Has callback:', !!onConversationCreated);
+        if (receivedConversationId && onConversationCreated) {
+          console.log('🔗 useStreamingChat: Calling onConversationCreated with:', receivedConversationId);
+          onConversationCreated(receivedConversationId);
         }
 
         // Save the final content before resetting
@@ -201,6 +209,7 @@ export const useStreamingChat = (): UseStreamingChatReturn => {
 
       onStructuredData: (structuredData: StructuredData) => {
         console.log('Received structured data:', structuredData);
+        console.log('🔗 useStreamingChat: onStructuredData called - checking for conversationId');
 
         // Clear any pending timeouts
         if (debouncedUpdateRef.current) {
@@ -240,7 +249,7 @@ export const useStreamingChat = (): UseStreamingChatReturn => {
       console.error('Failed to start streaming:', error);
       callbacks.onError(error instanceof Error ? error.message : 'Failed to start streaming');
     }
-  }, [addUserMessage]);
+  }, [addUserMessage, updateMessageContent]);
 
   const abortStream = useCallback(() => {
     if (streamingServiceRef.current) {

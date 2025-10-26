@@ -320,6 +320,10 @@ export class TemporalParsingService {
       openAIApiKey: process.env.OPENAI_API_KEY,
       modelName: 'gpt-4o-mini',
       temperature: 0,
+      // Force using node-fetch to avoid undici cookies issue
+      configuration: {
+        fetch: (await import('node-fetch')).default
+      }
     });
 
     const currentDate = this.formatDate(referenceDate);

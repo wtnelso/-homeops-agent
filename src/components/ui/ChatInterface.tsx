@@ -42,6 +42,35 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [conversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [loadingConversations] = useState(false);
+  const currentConversationIdRef = useRef<string | null>(null);
+
+  // Calendar invite handler
+  const handleSendInvite = async (eventData: {
+    eventId: string;
+    title: string;
+    startTime: string;
+    endTime?: string;
+    attendees: string[];
+  }) => {
+    const response = await fetch('/api/calendar/event', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...eventData,
+        userId: userData?.user?.id
+      })
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send invite');
+    }
+
+    return result;
+  };
 
   // UI state
   const [error, setError] = useState<string | null>(null);
@@ -155,8 +184,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     try {
       await sendStreamingMessage(
         messageText,
-        currentConversation?.id || '', // Empty string for new conversation
-        userData!.user!.id
+        currentConversationIdRef.current || currentConversation?.id || '', // Use ref first, then state
+        userData!.user!.id,
+        (newConversationId: string) => {
+          // Update current conversation when we get a new ID back
+          console.log('🔗 ChatInterface: Received newConversationId:', newConversationId, 'Current conversation:', currentConversation?.id);
+          if (!currentConversationIdRef.current && newConversationId) {
+            console.log('🔗 ChatInterface: Setting new conversation with ID:', newConversationId);
+            currentConversationIdRef.current = newConversationId; // Store in ref immediately
+            setCurrentConversation({
+              id: newConversationId,
+              title: messageText.substring(0, 50).replace(/\n/g, ' ').trim() +
+                    (messageText.length > 50 ? '...' : ''),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              message_count: 1,
+              last_message: messageText
+            });
+          }
+        }
       );
     } catch (error: any) {
       setError(error.message || 'Failed to send message');
@@ -189,6 +235,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const handleNewConversation = () => {
     setCurrentConversation(null);
+    currentConversationIdRef.current = null; // Clear the ref too
     clearStreamingMessages();
     setError(null);
   };
@@ -261,7 +308,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
         {/* Messages Area */}
         <div className="flex-1 overflow-hidden relative">
-          <div ref={scrollContainerRef} className="h-full overflow-y-auto">
+          <div ref={scrollContainerRef} className="h-full overflow-y-auto max-h-[600px]">
             <div className="w-full max-w-none px-2 sm:px-4 md:max-w-3xl md:mx-auto py-4 sm:py-8">
               {/* Welcome State */}
               {streamingMessages.length === 0 && !isStreaming && (
@@ -307,6 +354,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       key={message.id}
                       message={message}
                       onAbort={isStreaming ? abortStream : undefined}
+                      onSendInvite={handleSendInvite}
                     />
                   ))}
                   <div ref={messagesEndRef} />
