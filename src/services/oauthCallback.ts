@@ -3,7 +3,6 @@
 // Handles OAuth callbacks and completes integration installation
 
 import { OAuthCoordinator } from '../config/oauth';
-import { OAUTH_RETURN_URLS } from '../config/routes';
 
 export class OAuthCallbackHandler {
   /**

@@ -16,7 +16,7 @@ export class GmailService {
     return `${GMAIL_CONFIG.authUrl}?${params.toString()}`;
   }
 
-  static startOAuthFlow(returnUrl: string): void {
+  static startOAuthFlow(): void {
     const oauthUrl = this.buildOAuthUrl();
     console.log('🚀 Gmail OAuth URL:', oauthUrl);
     console.log('📋 Redirect URI:', GMAIL_CONFIG.redirectUri);

@@ -1,7 +1,6 @@
 import { GOOGLE_CALENDAR_CONFIG } from '../config/integrations/google-calendar';
 import { UserSessionService } from './userSession';
 import { supabase } from '../lib/supabase';
-import { OAuthRedirectHandler } from './oauthRedirectHandler';
 
 export class GoogleCalendarService {
   static buildOAuthUrl(returnUrl: string): string {

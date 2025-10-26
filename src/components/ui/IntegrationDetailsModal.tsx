@@ -220,7 +220,7 @@ const IntegrationDetailsModal: React.FC<IntegrationDetailsModalProps> = ({
                 </h3>
                 <div
                   className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed [&_h1]:text-lg [&_h1]:font-bold [&_h1]:mb-3 [&_h1]:text-gray-900 [&_h1]:dark:text-white [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:text-gray-900 [&_h2]:dark:text-white [&_h2]:inline [&_h3]:text-sm [&_h3]:font-medium [&_h3]:mb-2 [&_h3]:text-gray-800 [&_h3]:dark:text-gray-200 [&_h3]:inline [&_p]:mb-3 [&_p]:leading-relaxed [&_ol]:mb-3 [&_ol]:pl-0 [&_ol]:list-none [&_ol_li]:mb-4 [&_ol_li:before]:content-[counter(list-item)'.'] [&_ol_li:before]:font-semibold [&_ol_li:before]:mr-2 [&_ol_li:before]:text-gray-900 [&_ol_li:before]:dark:text-white [&_ul]:mb-3 [&_ul]:pl-4 [&_ul]:list-disc [&_ul_li]:mb-2 [&_code]:bg-gray-100 [&_code]:dark:bg-gray-800 [&_code]:px-2 [&_code]:py-1 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono [&_code]:text-gray-800 [&_code]:dark:text-gray-200 [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-white [&_em]:italic [&_a]:text-blue-600 [&_a]:dark:text-blue-400 [&_a]:underline [&_a:hover]:text-blue-700 [&_a:hover]:dark:text-blue-300"
-                  dangerouslySetInnerHTML={{ __html: integration.why_setup }}
+                  dangerouslySetInnerHTML={{ __html: integration.why_setup || '' }}
                 />
               </div>
 

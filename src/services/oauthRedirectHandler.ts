@@ -20,7 +20,14 @@ export class OAuthRedirectHandler {
     });
 
     // Add debug info to localStorage
-    const debugInfo = {
+    const debugInfo: {
+      timestamp: string;
+      step: string;
+      currentPath: string;
+      fromOnboarding: string;
+      allOAuthKeys: string[];
+      returnUrl?: string;
+    } = {
       timestamp: new Date().toISOString(),
       step: 'OAuthRedirectHandler_setupReturnUrl_called',
       currentPath,

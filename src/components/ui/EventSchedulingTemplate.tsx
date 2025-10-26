@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Calendar, Clock, Users, CheckCircle, AlertCircle, Send, CalendarDays, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, Users, CheckCircle, Send, CalendarDays, ExternalLink } from 'lucide-react';
 import { StructuredData } from '../../services/streamingChatService';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -51,19 +51,6 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
     });
   };
 
-  const getStatusIcon = () => {
-    if (eventData.ready_for_calendar) {
-      return <CheckCircle className="h-5 w-5 text-green-600" />;
-    }
-    return <AlertCircle className="h-5 w-5 text-yellow-600" />;
-  };
-
-  const getStatusColor = () => {
-    if (eventData.ready_for_calendar) {
-      return 'border-green-500 bg-green-50 dark:bg-green-900/20';
-    }
-    return 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20';
-  };
 
   // Handle clicking on suggested time buttons
   const handleTimeSelection = (suggestion: any, time: string) => {
@@ -107,7 +94,7 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
   const handleSendInvite = async () => {
     setIsInviteSending(true);
     try {
-      const attendees = emailInput.split(',').map(email => email.trim()).filter(Boolean);
+      const attendees = emailInput.split(',').map((email: string) => email.trim()).filter(Boolean);
 
       if (onSendInvite && selectedDateTime) {
         // Calculate end time (1 hour later)

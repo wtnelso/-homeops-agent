@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { CheckCircle } from 'lucide-react';
 import { IntegrationDisplay } from '../../data/integrations';
 import IntegrationDetailsModal from './IntegrationDetailsModal';
-import { useToast } from '../../contexts/ToastContext';
 
 interface IntegrationCardProps {
   integration: IntegrationDisplay;
@@ -15,7 +14,6 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   onConnect
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { showToast } = useToast();
 
   // Use database properties directly
   const isConnected = integration.isConnected ?? false;
