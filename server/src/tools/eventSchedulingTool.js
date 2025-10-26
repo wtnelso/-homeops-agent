@@ -54,8 +54,8 @@ export class EventSchedulingTool extends Tool {
     console.log(`📅 EventSchedulingTool constructor - userId:`, userId);
     this.userId = userId;
     this.supabase = createClient(
-      process.env.VITE_SUPABASE_URL,
-      process.env.VITE_SUPABASE_ANON_KEY
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY
     );
   }
 
