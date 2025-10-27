@@ -24,6 +24,7 @@ import TimezoneSelect from '../ui/TimezoneSelect';
 import { OnboardingService } from '../../services/onboardingService';
 import { IntegrationsDataService, IntegrationWithStatus } from '../../services/integrationsData';
 import IntegrationDetailsModal from '../ui/IntegrationDetailsModal';
+import CompactIntegrationTile from '../ui/integrations/CompactIntegrationTile';
 import { OAuthCoordinator } from '../../config/oauth';
 import { OAuthRedirectHandler } from '../../services/oauthRedirectHandler';
 
@@ -910,79 +911,19 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
                       </div>
                     ) : gmailIntegration ? (
                       <div className="mx-auto">
-                    {/* Compact Integration Card with same structure as IntegrationCard */}
-                    <div
-                      onClick={() => {
-                        console.log('📱 Gmail tile clicked, current state:', {
-                          id: gmailIntegration?.id,
-                          isConnected: gmailIntegration?.isConnected,
-                          name: gmailIntegration?.name
-                        });
-                        setSelectedIntegration(gmailIntegration);
-                        setIsModalOpen(true);
-                      }}
-                      className={`w-full bg-white dark:bg-gray-800 rounded-xl border p-3 hover:shadow-lg transition-all duration-500 relative transform hover:scale-105 h-full flex flex-col cursor-pointer text-left ${
-                        (gmailIntegration?.isConnected ?? false)
-                          ? 'border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10'
-                          : 'border-gray-200 dark:border-gray-700'
-                      }`}
-                    >
-
-                      {/* Success Animation Badge */}
-                      {gmailIntegration.isConnected && (
-                        <div className="absolute top-2 right-2 animate-pulse">
-                          <div className="w-5 h-5 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center shadow-lg">
-                            <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Icon - Use Gmail logo or fallback */}
-                      <div className="flex justify-center mb-2">
-                        <div className={`${gmailIntegration.isConnected ? 'animate-pulse' : ''}`}>
-                          {gmailIntegration.image_url ? (
-                            <img
-                              src={gmailIntegration.image_url}
-                              alt="Gmail icon"
-                              className="w-10 h-10 object-contain"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                              <div className="text-gray-600 dark:text-gray-400 font-semibold text-xs text-center">
-                                Gmail
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <CompactIntegrationTile
+                          integration={gmailIntegration}
+                          onClick={() => {
+                            console.log('📱 Gmail tile clicked, current state:', {
+                              id: gmailIntegration?.id,
+                              isConnected: gmailIntegration?.isConnected,
+                              name: gmailIntegration?.name
+                            });
+                            setSelectedIntegration(gmailIntegration);
+                            setIsModalOpen(true);
+                          }}
+                        />
                       </div>
-
-                      {/* Integration Name */}
-                      <div className="text-center mb-2">
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-                          {gmailIntegration.name}
-                        </h3>
-                        <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                          {gmailIntegration.isConnected ? `${gmailIntegration.name} Connected!` : `Connect ${gmailIntegration.name}`}
-                        </p>
-                      </div>
-
-                      {/* Value Proposition */}
-                      <p className="text-xs text-gray-600 dark:text-gray-400 text-center leading-relaxed mb-2 font-medium">
-                        {gmailIntegration.description}
-                      </p>
-
-                      {/* Connected Success Message */}
-                      {gmailIntegration.isConnected && (
-                        <div className="text-center mb-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                            Connected!
-                          </span>
-                        </div>
-                      )}
-
-
-                    </div>
-                  </div>
                 ) : (
                   <div className="mx-auto p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800">
                     <p className="text-center text-yellow-700 dark:text-yellow-300 text-xs">
@@ -994,72 +935,14 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
                     {/* Google Calendar Integration Tile */}
                     {calendarIntegration && (
                       <div className="mx-auto">
-                    <div
-                      onClick={() => {
-                        setSelectedIntegration(calendarIntegration);
-                        setIsModalOpen(true);
-                      }}
-                      className={`w-full bg-white dark:bg-gray-800 rounded-xl border p-3 hover:shadow-lg transition-all duration-500 relative transform hover:scale-105 h-full flex flex-col cursor-pointer text-left ${
-(calendarIntegration?.isConnected ?? false)
-                          ? 'border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10'
-                          : 'border-gray-200 dark:border-gray-700'
-                      }`}
-                    >
-
-                      {/* Success Animation Badge */}
-                      {calendarIntegration.isConnected && (
-                        <div className="absolute top-2 right-2 animate-pulse">
-                          <div className="w-5 h-5 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center shadow-lg">
-                            <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Icon */}
-                      <div className="flex justify-center mb-2">
-                        <div className={`${calendarIntegration.isConnected ? 'animate-pulse' : ''}`}>
-                          {calendarIntegration.image_url ? (
-                            <img
-                              src={calendarIntegration.image_url}
-                              alt="Google Calendar icon"
-                              className="w-10 h-10 object-contain"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                              <div className="text-gray-600 dark:text-gray-400 font-semibold text-xs text-center">
-                                Calendar
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <CompactIntegrationTile
+                          integration={calendarIntegration}
+                          onClick={() => {
+                            setSelectedIntegration(calendarIntegration);
+                            setIsModalOpen(true);
+                          }}
+                        />
                       </div>
-
-                      {/* Integration Name */}
-                      <div className="text-center mb-2">
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-                          {calendarIntegration.name}
-                        </h3>
-                        <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                          {calendarIntegration.isConnected ? `${calendarIntegration.name} Connected!` : `Connect ${calendarIntegration.name}`}
-                        </p>
-                      </div>
-
-                      {/* Value Proposition */}
-                      <p className="text-xs text-gray-600 dark:text-gray-400 text-center leading-relaxed mb-2 font-medium">
-                        {calendarIntegration.description}
-                      </p>
-
-                      {/* Connected Success Message */}
-                      {calendarIntegration.isConnected && (
-                        <div className="text-center mb-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                            Connected!
-                          </span>
-                        </div>
-                      )}
-
-                    </div>
-                  </div>
                     )}
 
                   </div>

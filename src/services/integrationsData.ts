@@ -78,7 +78,7 @@ export class IntegrationsDataService {
       setup_instructions: integration.setup_instructions,
       why_setup: integration.why_setup,
       required_scopes: integration.required_scopes,
-      isConnected: integration.isConnected, // Already simplified in AccountIntegrationsService
+      isConnected: integration.isConnected,
       connectedAt: integration.user_integration?.connected_at || null,
       lastSyncAt: integration.user_integration?.last_sync_at || null,
       totalSyncs: integration.user_integration?.total_syncs || 0,

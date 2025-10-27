@@ -17,33 +17,7 @@ export interface IntegrationDisplay {
   config?: Record<string, any> | null;
 }
 
-// Integration data - will eventually come from database
-export const INTEGRATIONS_DATA: IntegrationDisplay[] = [
-  {
-    id: 'gmail',
-    name: 'Gmail',
-    description: 'Connect Gmail to manage emails, send messages, and access your inbox directly from HomeOps.',
-    image_url: null,
-    category: 'email',
-    isConnected: false
-  },
-  {
-    id: 'gmail-forwarding',
-    name: 'Gmail Forwarding',
-    description: 'Forward emails to a unique address for processing and analysis. No OAuth required.',
-    image_url: null,
-    category: 'email',
-    isConnected: false
-  },
-  {
-    id: 'google_calendar',
-    name: 'Google Calendar',
-    description: 'Sync your Google Calendar to manage events, schedule meetings, and view your schedule.',
-    image_url: null,
-    category: 'calendar',
-    isConnected: false
-  }
-];
+// Integration data comes from database - no static fallback needed
 
 // Helper function to get icon component by name
 export const getIconComponent = (iconName: string) => {

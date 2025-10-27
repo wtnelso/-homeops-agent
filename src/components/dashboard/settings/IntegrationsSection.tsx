@@ -6,7 +6,8 @@ import { IntegrationsDataService, IntegrationWithStatus } from '../../../service
 import { UserIntegrationsService } from '../../../services/userIntegrationsService';
 import { OAuthCoordinator } from '../../../config/oauth';
 import { OAUTH_RETURN_URLS } from '../../../config/routes';
-import IntegrationCard from '../../ui/IntegrationCard';
+import CompactIntegrationTile from '../../ui/integrations/CompactIntegrationTile';
+import IntegrationDetailsModal from '../../ui/IntegrationDetailsModal';
 import Loader from '../../ui/Loader';
 
 const IntegrationsSection: React.FC = () => {
@@ -14,6 +15,8 @@ const IntegrationsSection: React.FC = () => {
   const [integrationsWithStatus, setIntegrationsWithStatus] = useState<IntegrationWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingIntegration, setProcessingIntegration] = useState<string | null>(null);
+  const [selectedIntegration, setSelectedIntegration] = useState<IntegrationWithStatus | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     loadIntegrationsData();
@@ -71,6 +74,8 @@ const IntegrationsSection: React.FC = () => {
         if (result.success) {
           console.log('Integration uninstalled successfully');
           await refreshUserData();
+          setIsModalOpen(false);
+          setSelectedIntegration(null);
         } else {
           console.error('Failed to uninstall integration:', result.error);
         }
@@ -105,10 +110,6 @@ const IntegrationsSection: React.FC = () => {
     }
   };
 
-  const handleSettings = (integrationId: string) => {
-    console.log('Opening settings for:', integrationId);
-    // TODO: Open integration settings modal or navigate to settings
-  };
 
   return (
     <div className="h-[44rem] flex flex-col space-y-4 px-4 sm:px-6 lg:px-0">
@@ -132,31 +133,31 @@ const IntegrationsSection: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {integrationsWithStatus.map((integration) => {
-            const integrationProps = {
-              id: integration.id,
-              name: integration.name,
-              description: integration.description,
-              long_description: integration.long_description,
-              platform_url: integration.platform_url,
-              how_it_works: integration.how_it_works,
-              image_url: integration.image_url,
-              category: integration.category,
-              required_scopes: integration.required_scopes,
-              isConnected: integration.isConnected,
-              config: integration.config
-            };
-
-            return (
-              <IntegrationCard
-                key={integration.id}
-                integration={integrationProps}
-                onConnect={handleConnect}
-                onSettings={handleSettings}
-              />
-            );
-          })}
+          {integrationsWithStatus.map((integration) => (
+            <CompactIntegrationTile
+              key={integration.id}
+              integration={integration}
+              onClick={() => {
+                setSelectedIntegration(integration);
+                setIsModalOpen(true);
+              }}
+            />
+          ))}
         </div>
+      )}
+
+      {/* Integration Details Modal */}
+      {selectedIntegration && (
+        <IntegrationDetailsModal
+          integration={selectedIntegration}
+          userData={userData}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedIntegration(null);
+          }}
+          onConnect={handleConnect}
+        />
       )}
 
       {/* Full-page processing overlay using Portal */}

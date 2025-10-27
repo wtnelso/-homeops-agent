@@ -853,7 +853,7 @@ Please provide a natural, conversational response based on this information. Do 
       semantic_search: () => new SemanticSearchTool({
         userId,
         supabaseUrl: process.env.SUPABASE_URL,
-        supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
+        supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
         openaiApiKey: process.env.OPENAI_API_KEY
       }),
       agent_memory: () => new AgentMemorySearchTool({ userId }),

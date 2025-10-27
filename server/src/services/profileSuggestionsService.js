@@ -1641,7 +1641,7 @@ export class ProfileSuggestionsService {
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
         process.env.SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_KEY
+        process.env.SUPABASE_SERVICE_ROLE_KEY
       );
 
       return await this.saveContactToSupabase(supabase, familyId, actualEditData, userId);
@@ -1667,7 +1667,7 @@ export class ProfileSuggestionsService {
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
         process.env.SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_KEY
+        process.env.SUPABASE_SERVICE_ROLE_KEY
       );
 
       return await this.saveFamilyInfoToSupabase(supabase, familyId, actualEditData, userId);

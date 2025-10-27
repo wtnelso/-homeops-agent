@@ -143,6 +143,75 @@ const getMemberTypeIcon = (type: string) => {
   return icons[type as keyof typeof icons] || icons.other;
 };
 
+// Helper function to get fun avatar styles for family members
+const getMemberAvatarStyle = (type: string, isSelected: boolean) => {
+  const avatarStyles = {
+    user: {
+      bg: 'bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-blue-900/40 dark:to-indigo-900/40',
+      border: 'border-blue-200 dark:border-blue-700',
+      selectedBg: 'bg-gradient-to-br from-blue-200 to-indigo-300 dark:from-blue-800/60 dark:to-indigo-800/60',
+      selectedBorder: 'border-blue-300 dark:border-blue-600',
+      icon: 'text-blue-600 dark:text-blue-400'
+    },
+    partner: {
+      bg: 'bg-gradient-to-br from-pink-100 to-rose-200 dark:from-pink-900/40 dark:to-rose-900/40',
+      border: 'border-pink-200 dark:border-pink-700',
+      selectedBg: 'bg-gradient-to-br from-pink-200 to-rose-300 dark:from-pink-800/60 dark:to-rose-800/60',
+      selectedBorder: 'border-pink-300 dark:border-pink-600',
+      icon: 'text-pink-600 dark:text-pink-400'
+    },
+    child: {
+      bg: 'bg-gradient-to-br from-yellow-100 to-orange-200 dark:from-yellow-900/40 dark:to-orange-900/40',
+      border: 'border-yellow-200 dark:border-yellow-700',
+      selectedBg: 'bg-gradient-to-br from-yellow-200 to-orange-300 dark:from-yellow-800/60 dark:to-orange-800/60',
+      selectedBorder: 'border-yellow-300 dark:border-yellow-600',
+      icon: 'text-yellow-600 dark:text-yellow-400'
+    },
+    pet: {
+      bg: 'bg-gradient-to-br from-green-100 to-emerald-200 dark:from-green-900/40 dark:to-emerald-900/40',
+      border: 'border-green-200 dark:border-green-700',
+      selectedBg: 'bg-gradient-to-br from-green-200 to-emerald-300 dark:from-green-800/60 dark:to-emerald-800/60',
+      selectedBorder: 'border-green-300 dark:border-green-600',
+      icon: 'text-green-600 dark:text-green-400'
+    },
+    parent: {
+      bg: 'bg-gradient-to-br from-purple-100 to-violet-200 dark:from-purple-900/40 dark:to-violet-900/40',
+      border: 'border-purple-200 dark:border-purple-700',
+      selectedBg: 'bg-gradient-to-br from-purple-200 to-violet-300 dark:from-purple-800/60 dark:to-violet-800/60',
+      selectedBorder: 'border-purple-300 dark:border-purple-600',
+      icon: 'text-purple-600 dark:text-purple-400'
+    },
+    sibling: {
+      bg: 'bg-gradient-to-br from-cyan-100 to-teal-200 dark:from-cyan-900/40 dark:to-teal-900/40',
+      border: 'border-cyan-200 dark:border-cyan-700',
+      selectedBg: 'bg-gradient-to-br from-cyan-200 to-teal-300 dark:from-cyan-800/60 dark:to-teal-800/60',
+      selectedBorder: 'border-cyan-300 dark:border-cyan-600',
+      icon: 'text-cyan-600 dark:text-cyan-400'
+    },
+    grandparent: {
+      bg: 'bg-gradient-to-br from-amber-100 to-yellow-200 dark:from-amber-900/40 dark:to-yellow-900/40',
+      border: 'border-amber-200 dark:border-amber-700',
+      selectedBg: 'bg-gradient-to-br from-amber-200 to-yellow-300 dark:from-amber-800/60 dark:to-yellow-800/60',
+      selectedBorder: 'border-amber-300 dark:border-amber-600',
+      icon: 'text-amber-600 dark:text-amber-400'
+    },
+    other: {
+      bg: 'bg-gradient-to-br from-slate-100 to-gray-200 dark:from-slate-900/40 dark:to-gray-900/40',
+      border: 'border-slate-200 dark:border-slate-700',
+      selectedBg: 'bg-gradient-to-br from-slate-200 to-gray-300 dark:from-slate-800/60 dark:to-gray-800/60',
+      selectedBorder: 'border-slate-300 dark:border-slate-600',
+      icon: 'text-slate-600 dark:text-slate-400'
+    }
+  };
+
+  const style = avatarStyles[type as keyof typeof avatarStyles] || avatarStyles.other;
+
+  return {
+    containerClass: `${isSelected ? style.selectedBg : style.bg} ${isSelected ? style.selectedBorder : style.border}`,
+    iconClass: style.icon
+  };
+};
+
 
 interface FamilyProfileSectionProps {
   defaultTab?: 'members' | 'activities' | 'contacts' | 'keywords';
@@ -1079,6 +1148,7 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
                 {members.map((member, index) => {
                   const Icon = getMemberTypeIcon(member.type || 'other');
                   const isSelected = selectedMemberIndex === index;
+                  const avatarStyle = getMemberAvatarStyle(member.type || 'other', isSelected);
 
                   return (
                     <div key={index} className="relative">
@@ -1091,16 +1161,8 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
                         }`}
                       >
                         {/* Avatar */}
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 flex-shrink-0 ${
-                          isSelected
-                            ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600'
-                            : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
-                        }`}>
-                          <Icon className={`w-6 h-6 ${
-                            isSelected
-                              ? 'text-blue-600 dark:text-blue-400'
-                              : 'text-gray-600 dark:text-gray-400'
-                          }`} />
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 flex-shrink-0 ${avatarStyle.containerClass}`}>
+                          <Icon className={`w-6 h-6 ${avatarStyle.iconClass}`} />
                         </div>
 
                         {/* Content */}
@@ -1172,6 +1234,7 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
                 {members.map((member, index) => {
                   const Icon = getMemberTypeIcon(member.type || 'other');
                   const isSelected = selectedMemberIndex === index;
+                  const avatarStyle = getMemberAvatarStyle(member.type || 'other', isSelected);
 
                   return (
                     <div key={index} className="relative group">
@@ -1184,16 +1247,8 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
                         }`}
                       >
                         {/* Avatar */}
-                        <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 transition-colors ${
-                          isSelected
-                            ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600'
-                            : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
-                        }`}>
-                          <Icon className={`w-8 h-8 ${
-                            isSelected
-                              ? 'text-blue-600 dark:text-blue-400'
-                              : 'text-gray-600 dark:text-gray-400'
-                          }`} />
+                        <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 transition-colors ${avatarStyle.containerClass}`}>
+                          <Icon className={`w-8 h-8 ${avatarStyle.iconClass}`} />
                         </div>
 
                         {/* Name */}
@@ -1246,17 +1301,21 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
                 {defaultTab === 'members' && (
                   <button
                     onClick={() => setShowAddMemberModal(true)}
-                    className="relative p-4 pb-8 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 text-center group"
+                    className="relative min-h-44 p-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 text-center group flex flex-col items-center justify-center"
                   >
                     {/* Add Icon */}
-                    <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-blue-400 dark:group-hover:border-blue-500 transition-colors">
+                    <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3 border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-blue-400 dark:group-hover:border-blue-500 transition-colors bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
                       <Plus className="w-8 h-8 text-gray-400 group-hover:text-blue-500 transition-colors" />
                     </div>
 
                     {/* Text */}
-                    <h3 className="font-semibold text-sm mb-6 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <h3 className="font-semibold text-sm text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       Add Member
                     </h3>
+                    {/* Stats placeholder for consistent spacing */}
+                    <div className="space-y-1 text-xs min-h-10 flex flex-col justify-center">
+                      <div className="text-transparent">•</div>
+                    </div>
                   </button>
                 )}
               </div>
@@ -1273,9 +1332,15 @@ const FamilyProfileSection: React.FC<FamilyProfileSectionProps> = ({ defaultTab 
                         {/* Member Header */}
                         <div className="flex items-center justify-between mb-4 md:mb-6">
                           <div className="flex items-center gap-3 md:gap-4">
-                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg border-2 bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600">
-                              {React.createElement(getMemberTypeIcon(member.family_relationship || member.type || 'other'), { className: "w-6 h-6 md:w-8 md:h-8 text-blue-600 dark:text-blue-400" })}
-                            </div>
+                            {(() => {
+                              const headerAvatarStyle = getMemberAvatarStyle(member.family_relationship || member.type || 'other', true);
+                              const HeaderIcon = getMemberTypeIcon(member.family_relationship || member.type || 'other');
+                              return (
+                                <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg border-2 ${headerAvatarStyle.containerClass}`}>
+                                  <HeaderIcon className={`w-6 h-6 md:w-8 md:h-8 ${headerAvatarStyle.iconClass}`} />
+                                </div>
+                              );
+                            })()}
                             <div>
                               <h2 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
                                 {member.name || 'Unnamed Member'}
