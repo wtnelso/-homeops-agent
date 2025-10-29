@@ -130,8 +130,8 @@ export class EventSchedulingTool extends Tool {
           type: finalTimeType,
           originalTimeframe: temporal.phrase,
           hasSpecificTime: !!temporal.startDate && !isVagueTimeframe,
-          startTime: isVagueTimeframe ? null : (temporal.startDate?.toISOString() || null),
-          endTime: isVagueTimeframe ? null : (temporal.endDate?.toISOString() || null),
+          startTime: isVagueTimeframe ? null : temporal.startDate?.toISOString(),
+          endTime: isVagueTimeframe ? null : temporal.endDate?.toISOString(),
           duration: eventDetails.duration || { value: 1, unit: 'hours' },
           suggestedDateRange: isVagueTimeframe ? {
             start: temporal.startDate?.toISOString() || null,
@@ -143,11 +143,8 @@ export class EventSchedulingTool extends Tool {
 
       console.log(`🔄 Combined data:`, combinedData);
 
-      // STEP 5: Store in database (create or update existing)
-      const pendingEvent = await this.createOrUpdatePendingEvent(combinedData);
-
-      // STEP 6: Generate response
-      const response = await this.generateSchedulingResponse(pendingEvent, combinedData);
+      // STEP 5: Generate response (no database operations)
+      const response = await this.generateSchedulingResponse(combinedData);
 
       return JSON.stringify(response);
 
@@ -301,119 +298,15 @@ If you cannot parse the request, return: {"success": false, "error": "reason"}`;
   }
 
 
-  /**
-   * Create or update a pending event record in Supabase
-   * Checks for recent pending events to avoid duplicates
-   */
-  async createOrUpdatePendingEvent({ event, attendees, timeInfo, originalRequest }) {
-    try {
-      // Format attendees array for database
-      const attendeesData = attendees.map(attendee => ({
-        name: attendee.name,
-        email: attendee.email || null
-      }));
-
-      // Check for recent pending events for the same user/event/attendee combination
-      const existingEvent = await this.findRecentPendingEvent(event, attendees);
-
-      const pendingEventData = {
-        user_id: this.userId,
-        event_title: event,
-        event_description: event,
-        attendees: attendeesData,
-        timeframe: timeInfo.originalTimeframe,
-        time_type: timeInfo.type,
-        original_request: originalRequest,
-        status: 'pending',
-        start_time: timeInfo.startTime || null,
-        end_time: timeInfo.endTime || null
-      };
-
-      if (existingEvent) {
-        // Update existing event
-        console.log(`📝 Updating existing pending event:`, existingEvent.id);
-        const { data, error } = await this.supabase
-          .from('pending_calendar_events')
-          .update(pendingEventData)
-          .eq('id', existingEvent.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        console.log(`📝 Updated pending event:`, data.id);
-        return data;
-      } else {
-        // Create new event
-        console.log(`📝 Creating new pending event`);
-        const { data, error } = await this.supabase
-          .from('pending_calendar_events')
-          .insert(pendingEventData)
-          .select()
-          .single();
-
-        if (error) throw error;
-        console.log(`📝 Created pending event:`, data.id);
-        return data;
-      }
-
-    } catch (error) {
-      console.error('📝 Error creating/updating pending event:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Find recent pending event for the same context to avoid duplicates
-   */
-  async findRecentPendingEvent(eventTitle, attendees) {
-    try {
-      const attendeeNames = attendees.map(a => a.name);
-
-      // Look for pending events from the last hour with same event and attendees
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-
-      const { data, error } = await this.supabase
-        .from('pending_calendar_events')
-        .select('*')
-        .eq('user_id', this.userId)
-        .eq('event_title', eventTitle)
-        .eq('status', 'pending')
-        .gte('created_at', oneHourAgo)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) {
-        console.warn('Error finding recent pending events:', error);
-        return null;
-      }
-
-      // Check if any of the recent events have matching attendees
-      for (const event of data || []) {
-        const eventAttendeeNames = event.attendees.map(a => a.name);
-        const sameAttendees = attendeeNames.length === eventAttendeeNames.length &&
-          attendeeNames.every(name => eventAttendeeNames.includes(name));
-
-        if (sameAttendees) {
-          console.log(`📝 Found recent matching pending event:`, event.id);
-          return event;
-        }
-      }
-
-      return null;
-    } catch (error) {
-      console.warn('Error finding recent pending events:', error);
-      return null;
-    }
-  }
 
   /**
    * Generate appropriate scheduling response based on time specificity
    * Returns simple data object like other tools (orchestrator handles structured wrapping)
    */
-  async generateSchedulingResponse(pendingEvent, combinedData) {
+  async generateSchedulingResponse(combinedData, temporal = null) {
     const timeInfo = combinedData.timeInfo;
-    const attendeesWithEmail = pendingEvent.attendees.filter(a => a.email);
-    const hasAllEmails = attendeesWithEmail.length === pendingEvent.attendees.length;
+    const attendeesWithEmail = combinedData.attendees.filter(a => a.email);
+    const hasAllEmails = attendeesWithEmail.length === combinedData.attendees.length;
 
     let nextAction, missingInfo = [];
 
@@ -441,13 +334,13 @@ If you cannot parse the request, return: {"success": false, "error": "reason"}`;
       success: true,
       source: 'event_scheduling',
       action: 'event_scheduling',
-      event_id: pendingEvent.id,
-      event_title: pendingEvent.event_title,
-      attendees: pendingEvent.attendees,
-      timeframe: pendingEvent.timeframe,
+      event_id: `event_${Date.now()}`, // Generate temporary ID
+      event_title: combinedData.event,
+      attendees: combinedData.attendees,
+      timeframe: timeInfo.originalTimeframe,
       time_type: timeInfo.type,
-      start_time: pendingEvent.start_time,
-      end_time: pendingEvent.end_time,
+      start_time: timeInfo.startTime, // ISO timestamp for calendar API
+      end_time: timeInfo.endTime,     // ISO timestamp for calendar API
       ready_for_calendar: timeInfo.type === 'specific' && hasAllEmails,
       next_action: nextAction,
       missing_info: missingInfo.length > 0 ? missingInfo : null
@@ -462,12 +355,12 @@ If you cannot parse the request, return: {"success": false, "error": "reason"}`;
           responseData.time_suggestions = calendarSuggestions;
           responseData.suggestions_source = 'calendar';
         } else {
-          responseData.time_suggestions = this.generateTimeSuggestions(pendingEvent.timeframe);
+          responseData.time_suggestions = this.generateTimeSuggestions(timeInfo.originalTimeframe);
           responseData.suggestions_source = 'static';
         }
       } catch (error) {
         console.error('📅 Calendar availability check failed:', error);
-        responseData.time_suggestions = this.generateTimeSuggestions(pendingEvent.timeframe);
+        responseData.time_suggestions = this.generateTimeSuggestions(timeInfo.originalTimeframe);
         responseData.suggestions_source = 'static_fallback';
         responseData.calendar_error = error.message.includes('not connected') ?
           'Google Calendar not connected. Connect it in settings for personalized suggestions.' :
@@ -540,6 +433,23 @@ If you cannot parse the request, return: {"success": false, "error": "reason"}`;
     });
 
     return Object.values(suggestionsByDay);
+  }
+
+  /**
+   * Format time for display in user's timezone
+   */
+  formatTimeForDisplay(date, userTimezone) {
+    if (!date || !userTimezone) return null;
+
+    return date.toLocaleString('en-US', {
+      timeZone: userTimezone,
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   }
 
   /**

@@ -37,9 +37,18 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
   const [pickerDate, setPickerDate] = useState('');
   const [pickerTime, setPickerTime] = useState('');
 
-  const formatTime = (dateString: string | null) => {
-    if (!dateString) return 'Time TBD';
-    return dateString; // Backend sends formatted string directly
+  const formatTime = (isoString: string | null) => {
+    if (!isoString) return 'Time TBD';
+    // Convert ISO string to user-friendly format
+    const date = new Date(isoString);
+    return date.toLocaleString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
 
@@ -88,7 +97,7 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
       const attendees = emailInput.split(',').map((email: string) => email.trim()).filter(Boolean);
 
       if (onSendInvite && selectedDateTime) {
-        // Calculate end time (1 hour later)
+        // selectedDateTime is now an ISO string, use directly
         const startTime = selectedDateTime;
         const endTime = new Date(new Date(startTime).getTime() + 60 * 60 * 1000).toISOString();
 
@@ -164,7 +173,7 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
               </span>
             ) : eventData.start_time ? (
               <span className="text-gray-700 dark:text-gray-300">
-                {formatTime(eventData.start_time)}
+                {eventData.start_time}
               </span>
             ) : (
               <span className="text-gray-500 dark:text-gray-400">

@@ -25,7 +25,7 @@ export class EventTemporalParsingService {
     // 2. Try chrono-node for specific times
     const chronoResult = this.parseWithChrono(userQuery, referenceDate, userTimezone);
     if (chronoResult) {
-      console.log(`✅ Chrono parsed: ${chronoResult.phrase} → ${this.formatDate(chronoResult.startDate)} ${this.formatTime(chronoResult.startDate)} to ${this.formatTime(chronoResult.endDate)}`);
+      console.log(`✅ Chrono parsed: ${chronoResult.phrase} → ${chronoResult.startDate} to ${chronoResult.endDate}`);
       return chronoResult;
     }
 
@@ -33,7 +33,7 @@ export class EventTemporalParsingService {
     try {
       const openAIResult = await this.parseWithOpenAI(userQuery, referenceDate);
       if (openAIResult) {
-        console.log(`✅ OpenAI parsed: ${openAIResult.phrase} → ${this.formatDate(openAIResult.startDate)} ${this.formatTime(openAIResult.startDate)} to ${this.formatTime(openAIResult.endDate)}`);
+        console.log(`✅ OpenAI parsed: ${openAIResult.phrase} → ${openAIResult.startDate} to ${openAIResult.endDate}`);
         return openAIResult;
       }
     } catch (error) {
@@ -42,7 +42,7 @@ export class EventTemporalParsingService {
 
     // 4. Default range (next day at reasonable time)
     const defaultResult = this.getDefaultEventRange(referenceDate);
-    console.log(`⚠️ Using default event range: ${this.formatDate(defaultResult.startDate)} ${this.formatTime(defaultResult.startDate)} to ${this.formatTime(defaultResult.endDate)}`);
+    console.log(`⚠️ Using default event range: ${defaultResult.startDate} to ${defaultResult.endDate}`);
     return defaultResult;
   }
 
@@ -163,7 +163,7 @@ export class EventTemporalParsingService {
         if (hasSpecificTime) {
           // For specific times like "Friday at 7 pm", add 1 hour duration
           endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-          console.log(`🕒 Specific time detected: ${this.formatUserReadableDateTime(startDate, userTimezone)} + 1 hour = ${this.formatUserReadableDateTime(endDate, userTimezone)}`);
+          console.log(`🕒 Specific time detected: ${startDate.toISOString()} + 1 hour = ${endDate.toISOString()}`);
         } else {
           // For date-only like "Friday", set to 7 PM - 8 PM same day
           const eventStart = new Date(startDate);
@@ -173,18 +173,20 @@ export class EventTemporalParsingService {
 
           console.log(`🕒 Date-only detected: Setting to 7-8 PM on ${eventStart.toDateString()}`);
           return {
-            startDate: this.formatUserReadableDateTime(eventStart, userTimezone),
-            endDate: this.formatUserReadableDateTime(eventEnd, userTimezone),
+            startDate: eventStart,
+            endDate: eventEnd,
             phrase: result.text,
-            source: 'chrono-enhanced'
+            source: 'chrono-enhanced',
+            userTimezone
           };
         }
 
         return {
-          startDate: this.formatUserReadableDateTime(startDate, userTimezone),
-          endDate: this.formatUserReadableDateTime(endDate, userTimezone),
+          startDate,
+          endDate,
           phrase: result.text,
-          source: 'chrono'
+          source: 'chrono',
+          userTimezone
         };
       }
     } catch (error) {
