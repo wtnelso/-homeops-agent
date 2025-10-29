@@ -93,9 +93,9 @@ router.get('/admin-check', validateJWT, async (req, res) => {
 
     console.log(`🔍 ADMIN CHECK: Checking admin status for email: ${userEmail}`);
 
-    // Check if user is in admin_emails table with service role (bypasses RLS)
+    // Check if user is in admin_users table with service role (bypasses RLS)
     const { data, error } = await supabase
-      .from('admin_emails')
+      .from('admin_users')
       .select('email')
       .eq('email', userEmail.toLowerCase())
       .single();
@@ -103,7 +103,7 @@ router.get('/admin-check', validateJWT, async (req, res) => {
     if (error) {
       if (error.code === 'PGRST116') {
         // No matching records found - user is not an admin
-        console.log(`❌ ADMIN CHECK: User ${userEmail} not found in admin_emails table`);
+        console.log(`❌ ADMIN CHECK: User ${userEmail} not found in admin_users table`);
         return res.json({
           success: true,
           isAdmin: false
