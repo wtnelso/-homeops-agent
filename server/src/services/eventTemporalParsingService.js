@@ -7,6 +7,7 @@
 
 import { parse as chronoParse } from 'chrono-node';
 import { ChatOpenAI } from '@langchain/openai';
+import { DateTime } from 'luxon';
 
 export class EventTemporalParsingService {
   /**
@@ -163,7 +164,7 @@ export class EventTemporalParsingService {
         if (hasSpecificTime) {
           // For specific times like "Friday at 7 pm", add 1 hour duration
           endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-          console.log(`🕒 Specific time detected: ${startDate.toISOString()} + 1 hour = ${endDate.toISOString()}`);
+          console.log(`🕒 Specific time detected: ${this.formatUserReadableDateTime(startDate, userTimezone)} + 1 hour = ${this.formatUserReadableDateTime(endDate, userTimezone)}`);
         } else {
           // For date-only like "Friday", set to 7 PM - 8 PM same day
           const eventStart = new Date(startDate);
@@ -173,16 +174,16 @@ export class EventTemporalParsingService {
 
           console.log(`🕒 Date-only detected: Setting to 7-8 PM on ${eventStart.toDateString()}`);
           return {
-            startDate: eventStart,
-            endDate: eventEnd,
+            startDate: this.formatUserReadableDateTime(eventStart, userTimezone),
+            endDate: this.formatUserReadableDateTime(eventEnd, userTimezone),
             phrase: result.text,
             source: 'chrono-enhanced'
           };
         }
 
         return {
-          startDate,
-          endDate,
+          startDate: this.formatUserReadableDateTime(startDate, userTimezone),
+          endDate: this.formatUserReadableDateTime(endDate, userTimezone),
           phrase: result.text,
           source: 'chrono'
         };
@@ -277,6 +278,20 @@ Default to 1 hour duration if not specified.`;
       minute: '2-digit',
       hour12: true
     });
+  }
+
+  /**
+   * Format date-time in user's timezone as readable string
+   */
+  static formatUserReadableDateTime(date, userTimezone) {
+    if (!userTimezone) {
+      return date.toISOString();
+    }
+
+    // Use luxon to format in user's timezone
+    return DateTime.fromJSDate(date)
+      .setZone(userTimezone)
+      .toLocaleString(DateTime.DATETIME_FULL);
   }
 }
 

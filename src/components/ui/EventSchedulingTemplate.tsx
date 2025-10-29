@@ -39,18 +39,7 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return 'Time TBD';
-
-    const date = new Date(dateString);
-    // Force display in the user's local timezone
-    return date.toLocaleString('en-US', {
-      weekday: 'long',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-    });
+    return dateString; // Backend sends formatted string directly
   };
 
 
