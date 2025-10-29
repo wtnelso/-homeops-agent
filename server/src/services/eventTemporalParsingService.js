@@ -288,10 +288,16 @@ Default to 1 hour duration if not specified.`;
       return date.toISOString();
     }
 
-    // Use luxon to format in user's timezone
-    return DateTime.fromJSDate(date)
-      .setZone(userTimezone)
-      .toLocaleString(DateTime.DATETIME_FULL);
+    // Simple format in user's timezone
+    return date.toLocaleString('en-US', {
+      timeZone: userTimezone,
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   }
 }
 
