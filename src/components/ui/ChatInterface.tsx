@@ -52,7 +52,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     endTime?: string;
     attendees: string[];
   }) => {
-    const response = await fetch('/api/calendar/event', {
+    const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL;
+    const response = await fetch(`${serverUrl}/api/calendar/event`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

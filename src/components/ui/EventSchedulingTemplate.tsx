@@ -249,7 +249,7 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
         )}
 
         {/* Send Invite Button */}
-        {selectedDateTime && emailInput.trim() && (
+        {selectedDateTime && (
           <div className="flex justify-end pt-3 border-t border-gray-200 dark:border-gray-600">
             <button
               onClick={handleSendInvite}

@@ -29,12 +29,12 @@ export interface BetaUsersListResult {
 
 export class AdminService {
   /**
-   * Checks if the current authenticated user is an admin
+   * Checks if the current authenticated user is an admin using the backend API
    */
   static async checkCurrentUserAdminStatus(): Promise<AdminCheckResult> {
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+
       if (sessionError) {
         console.error('Session error:', sessionError);
         return { isAdmin: false, error: 'Authentication error' };
@@ -44,7 +44,23 @@ export class AdminService {
         return { isAdmin: false, error: 'Not authenticated' };
       }
 
-      return this.checkUserAdminStatusByEmail(session.user.email);
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL;
+      const response = await fetch(`${serverUrl}/api/beta-access/admin-check`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        console.error('Admin status check failed:', result.error);
+        return { isAdmin: false, error: result.error || 'Failed to check admin status' };
+      }
+
+      return { isAdmin: result.isAdmin };
     } catch (error) {
       console.error('Error checking admin status:', error);
       return { isAdmin: false, error: 'Failed to check admin status' };
@@ -226,27 +242,35 @@ export class AdminService {
   }
 
   /**
-   * Checks if a user email has beta access
+   * Checks if the current user has beta access using the backend API
    */
-  static async checkBetaAccess(email: string): Promise<AdminCheckResult> {
+  static async checkBetaAccess(_email?: string): Promise<AdminCheckResult> {
     try {
-      const { error } = await supabase
-        .from('beta_users')
-        .select('email')
-        .eq('email', email.toLowerCase())
-        .eq('is_active', true)
-        .single();
+      // Get JWT token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No matching records found - user does not have beta access
-          return { isAdmin: false };
-        }
-        console.error('Database error checking beta access:', error);
-        return { isAdmin: false, error: error.message };
+      if (!session?.access_token) {
+        console.log('No session available for beta access check');
+        return { isAdmin: false, error: 'No authentication token available' };
       }
 
-      return { isAdmin: true }; // Using isAdmin field for consistency, but this represents beta access
+      const serverUrl = import.meta.env.VITE_RENDER_SERVER_URL;
+      const response = await fetch(`${serverUrl}/api/beta-access/check`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        console.error('Beta access check failed:', result.error);
+        return { isAdmin: false, error: result.error || 'Failed to check beta access' };
+      }
+
+      return { isAdmin: result.hasBetaAccess }; // Using isAdmin field for consistency
     } catch (error) {
       console.error('Error checking beta access:', error);
       return { isAdmin: false, error: 'Failed to check beta access' };
