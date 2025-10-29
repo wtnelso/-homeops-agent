@@ -7,6 +7,7 @@
 
 import { parse as chronoParse } from 'chrono-node';
 import { ChatOpenAI } from '@langchain/openai';
+import moment from 'moment-timezone';
 
 export class EventTemporalParsingService {
   /**
@@ -136,15 +137,9 @@ export class EventTemporalParsingService {
    */
   static parseWithChrono(userQuery, referenceDate, userTimezone = null) {
     try {
-      // Create a reference date in the user's timezone if provided
-      let refDate = referenceDate;
-      if (userTimezone) {
-        // Convert reference date to user's timezone for more accurate parsing
-        console.log(`🌍 Using user timezone: ${userTimezone} for chrono parsing`);
-        refDate = new Date(referenceDate.toLocaleString("en-US", {timeZone: userTimezone}));
-      }
+      console.log(`🌍 Using user timezone: ${userTimezone} for chrono parsing`);
 
-      const results = chronoParse(userQuery, refDate);
+      const results = chronoParse(userQuery, referenceDate);
 
       if (results.length === 0) {
         return null;
@@ -154,27 +149,68 @@ export class EventTemporalParsingService {
       const result = results[0];
 
       if (result.start) {
-        const startDate = result.start.date();
+        // Get the parsed date components from chrono
+        const year = result.start.get('year');
+        const month = result.start.get('month') || 1; // chrono uses 1-based months
+        const day = result.start.get('day');
+        const hour = result.start.get('hour');
+        const minute = result.start.get('minute') || 0;
 
         // Check if chrono found a specific time (has hour component)
-        const hasSpecificTime = result.start.get('hour') !== undefined;
+        const hasSpecificTime = hour !== undefined;
 
-        let endDate;
+        let startDate, endDate;
+
         if (hasSpecificTime) {
-          // For specific times like "Friday at 7 pm", add 1 hour duration
-          endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+          // Create moment in user's timezone with the parsed components
+          if (userTimezone) {
+            const momentInUserTz = moment.tz({
+              year,
+              month: month - 1, // moment uses 0-based months
+              day,
+              hour,
+              minute
+            }, userTimezone);
+
+            startDate = momentInUserTz.toDate();
+            endDate = momentInUserTz.add(1, 'hour').toDate();
+          } else {
+            // No timezone specified, use system local
+            startDate = new Date(year, month - 1, day, hour, minute);
+            endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+          }
+
           console.log(`🕒 Specific time detected: ${startDate.toISOString()} + 1 hour = ${endDate.toISOString()}`);
         } else {
-          // For date-only like "Friday", set to 7 PM - 8 PM same day
-          const eventStart = new Date(startDate);
-          eventStart.setHours(19, 0, 0, 0); // 7 PM
-          const eventEnd = new Date(eventStart);
-          eventEnd.setHours(20, 0, 0, 0); // 8 PM
+          // For date-only like "Friday", set to 7 PM - 8 PM same day in user timezone
+          if (userTimezone) {
+            const startMoment = moment.tz({
+              year,
+              month: month - 1,
+              day,
+              hour: 19, // 7 PM
+              minute: 0
+            }, userTimezone);
 
-          console.log(`🕒 Date-only detected: Setting to 7-8 PM on ${eventStart.toDateString()}`);
+            const endMoment = moment.tz({
+              year,
+              month: month - 1,
+              day,
+              hour: 20, // 8 PM
+              minute: 0
+            }, userTimezone);
+
+            startDate = startMoment.toDate();
+            endDate = endMoment.toDate();
+          } else {
+            startDate = new Date(year, month - 1, day, 19, 0); // 7 PM
+            endDate = new Date(year, month - 1, day, 20, 0); // 8 PM
+          }
+
+          console.log(`🕒 Date-only detected: Setting to 7-8 PM on ${startDate.toDateString()}`);
           return {
-            startDate: eventStart,
-            endDate: eventEnd,
+            startDate,
+            endDate,
             phrase: result.text,
             source: 'chrono-enhanced',
             userTimezone

@@ -37,6 +37,7 @@
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.7.2",
     "mailparser": "^3.7.5",
+    "moment-timezone": "^0.6.0",
     "multer": "^2.0.2",
     "node-cron": "^3.0.3",
     "node-fetch": "^3.3.2",
