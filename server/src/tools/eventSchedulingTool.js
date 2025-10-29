@@ -335,7 +335,7 @@ If you cannot parse the request, return: {"success": false, "error": "reason"}`;
       source: 'event_scheduling',
       action: 'event_scheduling',
       event_id: `event_${Date.now()}`, // Generate temporary ID
-      event_title: combinedData.event,
+      event_title: combinedData.event ? combinedData.event.charAt(0).toUpperCase() + combinedData.event.slice(1) : combinedData.event,
       attendees: combinedData.attendees,
       timeframe: timeInfo.originalTimeframe,
       time_type: timeInfo.type,

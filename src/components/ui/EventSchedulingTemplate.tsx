@@ -28,14 +28,39 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
   const [isInviteSending, setIsInviteSending] = useState(false);
   const [isInviteCreated, setIsInviteCreated] = useState(false);
   const [eventHtmlLink, setEventHtmlLink] = useState<string | null>(null);
+  const [eventTitle, setEventTitle] = useState(
+    eventData.event_title || data.title || ''
+  );
 
   // State for selected date/time
   const [selectedDateTime, setSelectedDateTime] = useState<string | null>(
     eventData.start_time || null
   );
+  const [selectedEndTime, setSelectedEndTime] = useState<string | null>(
+    eventData.end_time || (eventData.start_time ? new Date(new Date(eventData.start_time).getTime() + 60 * 60 * 1000).toISOString() : null)
+  );
   const [showCalendarPicker, setShowCalendarPicker] = useState(false);
   const [pickerDate, setPickerDate] = useState('');
   const [pickerTime, setPickerTime] = useState('');
+  const [pickerEndDate, setPickerEndDate] = useState('');
+  const [pickerEndTime, setPickerEndTime] = useState('');
+
+  // Function to open calendar picker with prepopulated values
+  const openCalendarPicker = () => {
+    // Prepopulate with current values or defaults
+    const startDate = selectedDateTime ? new Date(selectedDateTime) : new Date();
+    const endDate = selectedEndTime ? new Date(selectedEndTime) : new Date(startDate.getTime() + 60 * 60 * 1000);
+
+    // Format for date inputs (YYYY-MM-DD)
+    setPickerDate(startDate.toISOString().split('T')[0]);
+    setPickerEndDate(endDate.toISOString().split('T')[0]);
+
+    // Format for time inputs (HH:MM)
+    setPickerTime(startDate.toTimeString().slice(0, 5));
+    setPickerEndTime(endDate.toTimeString().slice(0, 5));
+
+    setShowCalendarPicker(true);
+  };
 
   const formatTime = (isoString: string | null) => {
     if (!isoString) return 'Time TBD';
@@ -76,18 +101,46 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
     }
 
     date.setHours(hour24, minutes, 0, 0);
-    console.log('Selected time:', date.toISOString());
-    setSelectedDateTime(date.toISOString());
+    const startTime = date.toISOString();
+    const endTime = new Date(date.getTime() + 60 * 60 * 1000).toISOString(); // Default 1 hour duration
+
+    console.log('Selected time:', startTime);
+    setSelectedDateTime(startTime);
+    setSelectedEndTime(endTime);
+  };
+
+  // Validate that end time is after start time
+  const isEndTimeValid = () => {
+    if (!pickerDate || !pickerTime) return true; // No validation if start time not set
+    if (!pickerEndDate || !pickerEndTime) return true; // No validation if end time not set (will default)
+
+    const startDateTime = new Date(`${pickerDate}T${pickerTime}:00`);
+    const endDateTime = new Date(`${pickerEndDate}T${pickerEndTime}:00`);
+
+    return endDateTime > startDateTime;
   };
 
   // Handle custom date/time selection from calendar picker
   const handleCustomTimeSelection = () => {
     if (pickerDate && pickerTime) {
-      const dateTime = new Date(`${pickerDate}T${pickerTime}:00`);
-      setSelectedDateTime(dateTime.toISOString());
+      const startDateTime = new Date(`${pickerDate}T${pickerTime}:00`);
+      const endDateTime = (pickerEndDate && pickerEndTime)
+        ? new Date(`${pickerEndDate}T${pickerEndTime}:00`)
+        : new Date(startDateTime.getTime() + 60 * 60 * 1000); // Default 1 hour if no end time
+
+      // Validate end time is after start time
+      if (endDateTime <= startDateTime) {
+        alert('End time must be after start time');
+        return;
+      }
+
+      setSelectedDateTime(startDateTime.toISOString());
+      setSelectedEndTime(endDateTime.toISOString());
       setShowCalendarPicker(false);
       setPickerDate('');
       setPickerTime('');
+      setPickerEndDate('');
+      setPickerEndTime('');
     }
   };
 
@@ -103,9 +156,9 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
 
         const result = await onSendInvite({
           eventId: eventData.event_id,
-          title: data.title,
+          title: eventTitle,
           startTime,
-          endTime,
+          endTime: selectedEndTime || endTime,
           attendees
         });
 
@@ -158,36 +211,63 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
         {/* Event Title */}
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0" />
-          <span className="font-medium text-gray-900 dark:text-white">
-            {data.title}
-          </span>
+          <div className="flex-1 min-w-0">
+            <input
+              type="text"
+              value={eventTitle}
+              onChange={(e) => setEventTitle(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Event title"
+            />
+          </div>
         </div>
 
         {/* Time Information */}
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" />
+        <div className="flex items-start gap-2">
+          <button
+            onClick={openCalendarPicker}
+            className="mt-0.5"
+          >
+            <Clock className="h-4 w-4 text-blue-600 hover:text-blue-700 cursor-pointer transition-colors" />
+          </button>
           <div className="flex-1 min-w-0">
             {selectedDateTime ? (
-              <span className="text-gray-700 dark:text-gray-300 font-medium">
-                {formatTime(selectedDateTime)}
-              </span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Start</span>
+                  <button
+                    onClick={openCalendarPicker}
+                    className="text-gray-700 dark:text-gray-300 font-medium hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer underline decoration-transparent hover:decoration-current transition-all text-sm"
+                  >
+                    {formatTime(selectedDateTime)}
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">End</span>
+                  <button
+                    onClick={openCalendarPicker}
+                    className="text-gray-700 dark:text-gray-300 font-medium hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer underline decoration-transparent hover:decoration-current transition-all text-sm"
+                  >
+                    {selectedEndTime ? formatTime(selectedEndTime) : 'Set end time'}
+                  </button>
+                </div>
+              </div>
             ) : eventData.start_time ? (
-              <span className="text-gray-700 dark:text-gray-300">
+              <button
+                onClick={openCalendarPicker}
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer underline decoration-transparent hover:decoration-current transition-all"
+              >
                 {eventData.start_time}
-              </span>
+              </button>
             ) : (
-              <span className="text-gray-500 dark:text-gray-400">
-                {eventData.timeframe || 'Time to be determined'}
-              </span>
+              <button
+                onClick={openCalendarPicker}
+                className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer underline decoration-transparent hover:decoration-current transition-all"
+              >
+                {eventData.timeframe || 'Click to set time'}
+              </button>
             )}
           </div>
-          <button
-            onClick={() => setShowCalendarPicker(true)}
-            className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md text-sm hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1"
-          >
-            <CalendarDays className="h-3 w-3" />
-            {selectedDateTime ? 'Change Time' : 'Pick Time'}
-          </button>
         </div>
 
         {/* Attendees */}
@@ -268,31 +348,74 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 max-w-[90vw]">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Select Date & Time</h3>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* Start Date & Time */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={pickerDate}
-                    onChange={(e) => setPickerDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    min={new Date().toISOString().split('T')[0]}
-                  />
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Start</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={pickerDate}
+                        onChange={(e) => setPickerDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Time
+                      </label>
+                      <input
+                        type="time"
+                        value={pickerTime}
+                        onChange={(e) => setPickerTime(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
                 </div>
 
+                {/* End Date & Time */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Time
-                  </label>
-                  <input
-                    type="time"
-                    value={pickerTime}
-                    onChange={(e) => setPickerTime(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">End</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={pickerEndDate}
+                        onChange={(e) => setPickerEndDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Time
+                      </label>
+                      <input
+                        type="time"
+                        value={pickerEndTime}
+                        onChange={(e) => setPickerEndTime(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
                 </div>
+
+                {/* Validation Error */}
+                {pickerDate && pickerTime && pickerEndDate && pickerEndTime && !isEndTimeValid() && (
+                  <div className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+                    <span>⚠️</span>
+                    <span>End time must be after start time</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
@@ -304,7 +427,7 @@ export const EventSchedulingTemplate: React.FC<EventSchedulingTemplateProps> = (
                 </button>
                 <button
                   onClick={handleCustomTimeSelection}
-                  disabled={!pickerDate || !pickerTime}
+                  disabled={!pickerDate || !pickerTime || !isEndTimeValid()}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Select Time
