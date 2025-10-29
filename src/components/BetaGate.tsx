@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { AdminService } from '../services/adminService';
 import { BETA_MODE } from '../config/routes';
@@ -14,6 +14,7 @@ const BetaGate: React.FC<BetaGateProps> = ({ children }) => {
   const [betaLoading, setBetaLoading] = useState(true);
   const [hasBetaAccess, setHasBetaAccess] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const hasCheckedRef = useRef(false);
 
   // If beta mode is disabled, allow all users through
   if (!BETA_MODE) {
@@ -22,31 +23,42 @@ const BetaGate: React.FC<BetaGateProps> = ({ children }) => {
 
   useEffect(() => {
     const checkBetaAccess = async () => {
+      // Wait for auth to finish loading
       if (authLoading) {
-        return; // Wait for auth to finish loading
+        return;
       }
 
+      // If no user, stop loading and let auth handle redirect
       if (!user?.email) {
         setBetaLoading(false);
-        return; // Will be handled by auth redirect
+        return;
+      }
+
+      // Only check once per session - if we've already checked, skip
+      if (hasCheckedRef.current) {
+        setBetaLoading(false);
+        return;
       }
 
       try {
         setBetaLoading(true);
-        
-        // Check both admin status and beta access
+
+        // Check both admin status and beta access once
         const [adminCheck, betaCheck] = await Promise.all([
           AdminService.checkCurrentUserAdminStatus(),
           AdminService.checkBetaAccess(user.email)
         ]);
 
-        setIsAdmin(adminCheck.isAdmin);
-        setHasBetaAccess(betaCheck.isAdmin); // Using isAdmin field for beta access check
+        const adminStatus = adminCheck.isAdmin;
+        const betaStatus = betaCheck.isAdmin; // Using isAdmin field for beta access check
+        const finalBetaAccess = adminStatus || betaStatus; // Admins automatically have beta access
 
-        // Admins automatically have beta access
-        if (adminCheck.isAdmin) {
-          setHasBetaAccess(true);
-        }
+        setIsAdmin(adminStatus);
+        setHasBetaAccess(finalBetaAccess);
+
+        // Mark as checked - won't check again this session
+        hasCheckedRef.current = true;
+
       } catch (error) {
         console.error('Error checking beta access:', error);
         setHasBetaAccess(false);
@@ -57,7 +69,7 @@ const BetaGate: React.FC<BetaGateProps> = ({ children }) => {
     };
 
     checkBetaAccess();
-  }, [user, authLoading]);
+  }, [user?.email, authLoading]); // Only when user email changes or auth loading changes
 
   const handleSignOut = async () => {
     try {
