@@ -305,31 +305,48 @@ export class GoogleCalendarTool extends Tool {
         throw new Error('Start date and end date are required for finding free time');
       }
 
+      if (!accessToken) {
+        throw new Error('Access token is required for calendar operations');
+      }
+
       // Parse duration (default 1 hour)
       const durationMinutes = this.parseDuration(duration);
+      console.log(`🔍 Parsed duration: ${durationMinutes} minutes`);
 
       // Get existing events in the date range
+      console.log(`🔍 Getting existing events...`);
       const existingEvents = await this.getEventsInRange(accessToken, startDate, endDate);
+      console.log(`🔍 Found ${existingEvents?.length || 0} existing events`);
 
       // Generate time slot suggestions
+      console.log(`🔍 Generating available slots...`);
       const suggestions = this.generateAvailableSlots(startDate, endDate, durationMinutes, existingEvents);
+      console.log(`🔍 Generated ${suggestions?.length || 0} suggestions`);
 
-      return JSON.stringify({
+      const result = {
         success: true,
         action: 'find_free_time',
         query: query,
         dateRange: `${startDate} to ${endDate}`,
         duration: duration,
-        suggestions: suggestions,
-        totalSuggestions: suggestions.length
-      });
+        suggestions: suggestions || [],
+        totalSuggestions: suggestions?.length || 0
+      };
+
+      console.log(`🔍 Find free time returning:`, JSON.stringify(result, null, 2));
+      return JSON.stringify(result);
 
     } catch (error) {
       console.error('🔍 Find free time error:', error);
+      console.error('🔍 Error details:', {
+        name: error?.name,
+        message: error?.message,
+        stack: error?.stack
+      });
       return JSON.stringify({
         success: false,
         error: 'Failed to find free time',
-        details: error.message
+        details: error?.message || 'Unknown error'
       });
     }
   }
@@ -403,6 +420,8 @@ export class GoogleCalendarTool extends Tool {
       const start = new Date(startDate);
       const end = new Date(endDate);
 
+      console.log(`📅 Getting events in range: ${start.toISOString()} to ${end.toISOString()}`);
+
       const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
         `timeMin=${start.toISOString()}&` +
         `timeMax=${end.toISOString()}&` +
@@ -417,11 +436,16 @@ export class GoogleCalendarTool extends Tool {
         }
       });
 
+      console.log(`📅 Calendar API response status: ${response.status}`);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`📅 Calendar API error: ${response.status} ${response.statusText}`, errorText);
         throw new Error(`Calendar API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log(`📅 Calendar API returned ${data.items?.length || 0} events`);
       return data.items || [];
 
     } catch (error) {
