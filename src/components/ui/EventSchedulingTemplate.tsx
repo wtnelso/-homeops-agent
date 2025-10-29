@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Calendar, Clock, Users, CheckCircle, Send, CalendarDays, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, Users, CheckCircle, Send, ExternalLink } from 'lucide-react';
 import { StructuredData } from '../../services/streamingChatService';
 import { useToast } from '../../contexts/ToastContext';
 
