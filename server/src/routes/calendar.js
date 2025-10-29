@@ -57,16 +57,25 @@ router.post('/event', async (req, res) => {
     const start = new Date(startTime);
     const end = endTime ? new Date(endTime) : new Date(start.getTime() + 60 * 60 * 1000);
 
-    // Create event directly using Google Calendar API instead of the tool
+    // Get user timezone from database
+    const { data: user } = await supabase
+      .from('users')
+      .select('timezone')
+      .eq('id', userId)
+      .single();
+    const userTimezone = user.timezone;
+    console.log(`🌍 Using user timezone for calendar: ${userTimezone}`);
+
+    // Create event directly using Google Calendar API with user timezone
     const eventData = {
       summary: title,
       start: {
         dateTime: start.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        timeZone: userTimezone
       },
       end: {
         dateTime: end.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        timeZone: userTimezone
       }
     };
 

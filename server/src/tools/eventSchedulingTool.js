@@ -81,19 +81,16 @@ export class EventSchedulingTool extends Tool {
       // STEP 1: Get temporal information from EventTemporalParsingService
       const { EventTemporalParsingService } = await import('../services/eventTemporalParsingService.js');
 
-      // Get user timezone
+      // Get user timezone from database
       let userTimezone;
       if (this.userId) {
-        try {
-          const { data: user } = await this.supabase
-            .from('users')
-            .select('timezone')
-            .eq('id', this.userId)
-            .single();
-          userTimezone = user?.timezone;
-        } catch (error) {
-          console.log(`⚠️ Could not fetch user timezone`);
-        }
+        const { data: user } = await this.supabase
+          .from('users')
+          .select('timezone')
+          .eq('id', this.userId)
+          .single();
+        userTimezone = user.timezone;
+        console.log(`🌍 Using user timezone: ${userTimezone}`);
       }
 
       const temporal = await EventTemporalParsingService.parseEventTemporal(userMessage, new Date(), userTimezone);

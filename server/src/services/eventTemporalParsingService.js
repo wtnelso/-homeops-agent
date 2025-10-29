@@ -136,7 +136,15 @@ export class EventTemporalParsingService {
    */
   static parseWithChrono(userQuery, referenceDate, userTimezone = null) {
     try {
-      const results = chronoParse(userQuery, referenceDate);
+      // Create a reference date in the user's timezone if provided
+      let refDate = referenceDate;
+      if (userTimezone) {
+        // Convert reference date to user's timezone for more accurate parsing
+        console.log(`🌍 Using user timezone: ${userTimezone} for chrono parsing`);
+        refDate = new Date(referenceDate.toLocaleString("en-US", {timeZone: userTimezone}));
+      }
+
+      const results = chronoParse(userQuery, refDate);
 
       if (results.length === 0) {
         return null;
