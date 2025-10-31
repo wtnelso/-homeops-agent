@@ -8,7 +8,12 @@
 import { Tool } from '@langchain/core/tools';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import fetch from 'node-fetch';
 import { OPENAI_CONFIG, TOOLS_CONFIG } from '../config/chatConfig.js';
+
+// Polyfill fetch for OpenAI SDK compatibility with Node.js 20
+// TODO: Remove this when Node.js/undici fixes the "cookies is not iterable" bug
+globalThis.fetch = fetch;
 
 export class SemanticSearchTool extends Tool {
   name = 'semantic_email_search';
@@ -27,7 +32,11 @@ export class SemanticSearchTool extends Tool {
     super();
     this.userId = userId;
     this.supabase = createClient(supabaseUrl, supabaseServiceKey);
-    this.openai = new OpenAI({ apiKey: openaiApiKey });
+    this.openai = new OpenAI({
+      apiKey: openaiApiKey,
+      // Force using node-fetch to avoid undici cookies issue
+      fetch: fetch
+    });
   }
 
   /**

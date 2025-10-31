@@ -850,7 +850,7 @@ Please provide a natural, conversational response based on this information. Do 
   createTool(toolName, userId) {
     const toolFactories = {
       gmail_search: () => new GmailSearchTool({ userId }),
-      semantic_search: () => new SemanticSearchTool({
+      semantic_email_search: () => new SemanticSearchTool({
         userId,
         supabaseUrl: process.env.SUPABASE_URL,
         supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -882,7 +882,7 @@ Please provide a natural, conversational response based on this information. Do 
    */
   createLangChainTools(userId) {
     // For LangChain fallback, create essential tools including family_activities and event_scheduling
-    const essentialTools = ['gmail_search', 'calendar', 'agent_memory', 'family_activities', 'event_scheduling', 'conversational_llm'];
+    const essentialTools = ['gmail_search', 'semantic_email_search', 'calendar', 'agent_memory', 'family_activities', 'event_scheduling', 'conversational_llm'];
     const tools = [];
 
     for (const toolName of essentialTools) {

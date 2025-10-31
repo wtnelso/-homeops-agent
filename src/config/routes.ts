@@ -10,6 +10,7 @@ export const ROUTES = {
   PRICING1: '/pricing1',
   HOMEOPS_VNEXT: '/homeops-vnext',
   HOMEOPS_LANDING: '/landing',
+  BETA_LANDING: '/beta-landing',
   DASHBOARD: '/dashboard',
   DASHBOARD_HOME: '/dashboard/home',
   DASHBOARD_CALENDAR: '/dashboard/calendar',

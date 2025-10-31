@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Homepage1 from './components/marketing/Homepage1'
 import Pricing1 from './components/marketing/Pricing1'
 import HomeOpsLanding from './components/marketing/HomeOpsLanding'
+import Landing from './pages/Landing'
 import DashboardLayout from './components/DashboardLayout'
 import SettingsLayout from './components/SettingsLayout'
 import PricingPage from './components/marketing/PricingPage'
@@ -77,6 +78,10 @@ const AppContent = () => {
         <Router>
           <RouteGuard>
             <PasswordResetGuard>
+              <Routes>
+                {/* Beta landing page - accessible outside beta gate */}
+                <Route path={ROUTES.BETA_LANDING} element={<Landing />} />
+              </Routes>
               <BetaGate>
               <Routes>
               <Route path={ROUTES.HOME} element={<HomeOpsLanding />} />

@@ -159,8 +159,8 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
         // Get integrations data for the user
         const integrations = await IntegrationsDataService.getIntegrationsForUser(userData.user.id);
 
-        // Find Gmail-forwarding and Google Calendar integrations
-        const gmail = integrations.find(integration => integration.id === 'gmail-forwarding');
+        // Find Gmail and Google Calendar integrations
+        const gmail = integrations.find(integration => integration.id === 'gmail');
         const calendar = integrations.find(integration => integration.id === 'google-calendar');
         setGmailIntegration(gmail || null);
         setCalendarIntegration(calendar || null);
@@ -208,7 +208,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
               await refreshUserData();
               // Also refresh local integration data
               const integrations = await IntegrationsDataService.getIntegrationsForUser(userData.user.id);
-              const gmail = integrations.find(integration => integration.id === 'gmail-forwarding');
+              const gmail = integrations.find(integration => integration.id === 'gmail');
               const calendar = integrations.find(integration => integration.id === 'google-calendar');
               setGmailIntegration(gmail || null);
               setCalendarIntegration(calendar || null);
@@ -346,7 +346,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
       }
 
       // Determine current integration status
-      const currentIntegration = integrationId === 'gmail-forwarding' ? gmailIntegration : calendarIntegration;
+      const currentIntegration = integrationId === 'gmail' ? gmailIntegration : calendarIntegration;
       const isConnected = currentIntegration?.isConnected || false;
 
       console.log('🔍 Debug handleGmailConnect:', {
@@ -410,30 +410,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
         // Install/Connect integration
         console.log('Installing integration:', integrationId);
 
-        if (integrationId === 'gmail-forwarding') {
-          // Use specialized Gmail-forwarding service
-          const { GmailForwardingService } = await import('../../services/gmailForwardingService');
-
-          const result = await GmailForwardingService.installGmailForwarding({
-            userId: userData.user.id,
-            installedByUserId: userData.user.id
-          });
-
-          if (result.success) {
-            console.log('Gmail-forwarding integration installed successfully:', result);
-            // Refresh global user data (like IntegrationsSection does)
-            await refreshUserData();
-            // Reload integration data to get the generated email address
-            const integrations = await IntegrationsDataService.getIntegrationsForUser(userData.user.id);
-            const gmail = integrations.find(integration => integration.id === 'gmail-forwarding');
-            const calendar = integrations.find(integration => integration.id === 'google-calendar');
-            console.log('Reloaded Gmail integration data:', gmail);
-            setGmailIntegration(gmail || null);
-            setCalendarIntegration(calendar || null);
-          } else {
-            console.error('Failed to install Gmail-forwarding integration:', result.error);
-          }
-        } else if (OAuthCoordinator.requiresOAuth(integrationId)) {
+        if (OAuthCoordinator.requiresOAuth(integrationId)) {
 
           // OAuth flow will handle the connection and call our callback
           OAuthCoordinator.startFlow(integrationId, OAUTH_RETURN_URLS.ONBOARDING_STEP_3);
@@ -449,7 +426,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
             console.log('Integration installed successfully');
             // Reload integration data
             const integrations = await IntegrationsDataService.getIntegrationsForUser(userData.user.id);
-            const gmail = integrations.find(integration => integration.id === 'gmail-forwarding');
+            const gmail = integrations.find(integration => integration.id === 'gmail');
             const calendar = integrations.find(integration => integration.id === 'google-calendar');
             setGmailIntegration(gmail || null);
             setCalendarIntegration(calendar || null);
@@ -1016,7 +993,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
             category: selectedIntegration.category,
             required_scopes: selectedIntegration.required_scopes,
             // Use current state instead of stale selectedIntegration
-            isConnected: selectedIntegration.id === 'gmail-forwarding'
+            isConnected: selectedIntegration.id === 'gmail'
               ? (gmailIntegration?.isConnected ?? false)
               : selectedIntegration.id === 'google-calendar'
               ? (calendarIntegration?.isConnected ?? false)
@@ -1041,7 +1018,7 @@ const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {processingIntegration === 'gmail-forwarding' ? 'Processing Gmail connection...' : 'Processing connection...'}
+                  {processingIntegration === 'gmail' ? 'Processing Gmail connection...' : 'Processing connection...'}
                 </p>
               </div>
             </div>

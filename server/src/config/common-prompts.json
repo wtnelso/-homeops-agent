@@ -298,14 +298,97 @@
     },
 
     "check my email": {
-      "tools": ["gmail_search"],
+      "tools": ["gmail_search", "semantic_email_search"],
       "dateRange": null,
       "query": "in:inbox",
-      "params": { "gmail_search": { "maxResults": 10 } },
+      "params": {
+        "gmail_search": { "maxResults": 10 },
+        "semantic_email_search": { "query": "recent emails" }
+      },
       "response_template": {
         "type": "structured_data",
         "template_name": "email_list",
         "title": "Your recent emails"
+      },
+      "bypass_llm": true
+    },
+
+    "check my recent emails": {
+      "tools": ["gmail_search", "semantic_email_search"],
+      "dateRange": null,
+      "query": "in:inbox newer_than:7d",
+      "params": {
+        "gmail_search": { "maxResults": 10 },
+        "semantic_email_search": { "query": "recent emails" }
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Your recent emails"
+      },
+      "bypass_llm": true
+    },
+
+    "what are my recent emails": {
+      "tools": ["gmail_search", "semantic_email_search"],
+      "dateRange": null,
+      "query": "in:inbox newer_than:7d",
+      "params": {
+        "gmail_search": { "maxResults": 10 },
+        "semantic_email_search": { "query": "recent emails" }
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Your recent emails"
+      },
+      "bypass_llm": true
+    },
+
+    "what are some of my recent emails": {
+      "tools": ["gmail_search", "semantic_email_search"],
+      "dateRange": null,
+      "query": "in:inbox newer_than:7d",
+      "params": {
+        "gmail_search": { "maxResults": 10 },
+        "semantic_email_search": { "query": "recent emails" }
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Your recent emails"
+      },
+      "bypass_llm": true
+    },
+
+    "check my recent emails about calendar invites": {
+      "tools": ["gmail_search", "semantic_email_search"],
+      "dateRange": null,
+      "query": "calendar OR invite OR invitation OR .ics OR meeting OR event",
+      "params": {
+        "gmail_search": { "maxResults": 8 },
+        "semantic_email_search": { "query": "calendar invites meetings events" }
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Recent emails about calendar invites"
+      },
+      "bypass_llm": true
+    },
+
+    "emails about calendar invites": {
+      "tools": ["gmail_search", "semantic_email_search"],
+      "dateRange": null,
+      "query": "calendar OR invite OR invitation OR .ics OR meeting OR event",
+      "params": {
+        "gmail_search": { "maxResults": 8 },
+        "semantic_email_search": { "query": "calendar invites meetings events" }
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails about calendar invites"
       },
       "bypass_llm": true
     },
@@ -483,10 +566,13 @@
       "bypass_llm": true
     },
     "emails about {subject}": {
-      "tools": ["gmail_search"],
+      "tools": ["gmail_search", "semantic_email_search"],
       "dateRange": null,
-      "query": "subject:{subject}",
-      "params": { "gmail_search": {} },
+      "query": "{subject} OR subject:{subject}",
+      "params": {
+        "gmail_search": {},
+        "semantic_email_search": { "query": "{subject}" }
+      },
       "response_template": {
         "type": "structured_data",
         "template_name": "email_list",
@@ -495,14 +581,49 @@
       "bypass_llm": true
     },
     "any emails about {subject}": {
-      "tools": ["gmail_search"],
+      "tools": ["gmail_search", "semantic_email_search"],
       "dateRange": null,
-      "query": "subject:{subject}",
-      "params": { "gmail_search": {} },
+      "query": "{subject} OR subject:{subject}",
+      "params": {
+        "gmail_search": {},
+        "semantic_email_search": { "query": "{subject}" }
+      },
       "response_template": {
         "type": "structured_data",
         "template_name": "email_list",
         "title": "Emails about {subject}"
+      },
+      "bypass_llm": true
+    },
+
+    "check my emails about {subject}": {
+      "tools": ["gmail_search", "semantic_email_search"],
+      "dateRange": null,
+      "query": "{subject} OR subject:{subject}",
+      "params": {
+        "gmail_search": {},
+        "semantic_email_search": { "query": "{subject}" }
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Emails about {subject}"
+      },
+      "bypass_llm": true
+    },
+
+    "search my emails for {subject}": {
+      "tools": ["gmail_search", "semantic_email_search"],
+      "dateRange": null,
+      "query": "{subject}",
+      "params": {
+        "gmail_search": {},
+        "semantic_email_search": { "query": "{subject}" }
+      },
+      "response_template": {
+        "type": "structured_data",
+        "template_name": "email_list",
+        "title": "Search results for {subject}"
       },
       "bypass_llm": true
     },

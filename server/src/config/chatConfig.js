@@ -95,15 +95,15 @@ export const OPENAI_CONFIG = {
 };
 
 export const TOOLS_CONFIG = {
-  // Gmail Tool Settings (DISABLED - using semantic_search only for email)
+  // Gmail Tool Settings (ENABLED - direct Gmail API search)
   gmail: {
-    enabled: false,
+    enabled: true,
     className: 'GmailSearchTool',
     importPath: '../tools/gmailSearchTool.js',
     maxResults: 8,
     timeoutMs: 5000,
     costPerCallCents: 0.2,
-    description: 'Direct Gmail API search with precise query operators (DISABLED)',
+    description: 'Direct Gmail API search with precise query operators',
     category: 'email',
     dependencies: ['oauth'],
     routing: {
